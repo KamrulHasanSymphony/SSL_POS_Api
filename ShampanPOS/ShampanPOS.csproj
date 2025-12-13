@@ -31,4 +31,8 @@
     <None Include="D:\GitProjects\ShampanPOS\Backend\ShampanPosApi\ShampanPOS\.editorconfig" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\Uploads\" />
+  </ItemGroup>
+
 </Project>
