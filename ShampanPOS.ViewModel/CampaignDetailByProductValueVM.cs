@@ -1,0 +1,28 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ShampanPOS.ViewModel
+{
+    public class CampaignDetailByProductValueVM
+    {
+        public int Id { get; set; }
+        public int CampaignId { get; set; }
+        public int? CampaignTypeId { get; set; }
+        public int BranchId { get; set; }
+        public string? CustomerName { get; set; }
+
+        public int CustomerId { get; set; }
+        public string? ProductName { get; set; }
+        public int ProductId { get; set; }
+        public decimal FromQuantity { get; set; }
+        public decimal ToQuantity { get; set; }
+        public decimal DiscountRateBasedOnUnitPrice { get; set; }
+        public string? CampaignStartDate { get; set; }
+        public string? CampaignEndDate { get; set; }
+        public string? CampaignEntryDate { get; set; }
+    }
+
+}

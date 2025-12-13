@@ -1,0 +1,33 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
+
+namespace ShampanPOS.ViewModel
+{
+
+    public class CustomerCategoryVM
+    {
+        public int? Id { get; set; }
+        public int? CountryId { get; set; }
+        public string Name { get; set; }
+        public string? Code { get; set; }
+
+        [Display(Name = "Archived")]
+        public bool IsArchive { get; set; }
+        [Display(Name = "Active Status")]
+        public bool IsActive { get; set; }
+        public string? CreatedBy { get; set; }
+        [Display(Name = "Created On")]
+        public string? CreatedOn { get; set; }
+        public string? LastModifiedBy { get; set; }
+        public string? LastModifiedOn { get; set; }
+        public string? LastUpdateFrom { get; set; }
+        public string? Operation { get; set; }
+        public string? CreatedFrom { get; set; }
+        public string? Status { get; set; }
+    }
+
+}
