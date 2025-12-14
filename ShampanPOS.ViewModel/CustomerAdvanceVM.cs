@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
 
 namespace ShampanPOS.ViewModel
 {
-
     public class CustomerAdvanceVM
     {
+
         public int Id { get; set; }
 
 
@@ -21,12 +22,12 @@ namespace ShampanPOS.ViewModel
 
         [Display(Name = "Advance Entry Date")]
         public string? AdvanceEntryDate { get; set; }
-        public string? Name { get; set; }
-        public string? EnumType { get; set; }
         public string? Operation { get; set; }
 
         [Display(Name = "Advance Amount")]
-        public decimal AdvanceAmount { get; set; }
+        [DataType(DataType.Currency)]
+        [Range(1, double.MaxValue, ErrorMessage = "Advance Amount must be greater than zero.")]
+        public decimal? AdvanceAmount { get; set; }
 
         [Display(Name = "Payment Type")]
         public int? PaymentEnumTypeId { get; set; }
@@ -44,24 +45,8 @@ namespace ShampanPOS.ViewModel
         public string? BankBranchName { get; set; }
         [Display(Name = "Distributor Code")]
 
-        //public string? DistributorCode { get; set; }
         public string? Code { get; set; }
 
-
-        //[Display(Name = "Received By Delivery Person")]
-        //public int? ReceiveByDeliveryPersonId { get; set; }
-
-        //[Display(Name = "Received By Enum Type")]
-        //public int? ReceiveByEnumTypeId { get; set; }
-
-        //[Display(Name = "Approved")]
-        //public bool IsApproved { get; set; }
-
-        //[Display(Name = "Approved By")]
-        //public int? ApproveBy { get; set; }
-
-        //[Display(Name = "Approval Date")]
-        //public string? ApproveDate { get; set; }
 
         [Display(Name = "Posted")]
         public bool IsPosted { get; set; }
@@ -85,7 +70,6 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Last Modified On")]
         public string? LastModifiedOn { get; set; }
         public string? LastUpdateFrom { get; set; }
-        //public string? BanglaName { get; set; }
         public string? PostedOn { get; set; }
         public string? Status { get; set; }
         public bool IsPost { get; set; }
@@ -93,8 +77,5 @@ namespace ShampanPOS.ViewModel
         public bool? IsIndex { get; set; }
         public string? CustomerCode { get; set; }
 
-
     }
-
-
 }

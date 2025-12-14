@@ -25,21 +25,7 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Parent")]
         public int? ParentId { get; set; }
         public string? EnumType { get; set; }
-
-        [Display(Name = "Enum Type")]
-        public int? EnumTypeId { get; set; }
-
-        [Display(Name = "Enum Name")]
-        public string? EnumName { get; set; }
-
-        [Display(Name = "Area")]
-        public int? AreaId { get; set; }
-
-        [Display(Name = "Area Name")]
-        public string? AreaName { get; set; }
-
-        [Display(Name = "Currency")]
-        public int? CurrencyId { get; set; }
+  
 
         [Display(Name = "Telephone Number")]
         public string? TelephoneNo { get; set; }

@@ -46,7 +46,6 @@ namespace ShampanPOS.ViewModel
         public string? LastUpdateFrom { get; set; }
 
         public string? CreatedFrom { get; set; }
-        public string? Status { get; set; }
     }
 
 

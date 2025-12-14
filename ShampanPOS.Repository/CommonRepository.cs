@@ -1264,78 +1264,7 @@ WHERE
         }
 
 
-        public async Task<ResultVM> ParentBranchProfileList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
-        {
-            bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
 
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    conn.Open();
-                    isNewConnection = true;
-                }
-
-                string query = @"
-
-            SELECT '' Code,0 Id,'All' Name,'' Email
-            UNION ALL
-			SELECT DISTINCT
-			 ISNULL(H.Code,'') Code
-			,ISNULL(H.Id,0) Id
-			,ISNULL(H.Name,'') Name
-		    ,ISNULL(H.Email,'') Email
-			
-		
-			FROM BranchProfiles H
-
-			WHERE H.IsActive=1 ";
-
-
-                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
-
-                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
-
-                // SET additional conditions param
-                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
-
-
-
-                objComm.Fill(dataTable);
-
-                var modelList = dataTable.AsEnumerable().Select(row => new BranchProfileVM
-                {
-                    Id = Convert.ToInt32(row["Id"]),
-                    Name = row["Name"]?.ToString(),
-                    Code = row["Code"]?.ToString(),
-                    Email = row["Email"]?.ToString(),
-
-
-                }).ToList();
-
-
-                result.Status = "Success";
-                result.Message = "Data retrieved successfully.";
-                result.DataVM = modelList;
-                return result;
-            }
-            catch (Exception ex)
-            {
-                result.ExMessage = ex.Message;
-                result.Message = ex.Message;
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
 
         //public async Task<ResultVM> ParentSalePersonList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         //{
@@ -2045,73 +1974,7 @@ WHERE
         //    }
         //}
 
-        public async Task<ResultVM> CustomerCategoryList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
-        {
-            bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
 
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    conn.Open();
-                    isNewConnection = true;
-                }
-
-                string sqlQuery = @"
-
-
-                         SELECT DISTINCT
-                         ISNULL(H.Id, 0) AS Id,
-                         ISNULL(H.Name, '') AS Name,
-                         ISNULL(H.EffectDate, '') AS EffectDate
-
-                     FROM ProductPriceGroups H
-                     WHERE 1 = 1
-
-
-                ";
-
-
-                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
-
-                SqlDataAdapter objComm = CreateAdapter(sqlQuery, conn, transaction);
-
-                // SET additional conditions param
-                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
-
-                objComm.Fill(dataTable);
-
-                var modelList = dataTable.AsEnumerable().Select(row => new CustomerCategoryVM
-                {
-                    Id = Convert.ToInt32(row["Id"]),
-                    Name = row["Name"]?.ToString()
-                    //Code = row["Code"]?.ToString()
-
-                }).ToList();
-
-
-                result.Status = "Success";
-                result.Message = "Data retrieved successfully.";
-                result.DataVM = modelList;
-                return result;
-            }
-            catch (Exception ex)
-            {
-                result.ExMessage = ex.Message;
-                result.Message = ex.Message;
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
 
 
         //public async Task<ResultVM> DeliveryPersonList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
@@ -2263,74 +2126,7 @@ WHERE
                 }
             }
         }
-        public async Task<ResultVM> ReceiveByDeliveryPersonList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
-        {
-            bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
-
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    conn.Open();
-                    isNewConnection = true;
-                }
-                string sqlQuery = @"
-
-                 SELECT DISTINCT
-
-         ISNULL(H.Id,0)	Id
-        ,ISNULL(H.Name,'') Name
-        ,ISNULL(H.EnumType,'') EnumType
-
-        FROM EnumTypes H
-
-        WHERE H.EnumType = 'DeliveryPerson' 
-                     ";
-
-
-                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
-
-                SqlDataAdapter objComm = CreateAdapter(sqlQuery, conn, transaction);
-
-                // SET additional conditions param
-                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
-
-
-
-                objComm.Fill(dataTable);
-
-                var modelList = dataTable.AsEnumerable().Select(row => new CustomerAdvanceVM
-                {
-                    Id = Convert.ToInt32(row["Id"]),
-                    Name = row["Name"]?.ToString(),
-                    EnumType = row["EnumType"]?.ToString()
-
-                }).ToList();
-
-
-                result.Status = "Success";
-                result.Message = "Data retrieved successfully.";
-                result.DataVM = modelList;
-                return result;
-            }
-            catch (Exception ex)
-            {
-                result.ExMessage = ex.Message;
-                result.Message = ex.Message;
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
-        public async Task<ResultVM> CustomerGroupList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+            public async Task<ResultVM> CustomerGroupList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();
@@ -2464,7 +2260,6 @@ WHERE
        //             conn.Close();
        //         }
        //     }
-       // }
         public async Task<ResultVM> SupplierList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
@@ -2700,212 +2495,212 @@ WHERE
 
         // GetProductModalForSaleData Method
         // GetProductModalForSaleData Method (Cleaned Version - No @FromDate)
-        public async Task<ResultVM> GetProductModalForSaleData(
-            string[] conditionalFields,
-            string[] conditionalValues,
-            PeramModel vm = null,
-            SqlConnection conn = null,
-            SqlTransaction transaction = null)
-        {
-            bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+//        public async Task<ResultVM> GetProductModalForSaleData(
+//            string[] conditionalFields,
+//            string[] conditionalValues,
+//            PeramModel vm = null,
+//            SqlConnection conn = null,
+//            SqlTransaction transaction = null)
+//        {
+//            bool isNewConnection = false;
+//            DataTable dataTable = new DataTable();
+//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
 
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    conn.Open();
-                    isNewConnection = true;
-                }
+//            try
+//            {
+//                if (conn == null)
+//                {
+//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+//                    conn.Open();
+//                    isNewConnection = true;
+//                }
 
-                // ✅ Get Customer Category
-                SqlCommand checkCommand = new SqlCommand("SELECT CustomerCategory FROM Customers WHERE Id=@Id", conn, transaction);
-                checkCommand.Parameters.Add("@Id", SqlDbType.BigInt).Value = vm.CustomerId;
-                object res = checkCommand.ExecuteScalar();
-                string customerCategory = res != null ? res.ToString() : "0";
+//                // ✅ Get Customer Category
+//                SqlCommand checkCommand = new SqlCommand("SELECT CustomerCategory FROM Customers WHERE Id=@Id", conn, transaction);
+//                checkCommand.Parameters.Add("@Id", SqlDbType.BigInt).Value = vm.CustomerId;
+//                object res = checkCommand.ExecuteScalar();
+//                string customerCategory = res != null ? res.ToString() : "0";
 
-                // ✅ Main Query (All @FromDate Removed)
-                string query = @"
-SELECT 
-    ISNULL(P.Id,0) AS ProductId, 
-    ISNULL(P.Name,'') AS ProductName,
-    ISNULL(P.BanglaName,'') AS BanglaName, 
-    ISNULL(P.Code,'') AS ProductCode, 
-    ISNULL(P.HSCodeNo,'') AS HSCodeNo,ISNULL(P.ImagePath, '') AS ImagePath,
-    CASE  WHEN P.ImagePath IS NULL OR P.ImagePath = '' THEN '/Content/Products/No_Image_Available.jpg' ELSE P.ImagePath END AS ImagePathImage,
-    ISNULL(P.ProductGroupId, 0) AS ProductGroupId,
-    ISNULL(PG.Name,'') AS ProductGroupName,
-    0 AS UOMId,
-    ISNULL(UOM.Name,'') AS UOMName,
-    ISNULL(PBH.CostPrice,0) AS CostPrice, 
-    ISNULL(PBH.SalesPrice,0) AS SalesPrice, 
-    ISNULL(PBH.PurchasePrice,0) AS PurchasePrice, 
-    ISNULL(PBH.SD,0) AS SD, 
-    ISNULL(PBH.VATRate,0) AS VATRate, 
-    ISNULL(stock.Quantity,0) AS QuantityInHand,
-	ISNULL(CampaignRate.DiscountRate,0)DiscountRate,
-    P.CtnSize AS UOMName,
-    P.CtnSizeFactor AS UOMConversion,
-    CASE WHEN P.IsActive = 1 THEN 'Active' ELSE 'Inactive' END AS Status
+//                // ✅ Main Query (All @FromDate Removed)
+//                string query = @"
+//SELECT 
+//    ISNULL(P.Id,0) AS ProductId, 
+//    ISNULL(P.Name,'') AS ProductName,
+//    ISNULL(P.BanglaName,'') AS BanglaName, 
+//    ISNULL(P.Code,'') AS ProductCode, 
+//    ISNULL(P.HSCodeNo,'') AS HSCodeNo,ISNULL(P.ImagePath, '') AS ImagePath,
+//    CASE  WHEN P.ImagePath IS NULL OR P.ImagePath = '' THEN '/Content/Products/No_Image_Available.jpg' ELSE P.ImagePath END AS ImagePathImage,
+//    ISNULL(P.ProductGroupId, 0) AS ProductGroupId,
+//    ISNULL(PG.Name,'') AS ProductGroupName,
+//    0 AS UOMId,
+//    ISNULL(UOM.Name,'') AS UOMName,
+//    ISNULL(PBH.CostPrice,0) AS CostPrice, 
+//    ISNULL(PBH.SalesPrice,0) AS SalesPrice, 
+//    ISNULL(PBH.PurchasePrice,0) AS PurchasePrice, 
+//    ISNULL(PBH.SD,0) AS SD, 
+//    ISNULL(PBH.VATRate,0) AS VATRate, 
+//    ISNULL(stock.Quantity,0) AS QuantityInHand,
+//	ISNULL(CampaignRate.DiscountRate,0)DiscountRate,
+//    P.CtnSize AS UOMName,
+//    P.CtnSizeFactor AS UOMConversion,
+//    CASE WHEN P.IsActive = 1 THEN 'Active' ELSE 'Inactive' END AS Status
 
-FROM Products P
-LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
-LEFT OUTER JOIN ProductSalePriceBatchHistories PBH ON P.Id = PBH.ProductId
-LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
+//FROM Products P
+//LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+//LEFT OUTER JOIN ProductSalePriceBatchHistories PBH ON P.Id = PBH.ProductId
+//LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
 
-LEFT OUTER JOIN (
-    SELECT BranchId, ProductId, SUM(Quantity) AS Quantity 
-    FROM (
-        SELECT 
-            BranchId,
-            ProductId,
-            SUM(
-                CASE 
-                    WHEN Type = 'Purchase' THEN Quantity 
-                    WHEN Type = 'Sales' THEN -Quantity 
-                    ELSE 0 
-                END
-            ) AS Quantity
-        FROM DayEndDetails
-        WHERE BranchId = @BranchId
-        GROUP BY BranchId, ProductId
+//LEFT OUTER JOIN (
+//    SELECT BranchId, ProductId, SUM(Quantity) AS Quantity 
+//    FROM (
+//        SELECT 
+//            BranchId,
+//            ProductId,
+//            SUM(
+//                CASE 
+//                    WHEN Type = 'Purchase' THEN Quantity 
+//                    WHEN Type = 'Sales' THEN -Quantity 
+//                    ELSE 0 
+//                END
+//            ) AS Quantity
+//        FROM DayEndDetails
+//        WHERE BranchId = @BranchId
+//        GROUP BY BranchId, ProductId
 
-        UNION ALL
+//        UNION ALL
 
-        SELECT 
-            ProductsOpeningStocks.BranchId,
-            ProductId,
-            SUM(OpeningQuantity) AS Quantity
-        FROM ProductsOpeningStocks
-        WHERE BranchId = @BranchId
-		GROUP BY ProductsOpeningStocks.BranchId, ProductId
+//        SELECT 
+//            ProductsOpeningStocks.BranchId,
+//            ProductId,
+//            SUM(OpeningQuantity) AS Quantity
+//        FROM ProductsOpeningStocks
+//        WHERE BranchId = @BranchId
+//		GROUP BY ProductsOpeningStocks.BranchId, ProductId
 
-        UNION ALL
+//        UNION ALL
 
-        SELECT 
-            Purchases.BranchId,
-            ProductId,
-            SUM(Quantity) AS Quantity
-        FROM PurchaseDetails
-        LEFT OUTER JOIN Purchases ON Purchases.Id = PurchaseDetails.PurchaseId
-        WHERE Purchases.BranchId = @BranchId
-        GROUP BY Purchases.BranchId, ProductId
+//        SELECT 
+//            Purchases.BranchId,
+//            ProductId,
+//            SUM(Quantity) AS Quantity
+//        FROM PurchaseDetails
+//        LEFT OUTER JOIN Purchases ON Purchases.Id = PurchaseDetails.PurchaseId
+//        WHERE Purchases.BranchId = @BranchId
+//        GROUP BY Purchases.BranchId, ProductId
 
-        UNION ALL
+//        UNION ALL
 
-        SELECT 
-            SaleOrders.BranchId,
-            ProductId,
-            SUM(Quantity) * -1 AS Quantity
-        FROM SaleOrderDetails
-        LEFT OUTER JOIN SaleOrders ON SaleOrders.Id = SaleOrderDetails.SaleOrderId
-        WHERE SaleOrders.BranchId = @BranchId
-        GROUP BY SaleOrders.BranchId, ProductId
-    ) AS Result
-    GROUP BY BranchId, ProductId
-) stock ON P.Id = stock.ProductId
+//        SELECT 
+//            SaleOrders.BranchId,
+//            ProductId,
+//            SUM(Quantity) * -1 AS Quantity
+//        FROM SaleOrderDetails
+//        LEFT OUTER JOIN SaleOrders ON SaleOrders.Id = SaleOrderDetails.SaleOrderId
+//        WHERE SaleOrders.BranchId = @BranchId
+//        GROUP BY SaleOrders.BranchId, ProductId
+//    ) AS Result
+//    GROUP BY BranchId, ProductId
+//) stock ON P.Id = stock.ProductId
 
-LEFT OUTER JOIN (
-  SELECT ProductId ,DiscountRateBasedOnUnitPrice DiscountRate
-FROM CampaignDetailByProductValues cd 
-left outer join Campaigns c on c.Id=cd.CampaignId
+//LEFT OUTER JOIN (
+//  SELECT ProductId ,DiscountRateBasedOnUnitPrice DiscountRate
+//FROM CampaignDetailByProductValues cd 
+//left outer join Campaigns c on c.Id=cd.CampaignId
 
-WHERE @FromDate BETWEEN c.CampaignStartDate AND c.CampaignEndDate
-        and c.BranchId =60
-) CampaignRate ON P.Id = CampaignRate.ProductId
-
-
-WHERE PBH.PriceCategory = @PriceCategory 
-  AND PBH.BranchId = @BranchId 
-  AND P.IsActive = 1
-";
-
-                // ✅ Apply additional filters (dynamic)
-                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
-                query += @" ORDER BY " + vm.OrderName + " " + vm.orderDir;
-                query += @" OFFSET " + vm.startRec + " ROWS FETCH NEXT " + vm.pageSize + " ROWS ONLY";
-
-                // ✅ Prepare and execute
-                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
-                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
-
-                if (vm != null && !string.IsNullOrEmpty(vm.BranchId))
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
-                }
-                if (vm != null && !string.IsNullOrEmpty(vm.FromDate))
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@FromDate", vm.FromDate);
-                }
-                if (customerCategory != null)
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@PriceCategory", customerCategory);
-                }
-
-                objComm.Fill(dataTable);
-
-                string setting = @"
-                    SELECT 
-                    ISNULL(SettingValue, 'http://103.231.239.121:8012/') AS SettingValue
-                    FROM Settings
-                    WHERE SettingGroup = 'DMSUIUrl'
-                ";
-
-                string apiBaseUrl = "";
-
-                using (SqlCommand cmdSetting = new SqlCommand(setting, conn, transaction))
-                {
-                    var value = cmdSetting.ExecuteScalar();
-                    apiBaseUrl = value?.ToString() ?? "";
-                }
-
-                // ✅ Map Data
-                var modelList = dataTable.AsEnumerable().Select(row => new ProductDataVM
-                {
-                    ProductId = row.Field<int>("ProductId"),
-                    ProductName = row.Field<string>("ProductName"),
-                    BanglaName = row.Field<string>("BanglaName"),
-                    ProductCode = row.Field<string>("ProductCode"),
-                    HSCodeNo = row.Field<string>("HSCodeNo"),
-                    ImagePath = row.Field<string>("ImagePath"),
-                    ImagePathImage = apiBaseUrl + (row.Field<string>("ImagePathImage") ?? "http://103.231.239.121:8012/Content/Products/No_Image_Available.jpg"),
-                    ProductGroupId = row.Field<int>("ProductGroupId"),
-                    SDRate = row.Field<decimal>("SD"),
-                    VATRate = row.Field<decimal>("VATRate"),
-                    CostPrice = row.Field<decimal>("CostPrice"),
-                    SalesPrice = row.Field<decimal>("SalesPrice"),
-                    PurchasePrice = row.Field<decimal>("PurchasePrice"),
-                    ProductGroupName = row.Field<string>("ProductGroupName"),
-                    UOMId = row.Field<int>("UOMId"),
-                    QuantityInHand = row.Field<decimal>("QuantityInHand"),
-                    UOMName = row.Field<string>("UOMName"),
-                    UOMConversion = row.Field<string>("UOMConversion"),
-                    Status = row.Field<string>("Status"),
-                }).ToList();
+//WHERE @FromDate BETWEEN c.CampaignStartDate AND c.CampaignEndDate
+//        and c.BranchId =60
+//) CampaignRate ON P.Id = CampaignRate.ProductId
 
 
-                // ✅ Return Success
-                result.Status = "Success";
-                result.Message = "Data retrieved successfully.";
-                result.DataVM = modelList;
-                return result;
-            }
-            catch (Exception ex)
-            {
-                result.ExMessage = ex.Message;
-                result.Message = ex.Message;
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
+//WHERE PBH.PriceCategory = @PriceCategory 
+//  AND PBH.BranchId = @BranchId 
+//  AND P.IsActive = 1
+//";
+
+//                // ✅ Apply additional filters (dynamic)
+//                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
+//                query += @" ORDER BY " + vm.OrderName + " " + vm.orderDir;
+//                query += @" OFFSET " + vm.startRec + " ROWS FETCH NEXT " + vm.pageSize + " ROWS ONLY";
+
+//                // ✅ Prepare and execute
+//                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+//                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+//                if (vm != null && !string.IsNullOrEmpty(vm.BranchId))
+//                {
+//                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
+//                }
+//                if (vm != null && !string.IsNullOrEmpty(vm.FromDate))
+//                {
+//                    objComm.SelectCommand.Parameters.AddWithValue("@FromDate", vm.FromDate);
+//                }
+//                if (customerCategory != null)
+//                {
+//                    objComm.SelectCommand.Parameters.AddWithValue("@PriceCategory", customerCategory);
+//                }
+
+//                objComm.Fill(dataTable);
+
+//                string setting = @"
+//                    SELECT 
+//                    ISNULL(SettingValue, 'http://103.231.239.121:8012/') AS SettingValue
+//                    FROM Settings
+//                    WHERE SettingGroup = 'DMSUIUrl'
+//                ";
+
+//                string apiBaseUrl = "";
+
+//                using (SqlCommand cmdSetting = new SqlCommand(setting, conn, transaction))
+//                {
+//                    var value = cmdSetting.ExecuteScalar();
+//                    apiBaseUrl = value?.ToString() ?? "";
+//                }
+
+//                // ✅ Map Data
+//                var modelList = dataTable.AsEnumerable().Select(row => new ProductDataVM
+//                {
+//                    ProductId = row.Field<int>("ProductId"),
+//                    ProductName = row.Field<string>("ProductName"),
+//                    BanglaName = row.Field<string>("BanglaName"),
+//                    ProductCode = row.Field<string>("ProductCode"),
+//                    HSCodeNo = row.Field<string>("HSCodeNo"),
+//                    ImagePath = row.Field<string>("ImagePath"),
+//                    ImagePathImage = apiBaseUrl + (row.Field<string>("ImagePathImage") ?? "http://103.231.239.121:8012/Content/Products/No_Image_Available.jpg"),
+//                    ProductGroupId = row.Field<int>("ProductGroupId"),
+//                    SDRate = row.Field<decimal>("SD"),
+//                    VATRate = row.Field<decimal>("VATRate"),
+//                    CostPrice = row.Field<decimal>("CostPrice"),
+//                    SalesPrice = row.Field<decimal>("SalesPrice"),
+//                    PurchasePrice = row.Field<decimal>("PurchasePrice"),
+//                    ProductGroupName = row.Field<string>("ProductGroupName"),
+//                    UOMId = row.Field<int>("UOMId"),
+//                    QuantityInHand = row.Field<decimal>("QuantityInHand"),
+//                    UOMName = row.Field<string>("UOMName"),
+//                    UOMConversion = row.Field<string>("UOMConversion"),
+//                    Status = row.Field<string>("Status"),
+//                }).ToList();
+
+
+//                // ✅ Return Success
+//                result.Status = "Success";
+//                result.Message = "Data retrieved successfully.";
+//                result.DataVM = modelList;
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                result.ExMessage = ex.Message;
+//                result.Message = ex.Message;
+//                return result;
+//            }
+//            finally
+//            {
+//                if (isNewConnection && conn != null)
+//                {
+//                    conn.Close();
+//                }
+//            }
+//        }
 
         //        public async Task<ResultVM> GetProductModalForSaleData(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         //        {
@@ -3267,120 +3062,120 @@ WHERE PBH.PriceCategory = @PriceCategory
 
 
         // GetProductModalForPurchaseData Method
-        public async Task<ResultVM> GetProductModalForPurchaseData(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
-        {
-            bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+//        public async Task<ResultVM> GetProductModalForPurchaseData(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+//        {
+//            bool isNewConnection = false;
+//            DataTable dataTable = new DataTable();
+//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
 
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    conn.Open();
-                    isNewConnection = true;
-                }
+//            try
+//            {
+//                if (conn == null)
+//                {
+//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+//                    conn.Open();
+//                    isNewConnection = true;
+//                }
 
-                string query = @"
-SELECT 
-ISNULL(P.Id,0)ProductId , 
-ISNULL(P.Name,'') ProductName,
-ISNULL(P.BanglaName,'') BanglaName, 
-ISNULL(P.Code,'') ProductCode, 
-ISNULL(P.HSCodeNo,'') HSCodeNo,
-ISNULL(P.ProductGroupId,0) ProductGroupId,
-ISNULL(PG.Name,'') ProductGroupName,
-ISNULL(P.UOMId,0) UOMId,
-ISNULL(UOM.Name,'') UOMName,
-ISNULL(PBH.CostPrice,0) CostPrice , 
-ISNULL(PBH.SalesPrice,0) SalesPrice , 
-ISNULL(PBH.PurchasePrice,0) PurchasePrice , 
-ISNULL(PBH.SD,0) SD , 
-ISNULL(PBH.VATRate,0) VATRate , 
-ISNULL(P.CtnSize,'') UOMName,
-ISNULL(P.CtnSizeFactor,0) UOMConversion,
-CASE WHEN P.IsActive = 1 THEN 'Active' ELSE 'Inactive' END Status
+//                string query = @"
+//SELECT 
+//ISNULL(P.Id,0)ProductId , 
+//ISNULL(P.Name,'') ProductName,
+//ISNULL(P.BanglaName,'') BanglaName, 
+//ISNULL(P.Code,'') ProductCode, 
+//ISNULL(P.HSCodeNo,'') HSCodeNo,
+//ISNULL(P.ProductGroupId,0) ProductGroupId,
+//ISNULL(PG.Name,'') ProductGroupName,
+//ISNULL(P.UOMId,0) UOMId,
+//ISNULL(UOM.Name,'') UOMName,
+//ISNULL(PBH.CostPrice,0) CostPrice , 
+//ISNULL(PBH.SalesPrice,0) SalesPrice , 
+//ISNULL(PBH.PurchasePrice,0) PurchasePrice , 
+//ISNULL(PBH.SD,0) SD , 
+//ISNULL(PBH.VATRate,0) VATRate , 
+//ISNULL(P.CtnSize,'') UOMName,
+//ISNULL(P.CtnSizeFactor,0) UOMConversion,
+//CASE WHEN P.IsActive = 1 THEN 'Active' ELSE 'Inactive' END Status
 
-FROM Products P
-LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
-LEFT OUTER JOIN ProductPurchasePriceBatchHistories PBH ON P.Id = PBH.ProductId
-LEFT OUTER JOIN UOMs uom ON P.UOMId = uom.Id
+//FROM Products P
+//LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+//LEFT OUTER JOIN ProductPurchasePriceBatchHistories PBH ON P.Id = PBH.ProductId
+//LEFT OUTER JOIN UOMs uom ON P.UOMId = uom.Id
 
-WHERE @param P.IsActive = 1 
-";
+//WHERE @param P.IsActive = 1 
+//";
 
-                if (vm != null && !string.IsNullOrEmpty(vm.FromDate))
-                {
-                    query = query.Replace("@param", " PBH.BranchId = @BranchId AND CAST(PBH.EffectDate AS DATE) <= " + "@FromDate" + " AND ");
-                }
-                else
-                {
-                    query = query.Replace("@param", "");
-                }
+//                if (vm != null && !string.IsNullOrEmpty(vm.FromDate))
+//                {
+//                    query = query.Replace("@param", " PBH.BranchId = @BranchId AND CAST(PBH.EffectDate AS DATE) <= " + "@FromDate" + " AND ");
+//                }
+//                else
+//                {
+//                    query = query.Replace("@param", "");
+//                }
 
-                // Apply additional conditions
-                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
-                query += @"  ORDER BY " + vm.OrderName + "  " + vm.orderDir;
-                query += @" OFFSET  " + vm.startRec + @" ROWS FETCH NEXT " + vm.pageSize + " ROWS ONLY";
+//                // Apply additional conditions
+//                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
+//                query += @"  ORDER BY " + vm.OrderName + "  " + vm.orderDir;
+//                query += @" OFFSET  " + vm.startRec + @" ROWS FETCH NEXT " + vm.pageSize + " ROWS ONLY";
 
-                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+//                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
-                // SET additional conditions param
-                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+//                // SET additional conditions param
+//                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
-                if (vm != null && !string.IsNullOrEmpty(vm.BranchId))
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
-                }
-                if (vm != null && !string.IsNullOrEmpty(vm.FromDate))
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@FromDate", vm.FromDate);
-                }
+//                if (vm != null && !string.IsNullOrEmpty(vm.BranchId))
+//                {
+//                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
+//                }
+//                if (vm != null && !string.IsNullOrEmpty(vm.FromDate))
+//                {
+//                    objComm.SelectCommand.Parameters.AddWithValue("@FromDate", vm.FromDate);
+//                }
 
-                objComm.Fill(dataTable);
+//                objComm.Fill(dataTable);
 
-                var modelList = dataTable.AsEnumerable().Select(row => new ProductDataVM
-                {
-                    ProductId = row.Field<int>("ProductId"),
-                    ProductName = row.Field<string>("ProductName"),
-                    BanglaName = row.Field<string>("BanglaName"),
-                    ProductCode = row.Field<string>("ProductCode"),
-                    HSCodeNo = row.Field<string>("HSCodeNo"),
-                    ProductGroupId = row.Field<int>("ProductGroupId"),
-                    SDRate = row.Field<decimal>("SD"),
-                    VATRate = row.Field<decimal>("VATRate"),
-                    CostPrice = row.Field<decimal>("CostPrice"),
-                    SalesPrice = row.Field<decimal>("SalesPrice"),
-                    PurchasePrice = row.Field<decimal>("PurchasePrice"),
-                    ProductGroupName = row.Field<string>("ProductGroupName"),
-                    UOMId = row.Field<int>("UOMId"),
-                    UOMName = row.Field<string>("UOMName"),
-                    UOMConversion = row.Field<string>("UOMConversion"),
-                    Status = row.Field<string>("Status")
+//                var modelList = dataTable.AsEnumerable().Select(row => new ProductDataVM
+//                {
+//                    ProductId = row.Field<int>("ProductId"),
+//                    ProductName = row.Field<string>("ProductName"),
+//                    BanglaName = row.Field<string>("BanglaName"),
+//                    ProductCode = row.Field<string>("ProductCode"),
+//                    HSCodeNo = row.Field<string>("HSCodeNo"),
+//                    ProductGroupId = row.Field<int>("ProductGroupId"),
+//                    SDRate = row.Field<decimal>("SD"),
+//                    VATRate = row.Field<decimal>("VATRate"),
+//                    CostPrice = row.Field<decimal>("CostPrice"),
+//                    SalesPrice = row.Field<decimal>("SalesPrice"),
+//                    PurchasePrice = row.Field<decimal>("PurchasePrice"),
+//                    ProductGroupName = row.Field<string>("ProductGroupName"),
+//                    UOMId = row.Field<int>("UOMId"),
+//                    UOMName = row.Field<string>("UOMName"),
+//                    UOMConversion = row.Field<string>("UOMConversion"),
+//                    Status = row.Field<string>("Status")
 
-                }).ToList();
+//                }).ToList();
 
 
-                result.Status = "Success";
-                result.Message = "Data retrieved successfully.";
-                result.DataVM = modelList;
-                return result;
-            }
-            catch (Exception ex)
-            {
-                result.ExMessage = ex.Message;
-                result.Message = ex.Message;
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
+//                result.Status = "Success";
+//                result.Message = "Data retrieved successfully.";
+//                result.DataVM = modelList;
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                result.ExMessage = ex.Message;
+//                result.Message = ex.Message;
+//                return result;
+//            }
+//            finally
+//            {
+//                if (isNewConnection && conn != null)
+//                {
+//                    conn.Close();
+//                }
+//            }
+//        }
 
         // GetProductModalForPurchaseCountData Method
         public async Task<ResultVM> GetProductModalForPurchaseCountData(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
@@ -3577,330 +3372,171 @@ WHERE @param P.IsActive = 1
 
 
         // GetProductModalData Method
-        public async Task<ResultVM> GetProductModalData(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
-        {
-            bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+        //public async Task<ResultVM> GetProductModalData(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        //{
+        //    bool isNewConnection = false;
+        //    DataTable dataTable = new DataTable();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
 
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    conn.Open();
-                    isNewConnection = true;
-                }
+        //    try
+        //    {
+        //        if (conn == null)
+        //        {
+        //            conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //            conn.Open();
+        //            isNewConnection = true;
+        //        }
 
-                string query = @"
-                SELECT 
-                    ISNULL(P.Id, 0) AS ProductId, 
-                    ISNULL(P.Name, '') AS ProductName,
-                    ISNULL(P.BanglaName, '') AS BanglaName, 
-                    ISNULL(P.Code, '') AS ProductCode, 
-                    ISNULL(P.HSCodeNo, '') AS HSCodeNo,
-                    ISNULL(P.ProductGroupId, 0) AS ProductGroupId,
-                    ISNULL(PG.Name, '') AS ProductGroupName,
-                    ISNULL(P.UOMId, 0) AS UOMId,
-                    ISNULL(UOM.Name, '') AS UOMName,
-                    0.00 AS CostPrice, 
-                    0.00 AS SalesPrice, 
-                    0.00 AS PurchasePrice, 
-                    0.00 AS SD, 
-                    0.00 AS VATRate,
+        //        string query = @"
+        //        SELECT 
+        //            ISNULL(P.Id, 0) AS ProductId, 
+        //            ISNULL(P.Name, '') AS ProductName,
+        //            ISNULL(P.BanglaName, '') AS BanglaName, 
+        //            ISNULL(P.Code, '') AS ProductCode, 
+        //            ISNULL(P.HSCodeNo, '') AS HSCodeNo,
+        //            ISNULL(P.ProductGroupId, 0) AS ProductGroupId,
+        //            ISNULL(PG.Name, '') AS ProductGroupName,
+        //            ISNULL(P.UOMId, 0) AS UOMId,
+        //            ISNULL(UOM.Name, '') AS UOMName,
+        //            0.00 AS CostPrice, 
+        //            0.00 AS SalesPrice, 
+        //            0.00 AS PurchasePrice, 
+        //            0.00 AS SD, 
+        //            0.00 AS VATRate,
 
-                    CASE 
-                        WHEN CHARINDEX('×', P.CtnSize) > 0 
-                             THEN LTRIM(SUBSTRING(P.CtnSize, CHARINDEX('×', P.CtnSize) + 1, LEN(P.CtnSize)))
-                        ELSE P.CtnSize
-                    END AS CtnSize,
+        //            CASE 
+        //                WHEN CHARINDEX('×', P.CtnSize) > 0 
+        //                     THEN LTRIM(SUBSTRING(P.CtnSize, CHARINDEX('×', P.CtnSize) + 1, LEN(P.CtnSize)))
+        //                ELSE P.CtnSize
+        //            END AS CtnSize,
 
-                    CASE WHEN P.IsActive = 1 THEN 'Active' ELSE 'Inactive' END AS Status
+        //            CASE WHEN P.IsActive = 1 THEN 'Active' ELSE 'Inactive' END AS Status
 
-                FROM Products P
-                LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
-                LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
-                WHERE P.IsActive = 1";
+        //        FROM Products P
+        //        LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+        //        LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
+        //        WHERE P.IsActive = 1";
 
-                // Apply additional conditions
-                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
+        //        // Apply additional conditions
+        //        query = ApplyConditions(query, conditionalFields, conditionalValues, true);
 
-                // Apply additional conditions
-                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
-                query += @"  ORDER BY " + vm.OrderName + "  " + vm.orderDir;
-                query += @" OFFSET  " + vm.startRec + @" ROWS FETCH NEXT " + vm.pageSize + " ROWS ONLY";
+        //        // Apply additional conditions
+        //        query = ApplyConditions(query, conditionalFields, conditionalValues, true);
+        //        query += @"  ORDER BY " + vm.OrderName + "  " + vm.orderDir;
+        //        query += @" OFFSET  " + vm.startRec + @" ROWS FETCH NEXT " + vm.pageSize + " ROWS ONLY";
 
-                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+        //        SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
-                // SET additional conditions param
-                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+        //        // SET additional conditions param
+        //        objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
-                objComm.Fill(dataTable);
+        //        objComm.Fill(dataTable);
 
-                var modelList = dataTable.AsEnumerable().Select(row => new ProductDataVM
-                {
-                    ProductId = row.Field<int>("ProductId"),
-                    ProductName = row.Field<string>("ProductName"),
-                    BanglaName = row.Field<string>("BanglaName"),
-                    ProductCode = row.Field<string>("ProductCode"),
-                    HSCodeNo = row.Field<string>("HSCodeNo"),
-                    ProductGroupId = row.Field<int>("ProductGroupId"),
-                    SDRate = row.Field<decimal>("SD"),
-                    VATRate = row.Field<decimal>("VATRate"),
-                    CostPrice = row.Field<decimal>("CostPrice"),
-                    SalesPrice = row.Field<decimal>("SalesPrice"),
-                    PurchasePrice = row.Field<decimal>("PurchasePrice"),
-                    ProductGroupName = row.Field<string>("ProductGroupName"),
-                    UOMId = row.Field<int>("UOMId"),
-                    UOMName = row.Field<string>("UOMName"),
-                    CtnSize = row.Field<string>("CtnSize"),
-                    Status = row.Field<string>("Status")
+        //        var modelList = dataTable.AsEnumerable().Select(row => new ProductDataVM
+        //        {
+        //            ProductId = row.Field<int>("ProductId"),
+        //            ProductName = row.Field<string>("ProductName"),
+        //            BanglaName = row.Field<string>("BanglaName"),
+        //            ProductCode = row.Field<string>("ProductCode"),
+        //            HSCodeNo = row.Field<string>("HSCodeNo"),
+        //            ProductGroupId = row.Field<int>("ProductGroupId"),
+        //            SDRate = row.Field<decimal>("SD"),
+        //            VATRate = row.Field<decimal>("VATRate"),
+        //            CostPrice = row.Field<decimal>("CostPrice"),
+        //            SalesPrice = row.Field<decimal>("SalesPrice"),
+        //            PurchasePrice = row.Field<decimal>("PurchasePrice"),
+        //            ProductGroupName = row.Field<string>("ProductGroupName"),
+        //            UOMId = row.Field<int>("UOMId"),
+        //            UOMName = row.Field<string>("UOMName"),
+        //            CtnSize = row.Field<string>("CtnSize"),
+        //            Status = row.Field<string>("Status")
 
-                }).ToList();
+        //        }).ToList();
 
 
-                result.Status = "Success";
-                result.Message = "Data retrieved successfully.";
-                result.DataVM = modelList;
-                return result;
-            }
-            catch (Exception ex)
-            {
-                result.ExMessage = ex.Message;
-                result.Message = ex.Message;
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
+        //        result.Status = "Success";
+        //        result.Message = "Data retrieved successfully.";
+        //        result.DataVM = modelList;
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        result.ExMessage = ex.Message;
+        //        result.Message = ex.Message;
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
 
         // GetProductModalCountData Method
-        public async Task<ResultVM> GetProductModalCountData(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
-        {
-            bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+//        public async Task<ResultVM> GetProductModalCountData(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+//        {
+//            bool isNewConnection = false;
+//            DataTable dataTable = new DataTable();
+//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
 
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    conn.Open();
-                    isNewConnection = true;
-                }
-                if (transaction == null)
-                {
-                    transaction = conn.BeginTransaction();
-                }
+//            try
+//            {
+//                if (conn == null)
+//                {
+//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+//                    conn.Open();
+//                    isNewConnection = true;
+//                }
+//                if (transaction == null)
+//                {
+//                    transaction = conn.BeginTransaction();
+//                }
 
-                string query = @"
-SELECT
+//                string query = @"
+//SELECT
 
-COALESCE(COUNT(P.Id), 0) AS FilteredCount
+//COALESCE(COUNT(P.Id), 0) AS FilteredCount
 
-FROM Products P
-LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
-LEFT OUTER JOIN UOMs uom ON P.UOMId = uom.Id
+//FROM Products P
+//LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+//LEFT OUTER JOIN UOMs uom ON P.UOMId = uom.Id
 
-WHERE P.IsActive = 1 ";
+//WHERE P.IsActive = 1 ";
 
 
-                // Apply additional conditions
-                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
+//                // Apply additional conditions
+//                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
 
-                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+//                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
-                // SET additional conditions param
-                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+//                // SET additional conditions param
+//                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
-                objComm.Fill(dataTable);
+//                objComm.Fill(dataTable);
 
-                result.Status = "Success";
-                result.Message = "Data retrieved successfully.";
-                result.Count = Convert.ToInt32(dataTable.Rows[0][0]);
-                return result;
-            }
-            catch (Exception ex)
-            {
-                result.ExMessage = ex.Message;
-                result.Message = ex.Message;
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
+//                result.Status = "Success";
+//                result.Message = "Data retrieved successfully.";
+//                result.Count = Convert.ToInt32(dataTable.Rows[0][0]);
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                result.ExMessage = ex.Message;
+//                result.Message = ex.Message;
+//                return result;
+//            }
+//            finally
+//            {
+//                if (isNewConnection && conn != null)
+//                {
+//                    conn.Close();
+//                }
+//            }
+//        }
 
-        public async Task<ResultVM> GetTop10Customers(string branchId, SqlConnection conn = null, SqlTransaction transaction = null)
-        {
-            bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
-
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    await conn.OpenAsync();
-                    isNewConnection = true;
-                }
-
-                string query = @"
-                    SELECT TOP 10
-                    S.CustomerId,
-                    C.Name AS CustomerName,
-                    FORMAT(SUM(S.GrandTotalAmount), 'N2') AS TotalGrandTotalAmount,
-                    SUM(SD.Quantity) AS TotalQuantity
-                    FROM Sales S
-                    LEFT OUTER JOIN Customers C ON S.CustomerId = C.Id
-                    LEFT OUTER JOIN SaleDetails SD ON S.Id = SD.SaleId
-                    WHERE S.BranchId = @BranchId
-                    AND S.CreatedOn >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1)  -- First day of the current month
-                    AND S.CreatedOn < DATEADD(MONTH, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1)) -- First day of next month
-                    GROUP BY S.CustomerId, C.Name
-                    ORDER BY SUM(S.GrandTotalAmount) DESC;
-                    ";
-
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    // Assign transaction if exists
-                    if (transaction != null)
-                    {
-                        cmd.Transaction = transaction;
-                    }
-
-                    cmd.Parameters.AddWithValue("@BranchId", branchId);
-
-                    using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
-                    {
-                        adapter.Fill(dataTable);
-                    }
-                }
-
-                var modelList = dataTable.AsEnumerable().Select(row => new CustomerSalesModel
-                {
-                    CustomerId = row["CustomerId"] != DBNull.Value ? Convert.ToInt32(row["CustomerId"]) : 0,
-                    CustomerName = row["CustomerName"]?.ToString(),
-                    TotalGrandTotalAmount = row["TotalGrandTotalAmount"] != DBNull.Value
-                        ? Convert.ToDecimal(row["TotalGrandTotalAmount"])
-                        : 0,
-                    TotalQuantity = row["TotalQuantity"] != DBNull.Value
-                        ? Convert.ToInt32(row["TotalQuantity"])
-                        : 0
-                }).ToList();
-
-                result.Status = "Success";
-                result.Message = "Data retrieved successfully.";
-                result.DataVM = modelList;
-            }
-            catch (Exception ex)
-            {
-                result.ExMessage = ex.Message;
-                result.Message = ex.Message;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-
-            return result;
-        }
-
-        public async Task<ResultVM> GetBottom10Customers(string? branchId, SqlConnection conn, SqlTransaction transaction)
-        {
-            bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
-
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    await conn.OpenAsync();
-                    isNewConnection = true;
-                }
-
-                string query = @"
-                        SELECT TOP 10
-                        S.CustomerId,
-                        C.Name AS CustomerName,
-                        FORMAT(SUM(S.GrandTotalAmount), 'N2') AS TotalGrandTotalAmount,
-                        SUM(SD.Quantity) AS TotalQuantity
-                    FROM Sales S
-                    LEFT OUTER JOIN Customers C ON S.CustomerId = C.Id
-                    LEFT OUTER JOIN SaleDetails SD ON S.Id = SD.SaleId
-                    WHERE S.BranchId = @BranchId
-                    AND S.CreatedOn >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1)  -- First day of the current month
-                    AND S.CreatedOn < DATEADD(MONTH, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1)) -- First day of next month
-                    GROUP BY S.CustomerId, C.Name
-                    ORDER BY SUM(S.GrandTotalAmount) ASC;
-                     ";
-
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    // Assign transaction if exists
-                    if (transaction != null)
-                    {
-                        cmd.Transaction = transaction;
-                    }
-
-                    cmd.Parameters.AddWithValue("@BranchId", branchId);
-
-                    using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
-                    {
-                        adapter.Fill(dataTable);
-                    }
-                }
-
-                var modelList = dataTable.AsEnumerable().Select(row => new CustomerSalesModel
-                {
-                    CustomerId = row["CustomerId"] != DBNull.Value ? Convert.ToInt32(row["CustomerId"]) : 0,
-
-                    CustomerName = row["CustomerName"]?.ToString(),
-                    TotalGrandTotalAmount = row["TotalGrandTotalAmount"] != DBNull.Value
-                        ? Convert.ToDecimal(row["TotalGrandTotalAmount"])
-                        : 0,
-                    TotalQuantity = row["TotalQuantity"] != DBNull.Value
-                        ? Convert.ToInt32(row["TotalQuantity"])
-                        : 0
-                }).ToList();
-
-                result.Status = "Success";
-                result.Message = "Data retrieved successfully.";
-                result.DataVM = modelList;
-            }
-            catch (Exception ex)
-            {
-                result.ExMessage = ex.Message;
-                result.Message = ex.Message;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-
-            return result;
-        }
-
-        //public async Task<ResultVM> GetTop10Products(string? branchId, SqlConnection conn, SqlTransaction transaction)
+        //public async Task<ResultVM> GetTop10Customers(string branchId, SqlConnection conn = null, SqlTransaction transaction = null)
         //{
         //    bool isNewConnection = false;
         //    DataTable dataTable = new DataTable();
@@ -3916,182 +3552,20 @@ WHERE P.IsActive = 1 ";
         //        }
 
         //        string query = @"
-        //                SELECT TOP 10
-        //                S.ProductId,
-        //                P.Name AS ProductName,
-        //                SUM(S.Quantity) AS TotalQuantity,
-        //                AVG(S.UnitRate) AS AverageUnitRate,
-        //                SUM(S.Quantity * S.UnitRate) AS TotalSaleValue
-        //            FROM SaleDetails S
-        //            LEFT OUTER JOIN Products P ON S.ProductId = P.Id
-        //            WHERE S.BranchId = @BranchId
-        //            GROUP BY S.ProductId, P.Name
-        //            ORDER BY TotalSaleValue DESC;
-        //             ";
-
-        //        using (SqlCommand cmd = new SqlCommand(query, conn))
-        //        {
-        //            // Assign transaction if exists
-        //            if (transaction != null)
-        //            {
-        //                cmd.Transaction = transaction;
-        //            }
-
-        //            cmd.Parameters.AddWithValue("@BranchId", branchId);
-
-        //            using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
-        //            {
-        //                adapter.Fill(dataTable);
-        //            }
-        //        }
-
-        //        var modelList = dataTable.AsEnumerable().Select(row => new ProductSaleModel
-        //        {
-        //            ProductId = row["ProductId"] != DBNull.Value ? Convert.ToInt32(row["ProductId"]) : 0,
-
-        //            ProductName = row["ProductName"]?.ToString(),
-        //            TotalSaleValue = row["TotalSaleValue"] != DBNull.Value
-        //                ? Convert.ToDecimal(row["TotalSaleValue"])
-        //                : 0,
-        //            AverageUnitRate = row["AverageUnitRate"] != DBNull.Value
-        //                ? Convert.ToInt32(row["AverageUnitRate"])
-        //                : 0,
-        //            TotalQuantity = row["TotalQuantity"] != DBNull.Value
-        //                ? Convert.ToInt32(row["TotalQuantity"])
-        //                : 0
-        //        }).ToList();
-
-        //        result.Status = "Success";
-        //        result.Message = "Data retrieved successfully.";
-        //        result.DataVM = modelList;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        result.ExMessage = ex.Message;
-        //        result.Message = ex.Message;
-        //    }
-        //    finally
-        //    {
-        //        if (isNewConnection && conn != null)
-        //        {
-        //            conn.Close();
-        //        }
-        //    }
-
-        //    return result;
-        //}
-
-        //public async Task<ResultVM> GetBottom10Products(string? branchId, SqlConnection conn, SqlTransaction transaction)
-        //{
-        //    bool isNewConnection = false;
-        //    DataTable dataTable = new DataTable();
-        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
-
-        //    try
-        //    {
-        //        if (conn == null)
-        //        {
-        //            conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-        //            await conn.OpenAsync();
-        //            isNewConnection = true;
-        //        }
-
-        //        string query = @"
-        //                SELECT TOP 10
-        //                S.ProductId,
-        //                P.Name AS ProductName,
-        //                SUM(S.Quantity) AS TotalQuantity,
-        //                AVG(S.UnitRate) AS AverageUnitRate,
-        //                SUM(S.Quantity * S.UnitRate) AS TotalSaleValue
-        //            FROM SaleDetails S
-        //            LEFT OUTER JOIN Products P ON S.ProductId = P.Id
-        //            WHERE S.BranchId = @BranchId
-        //            GROUP BY S.ProductId, P.Name
-        //            ORDER BY TotalSaleValue ASC;
-        //             ";
-
-        //        using (SqlCommand cmd = new SqlCommand(query, conn))
-        //        {
-        //            // Assign transaction if exists
-        //            if (transaction != null)
-        //            {
-        //                cmd.Transaction = transaction;
-        //            }
-
-        //            cmd.Parameters.AddWithValue("@BranchId", branchId);
-
-        //            using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
-        //            {
-        //                adapter.Fill(dataTable);
-        //            }
-        //        }
-
-        //        var modelList = dataTable.AsEnumerable().Select(row => new ProductSaleModel
-        //        {
-        //            ProductId = row["ProductId"] != DBNull.Value ? Convert.ToInt32(row["ProductId"]) : 0,
-
-        //            ProductName = row["ProductName"]?.ToString(),
-        //            TotalSaleValue = row["TotalSaleValue"] != DBNull.Value
-        //                ? Convert.ToDecimal(row["TotalSaleValue"])
-        //                : 0,
-        //            AverageUnitRate = row["AverageUnitRate"] != DBNull.Value
-        //                ? Convert.ToInt32(row["AverageUnitRate"])
-        //                : 0,
-        //            TotalQuantity = row["TotalQuantity"] != DBNull.Value
-        //                ? Convert.ToInt32(row["TotalQuantity"])
-        //                : 0
-        //        }).ToList();
-
-        //        result.Status = "Success";
-        //        result.Message = "Data retrieved successfully.";
-        //        result.DataVM = modelList;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        result.ExMessage = ex.Message;
-        //        result.Message = ex.Message;
-        //    }
-        //    finally
-        //    {
-        //        if (isNewConnection && conn != null)
-        //        {
-        //            conn.Close();
-        //        }
-        //    }
-
-        //    return result;
-        //}
-
-        //public async Task<ResultVM> GetTop10SalePersons(string? branchId, SqlConnection conn, SqlTransaction transaction)
-        //{
-        //    bool isNewConnection = false;
-        //    DataTable dataTable = new DataTable();
-        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
-
-        //    try
-        //    {
-        //        if (conn == null)
-        //        {
-        //            conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-        //            await conn.OpenAsync();
-        //            isNewConnection = true;
-        //        }
-
-        //        string query = @"
-        //                SELECT TOP 10
-        //                S.SalePersonId,
-        //                SP.Name AS SalePersonName,
-        //                FORMAT(SUM(S.GrandTotalAmount), 'N2') AS GrandTotalAmount,
-        //                SUM(SD.Quantity) AS TotalQuantity
+        //            SELECT TOP 10
+        //            S.CustomerId,
+        //            C.Name AS CustomerName,
+        //            FORMAT(SUM(S.GrandTotalAmount), 'N2') AS TotalGrandTotalAmount,
+        //            SUM(SD.Quantity) AS TotalQuantity
         //            FROM Sales S
-        //            LEFT OUTER JOIN SalesPersons SP ON S.SalePersonId = SP.Id
+        //            LEFT OUTER JOIN Customers C ON S.CustomerId = C.Id
         //            LEFT OUTER JOIN SaleDetails SD ON S.Id = SD.SaleId
-        //            WHERE S.BranchId = @BranchId 
+        //            WHERE S.BranchId = @BranchId
         //            AND S.CreatedOn >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1)  -- First day of the current month
         //            AND S.CreatedOn < DATEADD(MONTH, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1)) -- First day of next month
-        //            GROUP BY S.SalePersonId, SP.Name
+        //            GROUP BY S.CustomerId, C.Name
         //            ORDER BY SUM(S.GrandTotalAmount) DESC;
-        //             ";
+        //            ";
 
         //        using (SqlCommand cmd = new SqlCommand(query, conn))
         //        {
@@ -4109,13 +3583,12 @@ WHERE P.IsActive = 1 ";
         //            }
         //        }
 
-        //        var modelList = dataTable.AsEnumerable().Select(row => new SalePersonDataModel
+        //        var modelList = dataTable.AsEnumerable().Select(row => new CustomerSalesModel
         //        {
-        //            SalePersonId = row["SalePersonId"] != DBNull.Value ? Convert.ToInt32(row["SalePersonId"]) : 0,
-
-        //            SalePersonName = row["SalePersonName"]?.ToString(),
-        //            GrandTotalAmount = row["GrandTotalAmount"] != DBNull.Value
-        //                ? Convert.ToDecimal(row["GrandTotalAmount"])
+        //            CustomerId = row["CustomerId"] != DBNull.Value ? Convert.ToInt32(row["CustomerId"]) : 0,
+        //            CustomerName = row["CustomerName"]?.ToString(),
+        //            TotalGrandTotalAmount = row["TotalGrandTotalAmount"] != DBNull.Value
+        //                ? Convert.ToDecimal(row["TotalGrandTotalAmount"])
         //                : 0,
         //            TotalQuantity = row["TotalQuantity"] != DBNull.Value
         //                ? Convert.ToInt32(row["TotalQuantity"])
@@ -4142,7 +3615,7 @@ WHERE P.IsActive = 1 ";
         //    return result;
         //}
 
-        //public async Task<ResultVM> GetBottom10SalePersons(string? branchId, SqlConnection conn, SqlTransaction transaction)
+        //public async Task<ResultVM> GetBottom10Customers(string? branchId, SqlConnection conn, SqlTransaction transaction)
         //{
         //    bool isNewConnection = false;
         //    DataTable dataTable = new DataTable();
@@ -4159,17 +3632,17 @@ WHERE P.IsActive = 1 ";
 
         //        string query = @"
         //                SELECT TOP 10
-        //                S.SalePersonId,
-        //                SP.Name AS SalePersonName,
-        //                FORMAT(SUM(S.GrandTotalAmount), 'N2') AS GrandTotalAmount,
+        //                S.CustomerId,
+        //                C.Name AS CustomerName,
+        //                FORMAT(SUM(S.GrandTotalAmount), 'N2') AS TotalGrandTotalAmount,
         //                SUM(SD.Quantity) AS TotalQuantity
         //            FROM Sales S
-        //            LEFT OUTER JOIN SalesPersons SP ON S.SalePersonId = SP.Id
+        //            LEFT OUTER JOIN Customers C ON S.CustomerId = C.Id
         //            LEFT OUTER JOIN SaleDetails SD ON S.Id = SD.SaleId
-        //            WHERE S.BranchId = @BranchId 
+        //            WHERE S.BranchId = @BranchId
         //            AND S.CreatedOn >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1)  -- First day of the current month
         //            AND S.CreatedOn < DATEADD(MONTH, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1)) -- First day of next month
-        //            GROUP BY S.SalePersonId, SP.Name
+        //            GROUP BY S.CustomerId, C.Name
         //            ORDER BY SUM(S.GrandTotalAmount) ASC;
         //             ";
 
@@ -4189,13 +3662,13 @@ WHERE P.IsActive = 1 ";
         //            }
         //        }
 
-        //        var modelList = dataTable.AsEnumerable().Select(row => new SalePersonDataModel
+        //        var modelList = dataTable.AsEnumerable().Select(row => new CustomerSalesModel
         //        {
-        //            SalePersonId = row["SalePersonId"] != DBNull.Value ? Convert.ToInt32(row["SalePersonId"]) : 0,
+        //            CustomerId = row["CustomerId"] != DBNull.Value ? Convert.ToInt32(row["CustomerId"]) : 0,
 
-        //            SalePersonName = row["SalePersonName"]?.ToString(),
-        //            GrandTotalAmount = row["GrandTotalAmount"] != DBNull.Value
-        //                ? Convert.ToDecimal(row["GrandTotalAmount"])
+        //            CustomerName = row["CustomerName"]?.ToString(),
+        //            TotalGrandTotalAmount = row["TotalGrandTotalAmount"] != DBNull.Value
+        //                ? Convert.ToDecimal(row["TotalGrandTotalAmount"])
         //                : 0,
         //            TotalQuantity = row["TotalQuantity"] != DBNull.Value
         //                ? Convert.ToInt32(row["TotalQuantity"])
@@ -4221,93 +3694,8 @@ WHERE P.IsActive = 1 ";
 
         //    return result;
         //}
-
-        public async Task<ResultVM> GetOrderPurchasePOReturnData(string? branchId, SqlConnection conn, SqlTransaction transaction)
-        {
-            bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
-
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    await conn.OpenAsync();
-                    isNewConnection = true;
-                }
-
-                string query = @"
-                        SELECT 
-                        (SELECT COUNT(Id) 
-                         FROM PurchaseOrders 
-                         WHERE IsCompleted = 1 
-                         AND BranchId = @BranchId 
-                         AND CreatedOn >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1)
-                         AND CreatedOn < DATEADD(MONTH, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))
-                        ) AS Ordered,
-    
-                        (SELECT COUNT(Id) 
-                         FROM Purchases 
-                         WHERE IsCompleted = 1 
-	                     AND BranchId = @BranchId
-                         AND CreatedOn >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1) 
-                         AND CreatedOn < DATEADD(MONTH, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))
-                        ) AS Purchase,
-    
-                        (SELECT COUNT(Id) 
-                         FROM PurchaseReturns 
-                         WHERE IsPost = 1
-	                     AND BranchId = @BranchId
-                         AND CreatedOn >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1)
-                         AND CreatedOn < DATEADD(MONTH, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))
-                        ) AS POReturn;
-                     ";
-
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    // Assign transaction if exists
-                    if (transaction != null)
-                    {
-                        cmd.Transaction = transaction;
-                    }
-
-                    cmd.Parameters.AddWithValue("@BranchId", branchId);
-
-                    using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
-                    {
-                        adapter.Fill(dataTable);
-                    }
-                }
-
-                var modelList = dataTable.AsEnumerable().Select(row => new PurchaseDataModel
-                {
-                    Ordered = row["Ordered"] != DBNull.Value ? Convert.ToInt32(row["Ordered"]) : 0,
-                    Purchase = row["Purchase"] != DBNull.Value ? Convert.ToInt32(row["Purchase"]) : 0,
-                    POReturn = row["POReturn"] != DBNull.Value ? Convert.ToInt32(row["POReturn"]) : 0
-                }).ToList();
-
-                result.Status = "Success";
-                result.Message = "Data retrieved successfully.";
-                result.DataVM = modelList;
-            }
-            catch (Exception ex)
-            {
-                result.ExMessage = ex.Message;
-                result.Message = ex.Message;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-
-            return result;
-        }
-
-        //public async Task<ResultVM> GetSalesData(string? branchId, SqlConnection conn, SqlTransaction transaction)
+ 
+        //public async Task<ResultVM> GetPendingSales(string? branchId, SqlConnection conn, SqlTransaction transaction)
         //{
         //    bool isNewConnection = false;
         //    DataTable dataTable = new DataTable();
@@ -4324,29 +3712,14 @@ WHERE P.IsActive = 1 ";
 
         //        string query = @"
         //                SELECT 
-        //                (SELECT COUNT(Id) FROM SaleOrders WHERE 
-	       //             IsCompleted = 0
-	       //             AND BranchId = @BranchId
-	       //             AND CreatedOn >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1)
-	       //             AND CreatedOn < DATEADD(MONTH, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))) AS SaleOrdered,
-        //                (SELECT COUNT(Id) FROM SaleDeleveries WHERE IsCompleted = 0
-	       //             AND BranchId = @BranchId
-	       //             AND CreatedOn >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1)
-	       //             AND CreatedOn < DATEADD(MONTH, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))
-	       //             ) AS SaleDelivered,
-        //                (SELECT COUNT(Id) FROM SaleDeleveryReturns WHERE IsCompleted = 0
-	       //             AND BranchId = @BranchId
-	       //             AND CreatedOn >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1)
-	       //             AND CreatedOn < DATEADD(MONTH, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))
-	       //             ) AS SaleDeliveryReturn,
-        //                (SELECT COUNT(Id) FROM Sales WHERE IsPost = 0
-	       //             AND BranchId = @BranchId
-	       //             AND CreatedOn >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1)
-	       //             AND CreatedOn < DATEADD(MONTH, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))) AS Sales,
-        //                (SELECT COUNT(Id) FROM SaleReturns WHERE IsPost = 0
-	       //             AND BranchId = @BranchId
-	       //             AND CreatedOn >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1)
-	       //             AND CreatedOn < DATEADD(MONTH, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))) AS SaleReturn;
+        //                COUNT(SaleDeleveries.Id) AS OrderedButNotDelivered,
+        //                C.Name AS CustomerName
+        //                FROM SaleDeleveries
+        //                LEFT OUTER JOIN Customers C 
+        //                    ON SaleDeleveries.CustomerId = C.Id
+        //                WHERE SaleDeleveries.IsCompleted = 0
+        //                AND SaleDeleveries.BranchId = @BranchId
+        //                GROUP BY SaleDeleveries.CustomerId, C.Name;
         //             ";
 
         //        using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -4365,13 +3738,10 @@ WHERE P.IsActive = 1 ";
         //            }
         //        }
 
-        //        var modelList = dataTable.AsEnumerable().Select(row => new SalesDataModel
+        //        var modelList = dataTable.AsEnumerable().Select(row => new PendingSalesDataModel
         //        {
-        //            SaleOrdered = row["SaleOrdered"] != DBNull.Value ? Convert.ToInt32(row["SaleOrdered"]) : 0,
-        //            SaleDelivered = row["SaleDelivered"] != DBNull.Value ? Convert.ToInt32(row["SaleDelivered"]) : 0,
-        //            SaleDeliveryReturn = row["SaleDeliveryReturn"] != DBNull.Value ? Convert.ToInt32(row["SaleDeliveryReturn"]) : 0,
-        //            Sales = row["Sales"] != DBNull.Value ? Convert.ToInt32(row["Sales"]) : 0,
-        //            SaleReturn = row["SaleReturn"] != DBNull.Value ? Convert.ToInt32(row["SaleReturn"]) : 0
+        //            CustomerName = row["CustomerName"]?.ToString(),
+        //            OrderedButNotDelivered = row["OrderedButNotDelivered"] != DBNull.Value ? Convert.ToInt32(row["OrderedButNotDelivered"]) : 0
         //        }).ToList();
 
         //        result.Status = "Success";
@@ -4393,75 +3763,6 @@ WHERE P.IsActive = 1 ";
 
         //    return result;
         //}
-
-        public async Task<ResultVM> GetPendingSales(string? branchId, SqlConnection conn, SqlTransaction transaction)
-        {
-            bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
-
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    await conn.OpenAsync();
-                    isNewConnection = true;
-                }
-
-                string query = @"
-                        SELECT 
-                        COUNT(SaleDeleveries.Id) AS OrderedButNotDelivered,
-                        C.Name AS CustomerName
-                        FROM SaleDeleveries
-                        LEFT OUTER JOIN Customers C 
-                            ON SaleDeleveries.CustomerId = C.Id
-                        WHERE SaleDeleveries.IsCompleted = 0
-                        AND SaleDeleveries.BranchId = @BranchId
-                        GROUP BY SaleDeleveries.CustomerId, C.Name;
-                     ";
-
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    // Assign transaction if exists
-                    if (transaction != null)
-                    {
-                        cmd.Transaction = transaction;
-                    }
-
-                    cmd.Parameters.AddWithValue("@BranchId", branchId);
-
-                    using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
-                    {
-                        adapter.Fill(dataTable);
-                    }
-                }
-
-                var modelList = dataTable.AsEnumerable().Select(row => new PendingSalesDataModel
-                {
-                    CustomerName = row["CustomerName"]?.ToString(),
-                    OrderedButNotDelivered = row["OrderedButNotDelivered"] != DBNull.Value ? Convert.ToInt32(row["OrderedButNotDelivered"]) : 0
-                }).ToList();
-
-                result.Status = "Success";
-                result.Message = "Data retrieved successfully.";
-                result.DataVM = modelList;
-            }
-            catch (Exception ex)
-            {
-                result.ExMessage = ex.Message;
-                result.Message = ex.Message;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-
-            return result;
-        }
 
 
         //public async Task<ResultVM> ListRouteBySalePersonAndBranch(int salePersonId, int branchId, SqlConnection conn, SqlTransaction transaction)
@@ -4623,84 +3924,84 @@ WHERE P.IsActive = 1 ";
         //    }
         //}
 
-        public async Task<ResultVM> PaymentTypeList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
-        {
-            bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+        //public async Task<ResultVM> PaymentTypeList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        //{
+        //    bool isNewConnection = false;
+        //    DataTable dataTable = new DataTable();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
 
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    conn.Open();
-                    isNewConnection = true;
-                }
-                string sqlQuery = @"
-                SELECT DISTINCT
-                ISNULL(H.Id, 0) AS Id,
-                ISNULL(H.Name, '') AS Name,
-                ISNULL(H.IsArchive, 0) AS IsArchive,
-                ISNULL(H.IsActive, 0) AS IsActive,
-                ISNULL(H.CreatedBy, '') AS CreatedBy,
-                ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS CreatedOn,
-                ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
-                ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS LastModifiedOn,
-                ISNULL(H.CreatedFrom, '') AS CreatedFrom,
-                ISNULL(H.LastUpdateFrom, '') AS LastUpdateFrom
-            FROM 
-                PaymentTypes H
-            WHERE 1 = 1 ";
-
-
-                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
-
-                SqlDataAdapter objComm = CreateAdapter(sqlQuery, conn, transaction);
-
-                // SET additional conditions param
-                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+        //    try
+        //    {
+        //        if (conn == null)
+        //        {
+        //            conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //            conn.Open();
+        //            isNewConnection = true;
+        //        }
+        //        string sqlQuery = @"
+        //        SELECT DISTINCT
+        //        ISNULL(H.Id, 0) AS Id,
+        //        ISNULL(H.Name, '') AS Name,
+        //        ISNULL(H.IsArchive, 0) AS IsArchive,
+        //        ISNULL(H.IsActive, 0) AS IsActive,
+        //        ISNULL(H.CreatedBy, '') AS CreatedBy,
+        //        ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS CreatedOn,
+        //        ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
+        //        ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS LastModifiedOn,
+        //        ISNULL(H.CreatedFrom, '') AS CreatedFrom,
+        //        ISNULL(H.LastUpdateFrom, '') AS LastUpdateFrom
+        //    FROM 
+        //        PaymentTypes H
+        //    WHERE 1 = 1 ";
 
 
+        //        sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
 
-                objComm.Fill(dataTable);
+        //        SqlDataAdapter objComm = CreateAdapter(sqlQuery, conn, transaction);
 
-                var modelList = dataTable.AsEnumerable().Select(row => new PaymentTypeVM
-                {
-                    Id = Convert.ToInt32(row["Id"]),
-                    Name = row["Name"]?.ToString(),
-                    IsArchive = Convert.ToBoolean(row["IsArchive"]),
-                    IsActive = Convert.ToBoolean(row["IsActive"]),
-                    CreatedBy = row["CreatedBy"]?.ToString(),
-                    CreatedOn = row["CreatedOn"]?.ToString(),
-                    LastModifiedBy = row["LastModifiedBy"]?.ToString(),
-                    LastModifiedOn = row["LastModifiedOn"]?.ToString(),
-                    CreatedFrom = row["CreatedFrom"]?.ToString(),
-                    LastUpdateFrom = row["LastUpdateFrom"]?.ToString(),
+        //        // SET additional conditions param
+        //        objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
 
-                }).ToList();
+
+        //        objComm.Fill(dataTable);
+
+        //        var modelList = dataTable.AsEnumerable().Select(row => new PaymentTypeVM
+        //        {
+        //            Id = Convert.ToInt32(row["Id"]),
+        //            Name = row["Name"]?.ToString(),
+        //            IsArchive = Convert.ToBoolean(row["IsArchive"]),
+        //            IsActive = Convert.ToBoolean(row["IsActive"]),
+        //            CreatedBy = row["CreatedBy"]?.ToString(),
+        //            CreatedOn = row["CreatedOn"]?.ToString(),
+        //            LastModifiedBy = row["LastModifiedBy"]?.ToString(),
+        //            LastModifiedOn = row["LastModifiedOn"]?.ToString(),
+        //            CreatedFrom = row["CreatedFrom"]?.ToString(),
+        //            LastUpdateFrom = row["LastUpdateFrom"]?.ToString(),
 
 
-                result.Status = "Success";
-                result.Message = "Data retrieved successfully.";
-                result.DataVM = modelList;
-                return result;
-            }
-            catch (Exception ex)
-            {
-                result.ExMessage = ex.Message;
-                result.Message = ex.Message;
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
+        //        }).ToList();
+
+
+        //        result.Status = "Success";
+        //        result.Message = "Data retrieved successfully.";
+        //        result.DataVM = modelList;
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        result.ExMessage = ex.Message;
+        //        result.Message = ex.Message;
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
 
         //public async Task<ResultVM> SaleDeleveryList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         //{
@@ -4885,332 +4186,255 @@ WHERE P.IsActive = 1 ";
 //            }
 //        }
 
-        public async Task<ResultVM> getSaleDeleveryModalCountData(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
-        {
-            bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
-
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    conn.Open();
-                    isNewConnection = true;
-                }
-
-                //Add
-
-                SqlCommand checkCommand = new SqlCommand("SELECT CustomerCategory FROM Customers WHERE Id=@Id", conn, transaction);
-                checkCommand.Parameters.Add("@Id", SqlDbType.BigInt).Value = vm.CustomerId;
-                object res = checkCommand.ExecuteScalar();
-                string customerCategory = res != null ? res.ToString() : "0";
-
-                //End
-
-
-                string query = @"
-SELECT
-
-COALESCE(COUNT(P.Id), 0) AS FilteredCount
-
-FROM SaleDeleveries P
-WHERE 1 = 1 
-";
 
 
 
-                // Apply additional conditions
-                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
+//        public async Task<ResultVM> GetProductStockQuantity(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+//        {
+//            bool isNewConnection = false;
+//            DataTable dataTable = new DataTable();
+//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
 
-                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+//            try
+//            {
+//                if (conn == null)
+//                {
+//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+//                    conn.Open();
+//                    isNewConnection = true;
+//                }
 
-                // SET additional conditions param
-                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
-
-                if (vm != null && !string.IsNullOrEmpty(vm.BranchId))
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
-                }
-                if (vm != null && !string.IsNullOrEmpty(vm.FromDate))
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@FromDate", vm.FromDate);
-                }
-
-
-                objComm.Fill(dataTable);
-
-                result.Status = "Success";
-                result.Message = "Data retrieved successfully.";
-                result.Count = Convert.ToInt32(dataTable.Rows[0][0]);
-                return result;
-            }
-            catch (Exception ex)
-            {
-                result.ExMessage = ex.Message;
-                result.Message = ex.Message;
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
+//                SqlCommand checkCommand = new SqlCommand("SELECT CustomerCategory FROM Customers WHERE Id=@Id", conn, transaction);
+//                checkCommand.Parameters.Add("@Id", SqlDbType.BigInt).Value = vm.CustomerId;
+//                object res = checkCommand.ExecuteScalar();
+//                string customerCategory = res != null ? res.ToString() : "0";
 
 
+//                string query = @"
 
 
+//SELECT 
+//    ISNULL(P.Id, 0) AS ProductId, 
+//    ISNULL(P.Name, '') AS ProductName,
+//    ISNULL(P.BanglaName, '') AS BanglaName, 
+//    ISNULL(P.Code, '') AS ProductCode, 
+//    ISNULL(P.HSCodeNo, '') AS HSCodeNo,
+//    ISNULL(P.ImagePath, '') AS ImagePath,
+//    ISNULL(P.ProductGroupId, 0) AS ProductGroupId,
+//    ISNULL(PG.Name, '') AS ProductGroupName,
+//    ISNULL(P.UOMId, 0) AS UOMId,
+//    ISNULL(UOM.Name, '') AS UOMName,
+//    ISNULL(PBH.CostPrice, 0) AS CostPrice, 
+//    ISNULL(PBH.SalesPrice, 0) AS SalesPrice, 
+//    ISNULL(PBH.PurchasePrice, 0) AS PurchasePrice, 
+//    ISNULL(PBH.SD, 0) AS SD, 
+//    ISNULL(PBH.VATRate, 0) AS VATRate, 
+//    ISNULL(stock.Quantity, 0) AS QuantityInHand,
+//    P.CtnSize AS UOMName, 
+//    P.CtnSizeFactor AS UOMConversion,
+//    CASE WHEN P.IsActive = 1 THEN 'Active' ELSE 'Inactive' END AS Status
 
-        public async Task<ResultVM> GetProductStockQuantity(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
-        {
-            bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+//FROM Products P
+//LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+//LEFT OUTER JOIN ProductSalePriceBatchHistories PBH ON P.Id = PBH.ProductId
+//LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
+//LEFT OUTER JOIN (
+//    SELECT 
+//        BranchId, 
+//        ProductId, 
+//        SUM(Quantity) AS Quantity 
+//    FROM (
+//        SELECT 
+//            BranchId,
+//            ProductId,
+//            SUM(CASE 
+//                    WHEN Type = 'Purchase' THEN Quantity 
+//                    WHEN Type = 'Sales' THEN -Quantity 
+//                    ELSE 0 
+//                END) AS Quantity
+//        FROM DayEndDetails
+//        WHERE BranchId = @BranchId AND Date <= @FromDate
+//        GROUP BY BranchId, ProductId
 
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    conn.Open();
-                    isNewConnection = true;
-                }
+//        UNION ALL
 
-                SqlCommand checkCommand = new SqlCommand("SELECT CustomerCategory FROM Customers WHERE Id=@Id", conn, transaction);
-                checkCommand.Parameters.Add("@Id", SqlDbType.BigInt).Value = vm.CustomerId;
-                object res = checkCommand.ExecuteScalar();
-                string customerCategory = res != null ? res.ToString() : "0";
+//        SELECT 
+//            SaleOrders.BranchId,
+//            ProductId,
+//            SUM(Quantity) * -1 AS Quantity
+//        FROM SaleOrderDetails
+//        LEFT JOIN SaleOrders ON SaleOrders.Id = SaleOrderDetails.SaleOrderId
+//        WHERE SaleOrders.BranchId = @BranchId AND SaleOrders.InvoiceDateTime >= @FromDate
+//        GROUP BY SaleOrders.BranchId, ProductId
+//    ) AS Result
+//    GROUP BY BranchId, ProductId
+//) stock ON P.Id = stock.ProductId 
 
-
-                string query = @"
-
-
-SELECT 
-    ISNULL(P.Id, 0) AS ProductId, 
-    ISNULL(P.Name, '') AS ProductName,
-    ISNULL(P.BanglaName, '') AS BanglaName, 
-    ISNULL(P.Code, '') AS ProductCode, 
-    ISNULL(P.HSCodeNo, '') AS HSCodeNo,
-    ISNULL(P.ImagePath, '') AS ImagePath,
-    ISNULL(P.ProductGroupId, 0) AS ProductGroupId,
-    ISNULL(PG.Name, '') AS ProductGroupName,
-    ISNULL(P.UOMId, 0) AS UOMId,
-    ISNULL(UOM.Name, '') AS UOMName,
-    ISNULL(PBH.CostPrice, 0) AS CostPrice, 
-    ISNULL(PBH.SalesPrice, 0) AS SalesPrice, 
-    ISNULL(PBH.PurchasePrice, 0) AS PurchasePrice, 
-    ISNULL(PBH.SD, 0) AS SD, 
-    ISNULL(PBH.VATRate, 0) AS VATRate, 
-    ISNULL(stock.Quantity, 0) AS QuantityInHand,
-    P.CtnSize AS UOMName, 
-    P.CtnSizeFactor AS UOMConversion,
-    CASE WHEN P.IsActive = 1 THEN 'Active' ELSE 'Inactive' END AS Status
-
-FROM Products P
-LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
-LEFT OUTER JOIN ProductSalePriceBatchHistories PBH ON P.Id = PBH.ProductId
-LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
-LEFT OUTER JOIN (
-    SELECT 
-        BranchId, 
-        ProductId, 
-        SUM(Quantity) AS Quantity 
-    FROM (
-        SELECT 
-            BranchId,
-            ProductId,
-            SUM(CASE 
-                    WHEN Type = 'Purchase' THEN Quantity 
-                    WHEN Type = 'Sales' THEN -Quantity 
-                    ELSE 0 
-                END) AS Quantity
-        FROM DayEndDetails
-        WHERE BranchId = @BranchId AND Date <= @FromDate
-        GROUP BY BranchId, ProductId
-
-        UNION ALL
-
-        SELECT 
-            SaleOrders.BranchId,
-            ProductId,
-            SUM(Quantity) * -1 AS Quantity
-        FROM SaleOrderDetails
-        LEFT JOIN SaleOrders ON SaleOrders.Id = SaleOrderDetails.SaleOrderId
-        WHERE SaleOrders.BranchId = @BranchId AND SaleOrders.InvoiceDateTime >= @FromDate
-        GROUP BY SaleOrders.BranchId, ProductId
-    ) AS Result
-    GROUP BY BranchId, ProductId
-) stock ON P.Id = stock.ProductId 
-
-WHERE 
-    P.Id = @ProductId AND
-    PBH.PriceCategory = @PriceCategory AND 
-    PBH.BranchId = @BranchId AND 
-    CAST(PBH.EffectDate AS DATE) <= @FromDate AND  
-    P.IsActive = 1
+//WHERE 
+//    P.Id = @ProductId AND
+//    PBH.PriceCategory = @PriceCategory AND 
+//    PBH.BranchId = @BranchId AND 
+//    CAST(PBH.EffectDate AS DATE) <= @FromDate AND  
+//    P.IsActive = 1
 
 
-";
+//";
 
-                if (vm != null && !string.IsNullOrEmpty(vm.FromDate))
-                {
-                    query = query.Replace("@param", " PBH.PriceCategory = @PriceCategory AND PBH.BranchId = @BranchId AND CAST(PBH.EffectDate AS DATE) <= " + "@FromDate" + " AND ");
-                }
-                else
-                {
-                    query = query.Replace("@param", "");
-                }
+//                if (vm != null && !string.IsNullOrEmpty(vm.FromDate))
+//                {
+//                    query = query.Replace("@param", " PBH.PriceCategory = @PriceCategory AND PBH.BranchId = @BranchId AND CAST(PBH.EffectDate AS DATE) <= " + "@FromDate" + " AND ");
+//                }
+//                else
+//                {
+//                    query = query.Replace("@param", "");
+//                }
 
-                // Apply additional conditions
-                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
-                //query += @"  ORDER BY " + vm.OrderName + "  " + vm.orderDir;
-                //query += @" OFFSET  " + vm.startRec + @" ROWS FETCH NEXT " + vm.pageSize + " ROWS ONLY";
+//                // Apply additional conditions
+//                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
+//                //query += @"  ORDER BY " + vm.OrderName + "  " + vm.orderDir;
+//                //query += @" OFFSET  " + vm.startRec + @" ROWS FETCH NEXT " + vm.pageSize + " ROWS ONLY";
 
-                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+//                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
-                // SET additional conditions param
-                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+//                // SET additional conditions param
+//                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
-                if (vm != null && !string.IsNullOrEmpty(vm.BranchId))
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
-                }
-                if (vm != null && !string.IsNullOrEmpty(vm.FromDate))
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@FromDate", vm.FromDate);
-                }
-                if (customerCategory != null)
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@PriceCategory", customerCategory);
-                }
-                if (vm != null && vm.ProductId != 0)
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@ProductId", vm.ProductId);
-                }
+//                if (vm != null && !string.IsNullOrEmpty(vm.BranchId))
+//                {
+//                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
+//                }
+//                if (vm != null && !string.IsNullOrEmpty(vm.FromDate))
+//                {
+//                    objComm.SelectCommand.Parameters.AddWithValue("@FromDate", vm.FromDate);
+//                }
+//                if (customerCategory != null)
+//                {
+//                    objComm.SelectCommand.Parameters.AddWithValue("@PriceCategory", customerCategory);
+//                }
+//                if (vm != null && vm.ProductId != 0)
+//                {
+//                    objComm.SelectCommand.Parameters.AddWithValue("@ProductId", vm.ProductId);
+//                }
 
-                objComm.Fill(dataTable);
+//                objComm.Fill(dataTable);
 
-                var modelList = dataTable.AsEnumerable().Select(row => new ProductDataVM
-                {
-                    ProductId = row.Field<int>("ProductId"),
-                    ProductName = row.Field<string>("ProductName"),
-                    BanglaName = row.Field<string>("BanglaName"),
-                    ProductCode = row.Field<string>("ProductCode"),
-                    HSCodeNo = row.Field<string>("HSCodeNo"),
-                    ImagePath = row.Field<string>("ImagePath"),
-                    ProductGroupId = row.Field<int>("ProductGroupId"),
-                    SDRate = row.Field<decimal>("SD"),
-                    VATRate = row.Field<decimal>("VATRate"),
-                    CostPrice = row.Field<decimal>("CostPrice"),
-                    SalesPrice = row.Field<decimal>("SalesPrice"),
-                    PurchasePrice = row.Field<decimal>("PurchasePrice"),
-                    ProductGroupName = row.Field<string>("ProductGroupName"),
-                    UOMId = row.Field<int>("UOMId"),
-                    QuantityInHand = row.Field<decimal>("QuantityInHand"),
-                    UOMName = row.Field<string>("UOMName"),
-                    UOMConversion = row.Field<string>("UOMConversion"),
-                    Status = row.Field<string>("Status")
+//                var modelList = dataTable.AsEnumerable().Select(row => new ProductDataVM
+//                {
+//                    ProductId = row.Field<int>("ProductId"),
+//                    ProductName = row.Field<string>("ProductName"),
+//                    BanglaName = row.Field<string>("BanglaName"),
+//                    ProductCode = row.Field<string>("ProductCode"),
+//                    HSCodeNo = row.Field<string>("HSCodeNo"),
+//                    ImagePath = row.Field<string>("ImagePath"),
+//                    ProductGroupId = row.Field<int>("ProductGroupId"),
+//                    SDRate = row.Field<decimal>("SD"),
+//                    VATRate = row.Field<decimal>("VATRate"),
+//                    CostPrice = row.Field<decimal>("CostPrice"),
+//                    SalesPrice = row.Field<decimal>("SalesPrice"),
+//                    PurchasePrice = row.Field<decimal>("PurchasePrice"),
+//                    ProductGroupName = row.Field<string>("ProductGroupName"),
+//                    UOMId = row.Field<int>("UOMId"),
+//                    QuantityInHand = row.Field<decimal>("QuantityInHand"),
+//                    UOMName = row.Field<string>("UOMName"),
+//                    UOMConversion = row.Field<string>("UOMConversion"),
+//                    Status = row.Field<string>("Status")
 
-                }).ToList();
+//                }).ToList();
 
 
-                result.Status = "Success";
-                result.Message = "Data retrieved successfully.";
-                result.DataVM = modelList;
-                return result;
-            }
-            catch (Exception ex)
-            {
-                result.ExMessage = ex.Message;
-                result.Message = ex.Message;
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
-        public async Task<ResultVM> BranchProfileList(
-    string[] conditionalFields,
-    string[] conditionalValues,
-    PeramModel vm = null,
-    SqlConnection conn = null,
-    SqlTransaction transaction = null)
-        {
-            bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+//                result.Status = "Success";
+//                result.Message = "Data retrieved successfully.";
+//                result.DataVM = modelList;
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                result.ExMessage = ex.Message;
+//                result.Message = ex.Message;
+//                return result;
+//            }
+//            finally
+//            {
+//                if (isNewConnection && conn != null)
+//                {
+//                    conn.Close();
+//                }
+//            }
+//        }
+//        public async Task<ResultVM> BranchProfileList(
+//    string[] conditionalFields,
+//    string[] conditionalValues,
+//    PeramModel vm = null,
+//    SqlConnection conn = null,
+//    SqlTransaction transaction = null)
+//        {
+//            bool isNewConnection = false;
+//            DataTable dataTable = new DataTable();
+//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
 
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    conn.Open();
-                    isNewConnection = true;
-                }
+//            try
+//            {
+//                if (conn == null)
+//                {
+//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+//                    conn.Open();
+//                    isNewConnection = true;
+//                }
 
-                string query = @"
-            SELECT DISTINCT
-                 ISNULL(H.Code,'') Code,
-                 ISNULL(H.Id,0) Id,
-                 ISNULL(H.Name,'') Name,
-                 ISNULL(H.Email,'') Email
-            FROM BranchProfiles H
-            WHERE H.IsActive = 1 
-              AND H.Id NOT IN (SELECT BranchId FROM Campaigns WHERE Id = @CampaignId)";
+//                string query = @"
+//            SELECT DISTINCT
+//                 ISNULL(H.Code,'') Code,
+//                 ISNULL(H.Id,0) Id,
+//                 ISNULL(H.Name,'') Name,
+//                 ISNULL(H.Email,'') Email
+//            FROM BranchProfiles H
+//            WHERE H.IsActive = 1 
+//              AND H.Id NOT IN (SELECT BranchId FROM Campaigns WHERE Id = @CampaignId)";
 
-                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+//                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
-                // Add CampaignId from conditionalValues (example assumes it's the first value)
-                if (conditionalValues != null && conditionalValues.Length > 0)
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@CampaignId", conditionalValues[0]);
-                }
-                else
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@CampaignId", 0); // default fallback
-                }
+//                // Add CampaignId from conditionalValues (example assumes it's the first value)
+//                if (conditionalValues != null && conditionalValues.Length > 0)
+//                {
+//                    objComm.SelectCommand.Parameters.AddWithValue("@CampaignId", conditionalValues[0]);
+//                }
+//                else
+//                {
+//                    objComm.SelectCommand.Parameters.AddWithValue("@CampaignId", 0); // default fallback
+//                }
 
-                // Apply other conditions if provided
-                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+//                // Apply other conditions if provided
+//                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
-                objComm.Fill(dataTable);
+//                objComm.Fill(dataTable);
 
-                var modelList = dataTable.AsEnumerable().Select(row => new BranchProfileVM
-                {
-                    Id = Convert.ToInt32(row["Id"]),
-                    Name = row["Name"]?.ToString(),
-                    Code = row["Code"]?.ToString(),
-                    Email = row["Email"]?.ToString(),
-                }).ToList();
+//                var modelList = dataTable.AsEnumerable().Select(row => new BranchProfileVM
+//                {
+//                    Id = Convert.ToInt32(row["Id"]),
+//                    Name = row["Name"]?.ToString(),
+//                    Code = row["Code"]?.ToString(),
+//                    Email = row["Email"]?.ToString(),
+//                }).ToList();
 
-                result.Status = "Success";
-                result.Message = "Data retrieved successfully.";
-                result.DataVM = modelList;
-                return result;
-            }
-            catch (Exception ex)
-            {
-                result.ExMessage = ex.Message;
-                result.Message = ex.Message;
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
+//                result.Status = "Success";
+//                result.Message = "Data retrieved successfully.";
+//                result.DataVM = modelList;
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                result.ExMessage = ex.Message;
+//                result.Message = ex.Message;
+//                return result;
+//            }
+//            finally
+//            {
+//                if (isNewConnection && conn != null)
+//                {
+//                    conn.Close();
+//                }
+//            }
+//        }
 
         public async Task<ResultVM> HasDayEndData(string branchId, SqlConnection conn = null, SqlTransaction transaction = null)
         {
@@ -5305,78 +4529,6 @@ WHERE
 
 
 
-
-
-        //     public async Task<ResultVM> BranchProfileList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
-        //     {
-        //         bool isNewConnection = false;
-        //         DataTable dataTable = new DataTable();
-        //         ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
-
-        //         try
-        //         {
-        //             if (conn == null)
-        //             {
-        //                 conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-        //                 conn.Open();
-        //                 isNewConnection = true;
-        //             }
-
-        //             string query = @"            
-
-        //SELECT DISTINCT
-        // ISNULL(H.Code,'') Code
-        //,ISNULL(H.Id,0) Id
-        //,ISNULL(H.Name,'') Name
-        //   ,ISNULL(H.Email,'') Email
-
-
-        //FROM BranchProfiles H
-
-        //WHERE H.IsActive=1 AND H.Id Not In (Select BranchId from Campaigns Where Id = conditionalValues.id) ";
-
-
-        //             query = ApplyConditions(query, conditionalFields, conditionalValues, false);
-
-        //             SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
-
-        //             // SET additional conditions param
-        //             objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
-
-
-
-        //             objComm.Fill(dataTable);
-
-        //             var modelList = dataTable.AsEnumerable().Select(row => new BranchProfileVM
-        //             {
-        //                 Id = Convert.ToInt32(row["Id"]),
-        //                 Name = row["Name"]?.ToString(),
-        //                 Code = row["Code"]?.ToString(),
-        //                 Email = row["Email"]?.ToString(),
-
-
-        //             }).ToList();
-
-
-        //             result.Status = "Success";
-        //             result.Message = "Data retrieved successfully.";
-        //             result.DataVM = modelList;
-        //             return result;
-        //         }
-        //         catch (Exception ex)
-        //         {
-        //             result.ExMessage = ex.Message;
-        //             result.Message = ex.Message;
-        //             return result;
-        //         }
-        //         finally
-        //         {
-        //             if (isNewConnection && conn != null)
-        //             {
-        //                 conn.Close();
-        //             }
-        //         }
-        //     }
     }
 
 }

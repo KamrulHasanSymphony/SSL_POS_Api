@@ -35,10 +35,10 @@ namespace ShampanPOS.Repository
 
                 string query = @"
                 INSERT INTO BranchProfiles 
-                (Code, DistributorCode, Name,BanglaName, AreaId, TelephoneNo, Email, VATRegistrationNo, BIN, TINNO, Comments, 
+                (Code, DistributorCode, Name,BanglaName,  TelephoneNo, Email, VATRegistrationNo, BIN, TINNO, Comments, 
                  IsArchive, IsActive, CreatedBy, CreatedOn,Address)
                 VALUES 
-                (@Code, @DistributorCode, @Name,@BanglaName, @AreaId, @TelephoneNo, @Email, @VATRegistrationNo, @BIN, @TINNO, @Comments, 
+                (@Code, @DistributorCode, @Name,@BanglaName,  @TelephoneNo, @Email, @VATRegistrationNo, @BIN, @TINNO, @Comments, 
                  @IsArchive, @IsActive, @CreatedBy, GETDATE(), @Address);
                 SELECT SCOPE_IDENTITY();";
 
@@ -48,11 +48,6 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@DistributorCode", vm.DistributorCode);
                     cmd.Parameters.AddWithValue("@Name", vm.Name);
                     cmd.Parameters.AddWithValue("@BanglaName", vm.BanglaName);
-                    //cmd.Parameters.AddWithValue("@ParentId", vm.ParentId ?? 0);
-                    //cmd.Parameters.AddWithValue("@ParentId", vm.ParentId ?? (object)DBNull.Value);
-
-                    //cmd.Parameters.AddWithValue("@EnumTypeId", vm.EnumTypeId);
-                    cmd.Parameters.AddWithValue("@AreaId", vm.AreaId);
                     cmd.Parameters.AddWithValue("@TelephoneNo", vm.TelephoneNo ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Email", vm.Email ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@VATRegistrationNo", vm.VATRegistrationNo ?? (object)DBNull.Value);
@@ -140,7 +135,6 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@BanglaName", branchProfile.BanglaName);
                     //cmd.Parameters.AddWithValue("@ParentId", branchProfile.ParentId);
                     //cmd.Parameters.AddWithValue("@EnumTypeId", branchProfile.EnumTypeId);
-                    cmd.Parameters.AddWithValue("@AreaId", branchProfile.AreaId);
                     cmd.Parameters.AddWithValue("@TelephoneNo", branchProfile.TelephoneNo ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Email", branchProfile.Email ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@VATRegistrationNo", branchProfile.VATRegistrationNo ?? (object)DBNull.Value);
@@ -306,14 +300,7 @@ query += @"
     ,ISNULL(H.DistributorCode, '') AS DistributorCode
     ,ISNULL(H.Name, '') AS Name
     ,ISNULL(H.BanglaName, '') AS BanglaName
-   -- ,ISNULL(H.ParentId, 0) AS ParentId    
-   -- ,ISNULL(EParent.Name,'N/A') AS EnumType
-
-    --,ISNULL(H.CurrencyId, 0) AS CurrencyId
-    --,ISNULL(H.EnumTypeId, 0) AS EnumTypeId
-    --,ISNULL(EEnumType.Name,'N/A') AS EnumName
     ,ISNULL(H.AreaId, 0) AS AreaId
-    ,ISNULL(A.Name, 'N/A') AS AreaName
 	
     ,ISNULL(H.TelephoneNo, '') AS TelephoneNo
     ,ISNULL(H.Address, '') AS Address
@@ -332,9 +319,6 @@ query += @"
     ,ISNULL(H.LastUpdateFrom, '') AS LastUpdateFrom
 FROM 
     BranchProfiles H
-	left outer join Areas A on A.Id=H.AreaId
-	--left outer join EnumTypes EParent on EParent.Id=H.ParentId
-	--left outer join EnumTypes EEnumType on EEnumType.Id=H.EnumTypeId
 	
 	WHERE 1 = 1";
 
@@ -375,8 +359,6 @@ FROM
                     //EnumTypeId = Convert.ToInt32(row["EnumTypeId"]),
                     //EnumName = row["EnumName"].ToString(),
 
-                    AreaId = Convert.ToInt32(row["AreaId"]),
-                    AreaName = row["AreaName"].ToString(),
 
                     //CurrencyId = Convert.ToInt32(row["CurrencyId"]),
                     TelephoneNo = row["TelephoneNo"].ToString(),

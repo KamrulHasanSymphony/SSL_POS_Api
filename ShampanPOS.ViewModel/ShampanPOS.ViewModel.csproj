@@ -7,6 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="BranchAdvanceVM.cs" />
+    <Compile Remove="BranchCreditLimitVM.cs" />
     <Compile Remove="CampaignDetail.cs" />
     <Compile Remove="CampaignDetailByInvoiceValueVM.cs" />
     <Compile Remove="CampaignDetailByProductTotalValueVM.cs" />
@@ -17,8 +19,10 @@
     <Compile Remove="ContactPersonVM.cs" />
     <Compile Remove="CurrencyVM.cs" />
     <Compile Remove="CustomerCreditLimitVM.cs" />
+    <Compile Remove="CustomerDataVM.cs" />
     <Compile Remove="CustomerDueListCustomerWiseVM.cs" />
     <Compile Remove="CustomerDueListVM.cs" />
+    <Compile Remove="CustomerSalesModel.cs" />
     <Compile Remove="DayEndDetailsVM.cs" />
     <Compile Remove="DayEndHeadersVM.cs" />
     <Compile Remove="DeliveryPersonVM.cs" />
@@ -29,6 +33,7 @@
     <Compile Remove="MISReportVM.cs" />
     <Compile Remove="MonthlySalesAndAmountCustomerWiseVM.cs" />
     <Compile Remove="MonthlySalesAndAmountProductWiseVM.cs" />
+    <Compile Remove="ProductBatchHistoryVM.cs" />
     <Compile Remove="ProductPriceGroupDetailVM.cs" />
     <Compile Remove="ProductPriceGroupVM.cs" />
     <Compile Remove="ProductReplaceIssueDetailsVM.cs" />
@@ -43,17 +48,11 @@
     <Compile Remove="PurchaseSummaryVM.cs" />
     <Compile Remove="RouteVM.cs" />
     <Compile Remove="SaleDeleveryInformationVM.cs" />
-    <Compile Remove="SaleDeliveryDetailVM.cs" />
     <Compile Remove="SaleDeliveryReportVM.cs" />
     <Compile Remove="SaleDeliveryReturnDetails.cs" />
     <Compile Remove="SaleDeliveryReturnDetailVM.cs" />
     <Compile Remove="SaleDeliveryReturnVM.cs" />
-    <Compile Remove="SaleDeliveryVM.cs" />
-    <Compile Remove="SaleDetailVM.cs" />
     <Compile Remove="SaleDevliveryReturnReportVM.cs" />
-    <Compile Remove="SaleOrderDetailVM.cs" />
-    <Compile Remove="SaleOrderReportVM.cs" />
-    <Compile Remove="SaleOrderVM.cs" />
     <Compile Remove="SalePaymentVM.cs" />
     <Compile Remove="SalePersonCampaignAchievementDataVm.cs" />
     <Compile Remove="SalePersonCampaignAchievementVM.cs" />
@@ -73,7 +72,6 @@
     <Compile Remove="SaleReturnVM.cs" />
     <Compile Remove="SalesDataModel.cs" />
     <Compile Remove="SalesPersonVM.cs" />
-    <Compile Remove="SaleVM.cs" />
   </ItemGroup>
 
   <ItemGroup>

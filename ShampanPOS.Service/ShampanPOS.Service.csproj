@@ -13,6 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="BranchAdvanceService.cs" />
+    <Compile Remove="BranchCreditLimitService.cs" />
     <Compile Remove="BusinessTypeService.cs" />
     <Compile Remove="CampaignDetailByInvoiceValueService.cs" />
     <Compile Remove="CampaignDetailByProductTotalValueService.cs" />
@@ -39,9 +41,7 @@
     <Compile Remove="RouteService.cs" />
     <Compile Remove="SaleDeliveryReturnService.cs" />
     <Compile Remove="SaleDeliveryService.cs" />
-    <Compile Remove="SaleDetailService.cs" />
     <Compile Remove="SaleOrderDetailService.cs" />
-    <Compile Remove="SaleOrderService.cs" />
     <Compile Remove="SalePersonCampaignAchievementService.cs" />
     <Compile Remove="SalePersonCampaignTargetService.cs" />
     <Compile Remove="SalePersonMonthlyAchievementService.cs" />
@@ -51,7 +51,6 @@
     <Compile Remove="SalePersonYearlyTargetService.cs" />
     <Compile Remove="SaleReturnDetailService.cs" />
     <Compile Remove="SaleReturnService.cs" />
-    <Compile Remove="SaleService.cs" />
     <Compile Remove="SalesPersonService.cs" />
   </ItemGroup>
 

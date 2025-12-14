@@ -65,12 +65,12 @@ namespace ShampanPOS.ViewModel
         public string? ImagePath { get; set; }
         
 
-        public List<ProductImportVM> ProductImportList { get; set; }
+        //public List<ProductImportVM> ProductImportList { get; set; }
         public List<BranchProfileVM> BranchProfileList { get; set; }
 
         public ProductVM()
         {
-            ProductImportList = new List<ProductImportVM>();
+            //ProductImportList = new List<ProductImportVM>();
             BranchProfileList = new List<BranchProfileVM>();
         }
 

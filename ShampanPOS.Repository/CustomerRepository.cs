@@ -491,9 +491,6 @@ WHERE 1 = 1
                         CustomerGroupId = row.Field<int>("CustomerGroupId"),
                         Address = row.Field<string>("Address"),
                         BanglaAddress = row.Field<string>("BanglaAddress"),
-                        RouteId = row.Field<int>("RouteId"),
-                        AreaId = row.Field<int>("AreaId"),
-                        City = row.Field<string>("City"),
                         TelephoneNo = row.Field<string>("TelephoneNo"),
                         FaxNo = row.Field<string>("FaxNo"),
                         Email = row.Field<string>("Email"),
@@ -762,84 +759,84 @@ ORDER BY Name";
                 }
             }
         }
-        public async Task<ResultVM> GetCustomerModalData(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
-        {
-            bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+//        public async Task<ResultVM> GetCustomerModalData(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+//        {
+//            bool isNewConnection = false;
+//            DataTable dataTable = new DataTable();
+//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
 
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    conn.Open();
-                    isNewConnection = true;
-                }
+//            try
+//            {
+//                if (conn == null)
+//                {
+//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+//                    conn.Open();
+//                    isNewConnection = true;
+//                }
 
-                string query = @"
-SELECT DISTINCT
-    ISNULL(Cus.Id, 0) AS CustomerId, 
-    ISNULL(Cus.Name, '') AS CustomerName,
-    ISNULL(Cus.BanglaName, '') AS BanglaName, 
-    ISNULL(Cus.Code, '') AS CustomerCode,
-    'Active' AS Status
-FROM Customers Cus
-WHERE Cus.Name = 'ALL'
+//                string query = @"
+//SELECT DISTINCT
+//    ISNULL(Cus.Id, 0) AS CustomerId, 
+//    ISNULL(Cus.Name, '') AS CustomerName,
+//    ISNULL(Cus.BanglaName, '') AS BanglaName, 
+//    ISNULL(Cus.Code, '') AS CustomerCode,
+//    'Active' AS Status
+//FROM Customers Cus
+//WHERE Cus.Name = 'ALL'
 
-UNION
+//UNION
 
-SELECT DISTINCT
-    ISNULL(Cus.Id,0)CustomerId , 
-    ISNULL(Cus.Name,'') CustomerName,
-    ISNULL(Cus.BanglaName,'') BanglaName, 
-    ISNULL(Cus.Code,'') CustomerCode, 
-    CASE WHEN Cus.IsActive = 1 THEN 'Active' ELSE 'Inactive' END Status
-FROM Customers Cus
-WHERE Cus.IsActive = 1 
-";
+//SELECT DISTINCT
+//    ISNULL(Cus.Id,0)CustomerId , 
+//    ISNULL(Cus.Name,'') CustomerName,
+//    ISNULL(Cus.BanglaName,'') BanglaName, 
+//    ISNULL(Cus.Code,'') CustomerCode, 
+//    CASE WHEN Cus.IsActive = 1 THEN 'Active' ELSE 'Inactive' END Status
+//FROM Customers Cus
+//WHERE Cus.IsActive = 1 
+//";
 
-                // Apply additional conditions
-                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
+//                // Apply additional conditions
+//                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
 
-                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+//                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
-                // SET additional conditions param
-                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+//                // SET additional conditions param
+//                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
-                objComm.Fill(dataTable);
+//                objComm.Fill(dataTable);
 
-                var modelList = dataTable.AsEnumerable().Select(row => new CustomerDataVM
-                {
-                    CustomerId = row.Field<int>("CustomerId"),
-                    CustomerName = row.Field<string>("CustomerName"),
-                    BanglaName = row.Field<string>("BanglaName"),
-                    CustomerCode = row.Field<string>("CustomerCode"),
+//                var modelList = dataTable.AsEnumerable().Select(row => new CustomerDataVM
+//                {
+//                    CustomerId = row.Field<int>("CustomerId"),
+//                    CustomerName = row.Field<string>("CustomerName"),
+//                    BanglaName = row.Field<string>("BanglaName"),
+//                    CustomerCode = row.Field<string>("CustomerCode"),
                 
-                    Status = row.Field<string>("Status")
+//                    Status = row.Field<string>("Status")
 
-                }).ToList();
+//                }).ToList();
 
 
-                result.Status = "Success";
-                result.Message = "Data retrieved successfully.";
-                result.DataVM = modelList;
-                return result;
-            }
-            catch (Exception ex)
-            {
-                result.ExMessage = ex.Message;
-                result.Message = ex.Message;
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
+//                result.Status = "Success";
+//                result.Message = "Data retrieved successfully.";
+//                result.DataVM = modelList;
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                result.ExMessage = ex.Message;
+//                result.Message = ex.Message;
+//                return result;
+//            }
+//            finally
+//            {
+//                if (isNewConnection && conn != null)
+//                {
+//                    conn.Close();
+//                }
+//            }
+//        }
         public async Task<ResultVM> ListCustomersBySalePersonAndBranch(int salePersonId, int branchId, SqlConnection conn, SqlTransaction transaction)
         {
             bool isNewConnection = false;
@@ -865,7 +862,6 @@ sp.BranchId,
 M.Code,
 M.Address,
 M.Email,
-M.City,
 isnull(M.RegularDiscountRate,0)RegularDiscountRate
 
             
@@ -895,7 +891,6 @@ M.IsArchive != 1 AND M.BranchId = @CusBranchId AND  sp.BranchId = @BranchId AND 
                     Code = row.Field<string>("Code"),
                     Address = row.Field<string>("Address"),
                     Email = row.Field<string>("Email"),
-                    City = row.Field<string>("City"),
                     BranchId= row.Field<int>("BranchId"),
 
                     //RegularDiscountRate = row.Field<decimal>("RegularDiscountRate")

@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
+using System.Xml.Linq;
 
 namespace ShampanPOS.ViewModel
 {
-
     public class CustomerVM
     {
         public int Id { get; set; }
@@ -25,8 +26,6 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Branch ID")]
         public int? BranchId { get; set; }
 
-        [Display(Name = "Focal Point")]
-        public int? FocalPointId { get; set; }
         [Display(Name = "Customer Group ID")]
         public int? CustomerGroupId { get; set; }
 
@@ -42,15 +41,6 @@ namespace ShampanPOS.ViewModel
         public string? BanglaAddress { get; set; }
 
 
-        [Display(Name = "Route ID")]
-        public int? RouteId { get; set; }
-
-
-        [Display(Name = "Area ID")]
-        public int? AreaId { get; set; }
-
-        [Display(Name = "City")]
-        public string? City { get; set; }
 
         [Display(Name = "Telephone No")]
         public string? TelephoneNo { get; set; }

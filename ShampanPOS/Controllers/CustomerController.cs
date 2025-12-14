@@ -226,29 +226,6 @@ namespace ShampanPOS.Controllers
             }
         }
 
-        // POST: api/Product/GetCustomerModalData
-        [HttpPost("GetCustomerModalData")]
-        public async Task<ResultVM> GetCustomerModalData(CustomerDataVM model)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                _CustomerService = new CustomerService();
-
-                resultVM = await _CustomerService.GetCustomerModalData(new[] { "Cus.Code like", "Cus.Name like", "Cus.BanglaName like", "Cus.BranchId like", }, new[] { model.CustomerCode, model.CustomerName, model.BanglaName,model.BranchId }, null);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = ex.Message,
-                    ExMessage = ex.Message,
-                    DataVM = model
-                };
-            }
-        }
 
         // POST: api/Product/ReportPreview
         [HttpPost("ReportPreview")]

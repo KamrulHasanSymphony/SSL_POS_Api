@@ -15,6 +15,7 @@
     <Compile Remove="Controllers\CampaignDetailByQuantityController.cs" />
     <Compile Remove="Controllers\ContactPersonController.cs" />
     <Compile Remove="Controllers\CurrencyController.cs" />
+    <Compile Remove="Controllers\CurrencyConversationController.cs" />
     <Compile Remove="Controllers\CustomerCreditLimitController.cs" />
     <Compile Remove="Controllers\CustomerJournalController.cs" />
     <Compile Remove="Controllers\DayEndController.cs" />
@@ -29,13 +30,12 @@
     <Compile Remove="Controllers\ProductReplaceIssueController.cs" />
     <Compile Remove="Controllers\ProductReplaceReceiveController.cs" />
     <Compile Remove="Controllers\ProductStockController.cs" />
+    <Compile Remove="Controllers\PurchaseDetailController.cs" />
+    <Compile Remove="Controllers\PurchaseOrderDetailController.cs" />
     <Compile Remove="Controllers\RecentDateController.cs" />
     <Compile Remove="Controllers\RouteController.cs" />
-    <Compile Remove="Controllers\SaleController.cs" />
     <Compile Remove="Controllers\SaleDeliveryController.cs" />
     <Compile Remove="Controllers\SaleDeliveryReturnController.cs" />
-    <Compile Remove="Controllers\SaleDetailController.cs" />
-    <Compile Remove="Controllers\SaleOrderController.cs" />
     <Compile Remove="Controllers\SaleOrderDetailController.cs" />
     <Compile Remove="Controllers\SalePersonCampaignAchievementController.cs" />
     <Compile Remove="Controllers\SalePersonCampaignTargetController.cs" />
