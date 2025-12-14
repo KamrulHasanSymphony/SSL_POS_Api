@@ -88,19 +88,19 @@ namespace ShampanPOS.Service
 
                 #endregion
 
-                #region Currency Conversation Data
+                //#region Currency Conversation Data
 
-                var currencyConversation = await new CurrencyConversationRepository().List(new[] { "M.FromId", "M.ToId" }, new[] { CurrencyFromId, model.CurrencyId.ToString() }, null, conn, transaction);
-                if (currencyConversation.Status == "Success" && currencyConversation.DataVM is List<CurrencyConversionVM> currencyList)
-                {
-                    model.CurrencyRateFromBDT = currencyList.FirstOrDefault()?.ConversationFactor > 0 ? currencyList.FirstOrDefault()?.ConversationFactor : 1;
-                }
-                else
-                {
-                    throw new Exception("Currency data not found!");
-                }
+                //var currencyConversation = await new CurrencyConversationRepository().List(new[] { "M.FromId", "M.ToId" }, new[] { CurrencyFromId, model.CurrencyId.ToString() }, null, conn, transaction);
+                //if (currencyConversation.Status == "Success" && currencyConversation.DataVM is List<CurrencyConversionVM> currencyList)
+                //{
+                //    model.CurrencyRateFromBDT = currencyList.FirstOrDefault()?.ConversationFactor > 0 ? currencyList.FirstOrDefault()?.ConversationFactor : 1;
+                //}
+                //else
+                //{
+                //    throw new Exception("Currency data not found!");
+                //}
 
-                #endregion
+                //#endregion
 
                 string code = _commonRepo.GenerateCode(CodeGroup, CodeName, model.InvoiceDateTime, model.BranchId, conn, transaction);
 
@@ -126,37 +126,37 @@ namespace ShampanPOS.Service
                             details.SDAmount = 0;
                             details.VATAmount = 0;
                             details.BranchId = model.BranchId;
-                            details.TransactionType = model.TransactionType;
+                            //details.TransactionType = model.TransactionType;
                             details.Line = LineNo;
-                            details.IsPost = model.IsPost;
+                            //details.IsPost = model.IsPost;
 
-                            #region UOM Data
+                            //#region UOM Data
 
-                            var uomdata = await new ProductRepository().List(new[] { "M.Id" }, new[] { details.ProductId.ToString() }, null, conn, transaction);
-                            if (uomdata.Status == "Success" && uomdata.DataVM is List<ProductVM> uomList)
-                            {
-                                details.UOMFromId = uomList.FirstOrDefault()?.UOMId;
-                            }
-                            else
-                            {
-                                throw new Exception("UOM data not found!");
-                            }
+                            //var uomdata = await new ProductRepository().List(new[] { "M.Id" }, new[] { details.ProductId.ToString() }, null, conn, transaction);
+                            //if (uomdata.Status == "Success" && uomdata.DataVM is List<ProductVM> uomList)
+                            //{
+                            //    details.UOMFromId = uomList.FirstOrDefault()?.UOMId;
+                            //}
+                            //else
+                            //{
+                            //    throw new Exception("UOM data not found!");
+                            //}
 
-                            #endregion
+                            //#endregion
 
-                            #region UOM Conversation Data
+                            //#region UOM Conversation Data
 
-                            var uomConversation = await new UOMConversationRepository().List(new[] { "M.FromId", "M.ToId" }, new[] { details.UOMFromId.ToString(), details.UOMId.ToString() }, null, conn, transaction);
-                            if (uomConversation.Status == "Success" && uomConversation.DataVM is List<UOMConversationVM> uomConvList)
-                            {
-                                details.UOMConversion = uomConvList.FirstOrDefault()?.ConversationFactor > 0 ? uomConvList.FirstOrDefault()?.ConversationFactor : 1;
-                            }
-                            else
-                            {
-                                throw new Exception("UOM Conversation data not found!");
-                            }
+                            //var uomConversation = await new UOMConversationRepository().List(new[] { "M.FromId", "M.ToId" }, new[] { details.UOMFromId.ToString(), details.UOMId.ToString() }, null, conn, transaction);
+                            //if (uomConversation.Status == "Success" && uomConversation.DataVM is List<UOMConversationVM> uomConvList)
+                            //{
+                            //    details.UOMConversion = uomConvList.FirstOrDefault()?.ConversationFactor > 0 ? uomConvList.FirstOrDefault()?.ConversationFactor : 1;
+                            //}
+                            //else
+                            //{
+                            //    throw new Exception("UOM Conversation data not found!");
+                            //}
 
-                            #endregion
+                            //#endregion
 
                             #region Product Batch History Param with ProductId & BranchId Data
 
@@ -362,19 +362,19 @@ namespace ShampanPOS.Service
 
                 #endregion
 
-                #region Currency Conversation Data
+                //#region Currency Conversation Data
 
-                var currencyConversation = await new CurrencyConversationRepository().List(new[] { "M.FromId", "M.ToId" }, new[] { CurrencyFromId, model.CurrencyId.ToString() }, null, conn, transaction);
-                if (currencyConversation.Status == "Success" && currencyConversation.DataVM is List<CurrencyConversionVM> currencyList)
-                {
-                    model.CurrencyRateFromBDT = currencyList.FirstOrDefault()?.ConversationFactor > 0 ? currencyList.FirstOrDefault()?.ConversationFactor : 1;
-                }
-                else
-                {
-                    throw new Exception("Currency data not found!");
-                }
+                //var currencyConversation = await new CurrencyConversationRepository().List(new[] { "M.FromId", "M.ToId" }, new[] { CurrencyFromId, model.CurrencyId.ToString() }, null, conn, transaction);
+                //if (currencyConversation.Status == "Success" && currencyConversation.DataVM is List<CurrencyConversionVM> currencyList)
+                //{
+                //    model.CurrencyRateFromBDT = currencyList.FirstOrDefault()?.ConversationFactor > 0 ? currencyList.FirstOrDefault()?.ConversationFactor : 1;
+                //}
+                //else
+                //{
+                //    throw new Exception("Currency data not found!");
+                //}
 
-                #endregion
+                //#endregion
 
                 var record = _commonRepo.DetailsDelete("PurchaseDetails", new[] { "PurchaseId" }, new[] { model.Id.ToString() }, conn, transaction);
 
@@ -394,37 +394,37 @@ namespace ShampanPOS.Service
                         details.SDAmount = 0;
                         details.VATAmount = 0;
                         details.BranchId = model.BranchId;
-                        details.TransactionType = model.TransactionType;
+                        //details.TransactionType = model.TransactionType;
                         details.Line = LineNo;
-                        details.IsPost = model.IsPost;
+                        //details.IsPost = model.IsPost;
 
-                        #region UOM Data
+                        //#region UOM Data
 
-                        var uomdata = await new ProductRepository().List(new[] { "M.Id" }, new[] { details.UOMId.ToString() }, null, conn, transaction);
-                        if (uomdata.Status == "Success" && uomdata.DataVM is List<ProductVM> uomList)
-                        {
-                            details.UOMFromId = uomList.FirstOrDefault()?.UOMId;
-                        }
-                        else
-                        {
-                            throw new Exception("UOM data not found!");
-                        }
+                        //var uomdata = await new ProductRepository().List(new[] { "M.Id" }, new[] { details.UOMId.ToString() }, null, conn, transaction);
+                        //if (uomdata.Status == "Success" && uomdata.DataVM is List<ProductVM> uomList)
+                        //{
+                        //    details.UOMFromId = uomList.FirstOrDefault()?.UOMId;
+                        //}
+                        //else
+                        //{
+                        //    throw new Exception("UOM data not found!");
+                        //}
 
-                        #endregion
+                        //#endregion
 
-                        #region UOM Conversation Data
+                        //#region UOM Conversation Data
 
-                        var uomConversation = await new UOMConversationRepository().List(new[] { "M.FromId", "M.ToId" }, new[] { details.UOMFromId.ToString(), details.UOMId.ToString() }, null, conn, transaction);
-                        if (uomConversation.Status == "Success" && uomConversation.DataVM is List<UOMConversationVM> uomConvList)
-                        {
-                            details.UOMConversion = uomConvList.FirstOrDefault()?.ConversationFactor > 0 ? uomConvList.FirstOrDefault()?.ConversationFactor : 1;
-                        }
-                        else
-                        {
-                            throw new Exception("UOM Conversation data not found!");
-                        }
+                        //var uomConversation = await new UOMConversationRepository().List(new[] { "M.FromId", "M.ToId" }, new[] { details.UOMFromId.ToString(), details.UOMId.ToString() }, null, conn, transaction);
+                        //if (uomConversation.Status == "Success" && uomConversation.DataVM is List<UOMConversationVM> uomConvList)
+                        //{
+                        //    details.UOMConversion = uomConvList.FirstOrDefault()?.ConversationFactor > 0 ? uomConvList.FirstOrDefault()?.ConversationFactor : 1;
+                        //}
+                        //else
+                        //{
+                        //    throw new Exception("UOM Conversation data not found!");
+                        //}
 
-                        #endregion
+                        //#endregion
 
                         #region Product Batch History Param with ProductId & BranchId Data
 
@@ -780,7 +780,7 @@ namespace ShampanPOS.Service
 
 
                     PurchaseVM vmData = new PurchaseVM();
-                    vmData.ImportIDExcel = item.PurchaseCode;
+                    //vmData.ImportIDExcel = item.PurchaseCode;
                     vmData.InvoiceDateTime = item.InvoiceDateTime;
                     vmData.PurchaseDate = item.InvoiceDateTime;
                     vmData.SupplierId = purchaseList.FirstOrDefault().Id;
@@ -879,8 +879,8 @@ namespace ShampanPOS.Service
 
                         detail.ProductId = ProductList.FirstOrDefault().Id;
                         detail.UnitPrice = UnitPriceList.FirstOrDefault().CostPrice;
-                        detail.UOMId = UOMList.FirstOrDefault().Id;
-                        detail.UOMName = UOMList.FirstOrDefault().Name;
+                        //detail.UOMId = UOMList.FirstOrDefault().Id;
+                        //detail.UOMName = UOMList.FirstOrDefault().Name;
                         //detail.Quantity = TempQuantityList.FirstOrDefault().Quantity;
                         detail.Quantity = itemData.Quantity;
                         detail.SubTotal = detail.UnitPrice * detail.Quantity;
@@ -1381,7 +1381,7 @@ namespace ShampanPOS.Service
                     throw new Exception("Supplier is not distinct!");
                 }
 
-                allSame = lst.Select(p => p.CurrencyId).Distinct().Count() == 1;
+                //allSame = lst.Select(p => p.CurrencyId).Distinct().Count() == 1;
                 if (!allSame)
                 {
                     throw new Exception("Currency is not distinct!");
@@ -1393,7 +1393,7 @@ namespace ShampanPOS.Service
                 {
                     string json = JsonConvert.SerializeObject(dt);
                     var details = JsonConvert.DeserializeObject<List<PurchaseReturnDetailVM>>(json);
-                    details.ToList().ForEach(item => item.POCode = lst.FirstOrDefault().Code);
+                    //details.ToList().ForEach(item => item.POCode = lst.FirstOrDefault().Code);
                     lst.FirstOrDefault().purchaseReturnDetailList = details;
                     result.DataVM = lst;
                 }
@@ -1525,53 +1525,53 @@ namespace ShampanPOS.Service
             }
         }
 
-        public async Task<ResultVM> ExportPurchaseExcel(CommonVM vm)
-        {
-            PurchaseRepository _repo = new PurchaseRepository();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //public async Task<ResultVM> ExportPurchaseExcel(CommonVM vm)
+        //{
+        //    PurchaseRepository _repo = new PurchaseRepository();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
-            bool isNewConnection = false;
-            SqlConnection conn = null;
-            SqlTransaction transaction = null;
-            try
-            {
-                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                conn.Open();
-                isNewConnection = true;
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
 
-                transaction = conn.BeginTransaction();
+        //        transaction = conn.BeginTransaction();
 
-                result = await _repo.ExportPurchaseExcel(vm, conn, transaction);
+        //        result = await _repo.ExportPurchaseExcel(vm, conn, transaction);
 
-                if (isNewConnection && result.Status == "Success")
-                {
-                    transaction.Commit();
-                }
-                else
-                {
-                    throw new Exception(result.Message);
-                }
+        //        if (isNewConnection && result.Status == "Success")
+        //        {
+        //            transaction.Commit();
+        //        }
+        //        else
+        //        {
+        //            throw new Exception(result.Message);
+        //        }
 
-                return result;
-            }
-            catch (Exception ex)
-            {
-                if (transaction != null && isNewConnection)
-                {
-                    transaction.Rollback();
-                }
-                result.Message = ex.Message.ToString();
-                result.ExMessage = ex.ToString();
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+        //        result.Message = ex.Message.ToString();
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
 
 
         public async Task<ResultVM> ReportPreview(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)

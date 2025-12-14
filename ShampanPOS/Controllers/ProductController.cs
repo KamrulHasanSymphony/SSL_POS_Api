@@ -325,50 +325,56 @@ namespace ShampanPOS.Controllers
 
 
         // POST: api/Purchase/ExportProductExcel
-        [HttpPost("ExportProductExcel")]
-        public async Task<ResultVM> ExportProductExcel(CommonVM vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                ProductService _service = new ProductService();
-                resultVM = await _service.ExportProductExcel(vm);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = ex.Message,
-                    ExMessage = ex.Message,
-                    DataVM = vm
-                };
-            }
-        }
+        //[HttpPost("ExportProductExcel")]
+        //public async Task<ResultVM> ExportProductExcel(CommonVM vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        ProductService _service = new ProductService();
+        //        resultVM = await _service.ExportProductExcel(vm);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = ex.Message,
+        //            ExMessage = ex.Message,
+        //            DataVM = vm
+        //        };
+        //    }
+        //}
 
 
-        [HttpPost("ExportProductPursaseExcel")]
-        public async Task<ResultVM> ExportProductPursaseExcel(CommonVM vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                ProductService _service = new ProductService();
-                resultVM = await _service.ExportProductPursaseExcel(vm);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = ex.Message,
-                    ExMessage = ex.Message,
-                    DataVM = vm
-                };
-            }
-        }
+
+
+        //[HttpPost("ExportProductPursaseExcel")]
+        //public async Task<ResultVM> ExportProductPursaseExcel(CommonVM vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        ProductService _service = new ProductService();
+        //        resultVM = await _service.ExportProductPursaseExcel(vm);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = ex.Message,
+        //            ExMessage = ex.Message,
+        //            DataVM = vm
+        //        };
+        //    }
+        //}
+
+
+
+
         // POST: api/Product/ImportExcelFileInsert
         [HttpPost("ImportExcelFileInsert")]
         public async Task<ResultVM> ImportExcelFileInsert(ProductVM model)
@@ -495,54 +501,56 @@ namespace ShampanPOS.Controllers
 
 
         // POST: api/Purchase/ExportProductStockExcel
-        [HttpPost("ExportProductStockExcel")]
-        public async Task<ResultVM> ExportProductStockExcel(CommonVM vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                ProductService _service = new ProductService();
-                resultVM = await _service.ExportProductStockExcel(vm);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = ex.Message,
-                    ExMessage = ex.Message,
-                    DataVM = vm
-                };
-            }
-        }
+        //[HttpPost("ExportProductStockExcel")]
+        //public async Task<ResultVM> ExportProductStockExcel(CommonVM vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        ProductService _service = new ProductService();
+        //        resultVM = await _service.ExportProductStockExcel(vm);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = ex.Message,
+        //            ExMessage = ex.Message,
+        //            DataVM = vm
+        //        };
+        //    }
+        //}
+
+
 
         // 
 
-        [HttpPost("PurchaseImportExcelFileInsert")]
-        public async Task<ResultVM> PurchaseImportExcelFileInsert(ProductPriceGroupVM productPriceGroup)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            ProductService _service = new ProductService();
+        //[HttpPost("PurchaseImportExcelFileInsert")]
+        //public async Task<ResultVM> PurchaseImportExcelFileInsert(ProductPriceGroupVM productPriceGroup)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    ProductService _service = new ProductService();
 
-            try
-            {
-                resultVM = await _service.PurchaseImportExcelFileInsert(productPriceGroup);
-                return resultVM;
-            }
+        //    try
+        //    {
+        //        resultVM = await _service.PurchaseImportExcelFileInsert(productPriceGroup);
+        //        return resultVM;
+        //    }
 
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = ex.Message,
-                    ExMessage = ex.Message,
-                    DataVM = productPriceGroup
-                };
-            }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = ex.Message,
+        //            ExMessage = ex.Message,
+        //            DataVM = productPriceGroup
+        //        };
+        //    }
 
-        }
+        //}
 
     }
 }

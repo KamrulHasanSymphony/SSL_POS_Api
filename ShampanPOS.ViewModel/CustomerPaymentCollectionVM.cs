@@ -18,11 +18,9 @@ public class CustomerPaymentCollectionVM
         public string? Code { get; set; }
         [Display(Name = "Customer ")]
         public int? CustomerId { get; set; }
-        [Display(Name = "Sale Delevery ")]
-        public int? SaleDeleveryId { get; set; }
+
         [Display(Name = "Transaction Date")]
         public string? TransactionDate { get; set; }
-        public string? Name { get; set; }
         [Display(Name = "Mode Of Payment")]
         public string? ModeOfPayment { get; set; }
         [Display(Name = "Mode Of Payment No")]
@@ -51,7 +49,6 @@ public class CustomerPaymentCollectionVM
         public bool IsPost { get; set; }
         public bool IsProcessed { get; set; }
 
-        public string? SaleDeleveryNo { get; set; }
         public string? ImagePath { get; set; }
         public string? FileName { get; set; }
         public int BranchId { get; set; }

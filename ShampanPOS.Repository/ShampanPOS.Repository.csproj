@@ -13,6 +13,48 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="CampaignDetailByInvoiceValueRepository.cs" />
+    <Compile Remove="CampaignDetailByProductTotalValueRepository.cs" />
+    <Compile Remove="CampaignDetailByProductValueRepository.cs" />
+    <Compile Remove="CampaignDetailByQuantityRepository.cs" />
+    <Compile Remove="CampaignRepository.cs" />
+    <Compile Remove="ContactPersonRepository.cs" />
+    <Compile Remove="CurrencyRepository.cs" />
+    <Compile Remove="CustomerCreditLimitRepository.cs" />
+    <Compile Remove="CustomerJournalRepository.cs" />
+    <Compile Remove="DayEndRepository.cs" />
+    <Compile Remove="DeliveryPersonRepository.cs" />
+    <Compile Remove="FiscalYearDetailForSaleRepository.cs" />
+    <Compile Remove="FiscalYearForSaleRepository.cs" />
+    <Compile Remove="FocalPointRepository.cs" />
+    <Compile Remove="IRecentDateRepository.cs" />
+    <Compile Remove="LocationRepository.cs" />
+    <Compile Remove="MISReportRepository.cs" />
+    <Compile Remove="ProductPriceGroupRepository.cs" />
+    <Compile Remove="ProductPurchasePriceBatchHistorieRepository.cs" />
+    <Compile Remove="ProductReplaceIssueRepository.cs" />
+    <Compile Remove="ProductReplaceReceiveRepository.cs" />
+    <Compile Remove="ProductStockRepository.cs" />
+    <Compile Remove="RouteRepository.cs" />
+    <Compile Remove="SaleDeliveryRepository.cs" />
+    <Compile Remove="SaleDeliveryReturnRepository.cs" />
+    <Compile Remove="SaleDetailRepository.cs" />
+    <Compile Remove="SaleOrderDetailRepository.cs" />
+    <Compile Remove="SaleOrderRepository.cs" />
+    <Compile Remove="SalePersonCampaignAchievementRepository.cs" />
+    <Compile Remove="SalePersonCampaignTargetRepository.cs" />
+    <Compile Remove="SalePersonMonthlyAchievementRepository.cs" />
+    <Compile Remove="SalePersonRouteRepository.cs" />
+    <Compile Remove="SalePersonVisitHistrieRepository.cs" />
+    <Compile Remove="SalePersonYearlyTargetDetailRepository.cs" />
+    <Compile Remove="SalePersonYearlyTargetRepository.cs" />
+    <Compile Remove="SaleRepository.cs" />
+    <Compile Remove="SaleReturnDetailRepository.cs" />
+    <Compile Remove="SaleReturnRepository.cs" />
+    <Compile Remove="SalesPersonRepository.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="CampaignRepository.cs~RF5d56fd3.TMP" />
     <None Remove="i2p4qyhn.xuk~" />
   </ItemGroup>

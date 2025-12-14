@@ -24,8 +24,8 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddDefaultTokenProviders();
 
 // Add this to your existing ConfigureServices method
-builder.Services.AddScoped<IRecentDateRepository, RecentDateRepository>();
-builder.Services.AddScoped<IRecentDateService, RecentDateService>();
+//builder.Services.AddScoped<IRecentDateRepository, RecentDateRepository>();
+//builder.Services.AddScoped<IRecentDateService, RecentDateService>();
 // Add JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

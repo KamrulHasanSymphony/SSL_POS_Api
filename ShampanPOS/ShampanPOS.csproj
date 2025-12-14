@@ -7,7 +7,46 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Controllers\BusinessTypeController.cs" />
     <Compile Remove="Controllers\CampaignController.cs" />
+    <Compile Remove="Controllers\CampaignDetailByInvoiceValueController .cs" />
+    <Compile Remove="Controllers\CampaignDetailByProductTotalValueController .cs" />
+    <Compile Remove="Controllers\CampaignDetailByProductValueController.cs" />
+    <Compile Remove="Controllers\CampaignDetailByQuantityController.cs" />
+    <Compile Remove="Controllers\ContactPersonController.cs" />
+    <Compile Remove="Controllers\CurrencyController.cs" />
+    <Compile Remove="Controllers\CustomerCreditLimitController.cs" />
+    <Compile Remove="Controllers\CustomerJournalController.cs" />
+    <Compile Remove="Controllers\DayEndController.cs" />
+    <Compile Remove="Controllers\DeliveryPersonController.cs" />
+    <Compile Remove="Controllers\FiscalYearDetailForSaleController.cs" />
+    <Compile Remove="Controllers\FiscalYearForSalecController.cs" />
+    <Compile Remove="Controllers\FocalPointController.cs" />
+    <Compile Remove="Controllers\LocationController.cs" />
+    <Compile Remove="Controllers\MISReportController.cs" />
+    <Compile Remove="Controllers\ProductPriceGroupController.cs" />
+    <Compile Remove="Controllers\ProductPurchasePriceBatchHistorieController.cs" />
+    <Compile Remove="Controllers\ProductReplaceIssueController.cs" />
+    <Compile Remove="Controllers\ProductReplaceReceiveController.cs" />
+    <Compile Remove="Controllers\ProductStockController.cs" />
+    <Compile Remove="Controllers\RecentDateController.cs" />
+    <Compile Remove="Controllers\RouteController.cs" />
+    <Compile Remove="Controllers\SaleController.cs" />
+    <Compile Remove="Controllers\SaleDeliveryController.cs" />
+    <Compile Remove="Controllers\SaleDeliveryReturnController.cs" />
+    <Compile Remove="Controllers\SaleDetailController.cs" />
+    <Compile Remove="Controllers\SaleOrderController.cs" />
+    <Compile Remove="Controllers\SaleOrderDetailController.cs" />
+    <Compile Remove="Controllers\SalePersonCampaignAchievementController.cs" />
+    <Compile Remove="Controllers\SalePersonCampaignTargetController.cs" />
+    <Compile Remove="Controllers\SalePersonMonthlyAchievementController.cs" />
+    <Compile Remove="Controllers\SalePersonRouteController.cs" />
+    <Compile Remove="Controllers\SalePersonVisitHistrieController.cs" />
+    <Compile Remove="Controllers\SalePersonYearlyTargetController.cs" />
+    <Compile Remove="Controllers\SalePersonYearlyTargetDetailController.cs" />
+    <Compile Remove="Controllers\SaleReturnController.cs" />
+    <Compile Remove="Controllers\SaleReturnDetailController.cs" />
+    <Compile Remove="Controllers\SalesPersonController.cs" />
   </ItemGroup>
 
   <ItemGroup>

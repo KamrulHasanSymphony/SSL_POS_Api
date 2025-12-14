@@ -26,7 +26,6 @@ namespace ShampanPOS.Service
             SaleDeliveryRepository _repo = new SaleDeliveryRepository();
             SaleOrderRepository _orderRepo = new SaleOrderRepository();
             CustomerRepository _repoCustomer = new CustomerRepository();
-            CampaignRepository _repoCampaign = new CampaignRepository();
             SaleService _serviceSale = new SaleService();
             PeramModel paramModel = new PeramModel();
             CommonVM commonVM = new CommonVM();
@@ -131,24 +130,24 @@ namespace ShampanPOS.Service
 
                 #endregion
 
-                #region Campaign Exist Check
-                #region CampaignByQuantitiesExist
-                (CampaignByQuantitiesExist, CampaignByQuantitiesId) = _commonRepo.CampaignExists(Convert.ToDateTime(saleDelivery.DeliveryDate), saleDelivery.BranchId ?? 1, 25, conn, transaction);
-                #endregion
+                //#region Campaign Exist Check
+                //#region CampaignByQuantitiesExist
+                //(CampaignByQuantitiesExist, CampaignByQuantitiesId) = _commonRepo.CampaignExists(Convert.ToDateTime(saleDelivery.DeliveryDate), saleDelivery.BranchId ?? 1, 25, conn, transaction);
+                //#endregion
 
-                #region CampaignByByProductValuesExist
-                (CampaignByProductValuesExist, CampaignByProductValuesId) = _commonRepo.CampaignExists(Convert.ToDateTime(saleDelivery.DeliveryDate), saleDelivery.BranchId ?? 1, 26, conn, transaction);
-                #endregion
+                //#region CampaignByByProductValuesExist
+                //(CampaignByProductValuesExist, CampaignByProductValuesId) = _commonRepo.CampaignExists(Convert.ToDateTime(saleDelivery.DeliveryDate), saleDelivery.BranchId ?? 1, 26, conn, transaction);
+                //#endregion
 
-                #region CampaignByByProductValuesExist
-                (CampaignByProductTotalValueExist, CampaignByProductTotalValueId) = _commonRepo.CampaignExists(Convert.ToDateTime(saleDelivery.DeliveryDate), saleDelivery.BranchId ?? 1, 27, conn, transaction);
-                #endregion
+                //#region CampaignByByProductValuesExist
+                //(CampaignByProductTotalValueExist, CampaignByProductTotalValueId) = _commonRepo.CampaignExists(Convert.ToDateTime(saleDelivery.DeliveryDate), saleDelivery.BranchId ?? 1, 27, conn, transaction);
+                //#endregion
 
-                #region CampaignByInvoiceValueExist
-                (CampaignByInvoiceValueExist, CampaignByInvoiceValueId) = _commonRepo.CampaignExists(Convert.ToDateTime(saleDelivery.DeliveryDate), saleDelivery.BranchId ?? 1, 24, conn, transaction);
-                #endregion
+                //#region CampaignByInvoiceValueExist
+                //(CampaignByInvoiceValueExist, CampaignByInvoiceValueId) = _commonRepo.CampaignExists(Convert.ToDateTime(saleDelivery.DeliveryDate), saleDelivery.BranchId ?? 1, 24, conn, transaction);
+                //#endregion
 
-                #endregion
+                //#endregion
 
                 #region Currency Data
 
@@ -261,213 +260,213 @@ namespace ShampanPOS.Service
                         foreach (var details in saleDelivery.saleDeliveryDetailList)
                         {
 
-                            #region Campaign set up
-                            CampaignDetailByQuantityVM CampaignDetailByQuantityVM = new CampaignDetailByQuantityVM();
-                            CampaignDetailByProductValueVM CampaignDetailByproductValueVM = new CampaignDetailByProductValueVM();
-                            CampaignDetailByProductTotalValueVM CampaignDetailByproductTotalValueVM = new CampaignDetailByProductTotalValueVM();
+                            //#region Campaign set up
+                            //CampaignDetailByQuantityVM CampaignDetailByQuantityVM = new CampaignDetailByQuantityVM();
+                            //CampaignDetailByProductValueVM CampaignDetailByproductValueVM = new CampaignDetailByProductValueVM();
+                            //CampaignDetailByProductTotalValueVM CampaignDetailByproductTotalValueVM = new CampaignDetailByProductTotalValueVM();
 
-                            #region  CampaignByQuantity Discount
-                            if (CampaignByQuantitiesExist)
-                            {
-                                var CampaignByQuantity = await _repoCampaign.CampaignByQuantityDetailsList(new[] { "D.CampaignId" }, new[] { CampaignByQuantitiesId.ToString() }, null, conn, transaction);
+                            //#region  CampaignByQuantity Discount
+                            //if (CampaignByQuantitiesExist)
+                            //{
+                            //    var CampaignByQuantity = await _repoCampaign.CampaignByQuantityDetailsList(new[] { "D.CampaignId" }, new[] { CampaignByQuantitiesId.ToString() }, null, conn, transaction);
 
-                                if (CampaignByQuantity.Status == "Success" && CampaignByQuantity.DataVM is DataTable dt)
-                                {
-                                    string json = JsonConvert.SerializeObject(dt);
-                                    var CampaignByQuantitydetails = JsonConvert.DeserializeObject<List<CampaignDetailByQuantityVM>>(json);
-                                    CampaignDetailByQuantityVM = CampaignByQuantitydetails
-                              .FirstOrDefault(record => record.CustomerId == saleDelivery.CustomerId && record.ProductId == details.ProductId);
+                            //    if (CampaignByQuantity.Status == "Success" && CampaignByQuantity.DataVM is DataTable dt)
+                            //    {
+                            //        string json = JsonConvert.SerializeObject(dt);
+                            //        var CampaignByQuantitydetails = JsonConvert.DeserializeObject<List<CampaignDetailByQuantityVM>>(json);
+                            //        CampaignDetailByQuantityVM = CampaignByQuantitydetails
+                            //  .FirstOrDefault(record => record.CustomerId == saleDelivery.CustomerId && record.ProductId == details.ProductId);
 
-                                    if (CampaignDetailByQuantityVM == null)
-                                    {
-                                        CampaignDetailByQuantityVM = CampaignByQuantitydetails
-                               .FirstOrDefault(record => record.CustomerId == 0 && record.ProductId == details.ProductId);
-                                    }
+                            //        if (CampaignDetailByQuantityVM == null)
+                            //        {
+                            //            CampaignDetailByQuantityVM = CampaignByQuantitydetails
+                            //   .FirstOrDefault(record => record.CustomerId == 0 && record.ProductId == details.ProductId);
+                            //        }
 
-                                    #region Calculation 
+                            //        #region Calculation 
 
-                                    if (CampaignDetailByQuantityVM != null)
-                                    {
-                                        details.CampaignHeaderId = CampaignDetailByQuantityVM.CampaignId;
-                                        details.CampaignDetailsId = CampaignDetailByQuantityVM.Id;
-                                        details.CampaignTypeId = CampaignDetailByQuantityVM.CampaignTypeId;
+                            //        if (CampaignDetailByQuantityVM != null)
+                            //        {
+                            //            details.CampaignHeaderId = CampaignDetailByQuantityVM.CampaignId;
+                            //            details.CampaignDetailsId = CampaignDetailByQuantityVM.Id;
+                            //            details.CampaignTypeId = CampaignDetailByQuantityVM.CampaignTypeId;
 
-                                        int Quantityabilty = (int)Math.Floor((decimal)details.Quantity / CampaignDetailByQuantityVM.FromQuantity);
-                                        int FreeQuantityGain = Convert.ToInt32(CampaignDetailByQuantityVM.FreeQuantity * Quantityabilty);
-                                        DataTable campaignByQuantityDiscount = new DataTable("SaleDeliveryCampaignByQuantityDiscount");
+                            //            int Quantityabilty = (int)Math.Floor((decimal)details.Quantity / CampaignDetailByQuantityVM.FromQuantity);
+                            //            int FreeQuantityGain = Convert.ToInt32(CampaignDetailByQuantityVM.FreeQuantity * Quantityabilty);
+                            //            DataTable campaignByQuantityDiscount = new DataTable("SaleDeliveryCampaignByQuantityDiscount");
 
-                                        // Define columns with their default values
-                                        var columns = new[]
-                                         {
-                                            new DataColumn("SaleDetailId", typeof(int)) { DefaultValue = saleVM.Id },
-                                            new DataColumn("CustomerId", typeof(int)) { DefaultValue = CampaignDetailByQuantityVM.CustomerId },
-                                            new DataColumn("CampaignId", typeof(int)) { DefaultValue = CampaignByQuantitiesId },
-                                            new DataColumn("CampaignTypeId", typeof(int)) { DefaultValue = 25 },
-                                            new DataColumn("ProductId", typeof(int)) { DefaultValue = CampaignDetailByQuantityVM.ProductId },
-                                            new DataColumn("FreeProductId", typeof(int)) { DefaultValue = CampaignDetailByQuantityVM.FreeProductId },
-                                            new DataColumn("FreeQuantity", typeof(int)) { DefaultValue = FreeQuantityGain }
-                                        };
+                            //            // Define columns with their default values
+                            //            var columns = new[]
+                            //             {
+                            //                new DataColumn("SaleDetailId", typeof(int)) { DefaultValue = saleVM.Id },
+                            //                new DataColumn("CustomerId", typeof(int)) { DefaultValue = CampaignDetailByQuantityVM.CustomerId },
+                            //                new DataColumn("CampaignId", typeof(int)) { DefaultValue = CampaignByQuantitiesId },
+                            //                new DataColumn("CampaignTypeId", typeof(int)) { DefaultValue = 25 },
+                            //                new DataColumn("ProductId", typeof(int)) { DefaultValue = CampaignDetailByQuantityVM.ProductId },
+                            //                new DataColumn("FreeProductId", typeof(int)) { DefaultValue = CampaignDetailByQuantityVM.FreeProductId },
+                            //                new DataColumn("FreeQuantity", typeof(int)) { DefaultValue = FreeQuantityGain }
+                            //            };
 
-                                        // Add columns to DataTable
-                                        campaignByQuantityDiscount.Columns.AddRange(columns);
+                            //            // Add columns to DataTable
+                            //            campaignByQuantityDiscount.Columns.AddRange(columns);
 
-                                        // Add a row with the default values
-                                        campaignByQuantityDiscount.Rows.Add();
-                                        if (Quantityabilty != 0)
-                                        {
-                                            var resultt = await _commonRepo.BulkInsert("SaleDeliveryCampaignByQuantityDiscount", campaignByQuantityDiscount, conn, transaction);
-                                            if (resultt.Status.ToLower() != "success")
-                                            {
-                                                throw new Exception(result.ExMessage.ToString());
-                                            }
-                                        }
+                            //            // Add a row with the default values
+                            //            campaignByQuantityDiscount.Rows.Add();
+                            //            if (Quantityabilty != 0)
+                            //            {
+                            //                var resultt = await _commonRepo.BulkInsert("SaleDeliveryCampaignByQuantityDiscount", campaignByQuantityDiscount, conn, transaction);
+                            //                if (resultt.Status.ToLower() != "success")
+                            //                {
+                            //                    throw new Exception(result.ExMessage.ToString());
+                            //                }
+                            //            }
 
-                                    }
-
-
-                                    #endregion
-                                }
+                            //        }
 
 
-                            }
-                            #endregion
-
-                            #region  CampaignByProductValues Discount
-                            if (CampaignByProductValuesExist)
-                            {
-                                var CampaignByProductValues = await _repoCampaign.CampaignProductValueDetailsList(new[] { "D.CampaignId" }, new[] { CampaignByProductValuesId.ToString() }, null, conn, transaction);
-
-                                if (CampaignByProductValues.Status == "Success" && CampaignByProductValues.DataVM is DataTable dt)
-                                {
-                                    string json = JsonConvert.SerializeObject(dt);
-                                    var CampaignByProductValuesdetails = JsonConvert.DeserializeObject<List<CampaignDetailByProductValueVM>>(json);
-                                    CampaignDetailByproductValueVM = CampaignByProductValuesdetails
-                              .FirstOrDefault(record => record.CustomerId == saleDelivery.CustomerId && record.ProductId == details.ProductId && record.FromQuantity <= details.Quantity && record.ToQuantity >= details.Quantity);
-
-                                    if (CampaignDetailByproductValueVM == null)
-                                    {
-                                        CampaignDetailByproductValueVM = CampaignByProductValuesdetails
-                               .FirstOrDefault(record => record.CustomerId == 0 && record.ProductId == details.ProductId && record.FromQuantity <= details.Quantity && record.ToQuantity >= details.Quantity);
-                                    }
-
-                                    #region Calculation 
-
-                                    if (CampaignDetailByproductValueVM != null)
-                                    {
-                                        details.CampaignHeaderId = CampaignDetailByproductValueVM.CampaignId;
-                                        details.CampaignDetailsId = CampaignDetailByproductValueVM.Id;
-                                        details.CampaignTypeId = CampaignDetailByproductValueVM.CampaignTypeId;
-                                        DiscountGain = Convert.ToDecimal(CampaignDetailByproductValueVM.DiscountRateBasedOnUnitPrice * details.SubTotal / 100);
-
-                                        DataTable campaignByproductValueDiscount = new DataTable("campaignByproductValueDiscount");
-
-                                        InvoiceDiscount += (details.SubTotal ?? 0) - DiscountGain;
-                                        SumtotalAfterDisCount = (details.SubTotal ?? 0) - DiscountGain;
-
-                                        // Define columns with their default values
-                                        var columns = new[]
-                                         {
-                                            new DataColumn("SaleDetailId", typeof(int)) { DefaultValue = saleVM.Id },
-                                            new DataColumn("CustomerId", typeof(int)) { DefaultValue = CampaignDetailByproductValueVM.CustomerId },
-                                            new DataColumn("CampaignId", typeof(int)) { DefaultValue = CampaignByQuantitiesId },
-                                            new DataColumn("CampaignTypeId", typeof(int)) { DefaultValue = 26 },
-                                            new DataColumn("ProductId", typeof(int)) { DefaultValue = CampaignDetailByproductValueVM.ProductId },
-                                            new DataColumn("DiscountRate", typeof(int)) { DefaultValue = Convert.ToInt32(CampaignDetailByproductValueVM.DiscountRateBasedOnUnitPrice)},
-                                            new DataColumn("DiscountAmount", typeof(decimal)) { DefaultValue = Convert.ToDecimal(DiscountGain) }
-                                        };
-
-                                        // Add columns to DataTable
-                                        campaignByproductValueDiscount.Columns.AddRange(columns);
-
-                                        // Add a row with the default values
-                                        campaignByproductValueDiscount.Rows.Add();
-
-                                        var resultt = await _commonRepo.BulkInsert("SaleDeliveryCampaignByProductUnitRate", campaignByproductValueDiscount, conn, transaction);
-                                        if (resultt.Status.ToLower() != "success")
-                                        {
-                                            throw new Exception(result.ExMessage.ToString());
-                                        }
+                            //        #endregion
+                            //    }
 
 
-                                    }
+                            //}
+                            //#endregion
+
+                            //#region  CampaignByProductValues Discount
+                            //if (CampaignByProductValuesExist)
+                            //{
+                            //    var CampaignByProductValues = await _repoCampaign.CampaignProductValueDetailsList(new[] { "D.CampaignId" }, new[] { CampaignByProductValuesId.ToString() }, null, conn, transaction);
+
+                            //    if (CampaignByProductValues.Status == "Success" && CampaignByProductValues.DataVM is DataTable dt)
+                            //    {
+                            //        string json = JsonConvert.SerializeObject(dt);
+                            //        var CampaignByProductValuesdetails = JsonConvert.DeserializeObject<List<CampaignDetailByProductValueVM>>(json);
+                            //        CampaignDetailByproductValueVM = CampaignByProductValuesdetails
+                            //  .FirstOrDefault(record => record.CustomerId == saleDelivery.CustomerId && record.ProductId == details.ProductId && record.FromQuantity <= details.Quantity && record.ToQuantity >= details.Quantity);
+
+                            //        if (CampaignDetailByproductValueVM == null)
+                            //        {
+                            //            CampaignDetailByproductValueVM = CampaignByProductValuesdetails
+                            //   .FirstOrDefault(record => record.CustomerId == 0 && record.ProductId == details.ProductId && record.FromQuantity <= details.Quantity && record.ToQuantity >= details.Quantity);
+                            //        }
+
+                            //        #region Calculation 
+
+                            //        if (CampaignDetailByproductValueVM != null)
+                            //        {
+                            //            details.CampaignHeaderId = CampaignDetailByproductValueVM.CampaignId;
+                            //            details.CampaignDetailsId = CampaignDetailByproductValueVM.Id;
+                            //            details.CampaignTypeId = CampaignDetailByproductValueVM.CampaignTypeId;
+                            //            DiscountGain = Convert.ToDecimal(CampaignDetailByproductValueVM.DiscountRateBasedOnUnitPrice * details.SubTotal / 100);
+
+                            //            DataTable campaignByproductValueDiscount = new DataTable("campaignByproductValueDiscount");
+
+                            //            InvoiceDiscount += (details.SubTotal ?? 0) - DiscountGain;
+                            //            SumtotalAfterDisCount = (details.SubTotal ?? 0) - DiscountGain;
+
+                            //            // Define columns with their default values
+                            //            var columns = new[]
+                            //             {
+                            //                new DataColumn("SaleDetailId", typeof(int)) { DefaultValue = saleVM.Id },
+                            //                new DataColumn("CustomerId", typeof(int)) { DefaultValue = CampaignDetailByproductValueVM.CustomerId },
+                            //                new DataColumn("CampaignId", typeof(int)) { DefaultValue = CampaignByQuantitiesId },
+                            //                new DataColumn("CampaignTypeId", typeof(int)) { DefaultValue = 26 },
+                            //                new DataColumn("ProductId", typeof(int)) { DefaultValue = CampaignDetailByproductValueVM.ProductId },
+                            //                new DataColumn("DiscountRate", typeof(int)) { DefaultValue = Convert.ToInt32(CampaignDetailByproductValueVM.DiscountRateBasedOnUnitPrice)},
+                            //                new DataColumn("DiscountAmount", typeof(decimal)) { DefaultValue = Convert.ToDecimal(DiscountGain) }
+                            //            };
+
+                            //            // Add columns to DataTable
+                            //            campaignByproductValueDiscount.Columns.AddRange(columns);
+
+                            //            // Add a row with the default values
+                            //            campaignByproductValueDiscount.Rows.Add();
+
+                            //            var resultt = await _commonRepo.BulkInsert("SaleDeliveryCampaignByProductUnitRate", campaignByproductValueDiscount, conn, transaction);
+                            //            if (resultt.Status.ToLower() != "success")
+                            //            {
+                            //                throw new Exception(result.ExMessage.ToString());
+                            //            }
 
 
-                                    #endregion
-                                }
+                            //        }
 
 
-                            }
-                            #endregion
-
-                            #region  CampaignByProductTotalValue Discount
-                            if (CampaignByProductTotalValueExist)
-                            {
-                                var CampaignDetailByproductTotalValue = await _repoCampaign.CampaignByProductTotalValueList(new[] { "D.CampaignId" }, new[] { CampaignByProductTotalValueId.ToString() }, null, conn, transaction);
-
-                                if (CampaignDetailByproductTotalValue.Status == "Success" && CampaignDetailByproductTotalValue.DataVM is DataTable dt)
-                                {
-                                    string json = JsonConvert.SerializeObject(dt);
-                                    var CampaignByProductTotalValuedetails = JsonConvert.DeserializeObject<List<CampaignDetailByProductTotalValueVM>>(json);
-
-                                    CampaignDetailByproductTotalValueVM = CampaignByProductTotalValuedetails
-                              .FirstOrDefault(record => record.CustomerId == saleDelivery.CustomerId && record.ProductId == details.ProductId && record.FromAmount <= SumtotalAfterDisCount && record.ToAmount >= SumtotalAfterDisCount);
-
-                                    if (CampaignDetailByproductTotalValueVM == null)
-                                    {
-                                        CampaignDetailByproductTotalValueVM = CampaignByProductTotalValuedetails
-                               .FirstOrDefault(record => record.CustomerId == 0 && record.ProductId == details.ProductId && record.FromAmount <= SumtotalAfterDisCount && record.ToAmount >= SumtotalAfterDisCount);
-                                    }
-
-                                    #region Calculation 
-
-                                    if (CampaignDetailByproductTotalValueVM != null)
-                                    {
-                                        details.CampaignHeaderId = CampaignDetailByproductTotalValueVM.CampaignId;
-                                        details.CampaignDetailsId = CampaignDetailByproductTotalValueVM.Id;
-                                        details.CampaignTypeId = CampaignDetailByproductTotalValueVM.CampaignTypeId;
-                                        LineDiscountGain = Convert.ToDecimal(CampaignDetailByproductTotalValueVM.DiscountRateBasedOnTotalPrice * SumtotalAfterDisCount / 100);
-
-                                        InvoiceDiscount += -LineDiscountGain;
-
-                                        DataTable campaignByproductTotalValueDiscount = new DataTable("campaignByproductTotalValueDiscount");
-
-                                        // Define columns with their default values
-                                        var columns = new[]
-                                         {
-                                            new DataColumn("SaleDetailId", typeof(int)) { DefaultValue = saleVM.Id },
-                                            new DataColumn("CustomerId", typeof(int)) { DefaultValue = CampaignDetailByproductTotalValueVM.CustomerId },
-                                            new DataColumn("CampaignId", typeof(int)) { DefaultValue = CampaignByQuantitiesId },
-                                            new DataColumn("CampaignTypeId", typeof(int)) { DefaultValue = 27 },
-                                            new DataColumn("ProductId", typeof(int)) { DefaultValue = CampaignDetailByproductTotalValueVM.ProductId },
-                                            new DataColumn("LineDiscountRate", typeof(int)) { DefaultValue = Convert.ToInt32(CampaignDetailByproductTotalValueVM.DiscountRateBasedOnTotalPrice)},
-                                            new DataColumn("LineDiscountAmount", typeof(decimal)) { DefaultValue = Convert.ToDecimal(LineDiscountGain) }
-                                        };
-
-                                        // Add columns to DataTable
-                                        campaignByproductTotalValueDiscount.Columns.AddRange(columns);
-
-                                        // Add a row with the default values
-                                        campaignByproductTotalValueDiscount.Rows.Add();
-
-                                        var resultt = await _commonRepo.BulkInsert("SaleDeliveryCampaignByProductTotalPrice", campaignByproductTotalValueDiscount, conn, transaction);
-                                        if (resultt.Status.ToLower() != "success")
-                                        {
-                                            throw new Exception(result.ExMessage.ToString());
-                                        }
-
-                                    }
+                            //        #endregion
+                            //    }
 
 
-                                    #endregion
-                                }
+                            //}
+                            //#endregion
+
+                            //#region  CampaignByProductTotalValue Discount
+                            //if (CampaignByProductTotalValueExist)
+                            //{
+                            //    var CampaignDetailByproductTotalValue = await _repoCampaign.CampaignByProductTotalValueList(new[] { "D.CampaignId" }, new[] { CampaignByProductTotalValueId.ToString() }, null, conn, transaction);
+
+                            //    if (CampaignDetailByproductTotalValue.Status == "Success" && CampaignDetailByproductTotalValue.DataVM is DataTable dt)
+                            //    {
+                            //        string json = JsonConvert.SerializeObject(dt);
+                            //        var CampaignByProductTotalValuedetails = JsonConvert.DeserializeObject<List<CampaignDetailByProductTotalValueVM>>(json);
+
+                            //        CampaignDetailByproductTotalValueVM = CampaignByProductTotalValuedetails
+                            //  .FirstOrDefault(record => record.CustomerId == saleDelivery.CustomerId && record.ProductId == details.ProductId && record.FromAmount <= SumtotalAfterDisCount && record.ToAmount >= SumtotalAfterDisCount);
+
+                            //        if (CampaignDetailByproductTotalValueVM == null)
+                            //        {
+                            //            CampaignDetailByproductTotalValueVM = CampaignByProductTotalValuedetails
+                            //   .FirstOrDefault(record => record.CustomerId == 0 && record.ProductId == details.ProductId && record.FromAmount <= SumtotalAfterDisCount && record.ToAmount >= SumtotalAfterDisCount);
+                            //        }
+
+                            //        #region Calculation 
+
+                            //        if (CampaignDetailByproductTotalValueVM != null)
+                            //        {
+                            //            details.CampaignHeaderId = CampaignDetailByproductTotalValueVM.CampaignId;
+                            //            details.CampaignDetailsId = CampaignDetailByproductTotalValueVM.Id;
+                            //            details.CampaignTypeId = CampaignDetailByproductTotalValueVM.CampaignTypeId;
+                            //            LineDiscountGain = Convert.ToDecimal(CampaignDetailByproductTotalValueVM.DiscountRateBasedOnTotalPrice * SumtotalAfterDisCount / 100);
+
+                            //            InvoiceDiscount += -LineDiscountGain;
+
+                            //            DataTable campaignByproductTotalValueDiscount = new DataTable("campaignByproductTotalValueDiscount");
+
+                            //            // Define columns with their default values
+                            //            var columns = new[]
+                            //             {
+                            //                new DataColumn("SaleDetailId", typeof(int)) { DefaultValue = saleVM.Id },
+                            //                new DataColumn("CustomerId", typeof(int)) { DefaultValue = CampaignDetailByproductTotalValueVM.CustomerId },
+                            //                new DataColumn("CampaignId", typeof(int)) { DefaultValue = CampaignByQuantitiesId },
+                            //                new DataColumn("CampaignTypeId", typeof(int)) { DefaultValue = 27 },
+                            //                new DataColumn("ProductId", typeof(int)) { DefaultValue = CampaignDetailByproductTotalValueVM.ProductId },
+                            //                new DataColumn("LineDiscountRate", typeof(int)) { DefaultValue = Convert.ToInt32(CampaignDetailByproductTotalValueVM.DiscountRateBasedOnTotalPrice)},
+                            //                new DataColumn("LineDiscountAmount", typeof(decimal)) { DefaultValue = Convert.ToDecimal(LineDiscountGain) }
+                            //            };
+
+                            //            // Add columns to DataTable
+                            //            campaignByproductTotalValueDiscount.Columns.AddRange(columns);
+
+                            //            // Add a row with the default values
+                            //            campaignByproductTotalValueDiscount.Rows.Add();
+
+                            //            var resultt = await _commonRepo.BulkInsert("SaleDeliveryCampaignByProductTotalPrice", campaignByproductTotalValueDiscount, conn, transaction);
+                            //            if (resultt.Status.ToLower() != "success")
+                            //            {
+                            //                throw new Exception(result.ExMessage.ToString());
+                            //            }
+
+                            //        }
 
 
-                            }
-                            #endregion
+                            //        #endregion
+                            //    }
+
+
+                            //}
+                            //#endregion
 
 
 
-                            #endregion
+                            //#endregion
 
                             details.SaleOrderId = Convert.ToInt32(details.SaleOrderId);
                             details.SaleOrderDetailId = Convert.ToInt32(details.SaleOrderDetailId);
@@ -651,7 +650,7 @@ namespace ShampanPOS.Service
         {
             SaleOrderRepository _orderRepo = new SaleOrderRepository();
             SaleDeliveryRepository _repo = new SaleDeliveryRepository();
-            CampaignRepository _repoCampaign = new CampaignRepository();
+            //CampaignRepository _repoCampaign = new CampaignRepository();
             CustomerRepository _repoCustomer = new CustomerRepository();
             SaleService _serviceSale = new SaleService();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
@@ -849,217 +848,217 @@ namespace ShampanPOS.Service
                         Deleterecord = _commonRepo.DetailsDelete("SaleDeliveryCampaignByProductUnitRate", new[] { "SaleDetailId" }, new[] { saleDelivery.Id.ToString() }, conn, transaction);
                         Deleterecord = _commonRepo.DetailsDelete("SaleDeliveryCampaignByProductTotalPrice", new[] { "SaleDetailId" }, new[] { saleDelivery.Id.ToString() }, conn, transaction);
 
-                        #region Campaign set up
-                        CampaignDetailByQuantityVM CampaignDetailByQuantityVM = new CampaignDetailByQuantityVM();
-                        CampaignDetailByProductValueVM CampaignDetailByproductValueVM = new CampaignDetailByProductValueVM();
-                        CampaignDetailByProductTotalValueVM CampaignDetailByproductTotalValueVM = new CampaignDetailByProductTotalValueVM();
+                        //#region Campaign set up
+                        //CampaignDetailByQuantityVM CampaignDetailByQuantityVM = new CampaignDetailByQuantityVM();
+                        //CampaignDetailByProductValueVM CampaignDetailByproductValueVM = new CampaignDetailByProductValueVM();
+                        //CampaignDetailByProductTotalValueVM CampaignDetailByproductTotalValueVM = new CampaignDetailByProductTotalValueVM();
 
-                        #region  CampaignByQuantity Discount
-                        if (CampaignByQuantitiesExist)
-                        {
-                            var CampaignByQuantity = await _repoCampaign.CampaignByQuantityDetailsList(new[] { "D.CampaignId" }, new[] { CampaignByQuantitiesId.ToString() }, null, conn, transaction);
+                        //#region  CampaignByQuantity Discount
+                        //if (CampaignByQuantitiesExist)
+                        //{
+                        //    var CampaignByQuantity = await _repoCampaign.CampaignByQuantityDetailsList(new[] { "D.CampaignId" }, new[] { CampaignByQuantitiesId.ToString() }, null, conn, transaction);
 
-                            if (CampaignByQuantity.Status == "Success" && CampaignByQuantity.DataVM is DataTable dt)
-                            {
-                                string json = JsonConvert.SerializeObject(dt);
-                                var CampaignByQuantitydetails = JsonConvert.DeserializeObject<List<CampaignDetailByQuantityVM>>(json);
-                                CampaignDetailByQuantityVM = CampaignByQuantitydetails
-                          .FirstOrDefault(record => record.CustomerId == saleDelivery.CustomerId && record.ProductId == details.ProductId);
+                        //    if (CampaignByQuantity.Status == "Success" && CampaignByQuantity.DataVM is DataTable dt)
+                        //    {
+                        //        string json = JsonConvert.SerializeObject(dt);
+                        //        var CampaignByQuantitydetails = JsonConvert.DeserializeObject<List<CampaignDetailByQuantityVM>>(json);
+                        //        CampaignDetailByQuantityVM = CampaignByQuantitydetails
+                        //  .FirstOrDefault(record => record.CustomerId == saleDelivery.CustomerId && record.ProductId == details.ProductId);
 
-                                if (CampaignDetailByQuantityVM == null)
-                                {
-                                    CampaignDetailByQuantityVM = CampaignByQuantitydetails
-                           .FirstOrDefault(record => record.CustomerId == 0 && record.ProductId == details.ProductId);
-                                }
+                        //        if (CampaignDetailByQuantityVM == null)
+                        //        {
+                        //            CampaignDetailByQuantityVM = CampaignByQuantitydetails
+                        //   .FirstOrDefault(record => record.CustomerId == 0 && record.ProductId == details.ProductId);
+                        //        }
 
-                                #region Calculation 
+                        //        #region Calculation 
 
-                                if (CampaignDetailByQuantityVM != null)
-                                {
-                                    details.CampaignHeaderId = CampaignDetailByQuantityVM.CampaignId;
-                                    details.CampaignDetailsId = CampaignDetailByQuantityVM.Id;
-                                    details.CampaignTypeId = CampaignDetailByQuantityVM.CampaignTypeId;
+                        //        if (CampaignDetailByQuantityVM != null)
+                        //        {
+                        //            details.CampaignHeaderId = CampaignDetailByQuantityVM.CampaignId;
+                        //            details.CampaignDetailsId = CampaignDetailByQuantityVM.Id;
+                        //            details.CampaignTypeId = CampaignDetailByQuantityVM.CampaignTypeId;
 
-                                    int Quantityabilty = (int)Math.Floor((decimal)details.Quantity / CampaignDetailByQuantityVM.FromQuantity);
-                                    int FreeQuantityGain = Convert.ToInt32(CampaignDetailByQuantityVM.FreeQuantity * Quantityabilty);
-                                    DataTable campaignByQuantityDiscount = new DataTable("SaleOrderCampaignByQuantityDiscount");
+                        //            int Quantityabilty = (int)Math.Floor((decimal)details.Quantity / CampaignDetailByQuantityVM.FromQuantity);
+                        //            int FreeQuantityGain = Convert.ToInt32(CampaignDetailByQuantityVM.FreeQuantity * Quantityabilty);
+                        //            DataTable campaignByQuantityDiscount = new DataTable("SaleOrderCampaignByQuantityDiscount");
 
-                                    // Define columns with their default values
-                                    var columns = new[]
-                                     {
-                                            new DataColumn("SaleDetailId", typeof(int)) { DefaultValue = saleDelivery.Id },
-                                            new DataColumn("CustomerId", typeof(int)) { DefaultValue = saleDelivery.CustomerId },
-                                            new DataColumn("CampaignId", typeof(int)) { DefaultValue = CampaignByQuantitiesId },
-                                            new DataColumn("CampaignTypeId", typeof(int)) { DefaultValue = 25 },
-                                            new DataColumn("ProductId", typeof(int)) { DefaultValue = CampaignDetailByQuantityVM.ProductId },
-                                            new DataColumn("FreeProductId", typeof(int)) { DefaultValue = CampaignDetailByQuantityVM.FreeProductId },
-                                            new DataColumn("FreeQuantity", typeof(int)) { DefaultValue = FreeQuantityGain }
-                                        };
+                        //            // Define columns with their default values
+                        //            var columns = new[]
+                        //             {
+                        //                    new DataColumn("SaleDetailId", typeof(int)) { DefaultValue = saleDelivery.Id },
+                        //                    new DataColumn("CustomerId", typeof(int)) { DefaultValue = saleDelivery.CustomerId },
+                        //                    new DataColumn("CampaignId", typeof(int)) { DefaultValue = CampaignByQuantitiesId },
+                        //                    new DataColumn("CampaignTypeId", typeof(int)) { DefaultValue = 25 },
+                        //                    new DataColumn("ProductId", typeof(int)) { DefaultValue = CampaignDetailByQuantityVM.ProductId },
+                        //                    new DataColumn("FreeProductId", typeof(int)) { DefaultValue = CampaignDetailByQuantityVM.FreeProductId },
+                        //                    new DataColumn("FreeQuantity", typeof(int)) { DefaultValue = FreeQuantityGain }
+                        //                };
 
-                                    // Add columns to DataTable
-                                    campaignByQuantityDiscount.Columns.AddRange(columns);
+                        //            // Add columns to DataTable
+                        //            campaignByQuantityDiscount.Columns.AddRange(columns);
 
-                                    // Add a row with the default values
-                                    campaignByQuantityDiscount.Rows.Add();
-                                    if (Quantityabilty != 0)
-                                    {
-                                        var resultt = await _commonRepo.BulkInsert("SaleDeliveryCampaignByQuantityDiscount", campaignByQuantityDiscount, conn, transaction);
+                        //            // Add a row with the default values
+                        //            campaignByQuantityDiscount.Rows.Add();
+                        //            if (Quantityabilty != 0)
+                        //            {
+                        //                var resultt = await _commonRepo.BulkInsert("SaleDeliveryCampaignByQuantityDiscount", campaignByQuantityDiscount, conn, transaction);
 
-                                        if (resultt.Status.ToLower() != "success")
-                                        {
-                                            throw new Exception(result.ExMessage.ToString());
-                                        }
-                                    }
+                        //                if (resultt.Status.ToLower() != "success")
+                        //                {
+                        //                    throw new Exception(result.ExMessage.ToString());
+                        //                }
+                        //            }
 
-                                }
-
-
-                                #endregion
-                            }
+                        //        }
 
 
-                        }
-                        #endregion
-
-                        #region  CampaignByProductValues Discount
-                        if (CampaignByProductValuesExist)
-                        {
-                            var CampaignByProductValues = await _repoCampaign.CampaignProductValueDetailsList(new[] { "D.CampaignId" }, new[] { CampaignByProductValuesId.ToString() }, null, conn, transaction);
-
-                            if (CampaignByProductValues.Status == "Success" && CampaignByProductValues.DataVM is DataTable dt)
-                            {
-                                string json = JsonConvert.SerializeObject(dt);
-                                var CampaignByProductValuesdetails = JsonConvert.DeserializeObject<List<CampaignDetailByProductValueVM>>(json);
-                                CampaignDetailByproductValueVM = CampaignByProductValuesdetails
-                          .FirstOrDefault(record => record.CustomerId == saleDelivery.CustomerId && record.ProductId == details.ProductId && record.FromQuantity <= details.Quantity && record.ToQuantity >= details.Quantity);
-
-                                if (CampaignDetailByproductValueVM == null)
-                                {
-                                    CampaignDetailByproductValueVM = CampaignByProductValuesdetails
-                           .FirstOrDefault(record => record.CustomerId == 0 && record.ProductId == details.ProductId && record.FromQuantity <= details.Quantity && record.ToQuantity >= details.Quantity);
-                                }
-
-                                #region Calculation 
-
-                                if (CampaignDetailByproductValueVM != null)
-                                {
-                                    details.CampaignHeaderId = CampaignDetailByproductValueVM.CampaignId;
-                                    details.CampaignDetailsId = CampaignDetailByproductValueVM.Id;
-                                    details.CampaignTypeId = CampaignDetailByproductValueVM.CampaignTypeId;
-                                    DiscountGain = Convert.ToDecimal(CampaignDetailByproductValueVM.DiscountRateBasedOnUnitPrice * details.SubTotal / 100);
-
-                                    DataTable campaignByproductValueDiscount = new DataTable("campaignByproductValueDiscount");
+                        //        #endregion
+                        //    }
 
 
-                                    SumtotalAfterDisCount = (details.SubTotal ?? 0) - DiscountGain;
-                                    VATAmountAfterDisCount = ((SumtotalAfterDisCount + details.SDAmount ?? 0) * details.VATRate ?? 0) / 100;
-                                    InvoiceDiscount += SumtotalAfterDisCount + VATAmountAfterDisCount;
+                        //}
+                        //#endregion
 
-                                    // Define columns with their default values
-                                    var columns = new[]
-                                     {
-                                            new DataColumn("SaleDetailId", typeof(int)) { DefaultValue = saleDelivery.Id },
-                                            new DataColumn("CustomerId", typeof(int)) { DefaultValue = saleDelivery.CustomerId },
-                                            new DataColumn("CampaignId", typeof(int)) { DefaultValue = CampaignByQuantitiesId },
-                                            new DataColumn("CampaignTypeId", typeof(int)) { DefaultValue = 26 },
-                                            new DataColumn("ProductId", typeof(int)) { DefaultValue = CampaignDetailByproductValueVM.ProductId },
-                                            new DataColumn("DiscountRate", typeof(int)) { DefaultValue = Convert.ToInt32(CampaignDetailByproductValueVM.DiscountRateBasedOnUnitPrice)},
-                                            new DataColumn("DiscountAmount", typeof(decimal)) { DefaultValue = Convert.ToDecimal(DiscountGain) }
-                                        };
+                        //#region  CampaignByProductValues Discount
+                        //if (CampaignByProductValuesExist)
+                        //{
+                        //    var CampaignByProductValues = await _repoCampaign.CampaignProductValueDetailsList(new[] { "D.CampaignId" }, new[] { CampaignByProductValuesId.ToString() }, null, conn, transaction);
 
-                                    // Add columns to DataTable
-                                    campaignByproductValueDiscount.Columns.AddRange(columns);
+                        //    if (CampaignByProductValues.Status == "Success" && CampaignByProductValues.DataVM is DataTable dt)
+                        //    {
+                        //        string json = JsonConvert.SerializeObject(dt);
+                        //        var CampaignByProductValuesdetails = JsonConvert.DeserializeObject<List<CampaignDetailByProductValueVM>>(json);
+                        //        CampaignDetailByproductValueVM = CampaignByProductValuesdetails
+                        //  .FirstOrDefault(record => record.CustomerId == saleDelivery.CustomerId && record.ProductId == details.ProductId && record.FromQuantity <= details.Quantity && record.ToQuantity >= details.Quantity);
 
-                                    // Add a row with the default values
-                                    campaignByproductValueDiscount.Rows.Add();
+                        //        if (CampaignDetailByproductValueVM == null)
+                        //        {
+                        //            CampaignDetailByproductValueVM = CampaignByProductValuesdetails
+                        //   .FirstOrDefault(record => record.CustomerId == 0 && record.ProductId == details.ProductId && record.FromQuantity <= details.Quantity && record.ToQuantity >= details.Quantity);
+                        //        }
 
-                                    var resultt = await _commonRepo.BulkInsert("SaleDeliveryCampaignByProductUnitRate", campaignByproductValueDiscount, conn, transaction);
-                                    if (resultt.Status.ToLower() != "success")
-                                    {
-                                        throw new Exception(result.ExMessage.ToString());
-                                    }
+                        //        #region Calculation 
 
+                        //        if (CampaignDetailByproductValueVM != null)
+                        //        {
+                        //            details.CampaignHeaderId = CampaignDetailByproductValueVM.CampaignId;
+                        //            details.CampaignDetailsId = CampaignDetailByproductValueVM.Id;
+                        //            details.CampaignTypeId = CampaignDetailByproductValueVM.CampaignTypeId;
+                        //            DiscountGain = Convert.ToDecimal(CampaignDetailByproductValueVM.DiscountRateBasedOnUnitPrice * details.SubTotal / 100);
 
-                                }
-
-
-                                #endregion
-                            }
+                        //            DataTable campaignByproductValueDiscount = new DataTable("campaignByproductValueDiscount");
 
 
-                        }
-                        #endregion
+                        //            SumtotalAfterDisCount = (details.SubTotal ?? 0) - DiscountGain;
+                        //            VATAmountAfterDisCount = ((SumtotalAfterDisCount + details.SDAmount ?? 0) * details.VATRate ?? 0) / 100;
+                        //            InvoiceDiscount += SumtotalAfterDisCount + VATAmountAfterDisCount;
 
-                        #region  CampaignByProductTotalValue Discount
-                        if (CampaignByProductTotalValueExist)
-                        {
-                            var CampaignDetailByproductTotalValue = await _repoCampaign.CampaignByProductTotalValueList(new[] { "D.CampaignId" }, new[] { CampaignByProductTotalValueId.ToString() }, null, conn, transaction);
+                        //            // Define columns with their default values
+                        //            var columns = new[]
+                        //             {
+                        //                    new DataColumn("SaleDetailId", typeof(int)) { DefaultValue = saleDelivery.Id },
+                        //                    new DataColumn("CustomerId", typeof(int)) { DefaultValue = saleDelivery.CustomerId },
+                        //                    new DataColumn("CampaignId", typeof(int)) { DefaultValue = CampaignByQuantitiesId },
+                        //                    new DataColumn("CampaignTypeId", typeof(int)) { DefaultValue = 26 },
+                        //                    new DataColumn("ProductId", typeof(int)) { DefaultValue = CampaignDetailByproductValueVM.ProductId },
+                        //                    new DataColumn("DiscountRate", typeof(int)) { DefaultValue = Convert.ToInt32(CampaignDetailByproductValueVM.DiscountRateBasedOnUnitPrice)},
+                        //                    new DataColumn("DiscountAmount", typeof(decimal)) { DefaultValue = Convert.ToDecimal(DiscountGain) }
+                        //                };
 
-                            if (CampaignDetailByproductTotalValue.Status == "Success" && CampaignDetailByproductTotalValue.DataVM is DataTable dt)
-                            {
-                                string json = JsonConvert.SerializeObject(dt);
-                                var CampaignByProductTotalValuedetails = JsonConvert.DeserializeObject<List<CampaignDetailByProductTotalValueVM>>(json);
+                        //            // Add columns to DataTable
+                        //            campaignByproductValueDiscount.Columns.AddRange(columns);
 
-                                CampaignDetailByproductTotalValueVM = CampaignByProductTotalValuedetails
-                          .FirstOrDefault(record => record.CustomerId == saleDelivery.CustomerId && record.ProductId == details.ProductId && record.FromAmount <= SumtotalAfterDisCount && record.ToAmount >= SumtotalAfterDisCount);
+                        //            // Add a row with the default values
+                        //            campaignByproductValueDiscount.Rows.Add();
 
-                                if (CampaignDetailByproductTotalValueVM == null)
-                                {
-                                    CampaignDetailByproductTotalValueVM = CampaignByProductTotalValuedetails
-                           .FirstOrDefault(record => record.CustomerId == 0 && record.ProductId == details.ProductId && record.FromAmount <= SumtotalAfterDisCount && record.ToAmount >= SumtotalAfterDisCount);
-                                }
-
-                                #region Calculation 
-
-                                if (CampaignDetailByproductTotalValueVM != null)
-                                {
-                                    details.CampaignHeaderId = CampaignDetailByproductTotalValueVM.CampaignId;
-                                    details.CampaignDetailsId = CampaignDetailByproductTotalValueVM.Id;
-                                    details.CampaignTypeId = CampaignDetailByproductTotalValueVM.CampaignTypeId;
-                                    LineDiscountGain = Convert.ToDecimal(CampaignDetailByproductTotalValueVM.DiscountRateBasedOnTotalPrice * SumtotalAfterDisCount / 100);
-
-                                    InvoiceDiscount += -LineDiscountGain;
-
-                                    DataTable campaignByproductTotalValueDiscount = new DataTable("campaignByproductTotalValueDiscount");
-
-                                    // Define columns with their default values
-                                    var columns = new[]
-                                     {
-                                            new DataColumn("SaleDetailId", typeof(int)) { DefaultValue = saleDelivery.Id },
-                                            new DataColumn("CustomerId", typeof(int)) { DefaultValue = saleDelivery.CustomerId },
-                                            new DataColumn("CampaignId", typeof(int)) { DefaultValue = CampaignByQuantitiesId },
-                                            new DataColumn("CampaignTypeId", typeof(int)) { DefaultValue = 27 },
-                                            new DataColumn("ProductId", typeof(int)) { DefaultValue = CampaignDetailByproductTotalValueVM.ProductId },
-                                            new DataColumn("LineDiscountRate", typeof(int)) { DefaultValue = Convert.ToInt32(CampaignDetailByproductTotalValueVM.DiscountRateBasedOnTotalPrice)},
-                                            new DataColumn("LineDiscountAmount", typeof(decimal)) { DefaultValue = Convert.ToDecimal(LineDiscountGain) }
-                                        };
-
-                                    // Add columns to DataTable
-                                    campaignByproductTotalValueDiscount.Columns.AddRange(columns);
-
-                                    // Add a row with the default values
-                                    campaignByproductTotalValueDiscount.Rows.Add();
-
-                                    var resultt = await _commonRepo.BulkInsert("SaleDeliveryCampaignByProductTotalPrice", campaignByproductTotalValueDiscount, conn, transaction);
-                                    if (resultt.Status.ToLower() != "success")
-                                    {
-                                        throw new Exception(result.ExMessage.ToString());
-                                    }
+                        //            var resultt = await _commonRepo.BulkInsert("SaleDeliveryCampaignByProductUnitRate", campaignByproductValueDiscount, conn, transaction);
+                        //            if (resultt.Status.ToLower() != "success")
+                        //            {
+                        //                throw new Exception(result.ExMessage.ToString());
+                        //            }
 
 
-                                }
+                        //        }
 
 
-                                #endregion
-                            }
+                        //        #endregion
+                        //    }
 
 
-                        }
-                        #endregion
+                        //}
+                        //#endregion
+
+                        //#region  CampaignByProductTotalValue Discount
+                        //if (CampaignByProductTotalValueExist)
+                        //{
+                        //    var CampaignDetailByproductTotalValue = await _repoCampaign.CampaignByProductTotalValueList(new[] { "D.CampaignId" }, new[] { CampaignByProductTotalValueId.ToString() }, null, conn, transaction);
+
+                        //    if (CampaignDetailByproductTotalValue.Status == "Success" && CampaignDetailByproductTotalValue.DataVM is DataTable dt)
+                        //    {
+                        //        string json = JsonConvert.SerializeObject(dt);
+                        //        var CampaignByProductTotalValuedetails = JsonConvert.DeserializeObject<List<CampaignDetailByProductTotalValueVM>>(json);
+
+                        //        CampaignDetailByproductTotalValueVM = CampaignByProductTotalValuedetails
+                        //  .FirstOrDefault(record => record.CustomerId == saleDelivery.CustomerId && record.ProductId == details.ProductId && record.FromAmount <= SumtotalAfterDisCount && record.ToAmount >= SumtotalAfterDisCount);
+
+                        //        if (CampaignDetailByproductTotalValueVM == null)
+                        //        {
+                        //            CampaignDetailByproductTotalValueVM = CampaignByProductTotalValuedetails
+                        //   .FirstOrDefault(record => record.CustomerId == 0 && record.ProductId == details.ProductId && record.FromAmount <= SumtotalAfterDisCount && record.ToAmount >= SumtotalAfterDisCount);
+                        //        }
+
+                        //        #region Calculation 
+
+                        //        if (CampaignDetailByproductTotalValueVM != null)
+                        //        {
+                        //            details.CampaignHeaderId = CampaignDetailByproductTotalValueVM.CampaignId;
+                        //            details.CampaignDetailsId = CampaignDetailByproductTotalValueVM.Id;
+                        //            details.CampaignTypeId = CampaignDetailByproductTotalValueVM.CampaignTypeId;
+                        //            LineDiscountGain = Convert.ToDecimal(CampaignDetailByproductTotalValueVM.DiscountRateBasedOnTotalPrice * SumtotalAfterDisCount / 100);
+
+                        //            InvoiceDiscount += -LineDiscountGain;
+
+                        //            DataTable campaignByproductTotalValueDiscount = new DataTable("campaignByproductTotalValueDiscount");
+
+                        //            // Define columns with their default values
+                        //            var columns = new[]
+                        //             {
+                        //                    new DataColumn("SaleDetailId", typeof(int)) { DefaultValue = saleDelivery.Id },
+                        //                    new DataColumn("CustomerId", typeof(int)) { DefaultValue = saleDelivery.CustomerId },
+                        //                    new DataColumn("CampaignId", typeof(int)) { DefaultValue = CampaignByQuantitiesId },
+                        //                    new DataColumn("CampaignTypeId", typeof(int)) { DefaultValue = 27 },
+                        //                    new DataColumn("ProductId", typeof(int)) { DefaultValue = CampaignDetailByproductTotalValueVM.ProductId },
+                        //                    new DataColumn("LineDiscountRate", typeof(int)) { DefaultValue = Convert.ToInt32(CampaignDetailByproductTotalValueVM.DiscountRateBasedOnTotalPrice)},
+                        //                    new DataColumn("LineDiscountAmount", typeof(decimal)) { DefaultValue = Convert.ToDecimal(LineDiscountGain) }
+                        //                };
+
+                        //            // Add columns to DataTable
+                        //            campaignByproductTotalValueDiscount.Columns.AddRange(columns);
+
+                        //            // Add a row with the default values
+                        //            campaignByproductTotalValueDiscount.Rows.Add();
+
+                        //            var resultt = await _commonRepo.BulkInsert("SaleDeliveryCampaignByProductTotalPrice", campaignByproductTotalValueDiscount, conn, transaction);
+                        //            if (resultt.Status.ToLower() != "success")
+                        //            {
+                        //                throw new Exception(result.ExMessage.ToString());
+                        //            }
+
+
+                        //        }
+
+
+                        //        #endregion
+                        //    }
+
+
+                        //}
+                        //#endregion
 
 
 
-                        #endregion
+                        //#endregion
 
                         details.SaleDeliveryId = saleDelivery.Id;
                         details.SDAmount = 0;
@@ -1067,43 +1066,43 @@ namespace ShampanPOS.Service
                         details.BranchId = saleDelivery.BranchId;
                         details.Line = LineNo;
 
-                        #region  CampaignDetailByInvoiceValues Discount
-                        CampaignDetailByInvoiceValueVM CampaignDetailByInvoiceValue = new CampaignDetailByInvoiceValueVM();
+                        //#region  CampaignDetailByInvoiceValues Discount
+                        //CampaignDetailByInvoiceValueVM CampaignDetailByInvoiceValue = new CampaignDetailByInvoiceValueVM();
 
-                        if (CampaignByInvoiceValueExist)
-                        {
-                            var CampaignByInvoiceValue = await _repoCampaign.CampaignDetailByInvoiceValueList(new[] { "D.CampaignId" }, new[] { CampaignByInvoiceValueId.ToString() }, null, conn, transaction);
+                        //if (CampaignByInvoiceValueExist)
+                        //{
+                        //    var CampaignByInvoiceValue = await _repoCampaign.CampaignDetailByInvoiceValueList(new[] { "D.CampaignId" }, new[] { CampaignByInvoiceValueId.ToString() }, null, conn, transaction);
 
-                            if (CampaignByInvoiceValue.Status == "Success" && CampaignByInvoiceValue.DataVM is DataTable dt)
-                            {
-                                string json = JsonConvert.SerializeObject(dt);
-                                var CampaignByInvoicedetails = JsonConvert.DeserializeObject<List<CampaignDetailByInvoiceValueVM>>(json);
-                                CampaignDetailByInvoiceValue = CampaignByInvoicedetails
-                          .FirstOrDefault(record => record.CustomerId == saleDelivery.CustomerId);
+                        //    if (CampaignByInvoiceValue.Status == "Success" && CampaignByInvoiceValue.DataVM is DataTable dt)
+                        //    {
+                        //        string json = JsonConvert.SerializeObject(dt);
+                        //        var CampaignByInvoicedetails = JsonConvert.DeserializeObject<List<CampaignDetailByInvoiceValueVM>>(json);
+                        //        CampaignDetailByInvoiceValue = CampaignByInvoicedetails
+                        //  .FirstOrDefault(record => record.CustomerId == saleDelivery.CustomerId);
 
-                                if (CampaignDetailByInvoiceValue == null)
-                                {
-                                    CampaignDetailByInvoiceValue = CampaignByInvoicedetails
-                           .FirstOrDefault(record => record.CustomerId == 0);
-                                }
+                        //        if (CampaignDetailByInvoiceValue == null)
+                        //        {
+                        //            CampaignDetailByInvoiceValue = CampaignByInvoicedetails
+                        //   .FirstOrDefault(record => record.CustomerId == 0);
+                        //        }
 
-                                #region Calculation 
+                        //        #region Calculation 
 
-                                if (CampaignDetailByInvoiceValue != null)
-                                {
-                                    saleDelivery.InvoiceDiscountRate = CampaignByInvoicedetails.FirstOrDefault().DiscountRateBasedOnTotalPrice;
+                        //        if (CampaignDetailByInvoiceValue != null)
+                        //        {
+                        //            saleDelivery.InvoiceDiscountRate = CampaignByInvoicedetails.FirstOrDefault().DiscountRateBasedOnTotalPrice;
 
-                                    _repo.InvoiceUpdate(saleDelivery);
+                        //            _repo.InvoiceUpdate(saleDelivery);
 
-                                }
-
-
-                                #endregion
-                            }
+                        //        }
 
 
-                        }
-                        #endregion
+                        //        #endregion
+                        //    }
+
+
+                        //}
+                        //#endregion
 
                         #region UOM Data
 

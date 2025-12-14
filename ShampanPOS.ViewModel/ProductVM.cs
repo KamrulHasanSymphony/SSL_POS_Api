@@ -26,12 +26,6 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Description")]
         public string? Description { get; set; }
 
-        [Display(Name = "Carton Size")]
-        public string? CtnSize { get; set; }
-
-        [Display(Name = "Carton Size Factor")]
-        public string? CtnSizeFactor { get; set; }
-
         [Display(Name = "UOM")]
         public int? UOMId { get; set; }
 

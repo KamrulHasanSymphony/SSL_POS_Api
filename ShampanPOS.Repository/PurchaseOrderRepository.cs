@@ -53,18 +53,18 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@Code", purchaseOrder.Code);
                     cmd.Parameters.AddWithValue("@BranchId", purchaseOrder.BranchId);
                     cmd.Parameters.AddWithValue("@SupplierId", purchaseOrder.SupplierId);
-                    cmd.Parameters.AddWithValue("@BENumber", purchaseOrder.BENumber ?? (object)DBNull.Value);
+                    //cmd.Parameters.AddWithValue("@BENumber", purchaseOrder.BENumber ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@OrderDate", purchaseOrder.OrderDate);
                     cmd.Parameters.AddWithValue("@DeliveryDateTime", purchaseOrder.DeliveryDateTime);
-                    cmd.Parameters.AddWithValue("@GrandTotalAmount", purchaseOrder.GrandTotalAmount ?? 0);
-                    cmd.Parameters.AddWithValue("@GrandTotalSDAmount", purchaseOrder.GrandTotalSDAmount ?? 0);
-                    cmd.Parameters.AddWithValue("@GrandTotalVATAmount", purchaseOrder.GrandTotalVATAmount ?? 0);
+                    //cmd.Parameters.AddWithValue("@GrandTotalAmount", purchaseOrder.GrandTotalAmount ?? 0);
+                    //cmd.Parameters.AddWithValue("@GrandTotalSDAmount", purchaseOrder.GrandTotalSDAmount ?? 0);
+                    //cmd.Parameters.AddWithValue("@GrandTotalVATAmount", purchaseOrder.GrandTotalVATAmount ?? 0);
                     cmd.Parameters.AddWithValue("@Comments", purchaseOrder.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@TransactionType", purchaseOrder.TransactionType);
 
-                    cmd.Parameters.AddWithValue("@CurrencyId", purchaseOrder.CurrencyId ?? 0);
-                    cmd.Parameters.AddWithValue("@CurrencyRateFromBDT", purchaseOrder.CurrencyRateFromBDT ?? 0);
-                    cmd.Parameters.AddWithValue("@FiscalYear", purchaseOrder.FiscalYear ?? "2025");
+                    //cmd.Parameters.AddWithValue("@CurrencyId", purchaseOrder.CurrencyId ?? 0);
+                    //cmd.Parameters.AddWithValue("@CurrencyRateFromBDT", purchaseOrder.CurrencyRateFromBDT ?? 0);
+                    //cmd.Parameters.AddWithValue("@FiscalYear", purchaseOrder.FiscalYear ?? "2025");
                     cmd.Parameters.AddWithValue("@PeriodId", purchaseOrder.PeriodId ?? "");
                     cmd.Parameters.AddWithValue("@IsPost", purchaseOrder.IsPost);
                     cmd.Parameters.AddWithValue("@CreatedBy", purchaseOrder.CreatedBy);
@@ -186,18 +186,18 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@VATAmount", details.VATAmount ?? 0);
                     cmd.Parameters.AddWithValue("@OthersAmount", details.OthersAmount ?? 0);
                     cmd.Parameters.AddWithValue("@LineTotal", details.LineTotal);
-                    cmd.Parameters.AddWithValue("@UOMId", details.UOMId ?? 0);
-                    cmd.Parameters.AddWithValue("@UOMFromId", details.UOMFromId ?? 0);
-                    cmd.Parameters.AddWithValue("@UOMconversion", details.UOMConversion);
-                    cmd.Parameters.AddWithValue("@Comments", details.Comments ?? "-");
+                    //cmd.Parameters.AddWithValue("@UOMId", details.UOMId ?? 0);
+                    //cmd.Parameters.AddWithValue("@UOMFromId", details.UOMFromId ?? 0);
+                    //cmd.Parameters.AddWithValue("@UOMconversion", details.UOMConversion);
+                    //cmd.Parameters.AddWithValue("@Comments", details.Comments ?? "-");
                     cmd.Parameters.AddWithValue("@VATType", details.VATType ?? "-");
                     cmd.Parameters.AddWithValue("@TransactionType", details.TransactionType ?? "PurchaseOrder");
                     cmd.Parameters.AddWithValue("@IsPost", details.IsPost ?? false);
                     cmd.Parameters.AddWithValue("@InvoiceDateTime", DateTime.Now);
-                    cmd.Parameters.AddWithValue("@IsFixedVAT", details.IsFixedVAT);
-                    cmd.Parameters.AddWithValue("@FixedVATAmount", details.FixedVATAmount ?? 0);
-                    cmd.Parameters.AddWithValue("@CtnQuantity", details.CtnQuantity);
-                    cmd.Parameters.AddWithValue("@PcsQuantity", details.PcsQuantity);
+                    //cmd.Parameters.AddWithValue("@IsFixedVAT", details.IsFixedVAT);
+                    //cmd.Parameters.AddWithValue("@FixedVATAmount", details.FixedVATAmount ?? 0);
+                    //cmd.Parameters.AddWithValue("@CtnQuantity", details.CtnQuantity);
+                    //cmd.Parameters.AddWithValue("@PcsQuantity", details.PcsQuantity);
 
 
                     object newId = cmd.ExecuteScalar();
@@ -254,17 +254,17 @@ namespace ShampanPOS.Repository
                 {
                     cmd.Parameters.AddWithValue("@Id", purchaseOrder.Id);
                     cmd.Parameters.AddWithValue("@SupplierId", purchaseOrder.SupplierId);
-                    cmd.Parameters.AddWithValue("@BENumber", purchaseOrder.BENumber ?? (object)DBNull.Value);
+                    //cmd.Parameters.AddWithValue("@BENumber", purchaseOrder.BENumber ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@OrderDate", purchaseOrder.OrderDate);
                     cmd.Parameters.AddWithValue("@DeliveryDateTime", purchaseOrder.DeliveryDateTime);
-                    cmd.Parameters.AddWithValue("@GrandTotalAmount", purchaseOrder.GrandTotalAmount ?? 0);
-                    cmd.Parameters.AddWithValue("@GrandTotalSDAmount", purchaseOrder.GrandTotalSDAmount ?? 0);
-                    cmd.Parameters.AddWithValue("@GrandTotalVATAmount", purchaseOrder.GrandTotalVATAmount ?? 0);
+                    //cmd.Parameters.AddWithValue("@GrandTotalAmount", purchaseOrder.GrandTotalAmount ?? 0);
+                    //cmd.Parameters.AddWithValue("@GrandTotalSDAmount", purchaseOrder.GrandTotalSDAmount ?? 0);
+                    //cmd.Parameters.AddWithValue("@GrandTotalVATAmount", purchaseOrder.GrandTotalVATAmount ?? 0);
                     cmd.Parameters.AddWithValue("@Comments", purchaseOrder.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@TransactionType", purchaseOrder.TransactionType);
-                    cmd.Parameters.AddWithValue("@CurrencyId", purchaseOrder.CurrencyId);
-                    cmd.Parameters.AddWithValue("@CurrencyRateFromBDT", purchaseOrder.CurrencyRateFromBDT);
-                    cmd.Parameters.AddWithValue("@FiscalYear", purchaseOrder.FiscalYear ?? "2025");
+                    //cmd.Parameters.AddWithValue("@CurrencyId", purchaseOrder.CurrencyId);
+                    //cmd.Parameters.AddWithValue("@CurrencyRateFromBDT", purchaseOrder.CurrencyRateFromBDT);
+                    //cmd.Parameters.AddWithValue("@FiscalYear", purchaseOrder.FiscalYear ?? "2025");
                     cmd.Parameters.AddWithValue("@PeriodId", purchaseOrder.PeriodId ?? "");
                     cmd.Parameters.AddWithValue("@LastModifiedBy", purchaseOrder.LastModifiedBy ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@LastUpdateFrom", purchaseOrder.LastUpdateFrom ?? (object)DBNull.Value);
@@ -393,21 +393,21 @@ WHERE  1 = 1
                         SupplierId = Convert.ToInt32(row["SupplierId"]),
                         SupplierName = Convert.ToString(row["SupplierName"]),
                         SupplierAddress = Convert.ToString(row["SupplierAddress"]),
-                        BENumber = Convert.ToString(row["BENumber"]),
+                        //BENumber = Convert.ToString(row["BENumber"]),
                         OrderDate = row["OrderDate"].ToString(),
                         DeliveryDateTime = row["DeliveryDateTime"].ToString(),
-                        GrandTotalAmount = Convert.ToDecimal(row["GrandTotalAmount"]),
-                        GrandTotalSDAmount = Convert.ToDecimal(row["GrandTotalSDAmount"]),
-                        GrandTotalVATAmount = Convert.ToDecimal(row["GrandTotalVATAmount"]),
+                        //GrandTotalAmount = Convert.ToDecimal(row["GrandTotalAmount"]),
+                        //GrandTotalSDAmount = Convert.ToDecimal(row["GrandTotalSDAmount"]),
+                        //GrandTotalVATAmount = Convert.ToDecimal(row["GrandTotalVATAmount"]),
                         Comments = row["Comments"].ToString(),
                         TransactionType = row["TransactionType"].ToString(),
                         IsPost = Convert.ToBoolean(row["IsPost"]),
                         PostBy = row["PostBy"].ToString(),
                         PosteOn = row["PostedOn"].ToString(),
-                        CurrencyId = Convert.ToInt32(row["CurrencyId"]),
-                        CurrencyName = row.Field<string?>("CurrencyName"),
-                        CurrencyRateFromBDT = Convert.ToDecimal(row["CurrencyRateFromBDT"]),
-                        FiscalYear = Convert.ToString(row["FiscalYear"]),
+                        //CurrencyId = Convert.ToInt32(row["CurrencyId"]),
+                        //CurrencyName = row.Field<string?>("CurrencyName"),
+                        //CurrencyRateFromBDT = Convert.ToDecimal(row["CurrencyRateFromBDT"]),
+                        //FiscalYear = Convert.ToString(row["FiscalYear"]),
                         PeriodId = Convert.ToString(row["PeriodId"]),
                         CreatedBy = row["CreatedBy"].ToString(),
                         CreatedOn = row["CreatedOn"].ToString(),
@@ -1313,9 +1313,9 @@ WHERE  1 = 1
                         SupplierName = Convert.ToString(row["SupplierName"]),
                         BENumber = Convert.ToString(row["BENumber"]),
                         InvoiceDateTime = row["DeliveryDateTime"].ToString(),
-                        GrandTotalAmount = Convert.ToDecimal(row["GrandTotalAmount"]),
-                        GrandTotalSDAmount = Convert.ToDecimal(row["GrandTotalSDAmount"]),
-                        GrandTotalVATAmount = Convert.ToDecimal(row["GrandTotalVATAmount"]),
+                        //GrandTotalAmount = Convert.ToDecimal(row["GrandTotalAmount"]),
+                        //GrandTotalSDAmount = Convert.ToDecimal(row["GrandTotalSDAmount"]),
+                        //GrandTotalVATAmount = Convert.ToDecimal(row["GrandTotalVATAmount"]),
                         Comments = row["Comments"].ToString(),
                         Code = row["Code"].ToString(),
                         TransactionType = row["TransactionType"].ToString(),
@@ -1323,7 +1323,7 @@ WHERE  1 = 1
                         PostedBy = row["PostBy"].ToString(),
                         PostedOn = row["PostedOn"].ToString(),
                         CurrencyId = Convert.ToInt32(row["CurrencyId"]),
-                        CurrencyRateFromBDT = Convert.ToDecimal(row["CurrencyRateFromBDT"]),
+                        //CurrencyRateFromBDT = Convert.ToDecimal(row["CurrencyRateFromBDT"]),
                         FiscalYear = Convert.ToString(row["FiscalYear"]),
                         PeriodId = Convert.ToString(row["PeriodId"]),
                         CreatedBy = row["CreatedBy"].ToString(),

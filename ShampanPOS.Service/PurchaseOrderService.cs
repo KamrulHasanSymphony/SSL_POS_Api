@@ -61,7 +61,7 @@ namespace ShampanPOS.Service
                     }
                     var data = details.FirstOrDefault();
                     model.PeriodId = data.FiscalYearId.ToString();
-                    model.FiscalYear = data.Year.ToString();
+                    //model.FiscalYear = data.Year.ToString();
 
                     if (data.MonthLock)
                     {
@@ -90,19 +90,19 @@ namespace ShampanPOS.Service
 
                 #endregion
 
-                #region Currency Conversation Data
+                //#region Currency Conversation Data
 
-                var currencyConversation = await new CurrencyConversationRepository().List(new[] { "M.FromId", "M.ToId" }, new[] { CurrencyFromId, model.CurrencyId.ToString() }, null, conn, transaction);
-                if (currencyConversation.Status == "Success" && currencyConversation.DataVM is List<CurrencyConversionVM> currencyList)
-                {
-                    model.CurrencyRateFromBDT = currencyList.FirstOrDefault()?.ConversationFactor > 0 ? currencyList.FirstOrDefault()?.ConversationFactor : 1;
-                }
-                else
-                {
-                    throw new Exception("Currency data not found!");
-                }
+                //var currencyConversation = await new CurrencyConversationRepository().List(new[] { "M.FromId", "M.ToId" }, new[] { CurrencyFromId, model.CurrencyId.ToString() }, null, conn, transaction);
+                //if (currencyConversation.Status == "Success" && currencyConversation.DataVM is List<CurrencyConversionVM> currencyList)
+                //{
+                //    model.CurrencyRateFromBDT = currencyList.FirstOrDefault()?.ConversationFactor > 0 ? currencyList.FirstOrDefault()?.ConversationFactor : 1;
+                //}
+                //else
+                //{
+                //    throw new Exception("Currency data not found!");
+                //}
 
-                #endregion
+                //#endregion
 
                 string code = _commonRepo.GenerateCode(CodeGroup, CodeName, model.OrderDate, model.BranchId, conn, transaction);
 
@@ -123,37 +123,37 @@ namespace ShampanPOS.Service
                             details.VATAmount = 0;
                             details.BranchId = model.BranchId;
                             details.TransactionType = model.TransactionType;
-                            details.InvoiceDateTime = model.OrderDate;
+                            //details.InvoiceDateTime = model.OrderDate;
                             details.Line = LineNo;
                             details.IsPost = model.IsPost;
 
-                            #region UOM Data
+                            //#region UOM Data
 
-                            var uomdata = await new ProductRepository().List(new[] { "M.Id" }, new[] { details.ProductId.ToString() }, null, conn, transaction);
-                            if (uomdata.Status == "Success" && uomdata.DataVM is List<ProductVM> uomList)
-                            {
-                                details.UOMFromId = uomList.FirstOrDefault()?.UOMId;
-                            }
-                            else
-                            {
-                                throw new Exception("UOM data not found!");
-                            }
+                            //var uomdata = await new ProductRepository().List(new[] { "M.Id" }, new[] { details.ProductId.ToString() }, null, conn, transaction);
+                            //if (uomdata.Status == "Success" && uomdata.DataVM is List<ProductVM> uomList)
+                            //{
+                            //    details.UOMFromId = uomList.FirstOrDefault()?.UOMId;
+                            //}
+                            //else
+                            //{
+                            //    throw new Exception("UOM data not found!");
+                            //}
 
-                            #endregion
+                            //#endregion
 
-                            #region UOM Conversation Data
+                            //#region UOM Conversation Data
 
-                            var uomConversation = await new UOMConversationRepository().List(new[] { "M.FromId", "M.ToId" }, new[] { details.UOMFromId.ToString(), details.UOMId.ToString() }, null, conn, transaction);
-                            if (uomConversation.Status == "Success" && uomConversation.DataVM is List<UOMConversationVM> uomConvList)
-                            {
-                                details.UOMConversion = uomConvList.FirstOrDefault()?.ConversationFactor > 0 ? uomConvList.FirstOrDefault()?.ConversationFactor : 1;
-                            }
-                            else
-                            {
-                                throw new Exception("UOM Conversation data not found!");
-                            }
+                            //var uomConversation = await new UOMConversationRepository().List(new[] { "M.FromId", "M.ToId" }, new[] { details.UOMFromId.ToString(), details.UOMId.ToString() }, null, conn, transaction);
+                            //if (uomConversation.Status == "Success" && uomConversation.DataVM is List<UOMConversationVM> uomConvList)
+                            //{
+                            //    details.UOMConversion = uomConvList.FirstOrDefault()?.ConversationFactor > 0 ? uomConvList.FirstOrDefault()?.ConversationFactor : 1;
+                            //}
+                            //else
+                            //{
+                            //    throw new Exception("UOM Conversation data not found!");
+                            //}
 
-                            #endregion
+                            //#endregion
 
 
                             #region Product Batch History Param with ProductId & BranchId Data
@@ -299,7 +299,7 @@ namespace ShampanPOS.Service
                     }
                     var data = details.FirstOrDefault();
                     model.PeriodId = data.FiscalYearId.ToString();
-                    model.FiscalYear = data.Year.ToString();
+                    //model.FiscalYear = data.Year.ToString();
 
                     if (data.MonthLock)
                     {
@@ -328,19 +328,19 @@ namespace ShampanPOS.Service
 
                 #endregion
 
-                #region Currency Conversation Data
+                //#region Currency Conversation Data
 
-                var currencyConversation = await new CurrencyConversationRepository().List(new[] { "M.FromId", "M.ToId" }, new[] { CurrencyFromId, model.CurrencyId.ToString() }, null, conn, transaction);
-                if (currencyConversation.Status == "Success" && currencyConversation.DataVM is List<CurrencyConversionVM> currencyList)
-                {
-                    model.CurrencyRateFromBDT = currencyList.FirstOrDefault()?.ConversationFactor > 0 ? currencyList.FirstOrDefault()?.ConversationFactor : 1;
-                }
-                else
-                {
-                    throw new Exception("Currency data not found!");
-                }
+                //var currencyConversation = await new CurrencyConversationRepository().List(new[] { "M.FromId", "M.ToId" }, new[] { CurrencyFromId, model.CurrencyId.ToString() }, null, conn, transaction);
+                //if (currencyConversation.Status == "Success" && currencyConversation.DataVM is List<CurrencyConversionVM> currencyList)
+                //{
+                //    model.CurrencyRateFromBDT = currencyList.FirstOrDefault()?.ConversationFactor > 0 ? currencyList.FirstOrDefault()?.ConversationFactor : 1;
+                //}
+                //else
+                //{
+                //    throw new Exception("Currency data not found!");
+                //}
 
-                #endregion
+                //#endregion
 
                 var record = _commonRepo.DetailsDelete("PurchaseOrderDetails", new[] { "PurchaseOrderId" }, new[] { model.Id.ToString() }, conn, transaction);
 
@@ -361,37 +361,37 @@ namespace ShampanPOS.Service
                         details.VATAmount = 0;
                         details.BranchId = model.BranchId;
                         details.TransactionType = model.TransactionType;
-                        details.InvoiceDateTime = model.OrderDate;
+                        //details.InvoiceDateTime = model.OrderDate;
                         details.Line = LineNo;
                         details.IsPost = model.IsPost;
 
-                        #region UOM Data
+                        //#region UOM Data
 
-                        var uomdata = await new ProductRepository().List(new[] { "M.Id" }, new[] { details.UOMId.ToString() }, null, conn, transaction);
-                        if (uomdata.Status == "Success" && uomdata.DataVM is List<ProductVM> uomList)
-                        {
-                            details.UOMFromId = uomList.FirstOrDefault()?.UOMId;
-                        }
-                        else
-                        {
-                            throw new Exception("UOM data not found!");
-                        }
+                        //var uomdata = await new ProductRepository().List(new[] { "M.Id" }, new[] { details.UOMId.ToString() }, null, conn, transaction);
+                        //if (uomdata.Status == "Success" && uomdata.DataVM is List<ProductVM> uomList)
+                        //{
+                        //    details.UOMFromId = uomList.FirstOrDefault()?.UOMId;
+                        //}
+                        //else
+                        //{
+                        //    throw new Exception("UOM data not found!");
+                        //}
 
-                        #endregion
+                        //#endregion
 
-                        #region UOM Conversation Data
+                        //#region UOM Conversation Data
 
-                        var uomConversation = await new UOMConversationRepository().List(new[] { "M.FromId", "M.ToId" }, new[] { details.UOMFromId.ToString(), details.UOMId.ToString() }, null, conn, transaction);
-                        if (uomConversation.Status == "Success" && uomConversation.DataVM is List<UOMConversationVM> uomConvList)
-                        {
-                            details.UOMConversion = uomConvList.FirstOrDefault()?.ConversationFactor > 0 ? uomConvList.FirstOrDefault()?.ConversationFactor : 1;
-                        }
-                        else
-                        {
-                            throw new Exception("UOM Conversation data not found!");
-                        }
+                        //var uomConversation = await new UOMConversationRepository().List(new[] { "M.FromId", "M.ToId" }, new[] { details.UOMFromId.ToString(), details.UOMId.ToString() }, null, conn, transaction);
+                        //if (uomConversation.Status == "Success" && uomConversation.DataVM is List<UOMConversationVM> uomConvList)
+                        //{
+                        //    details.UOMConversion = uomConvList.FirstOrDefault()?.ConversationFactor > 0 ? uomConvList.FirstOrDefault()?.ConversationFactor : 1;
+                        //}
+                        //else
+                        //{
+                        //    throw new Exception("UOM Conversation data not found!");
+                        //}
 
-                        #endregion
+                        //#endregion
 
                         #region Product Batch History Param with ProductId & BranchId Data
 
@@ -979,7 +979,7 @@ namespace ShampanPOS.Service
                 {
                     string json = JsonConvert.SerializeObject(dt);
                     var details = JsonConvert.DeserializeObject<List<PurchaseDetailVM>>(json);
-                    details.ToList().ForEach(item => item.POCode = lst.FirstOrDefault().Code);
+                    //details.ToList().ForEach(item => item.POCode = lst.FirstOrDefault().Code);
                     lst.FirstOrDefault().purchaseDetailList = details;
                     result.DataVM = lst;
                 }

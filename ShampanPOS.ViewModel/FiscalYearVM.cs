@@ -15,8 +15,6 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Year")]
         public int? Year { get; set; }
 
-        public int? YearPeriod { get; set; }
-
         [Display(Name = "Year Start Date")]
         [DataType(DataType.Date)]
         public string? YearStart { get; set; }

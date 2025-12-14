@@ -68,16 +68,16 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@SupplierId", vm.SupplierId);
                     cmd.Parameters.AddWithValue("@BENumber", vm.BENumber ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@PurchaseReturnDate", vm.PurchaseReturnDate);
-                    cmd.Parameters.AddWithValue("@GrandTotalAmount", vm.GrandTotalAmount ?? 0);
-                    cmd.Parameters.AddWithValue("@GrandTotalSDAmount", vm.GrandTotalSDAmount ?? 0);
-                    cmd.Parameters.AddWithValue("@GrandTotalVATAmount", vm.GrandTotalVATAmount ?? 0);
+                    //cmd.Parameters.AddWithValue("@GrandTotalAmount", vm.GrandTotalAmount ?? 0);
+                    //cmd.Parameters.AddWithValue("@GrandTotalSDAmount", vm.GrandTotalSDAmount ?? 0);
+                    //cmd.Parameters.AddWithValue("@GrandTotalVATAmount", vm.GrandTotalVATAmount ?? 0);
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@TransactionType", vm.TransactionType ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsPost", vm.IsPost);
-                    cmd.Parameters.AddWithValue("@CurrencyId", vm.CurrencyId ?? 0);
-                    cmd.Parameters.AddWithValue("@CurrencyRateFromBDT", vm.CurrencyRateFromBDT ?? 0);
-                    cmd.Parameters.AddWithValue("@ImportIDExcel", vm.ImportIDExcel ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@FileName", vm.FileName ?? (object)DBNull.Value);
+                    //cmd.Parameters.AddWithValue("@CurrencyId", vm.CurrencyId ?? 0);
+                    //cmd.Parameters.AddWithValue("@CurrencyRateFromBDT", vm.CurrencyRateFromBDT ?? 0);
+                    //cmd.Parameters.AddWithValue("@ImportIDExcel", vm.ImportIDExcel ?? (object)DBNull.Value);
+                    //cmd.Parameters.AddWithValue("@FileName", vm.FileName ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@FiscalYear", vm.FiscalYear ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@PeriodId", vm.PeriodId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy ?? (object)DBNull.Value);
@@ -153,18 +153,18 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@VATRate", details.VATRate);
                     cmd.Parameters.AddWithValue("@VATAmount", details.VATAmount);
                     cmd.Parameters.AddWithValue("@LineTotal", details.LineTotal);
-                    cmd.Parameters.AddWithValue("@UOMId", details.UOMId );
-                    cmd.Parameters.AddWithValue("@UOMFromId", details.UOMFromId );
-                    cmd.Parameters.AddWithValue("@UOMConversion", details.UOMConversion);
-                    cmd.Parameters.AddWithValue("@IsPost", details.IsPost);
-                    cmd.Parameters.AddWithValue("@FixedVATAmount", details.FixedVATAmount ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@IsFixedVAT", details.IsFixedVAT ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@VATType", details.VATType ?? "-");
-                    cmd.Parameters.AddWithValue("@Comments", details.Comments ?? (object)DBNull.Value);
+                    //cmd.Parameters.AddWithValue("@UOMId", details.UOMId );
+                    //cmd.Parameters.AddWithValue("@UOMFromId", details.UOMFromId );
+                    //cmd.Parameters.AddWithValue("@UOMConversion", details.UOMConversion);
+                    //cmd.Parameters.AddWithValue("@IsPost", details.IsPost);
+                    //cmd.Parameters.AddWithValue("@FixedVATAmount", details.FixedVATAmount ?? (object)DBNull.Value);
+                    //cmd.Parameters.AddWithValue("@IsFixedVAT", details.IsFixedVAT ?? (object)DBNull.Value);
+                    //cmd.Parameters.AddWithValue("@VATType", details.VATType ?? "-");
+                    //cmd.Parameters.AddWithValue("@Comments", details.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@TransactionType", details.TransactionType ?? "-");
-                    cmd.Parameters.AddWithValue("@ReturnReason", details.ReturnReason ?? "-");
-                    cmd.Parameters.AddWithValue("@CtnQuantity", details.CtnQuantity);
-                    cmd.Parameters.AddWithValue("@PcsQuantity", details.PcsQuantity);
+                    //cmd.Parameters.AddWithValue("@ReturnReason", details.ReturnReason ?? "-");
+                    //cmd.Parameters.AddWithValue("@CtnQuantity", details.CtnQuantity);
+                    //cmd.Parameters.AddWithValue("@PcsQuantity", details.PcsQuantity);
 
 
                     object newId = cmd.ExecuteScalar();
@@ -225,15 +225,15 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@SupplierId", vm.SupplierId);
                     cmd.Parameters.AddWithValue("@BENumber", vm.BENumber ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@PurchaseReturnDate", vm.PurchaseReturnDate);
-                    cmd.Parameters.AddWithValue("@GrandTotalAmount", vm.GrandTotalAmount ?? 0);
-                    cmd.Parameters.AddWithValue("@GrandTotalSDAmount", vm.GrandTotalSDAmount ?? 0);
-                    cmd.Parameters.AddWithValue("@GrandTotalVATAmount", vm.GrandTotalVATAmount ?? 0);
+                    //cmd.Parameters.AddWithValue("@GrandTotalAmount", vm.GrandTotalAmount ?? 0);
+                    //cmd.Parameters.AddWithValue("@GrandTotalSDAmount", vm.GrandTotalSDAmount ?? 0);
+                    //cmd.Parameters.AddWithValue("@GrandTotalVATAmount", vm.GrandTotalVATAmount ?? 0);
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@TransactionType", vm.TransactionType ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@CurrencyId", vm.CurrencyId ?? 0);
-                    cmd.Parameters.AddWithValue("@CurrencyRateFromBDT", vm.CurrencyRateFromBDT ?? 0);
-                    cmd.Parameters.AddWithValue("@ImportIDExcel", vm.ImportIDExcel ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@FileName", vm.FileName ?? (object)DBNull.Value);
+                    //cmd.Parameters.AddWithValue("@CurrencyId", vm.CurrencyId ?? 0);
+                    //cmd.Parameters.AddWithValue("@CurrencyRateFromBDT", vm.CurrencyRateFromBDT ?? 0);
+                    //cmd.Parameters.AddWithValue("@ImportIDExcel", vm.ImportIDExcel ?? (object)DBNull.Value);
+                    //cmd.Parameters.AddWithValue("@FileName", vm.FileName ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@FiscalYear", vm.FiscalYear ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@PeriodId", vm.PeriodId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@LastModifiedBy", vm.LastModifiedBy ?? (object)DBNull.Value);
@@ -621,18 +621,18 @@ WHERE 1 = 1
                         SupplierId = row.Field<int>("SupplierId"),
                         BENumber = row.Field<string>("BENumber"),
                         PurchaseReturnDate = row.Field<string>("PurchaseReturnDate"),
-                        GrandTotalAmount = row.Field<decimal>("GrandTotalAmount"),
-                        GrandTotalSDAmount = row.Field<decimal>("GrandTotalSDAmount"),
-                        GrandTotalVATAmount = row.Field<decimal>("GrandTotalVATAmount"),
+                        //GrandTotalAmount = row.Field<decimal>("GrandTotalAmount"),
+                        //GrandTotalSDAmount = row.Field<decimal>("GrandTotalSDAmount"),
+                        //GrandTotalVATAmount = row.Field<decimal>("GrandTotalVATAmount"),
                         Comments = row.Field<string>("Comments"),
                         TransactionType = row.Field<string>("TransactionType"),
                         IsPost = row.Field<bool>("IsPost"),
                         PostedBy = row.Field<string>("PostedBy"),
                         PostedOn = row.Field<string?>("PostedOn"),
-                        CurrencyId = row.Field<int>("CurrencyId"),
-                        CurrencyRateFromBDT = row.Field<decimal>("CurrencyRateFromBDT"),
-                        ImportIDExcel = row.Field<string>("ImportIDExcel"),
-                        FileName = row.Field<string>("FileName"),
+                        //CurrencyId = row.Field<int>("CurrencyId"),
+                        //CurrencyRateFromBDT = row.Field<decimal>("CurrencyRateFromBDT"),
+                        //ImportIDExcel = row.Field<string>("ImportIDExcel"),
+                        //FileName = row.Field<string>("FileName"),
                         FiscalYear = row.Field<string>("FiscalYear"),
                         PeriodId = row.Field<string>("PeriodId"),
                         CreatedBy = row.Field<string>("CreatedBy"),

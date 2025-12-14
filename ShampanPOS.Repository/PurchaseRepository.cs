@@ -67,17 +67,17 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@BENumber", vm.BENumber ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@InvoiceDateTime", vm.InvoiceDateTime);
                     cmd.Parameters.AddWithValue("@PurchaseDate", vm.PurchaseDate);
-                    cmd.Parameters.AddWithValue("@GrandTotalAmount", vm.GrandTotalAmount ?? 0);
-                    cmd.Parameters.AddWithValue("@GrandTotalSDAmount", vm.GrandTotalSDAmount ?? 0);
-                    cmd.Parameters.AddWithValue("@GrandTotalVATAmount", vm.GrandTotalVATAmount ?? 0);
+                    //cmd.Parameters.AddWithValue("@GrandTotalAmount", vm.GrandTotalAmount ?? 0);
+                    //cmd.Parameters.AddWithValue("@GrandTotalSDAmount", vm.GrandTotalSDAmount ?? 0);
+                    //cmd.Parameters.AddWithValue("@GrandTotalVATAmount", vm.GrandTotalVATAmount ?? 0);
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@TransactionType", vm.TransactionType ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsPost", vm.IsPost);
                     cmd.Parameters.AddWithValue("@CurrencyId", vm.CurrencyId);
-                    cmd.Parameters.AddWithValue("@CurrencyRateFromBDT", vm.CurrencyRateFromBDT);
-                    cmd.Parameters.AddWithValue("@ImportIDExcel", vm.ImportIDExcel ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@FileName", vm.FileName ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@CustomHouse", vm.CustomHouse ?? (object)DBNull.Value);
+                    //cmd.Parameters.AddWithValue("@CurrencyRateFromBDT", vm.CurrencyRateFromBDT);
+                    //cmd.Parameters.AddWithValue("@ImportIDExcel", vm.ImportIDExcel ?? (object)DBNull.Value);
+                    //cmd.Parameters.AddWithValue("@FileName", vm.FileName ?? (object)DBNull.Value);
+                    //cmd.Parameters.AddWithValue("@CustomHouse", vm.CustomHouse ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@FiscalYear", vm.FiscalYear ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@PeriodId", vm.PeriodId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy ?? (object)DBNull.Value);
@@ -139,7 +139,7 @@ namespace ShampanPOS.Repository
                 using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
                 {
                     cmd.Parameters.AddWithValue("@PurchaseId", details.PurchaseId);
-                    cmd.Parameters.AddWithValue("@PurchaseOrderId", details.PurchaseOrderId ?? 0 );
+                    //cmd.Parameters.AddWithValue("@PurchaseOrderId", details.PurchaseOrderId ?? 0 );
                     cmd.Parameters.AddWithValue("@PurchaseOrderDetailId", details.PurchaseOrderDetailId ?? 0);
                     cmd.Parameters.AddWithValue("@BranchId", details.BranchId );
                     cmd.Parameters.AddWithValue("@Line", details.Line);
@@ -153,17 +153,17 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@VATRate", details.VATRate ?? 0);
                     cmd.Parameters.AddWithValue("@VATAmount", details.VATAmount ?? 0);
                     cmd.Parameters.AddWithValue("@LineTotal", details.LineTotal);
-                    cmd.Parameters.AddWithValue("@UOMId", details.UOMId ?? 0);
-                    cmd.Parameters.AddWithValue("@UOMFromId", details.UOMFromId ?? 0);
-                    cmd.Parameters.AddWithValue("@UOMConversion", details.UOMConversion);
-                    cmd.Parameters.AddWithValue("@IsPost", details.IsPost);
-                    cmd.Parameters.AddWithValue("@FixedVATAmount", details.FixedVATAmount ?? 0);
-                    cmd.Parameters.AddWithValue("@IsFixedVAT", details.IsFixedVAT);
-                    cmd.Parameters.AddWithValue("@VATType", details.VATType ?? "-");
-                    cmd.Parameters.AddWithValue("@Comments", details.Comments ?? "-");
-                    cmd.Parameters.AddWithValue("@TransactionType", details.TransactionType);
-                    cmd.Parameters.AddWithValue("@CtnQuantity", details.CtnQuantity);
-                    cmd.Parameters.AddWithValue("@PcsQuantity", details.PcsQuantity);
+                    //cmd.Parameters.AddWithValue("@UOMId", details.UOMId ?? 0);
+                    //cmd.Parameters.AddWithValue("@UOMFromId", details.UOMFromId ?? 0);
+                    //cmd.Parameters.AddWithValue("@UOMConversion", details.UOMConversion);
+                    //cmd.Parameters.AddWithValue("@IsPost", details.IsPost);
+                    //cmd.Parameters.AddWithValue("@FixedVATAmount", details.FixedVATAmount ?? 0);
+                    //cmd.Parameters.AddWithValue("@IsFixedVAT", details.IsFixedVAT);
+                    //cmd.Parameters.AddWithValue("@VATType", details.VATType ?? "-");
+                    //cmd.Parameters.AddWithValue("@Comments", details.Comments ?? "-");
+                    //cmd.Parameters.AddWithValue("@TransactionType", details.TransactionType);
+                    //cmd.Parameters.AddWithValue("@CtnQuantity", details.CtnQuantity);
+                    //cmd.Parameters.AddWithValue("@PcsQuantity", details.PcsQuantity);
 
                     object newId = cmd.ExecuteScalar();
                     details.Id = Convert.ToInt32(newId);
@@ -225,15 +225,15 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@BENumber", vm.BENumber ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@InvoiceDateTime", vm.InvoiceDateTime);
                     cmd.Parameters.AddWithValue("@PurchaseDate", vm.PurchaseDate);
-                    cmd.Parameters.AddWithValue("@GrandTotalAmount", vm.GrandTotalAmount ?? 0);
-                    cmd.Parameters.AddWithValue("@GrandTotalSDAmount", vm.GrandTotalSDAmount ?? 0);
-                    cmd.Parameters.AddWithValue("@GrandTotalVATAmount", vm.GrandTotalVATAmount ?? 0);
+                    //cmd.Parameters.AddWithValue("@GrandTotalAmount", vm.GrandTotalAmount ?? 0);
+                    //cmd.Parameters.AddWithValue("@GrandTotalSDAmount", vm.GrandTotalSDAmount ?? 0);
+                    //cmd.Parameters.AddWithValue("@GrandTotalVATAmount", vm.GrandTotalVATAmount ?? 0);
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CurrencyId", vm.CurrencyId);
-                    cmd.Parameters.AddWithValue("@CurrencyRateFromBDT", vm.CurrencyRateFromBDT);
-                    cmd.Parameters.AddWithValue("@ImportIDExcel", vm.ImportIDExcel ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@FileName", vm.FileName ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@CustomHouse", vm.CustomHouse ?? (object)DBNull.Value);
+                    //cmd.Parameters.AddWithValue("@CurrencyRateFromBDT", vm.CurrencyRateFromBDT);
+                    //cmd.Parameters.AddWithValue("@ImportIDExcel", vm.ImportIDExcel ?? (object)DBNull.Value);
+                    //cmd.Parameters.AddWithValue("@FileName", vm.FileName ?? (object)DBNull.Value);
+                    //cmd.Parameters.AddWithValue("@CustomHouse", vm.CustomHouse ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@FiscalYear", vm.FiscalYear ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@PeriodId", vm.PeriodId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@LastModifiedBy", vm.LastModifiedBy ?? (object)DBNull.Value);
@@ -630,20 +630,20 @@ WHERE 1 = 1
                         BENumber = row.Field<string>("BENumber"),
                         InvoiceDateTime = row.Field<string>("InvoiceDateTime"),
                         PurchaseDate = row.Field<string>("PurchaseDate"),
-                        GrandTotalAmount = row.Field<decimal>("GrandTotalAmount"),
-                        GrandTotalSDAmount = row.Field<decimal>("GrandTotalSDAmount"),
-                        GrandTotalVATAmount = row.Field<decimal>("GrandTotalVATAmount"),
+                        //GrandTotalAmount = row.Field<decimal>("GrandTotalAmount"),
+                        //GrandTotalSDAmount = row.Field<decimal>("GrandTotalSDAmount"),
+                        //GrandTotalVATAmount = row.Field<decimal>("GrandTotalVATAmount"),
                         Comments = row.Field<string>("Comments"),
                         TransactionType = row.Field<string>("TransactionType"),
                         IsPost = row.Field<bool>("IsPost"),
                         PostedBy = row.Field<string>("PostedBy"),
                         PostedOn = row.Field<string?>("PostedOn"),
-                        CurrencyName = row.Field<string?>("CurrencyName"),
-                        CurrencyId = row.Field<int>("CurrencyId"),
-                        CurrencyRateFromBDT = row.Field<decimal>("CurrencyRateFromBDT"),
-                        ImportIDExcel = row.Field<string>("ImportIDExcel"),
-                        FileName = row.Field<string>("FileName"),
-                        CustomHouse = row.Field<string>("CustomHouse"),
+                        //CurrencyName = row.Field<string?>("CurrencyName"),
+                        //CurrencyId = row.Field<int>("CurrencyId"),
+                        //CurrencyRateFromBDT = row.Field<decimal>("CurrencyRateFromBDT"),
+                        //ImportIDExcel = row.Field<string>("ImportIDExcel"),
+                        //FileName = row.Field<string>("FileName"),
+                        //CustomHouse = row.Field<string>("CustomHouse"),
                         FiscalYear = row.Field<string>("FiscalYear"),
                         PeriodId = row.Field<string>("PeriodId"),
                         CreatedBy = row.Field<string>("CreatedBy"),
@@ -1612,18 +1612,18 @@ WHERE 1 = 1
                         SupplierId = row.Field<int>("SupplierId"),
                         BENumber = row.Field<string>("BENumber"),
                         PurchaseReturnDate = row.Field<string>("InvoiceDateTime"),
-                        GrandTotalAmount = row.Field<decimal>("GrandTotalAmount"),
-                        GrandTotalSDAmount = row.Field<decimal>("GrandTotalSDAmount"),
-                        GrandTotalVATAmount = row.Field<decimal>("GrandTotalVATAmount"),
+                        //GrandTotalAmount = row.Field<decimal>("GrandTotalAmount"),
+                        //GrandTotalSDAmount = row.Field<decimal>("GrandTotalSDAmount"),
+                        //GrandTotalVATAmount = row.Field<decimal>("GrandTotalVATAmount"),
                         Comments = row.Field<string>("Comments"),
                         TransactionType = row.Field<string>("TransactionType"),
                         IsPost = row.Field<bool>("IsPost"),
                         PostedBy = row.Field<string>("PostedBy"),
                         PostedOn = row.Field<string?>("PostedOn"),
-                        CurrencyId = row.Field<int?>("CurrencyId"),
-                        CurrencyRateFromBDT = row.Field<decimal>("CurrencyRateFromBDT"),
-                        ImportIDExcel = row.Field<string>("ImportIDExcel"),
-                        FileName = row.Field<string>("FileName"),
+                        //CurrencyId = row.Field<int?>("CurrencyId"),
+                        //CurrencyRateFromBDT = row.Field<decimal>("CurrencyRateFromBDT"),
+                        //ImportIDExcel = row.Field<string>("ImportIDExcel"),
+                        //FileName = row.Field<string>("FileName"),
                         FiscalYear = row.Field<string>("FiscalYear"),
                         PeriodId = row.Field<string>("PeriodId"),
                         CreatedBy = row.Field<string>("CreatedBy"),
@@ -1964,152 +1964,152 @@ WHERE 1 = 1  AND (ISNULL(D.Quantity, 0.00)-ISNULL(D.CompletedQty, 0.00)) > 0 ";
             }
         }
 
-        public async Task<ResultVM> ExportPurchaseExcel(CommonVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
-        {
-            bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+//        public async Task<ResultVM> ExportPurchaseExcel(CommonVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
+//        {
+//            bool isNewConnection = false;
+//            DataTable dataTable = new DataTable();
+//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    conn.Open();
-                    isNewConnection = true;
-                }
+//            try
+//            {
+//                if (conn == null)
+//                {
+//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+//                    conn.Open();
+//                    isNewConnection = true;
+//                }
 
-                string query = @"
-                SELECT 
-                ISNULL(M.Code, '') AS Code,
-                ISNULL(B.Code, '') AS BranchCode,
-                ISNULL(S.Code, '') AS SupplierCode,
-                ISNULL(FORMAT(M.InvoiceDateTime, 'yyyy-MM-dd'), '1900-01-01') AS InvoiceDate,
-                ISNULL(PD.Code, '') AS ProductCode,
-                ISNULL(U.Code, '') AS UOMCode,
-                ISNULL(D.Quantity, 0) AS Quantity
-
-
-                --ISNULL(S.Name, '') AS SupplierName,
-                --ISNULL(FORMAT(M.PurchaseDate, 'yyyy-MM-dd'), '1900-01-01') AS PurchaseDate,
-                --ISNULL(M.BENumber, '') AS BENumber,
-                --ISNULL(M.FiscalYear, '') AS FiscalYear,
-                --ISNULL(M.TransactionType, '') AS TransactionType,
-                --ISNULL(C.Name, '') AS CurrencyName,
-                --ISNULL(PG.Code, '') AS ProductGroupCode,
-                --ISNULL(D.UnitPrice, 0) AS UnitPrice,
-                --ISNULL(D.SD, 0) AS SDRate,
-                --ISNULL(D.VATRate, 0) AS VATRate
-
-                FROM Purchases M
-                LEFT OUTER JOIN PurchaseDetails D ON ISNULL(M.Id,0) = D.PurchaseId
-                LEFT OUTER JOIN Currencies C ON ISNULL(M.CurrencyId,0) = C.Id
-                LEFT OUTER JOIN Suppliers S ON ISNULL(M.SupplierId,0) = S.Id
-                LEFT OUTER JOIN BranchProfiles B ON ISNULL(M.BranchId,0) = B.Id
-                LEFT OUTER JOIN Products PD ON ISNULL(D.ProductId,0) = PD.Id
-                LEFT OUTER JOIN ProductGroups PG ON PD.ProductGroupId = PG.Id
+//                string query = @"
+//                SELECT 
+//                ISNULL(M.Code, '') AS Code,
+//                ISNULL(B.Code, '') AS BranchCode,
+//                ISNULL(S.Code, '') AS SupplierCode,
+//                ISNULL(FORMAT(M.InvoiceDateTime, 'yyyy-MM-dd'), '1900-01-01') AS InvoiceDate,
+//                ISNULL(PD.Code, '') AS ProductCode,
+//                ISNULL(U.Code, '') AS UOMCode,
+//                ISNULL(D.Quantity, 0) AS Quantity
 
 
-                LEFT OUTER JOIN UOMs U ON D.UOMId = U.Id
+//                --ISNULL(S.Name, '') AS SupplierName,
+//                --ISNULL(FORMAT(M.PurchaseDate, 'yyyy-MM-dd'), '1900-01-01') AS PurchaseDate,
+//                --ISNULL(M.BENumber, '') AS BENumber,
+//                --ISNULL(M.FiscalYear, '') AS FiscalYear,
+//                --ISNULL(M.TransactionType, '') AS TransactionType,
+//                --ISNULL(C.Name, '') AS CurrencyName,
+//                --ISNULL(PG.Code, '') AS ProductGroupCode,
+//                --ISNULL(D.UnitPrice, 0) AS UnitPrice,
+//                --ISNULL(D.SD, 0) AS SDRate,
+//                --ISNULL(D.VATRate, 0) AS VATRate
+
+//                FROM Purchases M
+//                LEFT OUTER JOIN PurchaseDetails D ON ISNULL(M.Id,0) = D.PurchaseId
+//                LEFT OUTER JOIN Currencies C ON ISNULL(M.CurrencyId,0) = C.Id
+//                LEFT OUTER JOIN Suppliers S ON ISNULL(M.SupplierId,0) = S.Id
+//                LEFT OUTER JOIN BranchProfiles B ON ISNULL(M.BranchId,0) = B.Id
+//                LEFT OUTER JOIN Products PD ON ISNULL(D.ProductId,0) = PD.Id
+//                LEFT OUTER JOIN ProductGroups PG ON PD.ProductGroupId = PG.Id
+
+
+//                LEFT OUTER JOIN UOMs U ON D.UOMId = U.Id
 
 
   
-                WHERE 1=1
-";
+//                WHERE 1=1
+//";
 
-                if (vm != null && !string.IsNullOrEmpty(vm.Id))
-                {
-                    query += " AND M.Id = @Id ";
-                }
-                if (vm != null && !string.IsNullOrEmpty(vm.BranchId))
-                {
-                    query += " AND M.BranchId = @BranchId ";
-                }
-                if (vm != null && !string.IsNullOrEmpty(vm.IsPost))
-                {
-                    query += " AND M.IsPost = @IsPost ";
-                }
+//                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+//                {
+//                    query += " AND M.Id = @Id ";
+//                }
+//                if (vm != null && !string.IsNullOrEmpty(vm.BranchId))
+//                {
+//                    query += " AND M.BranchId = @BranchId ";
+//                }
+//                if (vm != null && !string.IsNullOrEmpty(vm.IsPost))
+//                {
+//                    query += " AND M.IsPost = @IsPost ";
+//                }
 
-                if (vm != null && !string.IsNullOrEmpty(vm.FromDate) && !string.IsNullOrEmpty(vm.ToDate))
-                {
-                    query += " AND CAST(M.PurchaseDate AS DATE) BETWEEN @FromDate AND @ToDate ";
-                }
+//                if (vm != null && !string.IsNullOrEmpty(vm.FromDate) && !string.IsNullOrEmpty(vm.ToDate))
+//                {
+//                    query += " AND CAST(M.PurchaseDate AS DATE) BETWEEN @FromDate AND @ToDate ";
+//                }
 
-                // Apply additional conditions
-                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+//                // Apply additional conditions
+//                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
-                if (vm != null && !string.IsNullOrEmpty(vm.Id))
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@Id", vm.Id);
-                }
+//                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+//                {
+//                    objComm.SelectCommand.Parameters.AddWithValue("@Id", vm.Id);
+//                }
 
-                if (vm != null && !string.IsNullOrEmpty(vm.BranchId))
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
-                }
-                if (vm != null && !string.IsNullOrEmpty(vm.IsPost))
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@IsPost", vm.IsPost);
-                }
+//                if (vm != null && !string.IsNullOrEmpty(vm.BranchId))
+//                {
+//                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
+//                }
+//                if (vm != null && !string.IsNullOrEmpty(vm.IsPost))
+//                {
+//                    objComm.SelectCommand.Parameters.AddWithValue("@IsPost", vm.IsPost);
+//                }
 
-                if (vm != null && !string.IsNullOrEmpty(vm.FromDate) && !string.IsNullOrEmpty(vm.ToDate))
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@FromDate", vm.FromDate);
-                    objComm.SelectCommand.Parameters.AddWithValue("@ToDate", vm.ToDate);
-                }
+//                if (vm != null && !string.IsNullOrEmpty(vm.FromDate) && !string.IsNullOrEmpty(vm.ToDate))
+//                {
+//                    objComm.SelectCommand.Parameters.AddWithValue("@FromDate", vm.FromDate);
+//                    objComm.SelectCommand.Parameters.AddWithValue("@ToDate", vm.ToDate);
+//                }
 
-                objComm.Fill(dataTable);
+//                objComm.Fill(dataTable);
 
-                var lst = new List<PurchaseSummaryVM>();
-                int serialNumber = 1;
-                foreach (DataRow row in dataTable.Rows)
-                {
-                    lst.Add(new PurchaseSummaryVM
-                    {
-                        SL= serialNumber,
-                        Code = row["Code"].ToString(),
-                        BranchCode = row["BranchCode"].ToString(),
-                        SupplierCode = row["SupplierCode"].ToString(),
-                        InvoiceDate = row["InvoiceDate"].ToString(),
-                        ProductCode = row["ProductCode"].ToString(),
-                        UOMCode = row["UOMCode"].ToString(),
-                        Quantity = Convert.ToDecimal(row["Quantity"]),
+//                var lst = new List<PurchaseSummaryVM>();
+//                int serialNumber = 1;
+//                foreach (DataRow row in dataTable.Rows)
+//                {
+//                    lst.Add(new PurchaseSummaryVM
+//                    {
+//                        SL= serialNumber,
+//                        Code = row["Code"].ToString(),
+//                        BranchCode = row["BranchCode"].ToString(),
+//                        SupplierCode = row["SupplierCode"].ToString(),
+//                        InvoiceDate = row["InvoiceDate"].ToString(),
+//                        ProductCode = row["ProductCode"].ToString(),
+//                        UOMCode = row["UOMCode"].ToString(),
+//                        Quantity = Convert.ToDecimal(row["Quantity"]),
 
 
-                        //SupplierName = row["SupplierName"].ToString(),
-                        //PurchaseDate = row["PurchaseDate"].ToString(),
-                        //BENumber = row["BENumber"].ToString(),
-                        //FiscalYear = row["FiscalYear"].ToString(),
-                        //TransactionType = row["TransactionType"].ToString(),
-                        //CurrencyName = row["CurrencyName"].ToString(),
-                        //ProductGroupCode = row["ProductGroupCode"].ToString(),                                            
-                        //UnitPrice = Convert.ToDecimal(row["UnitPrice"]),
-                        //SDRate = Convert.ToDecimal(row["SDRate"]),
-                        //VATRate = Convert.ToDecimal(row["VATRate"])
+//                        //SupplierName = row["SupplierName"].ToString(),
+//                        //PurchaseDate = row["PurchaseDate"].ToString(),
+//                        //BENumber = row["BENumber"].ToString(),
+//                        //FiscalYear = row["FiscalYear"].ToString(),
+//                        //TransactionType = row["TransactionType"].ToString(),
+//                        //CurrencyName = row["CurrencyName"].ToString(),
+//                        //ProductGroupCode = row["ProductGroupCode"].ToString(),                                            
+//                        //UnitPrice = Convert.ToDecimal(row["UnitPrice"]),
+//                        //SDRate = Convert.ToDecimal(row["SDRate"]),
+//                        //VATRate = Convert.ToDecimal(row["VATRate"])
 
-                    });
-                    serialNumber++;
-                }
+//                    });
+//                    serialNumber++;
+//                }
 
-                result.Status = "Success";
-                result.Message = "Data retrieved successfully.";
-                result.DataVM = lst;
-                return result;
-            }
-            catch (Exception ex)
-            {
-                result.ExMessage = ex.Message;
-                result.Message = ex.Message;
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
+//                result.Status = "Success";
+//                result.Message = "Data retrieved successfully.";
+//                result.DataVM = lst;
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                result.ExMessage = ex.Message;
+//                result.Message = ex.Message;
+//                return result;
+//            }
+//            finally
+//            {
+//                if (isNewConnection && conn != null)
+//                {
+//                    conn.Close();
+//                }
+//            }
+//        }
 
 
         public async Task<ResultVM> ReportPreview(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)

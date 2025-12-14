@@ -389,27 +389,27 @@ namespace ShampanPOS.Controllers
         }
 
         // POST: api/Purchase/ExportPurchaseExcel
-        [HttpPost("ExportPurchaseExcel")]
-        public async Task<ResultVM> ExportPurchaseExcel(CommonVM vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                _service = new PurchaseService();
-                resultVM = await _service.ExportPurchaseExcel(vm);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = ex.Message,
-                    ExMessage = ex.Message,
-                    DataVM = vm
-                };
-            }
-        }
+        //[HttpPost("ExportPurchaseExcel")]
+        //public async Task<ResultVM> ExportPurchaseExcel(CommonVM vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        _service = new PurchaseService();
+        //        resultVM = await _service.ExportPurchaseExcel(vm);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = ex.Message,
+        //            ExMessage = ex.Message,
+        //            DataVM = vm
+        //        };
+        //    }
+        //}
 
 
         // POST: api/Purchase/ReportPreview

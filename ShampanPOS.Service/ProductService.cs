@@ -633,103 +633,103 @@ namespace ShampanPOS.Service
             }
         }
 
-        public async Task<ResultVM> ExportProductExcel(CommonVM vm)
-        {
+        //public async Task<ResultVM> ExportProductExcel(CommonVM vm)
+        //{
 
-            ProductRepository _repo = new ProductRepository();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    ProductRepository _repo = new ProductRepository();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
-            bool isNewConnection = false;
-            SqlConnection conn = null;
-            SqlTransaction transaction = null;
-            try
-            {
-                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                conn.Open();
-                isNewConnection = true;
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
 
-                transaction = conn.BeginTransaction();
+        //        transaction = conn.BeginTransaction();
 
-                result = await _repo.ExportProductExcel(vm, conn, transaction);
+        //        result = await _repo.ExportProductExcel(vm, conn, transaction);
 
-                if (isNewConnection && result.Status == "Success")
-                {
-                    transaction.Commit();
-                }
-                else
-                {
-                    throw new Exception(result.Message);
-                }
+        //        if (isNewConnection && result.Status == "Success")
+        //        {
+        //            transaction.Commit();
+        //        }
+        //        else
+        //        {
+        //            throw new Exception(result.Message);
+        //        }
 
-                return result;
-            }
-            catch (Exception ex)
-            {
-                if (transaction != null && isNewConnection)
-                {
-                    transaction.Rollback();
-                }
-                result.Message = ex.Message.ToString();
-                result.ExMessage = ex.ToString();
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+        //        result.Message = ex.Message.ToString();
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
 
-        public async Task<ResultVM> ExportProductPursaseExcel(CommonVM vm)
-        {
+        //public async Task<ResultVM> ExportProductPursaseExcel(CommonVM vm)
+        //{
 
-            ProductRepository _repo = new ProductRepository();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    ProductRepository _repo = new ProductRepository();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
-            bool isNewConnection = false;
-            SqlConnection conn = null;
-            SqlTransaction transaction = null;
-            try
-            {
-                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                conn.Open();
-                isNewConnection = true;
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
 
-                transaction = conn.BeginTransaction();
+        //        transaction = conn.BeginTransaction();
 
-                result = await _repo.ExportProductPursaseExcel(vm, conn, transaction);
+        //        result = await _repo.ExportProductPursaseExcel(vm, conn, transaction);
 
-                if (isNewConnection && result.Status == "Success")
-                {
-                    transaction.Commit();
-                }
-                else
-                {
-                    throw new Exception(result.Message);
-                }
+        //        if (isNewConnection && result.Status == "Success")
+        //        {
+        //            transaction.Commit();
+        //        }
+        //        else
+        //        {
+        //            throw new Exception(result.Message);
+        //        }
 
-                return result;
-            }
-            catch (Exception ex)
-            {
-                if (transaction != null && isNewConnection)
-                {
-                    transaction.Rollback();
-                }
-                result.Message = ex.Message.ToString();
-                result.ExMessage = ex.ToString();
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+        //        result.Message = ex.Message.ToString();
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
         public async Task<ResultVM> ImportExcelFileInsert(ProductVM model)
         {
 
@@ -872,7 +872,7 @@ namespace ShampanPOS.Service
 
                 //Add
 
-                ProductPriceGroupVM pp = new ProductPriceGroupVM();
+                //ProductPriceGroupVM pp = new ProductPriceGroupVM();
 
 
                 //End
@@ -1011,126 +1011,126 @@ namespace ShampanPOS.Service
         }
 
 
-        public async Task<ResultVM> ExportProductStockExcel(CommonVM vm)
-        {
+        //public async Task<ResultVM> ExportProductStockExcel(CommonVM vm)
+        //{
 
-            ProductRepository _repo = new ProductRepository();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    ProductRepository _repo = new ProductRepository();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
-            bool isNewConnection = false;
-            SqlConnection conn = null;
-            SqlTransaction transaction = null;
-            try
-            {
-                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                conn.Open();
-                isNewConnection = true;
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
 
-                transaction = conn.BeginTransaction();
+        //        transaction = conn.BeginTransaction();
 
-                result = await _repo.ExportProductStockExcel(vm, conn, transaction);
+        //        result = await _repo.ExportProductStockExcel(vm, conn, transaction);
 
-                if (isNewConnection && result.Status == "Success")
-                {
-                    transaction.Commit();
-                }
-                else
-                {
-                    throw new Exception(result.Message);
-                }
+        //        if (isNewConnection && result.Status == "Success")
+        //        {
+        //            transaction.Commit();
+        //        }
+        //        else
+        //        {
+        //            throw new Exception(result.Message);
+        //        }
 
-                return result;
-            }
-            catch (Exception ex)
-            {
-                if (transaction != null && isNewConnection)
-                {
-                    transaction.Rollback();
-                }
-                result.Message = ex.Message.ToString();
-                result.ExMessage = ex.ToString();
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+        //        result.Message = ex.Message.ToString();
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
 
-        public async Task<ResultVM> PurchaseImportExcelFileInsert(ProductPriceGroupVM productPriceGroup)
-        {
-            string CodeGroup = "ProductPriceGroup";
-            string CodeName = "ProductPriceGroup";
+        //public async Task<ResultVM> PurchaseImportExcelFileInsert(ProductPriceGroupVM productPriceGroup)
+        //{
+        //    string CodeGroup = "ProductPriceGroup";
+        //    string CodeName = "ProductPriceGroup";
 
-            CommonRepository _commonRepo = new CommonRepository();
-            ProductRepository _repo = new ProductRepository();
+        //    CommonRepository _commonRepo = new CommonRepository();
+        //    ProductRepository _repo = new ProductRepository();
 
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
-            bool isNewConnection = false;
-            SqlConnection conn = null;
-            SqlTransaction transaction = null;
-            try
-            {
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+        //    try
+        //    {
 
-                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                conn.Open();
-                isNewConnection = true;
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
 
-                transaction = conn.BeginTransaction();
-
-
-                //#region Check Exist Data
-
-                //string[] conditionField = { "Name" };
-                //string[] conditionValue = { productPriceGroup.Name.ToString() };
-                //bool exist = _commonRepo.CheckExists("ProductPriceGroups", conditionField, conditionValue, conn, transaction);
-                //if (exist)
-                //{
-                //    result.Message = "Data Already Exist!";
-                //    throw new Exception("Data Already Exist!");
-                //}
-
-                //#endregion
+        //        transaction = conn.BeginTransaction();
 
 
-                result = await _repo.PurchaseImportExcelFileInsert(productPriceGroup, conn, transaction);
+        //        //#region Check Exist Data
+
+        //        //string[] conditionField = { "Name" };
+        //        //string[] conditionValue = { productPriceGroup.Name.ToString() };
+        //        //bool exist = _commonRepo.CheckExists("ProductPriceGroups", conditionField, conditionValue, conn, transaction);
+        //        //if (exist)
+        //        //{
+        //        //    result.Message = "Data Already Exist!";
+        //        //    throw new Exception("Data Already Exist!");
+        //        //}
+
+        //        //#endregion
 
 
-                if (result.Status == "Success" && isNewConnection)
-                {
-                    transaction.Commit();
-                }
-                else
-                {
-                    transaction.Rollback();
-                }
+        //        result = await _repo.PurchaseImportExcelFileInsert(productPriceGroup, conn, transaction);
 
-                return result;
-            }
-            catch (Exception ex)
-            {
-                if (transaction != null && isNewConnection)
-                {
-                    transaction.Rollback();
-                }
 
-                result.ExMessage = ex.ToString();
-                //result.Message = "Error in inserting fiscal year.";
-                result.Message = result.Message;
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
+        //        if (result.Status == "Success" && isNewConnection)
+        //        {
+        //            transaction.Commit();
+        //        }
+        //        else
+        //        {
+        //            transaction.Rollback();
+        //        }
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+
+        //        result.ExMessage = ex.ToString();
+        //        //result.Message = "Error in inserting fiscal year.";
+        //        result.Message = result.Message;
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
 
     }
 

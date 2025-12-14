@@ -1018,158 +1018,158 @@ WHERE P.IsActive = 1
 
 
 
-        public async Task<ResultVM> ExportProductExcel(CommonVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
-        {
-            bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+//        public async Task<ResultVM> ExportProductExcel(CommonVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
+//        {
+//            bool isNewConnection = false;
+//            DataTable dataTable = new DataTable();
+//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    conn.Open();
-                    isNewConnection = true;
-                }
+//            try
+//            {
+//                if (conn == null)
+//                {
+//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+//                    conn.Open();
+//                    isNewConnection = true;
+//                }
 
-                string query = @"
+//                string query = @"
 
-                SELECT 
-                ISNULL(M.Id, 0) AS Id,
-                ISNULL(M.Code, '') AS Code,
-                ISNULL(M.Name, '') AS Name
+//                SELECT 
+//                ISNULL(M.Id, 0) AS Id,
+//                ISNULL(M.Code, '') AS Code,
+//                ISNULL(M.Name, '') AS Name
 
-                FROM Products M
+//                FROM Products M
 
-                WHERE 1=1"
+//                WHERE 1=1"
 
-;
+//;
 
-                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+//                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
             
-                objComm.Fill(dataTable);
+//                objComm.Fill(dataTable);
 
-                foreach (DataRow row in dataTable.Select("Id = 0"))
-                {
-                    dataTable.Rows.Remove(row);
-                }
+//                foreach (DataRow row in dataTable.Select("Id = 0"))
+//                {
+//                    dataTable.Rows.Remove(row);
+//                }
 
-                var lst = new List<ProductSummaryVM>();
+//                var lst = new List<ProductSummaryVM>();
 
-                int serialNumber = 1;
+//                int serialNumber = 1;
 
-                foreach (DataRow row in dataTable.Rows)
-                {
-                    lst.Add(new ProductSummaryVM
-                    {
+//                foreach (DataRow row in dataTable.Rows)
+//                {
+//                    lst.Add(new ProductSummaryVM
+//                    {
                         
-                        ProductName = row["Name"].ToString(),
-                        ProductCode = row["Code"].ToString(),
-                        EffectDate = DateTime.Now.ToString("yyyy-MM-dd"),
-                        CostPrice = 0,
-                        SalesPrice = 0
+//                        ProductName = row["Name"].ToString(),
+//                        ProductCode = row["Code"].ToString(),
+//                        EffectDate = DateTime.Now.ToString("yyyy-MM-dd"),
+//                        CostPrice = 0,
+//                        SalesPrice = 0
 
-                    });
+//                    });
 
-                    serialNumber++;
-                }
+//                    serialNumber++;
+//                }
 
-                result.Status = "Success";
-                result.Message = "Data retrieved successfully.";
-                result.DataVM = lst;
-                return result;
-            }
-            catch (Exception ex)
-            {
-                result.ExMessage = ex.Message;
-                result.Message = ex.Message;
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
+//                result.Status = "Success";
+//                result.Message = "Data retrieved successfully.";
+//                result.DataVM = lst;
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                result.ExMessage = ex.Message;
+//                result.Message = ex.Message;
+//                return result;
+//            }
+//            finally
+//            {
+//                if (isNewConnection && conn != null)
+//                {
+//                    conn.Close();
+//                }
+//            }
+//        }
 
-        public async Task<ResultVM> ExportProductPursaseExcel(CommonVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
-        {
-            bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+//        public async Task<ResultVM> ExportProductPursaseExcel(CommonVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
+//        {
+//            bool isNewConnection = false;
+//            DataTable dataTable = new DataTable();
+//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    conn.Open();
-                    isNewConnection = true;
-                }
+//            try
+//            {
+//                if (conn == null)
+//                {
+//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+//                    conn.Open();
+//                    isNewConnection = true;
+//                }
 
-                string query = @"
+//                string query = @"
 
-                SELECT 
-                ISNULL(M.Id, 0) AS Id,
-                ISNULL(M.Code, '') AS Code,
-                ISNULL(M.Name, '') AS Name
+//                SELECT 
+//                ISNULL(M.Id, 0) AS Id,
+//                ISNULL(M.Code, '') AS Code,
+//                ISNULL(M.Name, '') AS Name
 
-                FROM Products M
+//                FROM Products M
 
-                WHERE 1=1"
+//                WHERE 1=1"
 
-;
+//;
 
-                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+//                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
-                objComm.Fill(dataTable);
+//                objComm.Fill(dataTable);
 
-                foreach (DataRow row in dataTable.Select("Id = 0"))
-                {
-                    dataTable.Rows.Remove(row);
-                }
+//                foreach (DataRow row in dataTable.Select("Id = 0"))
+//                {
+//                    dataTable.Rows.Remove(row);
+//                }
 
-                var lst = new List<ProductSummaryVM>();
+//                var lst = new List<ProductSummaryVM>();
 
-                int serialNumber = 1;
+//                int serialNumber = 1;
 
-                foreach (DataRow row in dataTable.Rows)
-                {
-                    lst.Add(new ProductSummaryVM
-                    {
+//                foreach (DataRow row in dataTable.Rows)
+//                {
+//                    lst.Add(new ProductSummaryVM
+//                    {
 
-                        ProductName = row["Name"].ToString(),
-                        ProductCode = row["Code"].ToString(),
-                        EffectDate = DateTime.Now.ToString("yyyy-MM-dd"),
-                        CostPrice = 0,
+//                        ProductName = row["Name"].ToString(),
+//                        ProductCode = row["Code"].ToString(),
+//                        EffectDate = DateTime.Now.ToString("yyyy-MM-dd"),
+//                        CostPrice = 0,
 
-                    });
+//                    });
 
-                    serialNumber++;
-                }
+//                    serialNumber++;
+//                }
 
-                result.Status = "Success";
-                result.Message = "Data retrieved successfully.";
-                result.DataVM = lst;
-                return result;
-            }
-            catch (Exception ex)
-            {
-                result.ExMessage = ex.Message;
-                result.Message = ex.Message;
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
+//                result.Status = "Success";
+//                result.Message = "Data retrieved successfully.";
+//                result.DataVM = lst;
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                result.ExMessage = ex.Message;
+//                result.Message = ex.Message;
+//                return result;
+//            }
+//            finally
+//            {
+//                if (isNewConnection && conn != null)
+//                {
+//                    conn.Close();
+//                }
+//            }
+//        }
 
 
         public async Task<ResultVM> TempProductList(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
@@ -1249,228 +1249,228 @@ WHERE 1 = 1 ";
         }
 
 
-        public async Task<ResultVM> ExportProductStockExcel(CommonVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
-        {
-            bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+//        public async Task<ResultVM> ExportProductStockExcel(CommonVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
+//        {
+//            bool isNewConnection = false;
+//            DataTable dataTable = new DataTable();
+//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    conn.Open();
-                    isNewConnection = true;
-                }
+//            try
+//            {
+//                if (conn == null)
+//                {
+//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+//                    conn.Open();
+//                    isNewConnection = true;
+//                }
 
-                string query = @"
+//                string query = @"
 
-                        SELECT
-                        ISNULL(M.Id, 0) AS Id,
-                        ISNULL(M.Code, '') AS ProductCode,
-                        ISNULL(M.Name, '') AS ProductName,
-                        ISNULL(POS.OpeningDate, '1900-01-01') AS OpeningDate,
-                        ISNULL(POS.OpeningQuantity, 0) AS OpeningQuantity,
-                        ISNULL(POS.OpeningValue, 0) AS OpeningValue
-                        FROM 
-                        Products M
-                        left outer join ProductsOpeningStocks POS ON M.Id = POS.ProductId
-                    WHERE 1 = 1"
+//                        SELECT
+//                        ISNULL(M.Id, 0) AS Id,
+//                        ISNULL(M.Code, '') AS ProductCode,
+//                        ISNULL(M.Name, '') AS ProductName,
+//                        ISNULL(POS.OpeningDate, '1900-01-01') AS OpeningDate,
+//                        ISNULL(POS.OpeningQuantity, 0) AS OpeningQuantity,
+//                        ISNULL(POS.OpeningValue, 0) AS OpeningValue
+//                        FROM 
+//                        Products M
+//                        left outer join ProductsOpeningStocks POS ON M.Id = POS.ProductId
+//                    WHERE 1 = 1"
 
-;
+//;
 
-                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+//                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
-                objComm.Fill(dataTable);
+//                objComm.Fill(dataTable);
 
-                foreach (DataRow row in dataTable.Select("Id = 0"))
-                {
-                    dataTable.Rows.Remove(row);
-                }
+//                foreach (DataRow row in dataTable.Select("Id = 0"))
+//                {
+//                    dataTable.Rows.Remove(row);
+//                }
 
-                var lst = new List<ProductStockSummary>();
+//                var lst = new List<ProductStockSummary>();
 
-                int serialNumber = 1;
+//                int serialNumber = 1;
 
-                foreach (DataRow row in dataTable.Rows)
-                {
-                    lst.Add(new ProductStockSummary
-                    {
+//                foreach (DataRow row in dataTable.Rows)
+//                {
+//                    lst.Add(new ProductStockSummary
+//                    {
 
-                        ProductName = row["ProductName"].ToString(),
-                        ProductCode = row["ProductCode"].ToString(),
-                        OpeningDate = DateTime.Now.ToString("yyyy-MM-dd"),
-                        OpeningQuantity = 0,
-                        OpeningValue = 0
+//                        ProductName = row["ProductName"].ToString(),
+//                        ProductCode = row["ProductCode"].ToString(),
+//                        OpeningDate = DateTime.Now.ToString("yyyy-MM-dd"),
+//                        OpeningQuantity = 0,
+//                        OpeningValue = 0
 
-                    });
+//                    });
 
-                    serialNumber++;
-                }
+//                    serialNumber++;
+//                }
 
-                result.Status = "Success";
-                result.Message = "Data retrieved successfully.";
-                result.DataVM = lst;
-                return result;
-            }
-            catch (Exception ex)
-            {
-                result.ExMessage = ex.Message;
-                result.Message = ex.Message;
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
+//                result.Status = "Success";
+//                result.Message = "Data retrieved successfully.";
+//                result.DataVM = lst;
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                result.ExMessage = ex.Message;
+//                result.Message = ex.Message;
+//                return result;
+//            }
+//            finally
+//            {
+//                if (isNewConnection && conn != null)
+//                {
+//                    conn.Close();
+//                }
+//            }
+//        }
 
-        public async Task<ResultVM> PurchaseImportExcelFileInsert(ProductPriceGroupVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
-        {
-            bool isNewConnection = false;
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //public async Task<ResultVM> PurchaseImportExcelFileInsert(ProductPriceGroupVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
+        //{
+        //    bool isNewConnection = false;
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    conn.Open();
-                    isNewConnection = true;
-                }
+        //    try
+        //    {
+        //        if (conn == null)
+        //        {
+        //            conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //            conn.Open();
+        //            isNewConnection = true;
+        //        }
 
-                if (transaction == null)
-                {
-                    transaction = conn.BeginTransaction();
-                }
+        //        if (transaction == null)
+        //        {
+        //            transaction = conn.BeginTransaction();
+        //        }
 
                
 
-                #region BulKInsert
+        //        #region BulKInsert
 
-                if (vm.BranchProfileList != null && vm.BranchProfileList.Count > 0)
-                {
-                    foreach (var branchprofile in vm.BranchProfileList)
-                    {
-                        if (vm.ProductPriceGroupDetails != null && vm.ProductPriceGroupDetails.Count > 0)
-                        {
+        //        if (vm.BranchProfileList != null && vm.BranchProfileList.Count > 0)
+        //        {
+        //            foreach (var branchprofile in vm.BranchProfileList)
+        //            {
+        //                if (vm.ProductPriceGroupDetails != null && vm.ProductPriceGroupDetails.Count > 0)
+        //                {
 
-                            DataTable detailsTable = new DataTable();
-                            detailsTable.Columns.Add("ProductId", typeof(int));
-                            detailsTable.Columns.Add("BranchId", typeof(int));
-                            detailsTable.Columns.Add("BatchNo", typeof(string));
+        //                    DataTable detailsTable = new DataTable();
+        //                    detailsTable.Columns.Add("ProductId", typeof(int));
+        //                    detailsTable.Columns.Add("BranchId", typeof(int));
+        //                    detailsTable.Columns.Add("BatchNo", typeof(string));
 
-                            detailsTable.Columns.Add("EntryDate", typeof(string));
-                            detailsTable.Columns.Add("EffectDate", typeof(string));
-                            detailsTable.Columns.Add("MFGDate", typeof(string));
-                            detailsTable.Columns.Add("EXPDate", typeof(string));
+        //                    detailsTable.Columns.Add("EntryDate", typeof(string));
+        //                    detailsTable.Columns.Add("EffectDate", typeof(string));
+        //                    detailsTable.Columns.Add("MFGDate", typeof(string));
+        //                    detailsTable.Columns.Add("EXPDate", typeof(string));
 
-                            detailsTable.Columns.Add("SD", typeof(decimal));
-                            detailsTable.Columns.Add("SDAmount", typeof(decimal));
-                            detailsTable.Columns.Add("VATRate", typeof(decimal));
-                            detailsTable.Columns.Add("VATAmount", typeof(decimal));
-                            detailsTable.Columns.Add("CostPrice", typeof(decimal));
-                            detailsTable.Columns.Add("SalesPrice", typeof(decimal));
-                            detailsTable.Columns.Add("PurchasePrice", typeof(decimal));
-                            detailsTable.Columns.Add("CreatedBy", typeof(string));
+        //                    detailsTable.Columns.Add("SD", typeof(decimal));
+        //                    detailsTable.Columns.Add("SDAmount", typeof(decimal));
+        //                    detailsTable.Columns.Add("VATRate", typeof(decimal));
+        //                    detailsTable.Columns.Add("VATAmount", typeof(decimal));
+        //                    detailsTable.Columns.Add("CostPrice", typeof(decimal));
+        //                    detailsTable.Columns.Add("SalesPrice", typeof(decimal));
+        //                    detailsTable.Columns.Add("PurchasePrice", typeof(decimal));
+        //                    detailsTable.Columns.Add("CreatedBy", typeof(string));
 
-                            detailsTable.Columns.Add("CreatedOn", typeof(string));
+        //                    detailsTable.Columns.Add("CreatedOn", typeof(string));
 
-                            detailsTable.Columns.Add("LastModifiedBy", typeof(string));
+        //                    detailsTable.Columns.Add("LastModifiedBy", typeof(string));
 
-                            detailsTable.Columns.Add("LastModifiedOn", typeof(string));
+        //                    detailsTable.Columns.Add("LastModifiedOn", typeof(string));
 
-                            detailsTable.Columns.Add("CreatedFrom", typeof(string));
-                            detailsTable.Columns.Add("LastUpdateFrom", typeof(string));
+        //                    detailsTable.Columns.Add("CreatedFrom", typeof(string));
+        //                    detailsTable.Columns.Add("LastUpdateFrom", typeof(string));
 
-                            foreach (var detail in vm.ProductPriceGroupDetails)
-                            {
-                                detailsTable.Rows.Add(
+        //                    foreach (var detail in vm.ProductPriceGroupDetails)
+        //                    {
+        //                        detailsTable.Rows.Add(
 
-                                    detail.ProductId,
-                                    branchprofile.Id,
-                                    DBNull.Value,
+        //                            detail.ProductId,
+        //                            branchprofile.Id,
+        //                            DBNull.Value,
 
-                                    DateTime.Now,
-                                    vm.EffectDate,
-                                    DBNull.Value,
-                                    DBNull.Value,
+        //                            DateTime.Now,
+        //                            vm.EffectDate,
+        //                            DBNull.Value,
+        //                            DBNull.Value,
 
-                                    0,
-                                    0,
-                                    detail.VATRate,
-                                    0,
-                                    detail.CosePrice,
-                                    detail.SalePrice??0,
-                                    0,
-                                    vm.CreatedBy,
+        //                            0,
+        //                            0,
+        //                            detail.VATRate,
+        //                            0,
+        //                            detail.CosePrice,
+        //                            detail.SalePrice??0,
+        //                            0,
+        //                            vm.CreatedBy,
 
-                                    DateTime.Now,
+        //                            DateTime.Now,
 
-                                    DBNull.Value,
+        //                            DBNull.Value,
 
-                                    DBNull.Value,
+        //                            DBNull.Value,
 
-                                    DBNull.Value,
-                                    DBNull.Value
+        //                            DBNull.Value,
+        //                            DBNull.Value
 
-                                    );
-                            }
+        //                            );
+        //                    }
 
-                            var resultt = await BulkInsert("ProductPurchasePriceBatchHistories", detailsTable, conn, transaction);
+        //                    var resultt = await BulkInsert("ProductPurchasePriceBatchHistories", detailsTable, conn, transaction);
 
-                            if (resultt.Status.ToLower() != "success")
-                            {
-                                return new ResultVM { Status = "Fail", Message = "Excel template is not correct", DataVM = null };
-                            }
+        //                    if (resultt.Status.ToLower() != "success")
+        //                    {
+        //                        return new ResultVM { Status = "Fail", Message = "Excel template is not correct", DataVM = null };
+        //                    }
 
-                            if (resultt.Status.ToLower() == "success" && isNewConnection)
-                            {
-                                //transaction.Commit();
-                            }
+        //                    if (resultt.Status.ToLower() == "success" && isNewConnection)
+        //                    {
+        //                        //transaction.Commit();
+        //                    }
 
-                        }
-                    }
-                }
+        //                }
+        //            }
+        //        }
 
-                #endregion
+        //        #endregion
 
-                result.Status = "Success";
-                result.Message = "Data inserted successfully.";
-                result.Id = vm.Id.ToString();
-                result.DataVM = vm;
+        //        result.Status = "Success";
+        //        result.Message = "Data inserted successfully.";
+        //        result.Id = vm.Id.ToString();
+        //        result.DataVM = vm;
 
-                if (isNewConnection)
-                {
-                    transaction.Commit();
-                }
+        //        if (isNewConnection)
+        //        {
+        //            transaction.Commit();
+        //        }
 
-                return result;
+        //        return result;
 
-            }
-            catch (Exception ex)
-            {
-                if (transaction != null && isNewConnection)
-                {
-                    transaction.Rollback();
-                }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
 
-                result.ExMessage = ex.Message;
-                result.Message = "Error in Insert.";
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
+        //        result.ExMessage = ex.Message;
+        //        result.Message = "Error in Insert.";
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
 
     }
 

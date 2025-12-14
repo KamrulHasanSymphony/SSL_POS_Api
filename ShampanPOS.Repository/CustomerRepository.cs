@@ -501,7 +501,7 @@ WHERE 1 = 1
                         BINNo = row.Field<string>("BINNo"),
                         NIDNo = row.Field<string>("NIDNo"),
                         Comments = row.Field<string>("Comments"),
-                        RegularDiscountRate = row.Field<decimal>("RegularDiscountRate"),
+                        //RegularDiscountRate = row.Field<decimal>("RegularDiscountRate"),
 
                         IsArchive = row.Field<bool>("IsArchive"),
                         IsActive = row.Field<bool>("IsActive"),
@@ -898,7 +898,7 @@ M.IsArchive != 1 AND M.BranchId = @CusBranchId AND  sp.BranchId = @BranchId AND 
                     City = row.Field<string>("City"),
                     BranchId= row.Field<int>("BranchId"),
 
-                    RegularDiscountRate = row.Field<decimal>("RegularDiscountRate")
+                    //RegularDiscountRate = row.Field<decimal>("RegularDiscountRate")
 
                 }).ToList();
 

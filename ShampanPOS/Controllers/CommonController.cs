@@ -89,36 +89,36 @@ namespace ShampanPOS.Controllers
         }
 
         // POST: api/Common/AreaLocationList
-        [HttpPost("AreaLocationList")]
-        public async Task<ResultVM> AreaLocationList(CommonVM Vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                CommonService _commonService = new CommonService();
+        //[HttpPost("AreaLocationList")]
+        //public async Task<ResultVM> AreaLocationList(CommonVM Vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        CommonService _commonService = new CommonService();
 
-                var columns = new List<string> { "L.EnumType" };
-                var values = new List<string> { Vm.Value.ToString() };
-                if (!string.IsNullOrEmpty(Vm.ParentId))
-                {
-                    columns.Add("L.ParentId");
-                    values.Add(Vm.ParentId.ToString());
-                }
+        //        var columns = new List<string> { "L.EnumType" };
+        //        var values = new List<string> { Vm.Value.ToString() };
+        //        if (!string.IsNullOrEmpty(Vm.ParentId))
+        //        {
+        //            columns.Add("L.ParentId");
+        //            values.Add(Vm.ParentId.ToString());
+        //        }
 
-                resultVM = await _commonService.AreaLocationList(columns.ToArray(), values.ToArray(), null);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = "Data not fetched.",
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
+        //        resultVM = await _commonService.AreaLocationList(columns.ToArray(), values.ToArray(), null);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
 
         // POST: api/Common/ParentAreaList
         [HttpPost("ParentAreaList")]
@@ -143,38 +143,38 @@ namespace ShampanPOS.Controllers
             }
         }
 
-        [HttpPost("GetSalesPersonList")]
-        public async Task<ResultVM> GetSalesPersonList(CommonVM vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                SalesPersonService _salesPersonService = new SalesPersonService();
+        //[HttpPost("GetSalesPersonList")]
+        //public async Task<ResultVM> GetSalesPersonList(CommonVM vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        SalesPersonService _salesPersonService = new SalesPersonService();
 
-                string[] conditionFields = null;
-                string[] conditionValues = null;
-                conditionFields = vm.ConditionalFields;
-                conditionValues = vm.ConditionalValues;
-                _salesPersonService = new SalesPersonService();
-                if (!string.IsNullOrEmpty(vm.Id))
-                {
-                    conditionFields = new string[] { "M.Id" };
-                    conditionValues = new string[] { vm.Id };
-                }
-                resultVM = await _salesPersonService.List(conditionFields, conditionValues, null);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = "Data not fetched.",
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
+        //        string[] conditionFields = null;
+        //        string[] conditionValues = null;
+        //        conditionFields = vm.ConditionalFields;
+        //        conditionValues = vm.ConditionalValues;
+        //        _salesPersonService = new SalesPersonService();
+        //        if (!string.IsNullOrEmpty(vm.Id))
+        //        {
+        //            conditionFields = new string[] { "M.Id" };
+        //            conditionValues = new string[] { vm.Id };
+        //        }
+        //        resultVM = await _salesPersonService.List(conditionFields, conditionValues, null);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
 
         // POST: api/Common/ParentBranchProfileList
         [HttpPost("ParentBranchProfileList")]
@@ -292,125 +292,132 @@ namespace ShampanPOS.Controllers
             }
         }
         // POST: api/Common/SalePersonList
-        [HttpPost("SalePersonList")]
-        public async Task<ResultVM> SalePersonList(CommonVM Vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                string[] conditionFields = null;
-                string[] conditionValues = null;
+        //[HttpPost("SalePersonList")]
+        //public async Task<ResultVM> SalePersonList(CommonVM Vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        string[] conditionFields = null;
+        //        string[] conditionValues = null;
 
-                if (!string.IsNullOrEmpty(Vm.BranchId))
-                {
-                    conditionFields = new string[] { "H.BranchId" };
-                    conditionValues = new string[] { Vm.BranchId };
-                }
+        //        if (!string.IsNullOrEmpty(Vm.BranchId))
+        //        {
+        //            conditionFields = new string[] { "H.BranchId" };
+        //            conditionValues = new string[] { Vm.BranchId };
+        //        }
 
-                CommonService _commonService = new CommonService();
-                resultVM = await _commonService.SalePersonList(conditionFields, conditionValues, null);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = "Data not fetched.",
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
+        //        CommonService _commonService = new CommonService();
+        //        resultVM = await _commonService.SalePersonList(conditionFields, conditionValues, null);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
 
 
         // POST: api/Common/SaleOrderList
-        [HttpPost("SaleOrderList")]
-        public async Task<ResultVM> SaleOrderList(CommonVM Vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                string[] conditionFields = null;
-                string[] conditionValues = null;
+        //[HttpPost("SaleOrderList")]
+        //public async Task<ResultVM> SaleOrderList(CommonVM Vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        string[] conditionFields = null;
+        //        string[] conditionValues = null;
 
-                if (!string.IsNullOrEmpty(Vm.BranchId))
-                {
-                    conditionFields = new string[] { "H.BranchId" };
-                    conditionValues = new string[] { Vm.BranchId };
-                }
+        //        if (!string.IsNullOrEmpty(Vm.BranchId))
+        //        {
+        //            conditionFields = new string[] { "H.BranchId" };
+        //            conditionValues = new string[] { Vm.BranchId };
+        //        }
 
-                CommonService _commonService = new CommonService();
-                resultVM = await _commonService.SaleOrderList(conditionFields, conditionValues, null);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = "Data not fetched.",
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
+        //        CommonService _commonService = new CommonService();
+        //        resultVM = await _commonService.SaleOrderList(conditionFields, conditionValues, null);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
 
 
 
         // POST: api/Common/GetSalePersonParentList
-        [HttpPost("GetSalePersonParentList")]
-        public async Task<ResultVM> GetSalePersonParentList(CommonVM Vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                string[] conditionFields = null;
-                string[] conditionValues = null;
+        //[HttpPost("GetSalePersonParentList")]
+        //public async Task<ResultVM> GetSalePersonParentList(CommonVM Vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        string[] conditionFields = null;
+        //        string[] conditionValues = null;
 
-                if (!string.IsNullOrEmpty(Vm.BranchId))
-                {
-                    conditionFields = new string[] { "H.BranchId" };
-                    conditionValues = new string[] { Vm.BranchId };
-                }
+        //        if (!string.IsNullOrEmpty(Vm.BranchId))
+        //        {
+        //            conditionFields = new string[] { "H.BranchId" };
+        //            conditionValues = new string[] { Vm.BranchId };
+        //        }
 
-                CommonService _commonService = new CommonService();
-                resultVM = await _commonService.GetSalePersonParentList(conditionFields, conditionValues, null);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = "Data not fetched.",
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
+        //        CommonService _commonService = new CommonService();
+        //        resultVM = await _commonService.GetSalePersonParentList(conditionFields, conditionValues, null);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
+
+
+
+
         // POST: api/Common/CurrencieList
-        [HttpPost("CurrencieList")]
-        public async Task<ResultVM> CurrencieList(CommonVM Vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                CommonService _commonService = new CommonService();
-                resultVM = await _commonService.CurrencieList(new[] { "" }, new[] { "" }, null);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = "Data not fetched.",
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
+        //[HttpPost("CurrencieList")]
+        //public async Task<ResultVM> CurrencieList(CommonVM Vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        CommonService _commonService = new CommonService();
+        //        resultVM = await _commonService.CurrencieList(new[] { "" }, new[] { "" }, null);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
+
+
+
         // POST: api/Common/CustomerCategoryList
         [HttpPost("CustomerCategoryList")]
         public async Task<ResultVM> CustomerCategoryList(CommonVM Vm)
@@ -433,6 +440,8 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
+
+
         // POST: api/Common/ProductList
         [HttpPost("ProductList")]
         public async Task<ResultVM> ProductList(CommonVM Vm)
@@ -456,28 +465,31 @@ namespace ShampanPOS.Controllers
             }
         }
 
+
         // POST: api/Common/DeliveryPersonList
-        [HttpPost("DeliveryPersonList")]
-        public async Task<ResultVM> DeliveryPersonList(CommonVM Vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                CommonService _commonService = new CommonService();
-                resultVM = await _commonService.DeliveryPersonList(new[] { "" }, new[] { "" }, null);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = "Data not fetched.",
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
+        //[HttpPost("DeliveryPersonList")]
+        //public async Task<ResultVM> DeliveryPersonList(CommonVM Vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        CommonService _commonService = new CommonService();
+        //        resultVM = await _commonService.DeliveryPersonList(new[] { "" }, new[] { "" }, null);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
+
+
 
         // POST: api/Common/CustomerList
         [HttpPost("CustomerList")]
@@ -577,27 +589,27 @@ namespace ShampanPOS.Controllers
         }
 
         // POST: api/Common/CustomerRouteList
-        [HttpPost("CustomerRouteList")]
-        public async Task<ResultVM> CustomerRouteList(CommonVM Vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                CommonService _commonService = new CommonService();
-                resultVM = await _commonService.CustomerRouteList(new[] { "H.BranchId" }, new[] { Vm.BranchId }, null);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = "Data not fetched.",
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
+        //[HttpPost("CustomerRouteList")]
+        //public async Task<ResultVM> CustomerRouteList(CommonVM Vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        CommonService _commonService = new CommonService();
+        //        resultVM = await _commonService.CustomerRouteList(new[] { "H.BranchId" }, new[] { Vm.BranchId }, null);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
         // POST: api/Common/SupplierList
         [HttpPost("SupplierList")]
         public async Task<ResultVM> SupplierList(CommonVM Vm)
@@ -643,27 +655,27 @@ namespace ShampanPOS.Controllers
             }
         }
         // POST: api/Common/CampaignTargetList
-        [HttpPost("CampaignTargetList")]
-        public async Task<ResultVM> CampaignTargetList(CommonVM Vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                CommonService _commonService = new CommonService();
-                resultVM = await _commonService.CampaignTargetList(new[] { "" }, new[] { "" }, null);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = "Data not fetched.",
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
+        //[HttpPost("CampaignTargetList")]
+        //public async Task<ResultVM> CampaignTargetList(CommonVM Vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        CommonService _commonService = new CommonService();
+        //        resultVM = await _commonService.CampaignTargetList(new[] { "" }, new[] { "" }, null);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
         // POST: api/Common/GetProductModalForSaleData
         [HttpPost("GetProductModalForSaleData")]
         public async Task<ResultVM> GetProductModalForSaleData(ProductDataVM model)
@@ -717,50 +729,50 @@ namespace ShampanPOS.Controllers
         }
 
         // POST: api/Common/ParentSalePersonList
-        [HttpPost("ParentSalePersonList")]
-        public async Task<ResultVM> ParentSalePersonList(CommonVM Vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                CommonService _commonService = new CommonService();
-                resultVM = await _commonService.ParentSalePersonList(new[] { "M.BranchId" }, new[] { Vm.BranchId.ToString() }, null);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = "Data not fetched.",
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
+        //[HttpPost("ParentSalePersonList")]
+        //public async Task<ResultVM> ParentSalePersonList(CommonVM Vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        CommonService _commonService = new CommonService();
+        //        resultVM = await _commonService.ParentSalePersonList(new[] { "M.BranchId" }, new[] { Vm.BranchId.ToString() }, null);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
 
         // POST: api/Common/GetFiscalYearForSaleList
-        [HttpPost("GetFiscalYearForSaleList")]
-        public async Task<ResultVM> GetFiscalYearForSaleList(CommonVM Vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                CommonService _commonService = new CommonService();
-                resultVM = await _commonService.GetFiscalYearForSaleList(new[] { "" }, new[] { "" }, null);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = "Data not fetched.",
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
+        //[HttpPost("GetFiscalYearForSaleList")]
+        //public async Task<ResultVM> GetFiscalYearForSaleList(CommonVM Vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        CommonService _commonService = new CommonService();
+        //        resultVM = await _commonService.GetFiscalYearForSaleList(new[] { "" }, new[] { "" }, null);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
 
         //[HttpPost("SalePersonList")]
         //public async Task<ResultVM> SalePersonList(CommonVM vm)
@@ -851,28 +863,28 @@ namespace ShampanPOS.Controllers
 
 
 
-        [HttpPost("GetRouteBySalePersonAndBranch")]
-        public async Task<ResultVM> GetRouteBySalePersonAndBranch([FromBody] CustomerData requestParam)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
+        //[HttpPost("GetRouteBySalePersonAndBranch")]
+        //public async Task<ResultVM> GetRouteBySalePersonAndBranch([FromBody] CustomerData requestParam)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
 
-                CommonService _commonService = new CommonService();
-                resultVM = await _commonService.GetRouteBySalePersonAndBranch(requestParam.salePersonId, requestParam.branchId);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = ex.Message,
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
+        //        CommonService _commonService = new CommonService();
+        //        resultVM = await _commonService.GetRouteBySalePersonAndBranch(requestParam.salePersonId, requestParam.branchId);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = ex.Message,
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
 
 
 
@@ -949,96 +961,96 @@ namespace ShampanPOS.Controllers
         }
 
         // POST: api/Common/GetTop10Products
-        [HttpPost("GetTop10Products")]
-        public async Task<ResultVM> GetTop10Products(CommonVM Vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                CommonService _commonService = new CommonService();
-                resultVM = await _commonService.GetTop10Products(Vm.BranchId);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = "Data not fetched.",
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
+        //[HttpPost("GetTop10Products")]
+        //public async Task<ResultVM> GetTop10Products(CommonVM Vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        CommonService _commonService = new CommonService();
+        //        resultVM = await _commonService.GetTop10Products(Vm.BranchId);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
 
         // POST: api/Common/GetBottom10Products
-        [HttpPost("GetBottom10Products")]
-        public async Task<ResultVM> GetBottom10Products(CommonVM Vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                CommonService _commonService = new CommonService();
-                resultVM = await _commonService.GetBottom10Products(Vm.BranchId);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = "Data not fetched.",
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
+        //[HttpPost("GetBottom10Products")]
+        //public async Task<ResultVM> GetBottom10Products(CommonVM Vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        CommonService _commonService = new CommonService();
+        //        resultVM = await _commonService.GetBottom10Products(Vm.BranchId);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
 
         // POST: api/Common/GetTop10SalePersons
-        [HttpPost("GetTop10SalePersons")]
-        public async Task<ResultVM> GetTop10SalePersons(CommonVM Vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                CommonService _commonService = new CommonService();
-                resultVM = await _commonService.GetTop10SalePersons(Vm.BranchId);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = "Data not fetched.",
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
+        //[HttpPost("GetTop10SalePersons")]
+        //public async Task<ResultVM> GetTop10SalePersons(CommonVM Vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        CommonService _commonService = new CommonService();
+        //        resultVM = await _commonService.GetTop10SalePersons(Vm.BranchId);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
 
         // POST: api/Common/GetBottom10SalePersons
-        [HttpPost("GetBottom10SalePersons")]
-        public async Task<ResultVM> GetBottom10SalePersons(CommonVM Vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                CommonService _commonService = new CommonService();
-                resultVM = await _commonService.GetBottom10SalePersons(Vm.BranchId);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = "Data not fetched.",
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
+        //[HttpPost("GetBottom10SalePersons")]
+        //public async Task<ResultVM> GetBottom10SalePersons(CommonVM Vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        CommonService _commonService = new CommonService();
+        //        resultVM = await _commonService.GetBottom10SalePersons(Vm.BranchId);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
 
         // POST: api/Common/GetOrderPurchasePOReturnData
         [HttpPost("GetOrderPurchasePOReturnData")]
@@ -1064,27 +1076,27 @@ namespace ShampanPOS.Controllers
         }
 
         // POST: api/Common/GetSalesData
-        [HttpPost("GetSalesData")]
-        public async Task<ResultVM> GetSalesData(CommonVM Vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                CommonService _commonService = new CommonService();
-                resultVM = await _commonService.GetSalesData(Vm.BranchId);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = "Data not fetched.",
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
+        //[HttpPost("GetSalesData")]
+        //public async Task<ResultVM> GetSalesData(CommonVM Vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        CommonService _commonService = new CommonService();
+        //        resultVM = await _commonService.GetSalesData(Vm.BranchId);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
 
         // POST: api/Common/GetPendingSales
         [HttpPost("GetPendingSales")]
@@ -1110,73 +1122,73 @@ namespace ShampanPOS.Controllers
         }
 
         // POST: api/Common/CampaignMudularityCalculation
-        [HttpPost("CampaignMudularityCalculation")]
-        public async Task<ResultVM> CampaignMudularityCalculation(CampaignUtilty vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                CommonService _commonService = new CommonService();
-                resultVM = await _commonService.CampaignMudularityCalculation(vm);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = "Data not fetched.",
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
+        //[HttpPost("CampaignMudularityCalculation")]
+        //public async Task<ResultVM> CampaignMudularityCalculation(CampaignUtilty vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        CommonService _commonService = new CommonService();
+        //        resultVM = await _commonService.CampaignMudularityCalculation(vm);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
 
-        // POST: api/Common/CampaignInvoiceCalculation
-        [HttpPost("CampaignInvoiceCalculation")]
-        public async Task<ResultVM> CampaignInvoiceCalculation(CampaignUtilty vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                CommonService _commonService = new CommonService();
-                resultVM = await _commonService.CampaignInvoiceCalculation(vm);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = "Data not fetched.",
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
+        //// POST: api/Common/CampaignInvoiceCalculation
+        //[HttpPost("CampaignInvoiceCalculation")]
+        //public async Task<ResultVM> CampaignInvoiceCalculation(CampaignUtilty vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        CommonService _commonService = new CommonService();
+        //        resultVM = await _commonService.CampaignInvoiceCalculation(vm);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
 
-        // POST: api/Common/GetCampaignList
-        [HttpPost("GetCampaignList")]
-        public async Task<ResultVM> GetCampaignList(CommonVM Vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                CommonService _commonService = new CommonService();
-                resultVM = await _commonService.GetCampaignList(new[] { "" }, new[] { "" }, null);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = "Data not fetched.",
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
+        //// POST: api/Common/GetCampaignList
+        //[HttpPost("GetCampaignList")]
+        //public async Task<ResultVM> GetCampaignList(CommonVM Vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        CommonService _commonService = new CommonService();
+        //        resultVM = await _commonService.GetCampaignList(new[] { "" }, new[] { "" }, null);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
 
         // POST: api/Common/PaymentTypeList
         [HttpPost("PaymentTypeList")]
@@ -1203,123 +1215,123 @@ namespace ShampanPOS.Controllers
             }
         }
 
-        [HttpPost("GetSaleDeleveryByCustomerAndBranch")]
-        public async Task<ResultVM> GetSaleDeleveryByCustomerAndBranch([FromBody] CustomerData requestParam)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                // Assuming CustomerService and your method is correctly set up
-                SaleDeliveryService _saleDeliveryService = new SaleDeliveryService();
-                resultVM = await _saleDeliveryService.GetSaleDeleveryByCustomerAndBranch(requestParam.salePersonId, requestParam.branchId);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = ex.Message,
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
+        //[HttpPost("GetSaleDeleveryByCustomerAndBranch")]
+        //public async Task<ResultVM> GetSaleDeleveryByCustomerAndBranch([FromBody] CustomerData requestParam)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        // Assuming CustomerService and your method is correctly set up
+        //        SaleDeliveryService _saleDeliveryService = new SaleDeliveryService();
+        //        resultVM = await _saleDeliveryService.GetSaleDeleveryByCustomerAndBranch(requestParam.salePersonId, requestParam.branchId);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = ex.Message,
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
+
+        //// POST: api/Common/SaleDeleveryList
+        //[HttpPost("SaleDeleveryList")]
+        //public async Task<ResultVM> SaleDeleveryList(CommonVM Vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        string[] conditionFields = null;
+        //        string[] conditionValues = null;
+
+        //        if (!string.IsNullOrEmpty(Vm.BranchId))
+        //        {
+        //            conditionFields = new string[] { "H.BranchId" };
+        //            conditionValues = new string[] { Vm.BranchId };
+        //        }
+        //        CommonService _commonService = new CommonService();
+        //        resultVM = await _commonService.SaleDeleveryList(conditionFields, conditionValues, null);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
+
+        //// POST: api/Common/GetSaleDeleveryModal
+        //[HttpPost("GetSaleDeleveryModal")]
+        //public async Task<ResultVM> GetSaleDeleveryModal(SaleDeliveryVM model)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        CommonService _commonService = new CommonService();
+        //        PeramModel vm = new PeramModel();
+        //        vm = model.PeramModel;
+
+        //        resultVM = await _commonService.GetSaleDeleveryModal(new[] { "P.Code like", }, new[] { model.Code }, vm);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = ex.Message,
+        //            ExMessage = ex.Message,
+        //            DataVM = model
+        //        };
+        //    }
+        //}
 
         // POST: api/Common/SaleDeleveryList
-        [HttpPost("SaleDeleveryList")]
-        public async Task<ResultVM> SaleDeleveryList(CommonVM Vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                string[] conditionFields = null;
-                string[] conditionValues = null;
+        //[HttpPost("GetFocalPointList")]
+        //public async Task<ResultVM> GetFocalPointList(CommonVM Vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        string[] conditionFields = null;
+        //        string[] conditionValues = null;
+        //        conditionFields = Vm.ConditionalFields;
+        //        conditionValues = Vm.ConditionalValues;
+        //        if (!string.IsNullOrEmpty(Vm.Id))
+        //        {
+        //            conditionFields = new string[] { "M.Id" };
+        //            conditionValues = new string[] { Vm.Id };
+        //        }
+        //        if (!string.IsNullOrEmpty(Vm.BranchId))
+        //        {
+        //            conditionFields = new string[] { "M.BranchId" };
+        //            conditionValues = new string[] { Vm.BranchId.ToString() };
+        //        }
 
-                if (!string.IsNullOrEmpty(Vm.BranchId))
-                {
-                    conditionFields = new string[] { "H.BranchId" };
-                    conditionValues = new string[] { Vm.BranchId };
-                }
-                CommonService _commonService = new CommonService();
-                resultVM = await _commonService.SaleDeleveryList(conditionFields, conditionValues, null);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = "Data not fetched.",
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
-
-        // POST: api/Common/GetSaleDeleveryModal
-        [HttpPost("GetSaleDeleveryModal")]
-        public async Task<ResultVM> GetSaleDeleveryModal(SaleDeliveryVM model)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                CommonService _commonService = new CommonService();
-                PeramModel vm = new PeramModel();
-                vm = model.PeramModel;
-
-                resultVM = await _commonService.GetSaleDeleveryModal(new[] { "P.Code like", }, new[] { model.Code }, vm);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = ex.Message,
-                    ExMessage = ex.Message,
-                    DataVM = model
-                };
-            }
-        }
-
-        // POST: api/Common/SaleDeleveryList
-        [HttpPost("GetFocalPointList")]
-        public async Task<ResultVM> GetFocalPointList(CommonVM Vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                string[] conditionFields = null;
-                string[] conditionValues = null;
-                conditionFields = Vm.ConditionalFields;
-                conditionValues = Vm.ConditionalValues;
-                if (!string.IsNullOrEmpty(Vm.Id))
-                {
-                    conditionFields = new string[] { "M.Id" };
-                    conditionValues = new string[] { Vm.Id };
-                }
-                if (!string.IsNullOrEmpty(Vm.BranchId))
-                {
-                    conditionFields = new string[] { "M.BranchId" };
-                    conditionValues = new string[] { Vm.BranchId.ToString() };
-                }
-
-                FocalPointService _focalPoint = new FocalPointService();
-                resultVM = await _focalPoint.List(conditionFields, conditionValues, null);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = "Data not fetched.",
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
+        //        FocalPointService _focalPoint = new FocalPointService();
+        //        resultVM = await _focalPoint.List(conditionFields, conditionValues, null);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
 
         // POST: api/Branch/CheckDayEnd
         [HttpPost]

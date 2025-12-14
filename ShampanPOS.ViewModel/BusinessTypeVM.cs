@@ -1,16 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
 namespace ShampanPOS.ViewModel
 {
+
     public class BusinessTypeVM
     {
         public int Id { get; set; }
+        [Required(ErrorMessage = "Name is required.")]
+        [Display(Name = "Name")]
         public string Name { get; set; }
+        [Display(Name = " Code(Auto Generate)")]
         public string? Code { get; set; }
 
         [Display(Name = "Archived")]
@@ -25,6 +29,7 @@ namespace ShampanPOS.ViewModel
         public string? LastUpdateFrom { get; set; }
         public string? Operation { get; set; }
         public string? CreatedFrom { get; set; }
+        public string?[] IDs { get; set; }
         public string? Status { get; set; }
     }
 

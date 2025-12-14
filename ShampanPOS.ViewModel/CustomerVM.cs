@@ -107,12 +107,7 @@ namespace ShampanPOS.ViewModel
         public string? ImagePath { get; set; }
 
         public string? CustomerGroupName { get; set; }
-        public string? BranchName { get; set; }
-        public string? AreaName { get; set; }
-        public string? RouteName { get; set; }
-        public decimal? RegularDiscountRate { get; set; }
-        public string? FocalPoint { get; set; }
-        public decimal? Potential { get; set; }
+
 
     }
 

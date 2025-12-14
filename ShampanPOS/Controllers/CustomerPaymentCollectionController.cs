@@ -502,63 +502,69 @@ namespace ShampanPOS.Controllers
 
 
 
-        [HttpPost("MultiplePaymentSettlementProcess")]
-        public async Task<ResultVM> MultiplePaymentSettlementProcess(CommonVM vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, IDs = null, DataVM = null };
-            try
-            {
-                _customerPaymentCollectionService = new CustomerPaymentCollectionService();
+        //[HttpPost("MultiplePaymentSettlementProcess")]
+        //public async Task<ResultVM> MultiplePaymentSettlementProcess(CommonVM vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, IDs = null, DataVM = null };
+        //    try
+        //    {
+        //        _customerPaymentCollectionService = new CustomerPaymentCollectionService();
 
-                resultVM = await _customerPaymentCollectionService.MultiplePaymentSettlementProcess(vm);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = ex.Message,
-                    ExMessage = ex.Message,
-                    DataVM = vm
-                };
-            }
-        }
-
-        [HttpPost("GetTabGridData")]
-        public async Task<ResultVM> GetTabGridData(GridOptions options)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-
-                _customerPaymentCollectionService = new CustomerPaymentCollectionService();
-                List<string> conditionFields = new List<string>
-{
-                "S.BranchId"
-};
-
-                List<string> conditionValues = new List<string>
-{
-                options.vm.BranchId.ToString()
-};
-                string[] finalConditionFields = conditionFields.ToArray();
-                string[] finalConditionValues = conditionValues.ToArray();
+        //        resultVM = await _customerPaymentCollectionService.MultiplePaymentSettlementProcess(vm);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = ex.Message,
+        //            ExMessage = ex.Message,
+        //            DataVM = vm
+        //        };
+        //    }
+        //}
 
 
-                resultVM = await _customerPaymentCollectionService.GetTabGridData(options, finalConditionFields, finalConditionValues);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = ex.Message,
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
+
+//        [HttpPost("GetTabGridData")]
+//        public async Task<ResultVM> GetTabGridData(GridOptions options)
+//        {
+//            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+//            try
+//            {
+
+//                _customerPaymentCollectionService = new CustomerPaymentCollectionService();
+//                List<string> conditionFields = new List<string>
+//{
+//                "S.BranchId"
+//};
+
+//                List<string> conditionValues = new List<string>
+//{
+//                options.vm.BranchId.ToString()
+//};
+//                string[] finalConditionFields = conditionFields.ToArray();
+//                string[] finalConditionValues = conditionValues.ToArray();
+
+
+//                resultVM = await _customerPaymentCollectionService.GetTabGridData(options, finalConditionFields, finalConditionValues);
+//                return resultVM;
+//            }
+//            catch (Exception ex)
+//            {
+//                return new ResultVM
+//                {
+//                    Status = "Fail",
+//                    Message = ex.Message,
+//                    ExMessage = ex.Message,
+//                    DataVM = null
+//                };
+//            }
+//        }
+
+
+
+
     }
 }

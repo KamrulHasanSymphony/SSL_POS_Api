@@ -420,148 +420,154 @@ namespace ShampanPOS.Service
             }
         }
 
-        public async Task<ResultVM> MultiplePaymentSettlementProcess(CommonVM vm)
-        {
-            CustomerPaymentCollectionRepository _repo = new CustomerPaymentCollectionRepository();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, IDs = vm.IDs, DataVM = null };
+        //public async Task<ResultVM> MultiplePaymentSettlementProcess(CommonVM vm)
+        //{
+        //    CustomerPaymentCollectionRepository _repo = new CustomerPaymentCollectionRepository();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, IDs = vm.IDs, DataVM = null };
 
-            bool isNewConnection = false;
-            SqlConnection conn = null;
-            SqlTransaction transaction = null;
-            try
-            {
-                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                conn.Open();
-                isNewConnection = true;
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
 
-                transaction = conn.BeginTransaction();
+        //        transaction = conn.BeginTransaction();
 
-                #region check payment is already settled 
+        //        #region check payment is already settled 
 
-                for (int i = 0; i < vm.IDs.Length; i++)
-                {
-                    var payment = await _repo.GetList(new[] { "Id" }, new[] { vm.IDs[i].ToString() }, null, conn, transaction);
-                    if (payment.Status == "Success" && payment.DataVM is DataTable dt)
-                    {
-                        string Code = "";
-                        int Id = 0;
-                        int CustomerId = 0;
-                        if (dt.Rows.Count > 0)
-                        {
-                            Code = dt.AsEnumerable()
-                      .Select(row => row.Field<string>("Code"))
-                      .FirstOrDefault();
+        //        for (int i = 0; i < vm.IDs.Length; i++)
+        //        {
+        //            var payment = await _repo.GetList(new[] { "Id" }, new[] { vm.IDs[i].ToString() }, null, conn, transaction);
+        //            if (payment.Status == "Success" && payment.DataVM is DataTable dt)
+        //            {
+        //                string Code = "";
+        //                int Id = 0;
+        //                int CustomerId = 0;
+        //                if (dt.Rows.Count > 0)
+        //                {
+        //                    Code = dt.AsEnumerable()
+        //              .Select(row => row.Field<string>("Code"))
+        //              .FirstOrDefault();
 
-                             Id = dt.AsEnumerable()
-                      .Select(row => row.Field<int>("Id"))
-                      .FirstOrDefault();
+        //                     Id = dt.AsEnumerable()
+        //              .Select(row => row.Field<int>("Id"))
+        //              .FirstOrDefault();
 
-                             CustomerId = dt.AsEnumerable()
-               .Select(row => row.Field<int>("CustomerId"))
-               .FirstOrDefault();
+        //                     CustomerId = dt.AsEnumerable()
+        //       .Select(row => row.Field<int>("CustomerId"))
+        //       .FirstOrDefault();
                          
 
-                            CustomerPaymentCollectionVM customerPaymentCollectionVM = new CustomerPaymentCollectionVM
-                            {
-                                Id = Convert.ToInt32(Id),
-                                CustomerId = Convert.ToInt32(CustomerId),
+        //                    CustomerPaymentCollectionVM customerPaymentCollectionVM = new CustomerPaymentCollectionVM
+        //                    {
+        //                        Id = Convert.ToInt32(Id),
+        //                        CustomerId = Convert.ToInt32(CustomerId),
 
-                            };
-                            result = await _repo.MultiplePaymentSettlementProcess(customerPaymentCollectionVM, conn, transaction);
+        //                    };
+        //                    result = await _repo.MultiplePaymentSettlementProcess(customerPaymentCollectionVM, conn, transaction);
 
-                            if (isNewConnection && result.Status == "Success")
-                            {
-                                transaction.Commit();
-                            }
-                            else
-                            {
-                                throw new Exception(result.Message);
-                            }
-                        }
-                        else
-                        {
-                            throw new Exception("Payment is already settled for this Collection");
-                        }
-                    }
-                }
+        //                    if (isNewConnection && result.Status == "Success")
+        //                    {
+        //                        transaction.Commit();
+        //                    }
+        //                    else
+        //                    {
+        //                        throw new Exception(result.Message);
+        //                    }
+        //                }
+        //                else
+        //                {
+        //                    throw new Exception("Payment is already settled for this Collection");
+        //                }
+        //            }
+        //        }
               
 
        
 
-                #endregion
+        //        #endregion
 
                   
 
              
-            }
-            catch (Exception ex)
-            {
-                if (transaction != null && isNewConnection)
-                {
-                    transaction.Rollback();
-                }
-                result.Message = ex.Message.ToString();
-                result.ExMessage = ex.ToString();
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+        //        result.Message = ex.Message.ToString();
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
 
-            }
-            return result;
-        }
+        //    }
+        //    return result;
+        //}
 
-        public async Task<ResultVM> GetTabGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues)
-        {
-            CustomerPaymentCollectionRepository _repo = new CustomerPaymentCollectionRepository();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
-            bool isNewConnection = false;
-            SqlConnection conn = null;
-            SqlTransaction transaction = null;
-            try
-            {
-                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                conn.Open();
-                isNewConnection = true;
 
-                transaction = conn.BeginTransaction();
+        //public async Task<ResultVM> GetTabGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues)
+        //{
+        //    CustomerPaymentCollectionRepository _repo = new CustomerPaymentCollectionRepository();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
-                result = await _repo.GetTabGridData(options, conditionalFields, conditionalValues, conn, transaction);
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
 
-                if (isNewConnection && result.Status == "Success")
-                {
-                    transaction.Commit();
-                }
-                else
-                {
-                    throw new Exception(result.Message);
-                }
+        //        transaction = conn.BeginTransaction();
 
-                return result;
-            }
-            catch (Exception ex)
-            {
-                if (transaction != null && isNewConnection)
-                {
-                    transaction.Rollback();
-                }
-                result.Message = ex.ToString();
-                result.ExMessage = ex.ToString();
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
+        //        result = await _repo.GetTabGridData(options, conditionalFields, conditionalValues, conn, transaction);
+
+        //        if (isNewConnection && result.Status == "Success")
+        //        {
+        //            transaction.Commit();
+        //        }
+        //        else
+        //        {
+        //            throw new Exception(result.Message);
+        //        }
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+        //        result.Message = ex.ToString();
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
+
+
+
+
     }
 }
 

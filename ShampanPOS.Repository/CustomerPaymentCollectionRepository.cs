@@ -272,7 +272,7 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@Attachment", vm.Attachment ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@FileName", vm.FileName ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsPost", vm.IsPost);
-                    cmd.Parameters.AddWithValue("@SaleDeleveryId", vm.SaleDeleveryId ?? (object)DBNull.Value); // Ensure SaleDeleveryId is handled correctly
+                    //cmd.Parameters.AddWithValue("@SaleDeleveryId", vm.SaleDeleveryId ?? (object)DBNull.Value); // Ensure SaleDeleveryId is handled correctly
                     cmd.Parameters.AddWithValue("@LastModifiedOn", DateTime.Now);
                     cmd.Parameters.AddWithValue("@ImagePath", string.IsNullOrEmpty(vm.ImagePath) ? (object)DBNull.Value : vm.ImagePath);
 
@@ -1039,214 +1039,214 @@ WHERE rowindex > @skip AND (@take = 0 OR rowindex <= (@skip + @take));";
         //            }
         //        }
 
-        public async Task<ResultVM> MultiplePaymentSettlementProcess(CustomerPaymentCollectionVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
-        {
-            bool isNewConnection = false;
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = null, DataVM = null };
+//        public async Task<ResultVM> MultiplePaymentSettlementProcess(CustomerPaymentCollectionVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
+//        {
+//            bool isNewConnection = false;
+//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = null, DataVM = null };
 
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    await conn.OpenAsync();
-                    isNewConnection = true;
-                }
+//            try
+//            {
+//                if (conn == null)
+//                {
+//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+//                    await conn.OpenAsync();
+//                    isNewConnection = true;
+//                }
 
-                if (transaction == null)
-                {
-                    transaction = conn.BeginTransaction();
-                }
+//                if (transaction == null)
+//                {
+//                    transaction = conn.BeginTransaction();
+//                }
 
-                string query = @"
--- Step 1: Prepare temporary tables for easier control
-SELECT 
-    Id, 
-    CAST(RestAmount AS DECIMAL(10,2)) AS RestAmount, 
-    CreatedOn AS PaymentDate 
-INTO #Payments
-FROM CustomerPaymentCollection
-WHERE ISNULL(Processed, 0) = 0 
-  AND ISNULL(IsPost, 0) = 1 
-  AND CustomerId = @CustomerId
-  AND Id = @Id
-ORDER BY Id;
+//                string query = @"
+//-- Step 1: Prepare temporary tables for easier control
+//SELECT 
+//    Id, 
+//    CAST(RestAmount AS DECIMAL(10,2)) AS RestAmount, 
+//    CreatedOn AS PaymentDate 
+//INTO #Payments
+//FROM CustomerPaymentCollection
+//WHERE ISNULL(Processed, 0) = 0 
+//  AND ISNULL(IsPost, 0) = 1 
+//  AND CustomerId = @CustomerId
+//  AND Id = @Id
+//ORDER BY Id;
 
-SELECT 
-    Id, 
-    CAST(RestAmount AS DECIMAL(10,2)) AS RestAmount, 
-    DeliveryDate AS InvoiceDate, 
-    CAST(0.00 AS DECIMAL(10,2)) AS PaidAmount,
-    CAST(GrandTotalAmount AS DECIMAL(10,2)) AS GrandTotalAmount,
-    CustomerId
-INTO #Invoices
-FROM SaleDeleveries
-WHERE ISNULL(IsPost, 0) = 1 
-  AND ISNULL(Processed, 0) = 0 
-  AND ISNULL(RestAmount, 0) > 0 
-  AND CustomerId = @CustomerId";
+//SELECT 
+//    Id, 
+//    CAST(RestAmount AS DECIMAL(10,2)) AS RestAmount, 
+//    DeliveryDate AS InvoiceDate, 
+//    CAST(0.00 AS DECIMAL(10,2)) AS PaidAmount,
+//    CAST(GrandTotalAmount AS DECIMAL(10,2)) AS GrandTotalAmount,
+//    CustomerId
+//INTO #Invoices
+//FROM SaleDeleveries
+//WHERE ISNULL(IsPost, 0) = 1 
+//  AND ISNULL(Processed, 0) = 0 
+//  AND ISNULL(RestAmount, 0) > 0 
+//  AND CustomerId = @CustomerId";
 
-                if (vm.SaleDeleveryId > 0)
-                {
-                    query += @" AND Id = @SaleDeleveryId";
-                }
+//                if (vm.SaleDeleveryId > 0)
+//                {
+//                    query += @" AND Id = @SaleDeleveryId";
+//                }
 
-                query += @"
-ORDER BY Id;
+//                query += @"
+//ORDER BY Id;
 
--- Early exit if no payments or invoices to process
-IF NOT EXISTS (SELECT 1 FROM #Payments WHERE RestAmount > 0)
-BEGIN
-    DROP TABLE #Payments;
-    DROP TABLE #Invoices;
-    RETURN;
-END
+//-- Early exit if no payments or invoices to process
+//IF NOT EXISTS (SELECT 1 FROM #Payments WHERE RestAmount > 0)
+//BEGIN
+//    DROP TABLE #Payments;
+//    DROP TABLE #Invoices;
+//    RETURN;
+//END
 
-IF NOT EXISTS (SELECT 1 FROM #Invoices WHERE RestAmount > 0)
-BEGIN
-    DROP TABLE #Payments;
-    DROP TABLE #Invoices;
-    RETURN;
-END
+//IF NOT EXISTS (SELECT 1 FROM #Invoices WHERE RestAmount > 0)
+//BEGIN
+//    DROP TABLE #Payments;
+//    DROP TABLE #Invoices;
+//    RETURN;
+//END
 
--- Step 2: Loop through payments and settle invoices FIFO
-DECLARE @PayId INT, @PayAmount DECIMAL(10,2), @PayDate DATE;
-DECLARE @InvId INT, @InvCustomerId INT, @InvAmount DECIMAL(10,2), @InvDate DATE, @ActualInvoiceAmount DECIMAL(10,2);
-DECLARE @SettleAmount DECIMAL(10,2);
-DECLARE @Progress BIT;
+//-- Step 2: Loop through payments and settle invoices FIFO
+//DECLARE @PayId INT, @PayAmount DECIMAL(10,2), @PayDate DATE;
+//DECLARE @InvId INT, @InvCustomerId INT, @InvAmount DECIMAL(10,2), @InvDate DATE, @ActualInvoiceAmount DECIMAL(10,2);
+//DECLARE @SettleAmount DECIMAL(10,2);
+//DECLARE @Progress BIT;
 
-WHILE EXISTS (SELECT 1 FROM #Payments WHERE RestAmount > 0)
-BEGIN
-    SET @Progress = 0;  -- Reset progress flag at start of each outer loop iteration
+//WHILE EXISTS (SELECT 1 FROM #Payments WHERE RestAmount > 0)
+//BEGIN
+//    SET @Progress = 0;  -- Reset progress flag at start of each outer loop iteration
     
-    SELECT TOP 1 
-        @PayId = Id, 
-        @PayAmount = RestAmount, 
-        @PayDate = PaymentDate 
-    FROM #Payments 
-    WHERE RestAmount > 0 
-    ORDER BY Id;
+//    SELECT TOP 1 
+//        @PayId = Id, 
+//        @PayAmount = RestAmount, 
+//        @PayDate = PaymentDate 
+//    FROM #Payments 
+//    WHERE RestAmount > 0 
+//    ORDER BY Id;
 
-    WHILE @PayAmount > 0 AND EXISTS (SELECT 1 FROM #Invoices WHERE RestAmount > 0)
-    BEGIN
-        SELECT TOP 1 
-            @InvId = Id, 
-            @InvAmount = RestAmount, 
-            @InvDate = InvoiceDate,
-            @ActualInvoiceAmount = GrandTotalAmount,
-            @InvCustomerId = CustomerId
-        FROM #Invoices 
-        WHERE RestAmount > 0 
-        ORDER BY Id;
+//    WHILE @PayAmount > 0 AND EXISTS (SELECT 1 FROM #Invoices WHERE RestAmount > 0)
+//    BEGIN
+//        SELECT TOP 1 
+//            @InvId = Id, 
+//            @InvAmount = RestAmount, 
+//            @InvDate = InvoiceDate,
+//            @ActualInvoiceAmount = GrandTotalAmount,
+//            @InvCustomerId = CustomerId
+//        FROM #Invoices 
+//        WHERE RestAmount > 0 
+//        ORDER BY Id;
 
-        SET @SettleAmount = CASE 
-                                WHEN @PayAmount >= @InvAmount THEN @InvAmount 
-                                ELSE @PayAmount 
-                            END;
+//        SET @SettleAmount = CASE 
+//                                WHEN @PayAmount >= @InvAmount THEN @InvAmount 
+//                                ELSE @PayAmount 
+//                            END;
 
-        -- If settle amount is zero or negative, break inner loop to avoid infinite loop
-        IF (@SettleAmount <= 0)
-        BEGIN
-            BREAK;
-        END
+//        -- If settle amount is zero or negative, break inner loop to avoid infinite loop
+//        IF (@SettleAmount <= 0)
+//        BEGIN
+//            BREAK;
+//        END
 
-        INSERT INTO PaymentCollectionSettlementHistory (
-            InvoiceId, CustomerId, InvoiceDate, InvoiceAmount, ActualInvoiceAmount, InvoiceRestAmount,
-            PaymentId, PaymentDate, PaymentAmount, PaymentRestAmount
-        )
-        SELECT 
-            @InvId,
-            @InvCustomerId,
-            @InvDate,
-            CAST(@InvAmount AS DECIMAL(10,2)),
-            @ActualInvoiceAmount,
-            CAST(@InvAmount - @SettleAmount AS DECIMAL(10,2)),
-            @PayId,
-            @PayDate,
-            CAST(@PayAmount AS DECIMAL(10,2)),
-            CAST(@PayAmount - @SettleAmount AS DECIMAL(10,2))
-        FROM #Invoices
-        WHERE Id = @InvId;
+//        INSERT INTO PaymentCollectionSettlementHistory (
+//            InvoiceId, CustomerId, InvoiceDate, InvoiceAmount, ActualInvoiceAmount, InvoiceRestAmount,
+//            PaymentId, PaymentDate, PaymentAmount, PaymentRestAmount
+//        )
+//        SELECT 
+//            @InvId,
+//            @InvCustomerId,
+//            @InvDate,
+//            CAST(@InvAmount AS DECIMAL(10,2)),
+//            @ActualInvoiceAmount,
+//            CAST(@InvAmount - @SettleAmount AS DECIMAL(10,2)),
+//            @PayId,
+//            @PayDate,
+//            CAST(@PayAmount AS DECIMAL(10,2)),
+//            CAST(@PayAmount - @SettleAmount AS DECIMAL(10,2))
+//        FROM #Invoices
+//        WHERE Id = @InvId;
 
-        UPDATE #Invoices
-        SET 
-            RestAmount = RestAmount - @SettleAmount,
-            PaidAmount = PaidAmount + @SettleAmount
-        WHERE Id = @InvId;
+//        UPDATE #Invoices
+//        SET 
+//            RestAmount = RestAmount - @SettleAmount,
+//            PaidAmount = PaidAmount + @SettleAmount
+//        WHERE Id = @InvId;
 
-        UPDATE #Payments
-        SET RestAmount = RestAmount - @SettleAmount
-        WHERE Id = @PayId;
+//        UPDATE #Payments
+//        SET RestAmount = RestAmount - @SettleAmount
+//        WHERE Id = @PayId;
 
-        SET @PayAmount = @PayAmount - @SettleAmount;
+//        SET @PayAmount = @PayAmount - @SettleAmount;
 
-        SET @Progress = 1; -- Mark progress to avoid infinite loop
-    END;
+//        SET @Progress = 1; -- Mark progress to avoid infinite loop
+//    END;
 
-    IF (@Progress = 0)
-    BEGIN
-        -- No progress in this iteration, break outer loop to prevent infinite looping
-        BREAK;
-    END
-END;
+//    IF (@Progress = 0)
+//    BEGIN
+//        -- No progress in this iteration, break outer loop to prevent infinite looping
+//        BREAK;
+//    END
+//END;
 
--- Step 3: Update original tables
-UPDATE sd
-SET 
-    sd.RestAmount = inv.RestAmount,
-    sd.PaidAmount = inv.PaidAmount,
-    sd.Processed = CASE WHEN inv.RestAmount = 0 THEN 1 ELSE 0 END
-FROM SaleDeleveries sd
-JOIN #Invoices inv ON sd.Id = inv.Id;
+//-- Step 3: Update original tables
+//UPDATE sd
+//SET 
+//    sd.RestAmount = inv.RestAmount,
+//    sd.PaidAmount = inv.PaidAmount,
+//    sd.Processed = CASE WHEN inv.RestAmount = 0 THEN 1 ELSE 0 END
+//FROM SaleDeleveries sd
+//JOIN #Invoices inv ON sd.Id = inv.Id;
 
-UPDATE cp
-SET 
-    cp.RestAmount = pay.RestAmount,
-    cp.Processed = CASE WHEN pay.RestAmount = 0 THEN 1 ELSE 0 END
-FROM CustomerPaymentCollection cp
-JOIN #Payments pay ON cp.Id = pay.Id;
+//UPDATE cp
+//SET 
+//    cp.RestAmount = pay.RestAmount,
+//    cp.Processed = CASE WHEN pay.RestAmount = 0 THEN 1 ELSE 0 END
+//FROM CustomerPaymentCollection cp
+//JOIN #Payments pay ON cp.Id = pay.Id;
 
-DROP TABLE #Payments;
-DROP TABLE #Invoices;";
+//DROP TABLE #Payments;
+//DROP TABLE #Invoices;";
 
-                using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
-                {
-                    cmd.Parameters.AddWithValue("@CustomerId", vm.CustomerId);
-                    cmd.Parameters.AddWithValue("@Id", vm.Id);
-                    if (vm.SaleDeleveryId > 0)
-                    {
-                        cmd.Parameters.AddWithValue("@SaleDeleveryId", vm.SaleDeleveryId);
-                    }
-                    await cmd.ExecuteNonQueryAsync();
-                }
+//                using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
+//                {
+//                    cmd.Parameters.AddWithValue("@CustomerId", vm.CustomerId);
+//                    cmd.Parameters.AddWithValue("@Id", vm.Id);
+//                    if (vm.SaleDeleveryId > 0)
+//                    {
+//                        cmd.Parameters.AddWithValue("@SaleDeleveryId", vm.SaleDeleveryId);
+//                    }
+//                    await cmd.ExecuteNonQueryAsync();
+//                }
 
-                if (isNewConnection)
-                {
-                    transaction.Commit();
-                }
+//                if (isNewConnection)
+//                {
+//                    transaction.Commit();
+//                }
 
-                result.Status = "Success";
-                result.Message = "Payment settlement processed successfully.";
-                return result;
-            }
-            catch (Exception ex)
-            {
-                if (transaction != null && isNewConnection)
-                {
-                    transaction.Rollback();
-                }
-                result.Message = ex.Message;
-                result.ExMessage = ex.Message;
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
+//                result.Status = "Success";
+//                result.Message = "Payment settlement processed successfully.";
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                if (transaction != null && isNewConnection)
+//                {
+//                    transaction.Rollback();
+//                }
+//                result.Message = ex.Message;
+//                result.ExMessage = ex.Message;
+//                return result;
+//            }
+//            finally
+//            {
+//                if (isNewConnection && conn != null)
+//                {
+//                    conn.Close();
+//                }
+//            }
+//        }
 
 
         public async Task<ResultVM> GetList(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
@@ -1313,82 +1313,82 @@ and RestAmount>0
             }
         }
 
-        public async Task<ResultVM> GetTabGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
-        {
-            bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //public async Task<ResultVM> GetTabGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+        //{
+        //    bool isNewConnection = false;
+        //    DataTable dataTable = new DataTable();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    conn.Open();
-                    isNewConnection = true;
-                }
+        //    try
+        //    {
+        //        if (conn == null)
+        //        {
+        //            conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //            conn.Open();
+        //            isNewConnection = true;
+        //        }
 
-                var data = new GridEntity<SaleDeliveryVM>();
+        //        var data = new GridEntity<SaleDeliveryVM>();
 
-                // Define your SQL query string
-                string sqlQuery = @"
-               -- Count query
-               SELECT COUNT(DISTINCT S.Id) AS totalcount
-			            FROM [SaleDeleveries] S
-                          left outer join Customers C on c.Id=s.CustomerId
-                          left outer join Routes R on R.Id=s.RouteId
-                          where 1 = 1
-                -- Add the filter condition
-                " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleDeliveryVM>.FilterCondition(options.filter) + ")" : "") + @"
+        //        // Define your SQL query string
+        //        string sqlQuery = @"
+        //       -- Count query
+        //       SELECT COUNT(DISTINCT S.Id) AS totalcount
+			     //       FROM [SaleDeleveries] S
+        //                  left outer join Customers C on c.Id=s.CustomerId
+        //                  left outer join Routes R on R.Id=s.RouteId
+        //                  where 1 = 1
+        //        -- Add the filter condition
+        //        " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleDeliveryVM>.FilterCondition(options.filter) + ")" : "") + @"
 
-                -- Data query with pagination and sorting
-                SELECT * 
-                FROM (
-                    SELECT 
-                    ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "S.Id DESC ") + @") AS rowindex,
-                              s.Code
-	                          ,c.Name CustomerName
-                              ,R.Name RouteName
-                              ,s.DeliveryAddress
-                              ,ISNULL(FORMAT(s.InvoiceDateTime, 'yyyy-MM-dd'), '1900-01-01') InvoiceDateTime
-                              ,ISNULL(FORMAT(s.DeliveryDate, 'yyyy-MM-dd'), '1900-01-01') DeliveryDate
-	                          ,ISNULL(s.GrandTotalAmount,0) InvoiceAmount
-                              ,ISNULL(s.PaidAmount,0) PaidAmount   
-                              ,ISNULL(s.RestAmount,0) RestAmount
-                              ,CASE WHEN ISNULL(s.Processed, 0) = 1 THEN 'Paid' ELSE 'UnPaid' END AS Status
+        //        -- Data query with pagination and sorting
+        //        SELECT * 
+        //        FROM (
+        //            SELECT 
+        //            ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "S.Id DESC ") + @") AS rowindex,
+        //                      s.Code
+	       //                   ,c.Name CustomerName
+        //                      ,R.Name RouteName
+        //                      ,s.DeliveryAddress
+        //                      ,ISNULL(FORMAT(s.InvoiceDateTime, 'yyyy-MM-dd'), '1900-01-01') InvoiceDateTime
+        //                      ,ISNULL(FORMAT(s.DeliveryDate, 'yyyy-MM-dd'), '1900-01-01') DeliveryDate
+	       //                   ,ISNULL(s.GrandTotalAmount,0) InvoiceAmount
+        //                      ,ISNULL(s.PaidAmount,0) PaidAmount   
+        //                      ,ISNULL(s.RestAmount,0) RestAmount
+        //                      ,CASE WHEN ISNULL(s.Processed, 0) = 1 THEN 'Paid' ELSE 'UnPaid' END AS Status
 
-                          FROM SaleDeleveries S
-                          left outer join Customers C on c.Id=s.CustomerId
-                          left outer join Routes R on R.Id=s.RouteId
-                          where 1 = 1
-                -- Add the filter condition
-                " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleDeliveryVM>.FilterCondition(options.filter) + ")" : "") + @"
+        //                  FROM SaleDeleveries S
+        //                  left outer join Customers C on c.Id=s.CustomerId
+        //                  left outer join Routes R on R.Id=s.RouteId
+        //                  where 1 = 1
+        //        -- Add the filter condition
+        //        " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleDeliveryVM>.FilterCondition(options.filter) + ")" : "") + @"
 
-                ) AS a
-                WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
-            ";
+        //        ) AS a
+        //        WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
+        //    ";
 
-                data = KendoGrid<SaleDeliveryVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+        //        data = KendoGrid<SaleDeliveryVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
 
-                result.Status = "Success";
-                result.Message = "Data retrieved successfully.";
-                result.DataVM = data;
+        //        result.Status = "Success";
+        //        result.Message = "Data retrieved successfully.";
+        //        result.DataVM = data;
 
-                return result;
-            }
-            catch (Exception ex)
-            {
-                result.ExMessage = ex.Message;
-                result.Message = ex.Message;
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        result.ExMessage = ex.Message;
+        //        result.Message = ex.Message;
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
     }
 }

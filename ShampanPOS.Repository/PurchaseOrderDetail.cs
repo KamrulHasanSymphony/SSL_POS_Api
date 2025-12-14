@@ -66,16 +66,16 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@VATAmount", vm.VATAmount);
                     cmd.Parameters.AddWithValue("@OthersAmount", vm.OthersAmount);
                     cmd.Parameters.AddWithValue("@LineTotal", vm.LineTotal);
-                    cmd.Parameters.AddWithValue("@UOMId", vm.UOMId);
-                    cmd.Parameters.AddWithValue("@UOMFromId", vm.UOMFromId);
-                    cmd.Parameters.AddWithValue("@UOMConversion", vm.UOMConversion);
-                    cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
+                    //cmd.Parameters.AddWithValue("@UOMId", vm.UOMId);
+                    //cmd.Parameters.AddWithValue("@UOMFromId", vm.UOMFromId);
+                    //cmd.Parameters.AddWithValue("@UOMConversion", vm.UOMConversion);
+                    //cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@VATType", vm.VATType);
                     cmd.Parameters.AddWithValue("@TransactionType", vm.TransactionType);
                     cmd.Parameters.AddWithValue("@IsPost", vm.IsPost);
-                    cmd.Parameters.AddWithValue("@InvoiceDateTime", vm.InvoiceDateTime);
-                    cmd.Parameters.AddWithValue("@IsFixedVAT", vm.IsFixedVAT);
-                    cmd.Parameters.AddWithValue("@FixedVATAmount", vm.FixedVATAmount);
+                    //cmd.Parameters.AddWithValue("@InvoiceDateTime", vm.InvoiceDateTime);
+                    //cmd.Parameters.AddWithValue("@IsFixedVAT", vm.IsFixedVAT);
+                    //cmd.Parameters.AddWithValue("@FixedVATAmount", vm.FixedVATAmount);
 
                     vm.Id = Convert.ToInt32(cmd.ExecuteScalar());
 
@@ -161,16 +161,16 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@VATAmount", vm.VATAmount);
                     cmd.Parameters.AddWithValue("@OthersAmount", vm.OthersAmount);
                     cmd.Parameters.AddWithValue("@LineTotal", vm.LineTotal);
-                    cmd.Parameters.AddWithValue("@UOMId", vm.UOMId);
-                    cmd.Parameters.AddWithValue("@UOMFromId", vm.UOMFromId);
-                    cmd.Parameters.AddWithValue("@UOMConversion", vm.UOMConversion);
-                    cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
+                    //cmd.Parameters.AddWithValue("@UOMId", vm.UOMId);
+                    //cmd.Parameters.AddWithValue("@UOMFromId", vm.UOMFromId);
+                    //cmd.Parameters.AddWithValue("@UOMConversion", vm.UOMConversion);
+                    //cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@VATType", vm.VATType);
                     cmd.Parameters.AddWithValue("@TransactionType", vm.TransactionType);
                     cmd.Parameters.AddWithValue("@IsPost", vm.IsPost);
-                    cmd.Parameters.AddWithValue("@InvoiceDateTime", vm.InvoiceDateTime);
-                    cmd.Parameters.AddWithValue("@IsFixedVAT", vm.IsFixedVAT);
-                    cmd.Parameters.AddWithValue("@FixedVATAmount", vm.FixedVATAmount);
+                    //cmd.Parameters.AddWithValue("@InvoiceDateTime", vm.InvoiceDateTime);
+                    //cmd.Parameters.AddWithValue("@IsFixedVAT", vm.IsFixedVAT);
+                    //cmd.Parameters.AddWithValue("@FixedVATAmount", vm.FixedVATAmount);
 
                     int rowsAffected = cmd.ExecuteNonQuery();
                     if (rowsAffected > 0)
@@ -324,16 +324,16 @@ FROM PurchaseOrderDetails WHERE 1 = 1";
                     VATAmount = row.Field<decimal>("VATAmount"),
                     OthersAmount = row.Field<decimal>("OthersAmount"),
                     LineTotal = row.Field<decimal>("LineTotal"),
-                    UOMId = row.Field<int>("UOMId"),
-                    UOMFromId = row.Field<int>("UOMFromId"),
-                    UOMConversion = row.Field<decimal>("UOMConversion"),
-                    Comments = row.Field<string>("Comments"),
+                    //UOMId = row.Field<int>("UOMId"),
+                    //UOMFromId = row.Field<int>("UOMFromId"),
+                    //UOMConversion = row.Field<decimal>("UOMConversion"),
+                    //Comments = row.Field<string>("Comments"),
                     VATType = row.Field<string>("VATType"),
                     TransactionType = row.Field<string>("TransactionType"),
                     IsPost = row.Field<bool>("IsPost"),
-                    InvoiceDateTime = row.Field<string>("InvoiceDateTime"),
-                    IsFixedVAT = row.Field<bool>("IsFixedVAT"),
-                    FixedVATAmount = row.Field<decimal>("FixedVATAmount")
+                    //InvoiceDateTime = row.Field<string>("InvoiceDateTime"),
+                    //IsFixedVAT = row.Field<bool>("IsFixedVAT"),
+                    //FixedVATAmount = row.Field<decimal>("FixedVATAmount")
                 }).ToList();
 
 
