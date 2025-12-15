@@ -1763,10 +1763,9 @@ COALESCE(COUNT(P.Id), 0) AS FilteredCount
 
 FROM Products P
 LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
-LEFT OUTER JOIN ProductPurchasePriceBatchHistories PBH ON P.Id = PBH.ProductId
 LEFT OUTER JOIN UOMs uom ON P.UOMId = uom.Id
 
-WHERE @param P.IsActive = 1 
+WHERE P.IsActive = 1  
 ";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.FromDate))
@@ -2021,8 +2020,181 @@ WHERE @param P.IsActive = 1
             }
         }
 
+        public async Task<ResultVM> ParentBranchProfileList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = @"
+
+            SELECT '' Code,0 Id,'All' Name,'' Email
+            UNION ALL
+			SELECT DISTINCT
+			 ISNULL(H.Code,'') Code
+			,ISNULL(H.Id,0) Id
+			,ISNULL(H.Name,'') Name
+		    ,ISNULL(H.Email,'') Email
+			
+		
+			FROM BranchProfiles H
+
+			WHERE H.IsActive=1 ";
 
 
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                // SET additional conditions param
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new BranchProfileVM
+                {
+                    Id = Convert.ToInt32(row["Id"]),
+                    Name = row["Name"]?.ToString(),
+                    Code = row["Code"]?.ToString(),
+                    Email = row["Email"]?.ToString(),
+
+
+                }).ToList();
+
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
+        public async Task<ResultVM> GetProductModalForPurchaseData(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = @"
+SELECT 
+ISNULL(P.Id,0)ProductId , 
+ISNULL(P.Name,'') ProductName,
+ISNULL(P.BanglaName,'') BanglaName, 
+ISNULL(P.Code,'') ProductCode, 
+ISNULL(P.HSCodeNo,'') HSCodeNo,
+ISNULL(P.ProductGroupId,0) ProductGroupId,
+ISNULL(PG.Name,'') ProductGroupName,
+ISNULL(P.UOMId,0) UOMId,
+ISNULL(UOM.Name,'') UOMName,
+ISNULL(P.PurchasePrice,0) PurchasePrice,
+CASE WHEN P.IsActive = 1 THEN 'Active' ELSE 'Inactive' END Status
+
+FROM Products P
+LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+LEFT OUTER JOIN UOMs uom ON P.UOMId = uom.Id
+
+WHERE P.IsActive = 1 
+";
+
+                if (vm != null && !string.IsNullOrEmpty(vm.FromDate))
+                {
+                    query = query.Replace("@param", " PBH.BranchId = @BranchId AND CAST(PBH.EffectDate AS DATE) <= " + "@FromDate" + " AND ");
+                }
+                else
+                {
+                    query = query.Replace("@param", "");
+                }
+
+                // Apply additional conditions
+                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
+                query += @"  ORDER BY " + vm.OrderName + "  " + vm.orderDir;
+                query += @" OFFSET  " + vm.startRec + @" ROWS FETCH NEXT " + vm.pageSize + " ROWS ONLY";
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                // SET additional conditions param
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                if (vm != null && !string.IsNullOrEmpty(vm.BranchId))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
+                }
+                if (vm != null && !string.IsNullOrEmpty(vm.FromDate))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@FromDate", vm.FromDate);
+                }
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new ProductDataVM 
+                {
+                    ProductId = row.Field<int>("ProductId"),
+                    ProductName = row.Field<string>("ProductName"),
+                    BanglaName = row.Field<string>("BanglaName"),
+                    ProductCode = row.Field<string>("ProductCode"),
+                    HSCodeNo = row.Field<string>("HSCodeNo"),
+                    ProductGroupId = row.Field<int>("ProductGroupId"),
+                    ProductGroupName = row.Field<string>("ProductGroupName"),
+                    UOMId = row.Field<int>("UOMId"),
+                    UOMName = row.Field<string>("UOMName"),
+                    PurchasePrice = row.Field<decimal>("PurchasePrice"),
+                    Status = row.Field<string>("Status")
+
+                }).ToList();
+
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
     }
 
 }
