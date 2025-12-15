@@ -31,8 +31,9 @@ namespace ShampanPOS.ViewModel
 
         [Display(Name = "Bangla Name")]
         public string? BanglaName { get; set; }
-        [Display(Name = "Customer Category")]
-        public string? CustomerCategory { get; set; }
+
+        //[Display(Name = "Customer Category")]
+        //public string? CustomerCategory { get; set; }
 
         [Display(Name = "Address")]
         public string? Address { get; set; }

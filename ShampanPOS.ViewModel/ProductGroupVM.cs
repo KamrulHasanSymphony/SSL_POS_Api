@@ -47,7 +47,6 @@ namespace ShampanPOS.ViewModel
 
         public string? Operation { get; set; }
         public string? Status { get; set; }
-        //public string?[] IDs { get; set; }
 
 
 

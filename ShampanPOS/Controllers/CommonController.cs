@@ -89,7 +89,6 @@ namespace ShampanPOS.Controllers
         }
 
 
-
         // POST: api/Common/ParentAreaList
         [HttpPost("ParentAreaList")]
         public async Task<ResultVM> ParentAreaList(CommonVM Vm)
@@ -114,7 +113,6 @@ namespace ShampanPOS.Controllers
         }
 
       
-
         // POST: api/Common/AssingedBranchList
         [HttpPost("AssingedBranchList")]
         public async Task<ResultVM> AssingedBranchList(CommonVM Vm)
@@ -137,7 +135,6 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
-
 
         // POST: api/Common/ProductGroupList
         [HttpPost("ProductGroupList")]
@@ -208,9 +205,6 @@ namespace ShampanPOS.Controllers
             }
         }
 
-
-
-
         // POST: api/Common/ProductList
         [HttpPost("ProductList")]
         public async Task<ResultVM> ProductList(CommonVM Vm)
@@ -233,11 +227,6 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
-
-
-
-
-
 
         // POST: api/Common/CustomerList
         [HttpPost("CustomerList")]
@@ -334,37 +323,6 @@ namespace ShampanPOS.Controllers
             }
         } 
 
-
-
-
-
-
-
-        // POST: api/Common/GetProductModalForPurchaseData
-        //[HttpPost("GetProductModalForPurchaseData")]
-        //public async Task<ResultVM> GetProductModalForPurchaseData(ProductDataVM model)
-        //{
-        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-        //    try
-        //    {
-        //        CommonService _commonService = new CommonService();
-        //        PeramModel vm = new PeramModel();
-        //        vm = model.PeramModel;
-
-        //        resultVM = await _commonService.GetProductModalForPurchaseData(new[] { "P.Code like", "P.Name like", "P.BanglaName like", "P.HSCodeNo like", "PG.Name like", "UOM.Name like" }, new[] { model.ProductCode, model.ProductName, model.BanglaName, model.HSCodeNo, model.ProductGroupName, model.UOMName }, vm);
-        //        return resultVM;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return new ResultVM
-        //        {
-        //            Status = "Fail",
-        //            Message = ex.Message,
-        //            ExMessage = ex.Message,
-        //            DataVM = model
-        //        };
-        //    }
-        //} 
         [HttpPost("GetAreaList")]
         public async Task<ResultVM> GetAreaList(CommonVM vm)
         {
@@ -396,100 +354,6 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
-
-
-
-
-
-        // POST: api/Common/GetTop10Customers
-        //[HttpPost("GetTop10Customers")]
-        //public async Task<ResultVM> GetTop10Customers(CommonVM Vm)
-        //{
-        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-        //    try
-        //    {
-        //        CommonService _commonService = new CommonService();
-        //        resultVM = await _commonService.GetTop10Customers(Vm.BranchId);
-        //        return resultVM;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return new ResultVM
-        //        {
-        //            Status = "Fail",
-        //            Message = "Data not fetched.",
-        //            ExMessage = ex.Message,
-        //            DataVM = null
-        //        };
-        //    }
-        //}
-
-        // POST: api/Common/GetBottom10Customers
-        //[HttpPost("GetBottom10Customers")]
-        //public async Task<ResultVM> GetBottom10Customers(CommonVM Vm)
-        //{
-        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-        //    try
-        //    {
-        //        CommonService _commonService = new CommonService();
-        //        resultVM = await _commonService.GetBottom10Customers(Vm.BranchId);
-        //        return resultVM;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return new ResultVM
-        //        {
-        //            Status = "Fail",
-        //            Message = "Data not fetched.",
-        //            ExMessage = ex.Message,
-        //            DataVM = null
-        //        };
-        //    }
-        //} 
-        //[HttpPost("GetPendingSales")]
-        //public async Task<ResultVM> GetPendingSales(CommonVM Vm)
-        //{
-        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-        //    try
-        //    {
-        //        CommonService _commonService = new CommonService();
-        //        resultVM = await _commonService.GetPendingSales(Vm.BranchId);
-        //        return resultVM;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return new ResultVM
-        //        {
-        //            Status = "Fail",
-        //            Message = "Data not fetched.",
-        //            ExMessage = ex.Message,
-        //            DataVM = null
-        //        };
-        //    }
-        //} 
-        //[HttpPost("PaymentTypeList")]
-        //public async Task<ResultVM> PaymentTypeList(CommonVM Vm)
-        //{
-        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-        //    try
-        //    {
-
-
-        //        CommonService _commonService = new CommonService();
-        //        resultVM = await _commonService.PaymentTypeList(new[] { "" }, new[] { "" }, null);
-        //        return resultVM;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return new ResultVM
-        //        {
-        //            Status = "Fail",
-        //            Message = "Data not fetched.",
-        //            ExMessage = ex.Message,
-        //            DataVM = null
-        //        };
-        //    }
-        //}
          
         [HttpPost]
         [Route("CheckDayEnd")]

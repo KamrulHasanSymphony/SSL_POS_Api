@@ -22,10 +22,12 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Bangla Name")]
         public string? BanglaName { get; set; }
 
-        [Display(Name = "Parent")]
-        public int? ParentId { get; set; }
-        public string? EnumType { get; set; }
-  
+
+        [Display(Name = "Area")]
+        public int? AreaId { get; set; }
+
+        [Display(Name = "Area Name")]
+        public string? AreaName { get; set; }
 
         [Display(Name = "Telephone Number")]
         public string? TelephoneNo { get; set; }
