@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ShampanPOS.Configuration;
+using ShampanPOS.Repository;
 using ShampanPOS.Service;
 using ShampanPOS.ViewModel;
 using ShampanPOS.ViewModel.CommonVMs;
@@ -13,20 +14,21 @@ namespace ShampanPOS.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PurchaseOrderController : ControllerBase
+    public class PurchaseReturnController : ControllerBase
     {
-        PurchaseOrderService _purchaseOrderService = new PurchaseOrderService();
+        PurchaseReturnService _service = new PurchaseReturnService();
         CommonService _common = new CommonService();
 
+        // POST: api/PurchaseReturn/Insert
         [HttpPost("Insert")]
-        public async Task<ResultVM> Insert(PurchaseOrderVM purchase)
+        public async Task<ResultVM> Insert(PurchaseReturnVM model)
         {
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            _purchaseOrderService = new PurchaseOrderService();
+            _service = new PurchaseReturnService();
 
             try
             {
-                resultVM = await _purchaseOrderService.Insert(purchase);
+                resultVM = await _service.Insert(model);
                 return resultVM;
             }
             catch (Exception ex)
@@ -36,19 +38,20 @@ namespace ShampanPOS.Controllers
                     Status = "Fail",
                     Message = ex.Message,
                     ExMessage = ex.Message,
-                    DataVM = purchase
+                    DataVM = model
                 };
             }
         }
 
+        // POST: api/PurchaseReturn/Update
         [HttpPost("Update")]
-        public async Task<ResultVM> Update(PurchaseOrderVM purchase)
+        public async Task<ResultVM> Update(PurchaseReturnVM model)
         {
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
-                _purchaseOrderService = new PurchaseOrderService();
-                resultVM = await _purchaseOrderService.Update(purchase);
+                _service = new PurchaseReturnService();
+                resultVM = await _service.Update(model);
                 return resultVM;
             }
             catch (Exception ex)
@@ -58,25 +61,24 @@ namespace ShampanPOS.Controllers
                     Status = "Fail",
                     Message = ex.Message,
                     ExMessage = ex.Message,
-                    DataVM = purchase
+                    DataVM = model
                 };
             }
         }
 
-
-        // POST: api/SaleDelivery/Delete
+        // POST: api/PurchaseReturn/Delete
         [HttpPost("Delete")]
-        public async Task<ResultVM> Delete(CommonVM vm)
+        public async Task<ResultVM> Delete(PurchaseReturnVM model)
         {
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, IDs = null, DataVM = null };
             try
             {
-                _purchaseOrderService = new PurchaseOrderService();
+                _service = new PurchaseReturnService();
 
                 string?[] IDs = null;
-                IDs = new string?[] { vm.Id.ToString() };
+                IDs = new string?[] { model.Id.ToString() };
 
-                resultVM = await _purchaseOrderService.Delete(IDs);
+                resultVM = await _service.Delete(IDs);
                 return resultVM;
             }
             catch (Exception ex)
@@ -86,20 +88,20 @@ namespace ShampanPOS.Controllers
                     Status = "Fail",
                     Message = ex.Message,
                     ExMessage = ex.Message,
-                    DataVM = vm
+                    DataVM = model
                 };
             }
         }
 
-        // POST: api/PurchaseOrder/List
+        // POST: api/PurchaseReturn/List
         [HttpPost("List")]
         public async Task<ResultVM> List(CommonVM vm)
         {
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
-                _purchaseOrderService = new PurchaseOrderService();
-                resultVM = await _purchaseOrderService.List(new[] { "M.Id" }, new[] { vm.Id }, null);
+                _service = new PurchaseReturnService();
+                resultVM = await _service.List(new[] { "M.Id" }, new[] { vm.Id }, null);
                 return resultVM;
             }
             catch (Exception ex)
@@ -114,15 +116,15 @@ namespace ShampanPOS.Controllers
             }
         }
 
-        // GET: api/PurchaseOrder/ListAsDataTable
+        // GET: api/PurchaseReturn/ListAsDataTable
         [HttpGet("ListAsDataTable")]
-        public async Task<ResultVM> ListAsDataTable(CommonVM vm)
+        public async Task<ResultVM> ListAsDataTable(PurchaseReturnVM model)
         {
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
-                _purchaseOrderService = new PurchaseOrderService();
-                resultVM = await _purchaseOrderService.ListAsDataTable(new[] { "" }, new[] { "" });
+                _service = new PurchaseReturnService();
+                resultVM = await _service.ListAsDataTable(new[] { "" }, new[] { "" });
                 return resultVM;
             }
             catch (Exception ex)
@@ -132,20 +134,20 @@ namespace ShampanPOS.Controllers
                     Status = "Fail",
                     Message = ex.Message,
                     ExMessage = ex.Message,
-                    DataVM = vm
+                    DataVM = model
                 };
             }
         }
 
-        //GET: api/PurchaseOrder/Dropdown
+        //GET: api/PurchaseReturn/Dropdown
         [HttpGet("Dropdown")]
         public async Task<ResultVM> Dropdown()
         {
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
-                _purchaseOrderService = new PurchaseOrderService();
-                resultVM = await _purchaseOrderService.Dropdown(); // Adjust if Dropdown requires a different method
+                _service = new PurchaseReturnService();
+                resultVM = await _service.Dropdown(); // Adjust if Dropdown requires a different method
                 return resultVM;
             }
             catch (Exception ex)
@@ -161,16 +163,16 @@ namespace ShampanPOS.Controllers
         }
 
 
-        // POST: api/PurchaseOrder/MultiplePost
+        // POST: api/PurchaseReturn/MultiplePost
         [HttpPost("MultiplePost")]
         public async Task<ResultVM> MultiplePost(CommonVM vm)
         {
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, IDs = null, DataVM = null };
             try
             {
-                _purchaseOrderService = new PurchaseOrderService();
+                _service = new PurchaseReturnService();
 
-                resultVM = await _purchaseOrderService.MultiplePost(vm);
+                resultVM = await _service.MultiplePost(vm);
                 return resultVM;
             }
             catch (Exception ex)
@@ -185,39 +187,16 @@ namespace ShampanPOS.Controllers
             }
         }
 
-        // POST: api/PurchaseOrder/MultipleIsCompleted
-        [HttpPost("MultipleIsCompleted")]
-        public async Task<ResultVM> MultipleIsCompleted(CommonVM vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, IDs = null, DataVM = null };
-            try
-            {
-                _purchaseOrderService = new PurchaseOrderService();
 
-                resultVM = await _purchaseOrderService.MultipleIsCompleted(vm);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = ex.Message,
-                    ExMessage = ex.Message,
-                    DataVM = vm
-                };
-            }
-        }
-
-        // POST: api/PurchaseOrder/GetGridData
+        // POST: api/PurchaseReturn/GetGridData
         [HttpPost("GetGridData")]
         public async Task<ResultVM> GetGridData(GridOptions options)
         {
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
-                _purchaseOrderService = new PurchaseOrderService();
-                resultVM = await _purchaseOrderService.GetGridData(options, new[] { "H.BranchId", "H.IsPost", "H.OrderDate between", "H.OrderDate between" }, new[] { options.vm.BranchId.ToString(), options.vm.IsPost.ToString(), options.vm.FromDate.ToString(), options.vm.ToDate.ToString() });
+                _service = new PurchaseReturnService();
+                resultVM = await _service.GetGridData(options, new[] { "H.BranchId", "H.IsPost", "H.PurchaseDate between", "H.PurchaseDate between" }, new[] { options.vm.BranchId.ToString(), options.vm.IsPost.ToString(), options.vm.FromDate.ToString(), options.vm.ToDate.ToString() });
                 return resultVM;
             }
             catch (Exception ex)
@@ -232,15 +211,15 @@ namespace ShampanPOS.Controllers
             }
         }
 
-        // POST: api/PurchaseOrder/GetDetailsGridData
+        // POST: api/PurchaseReturn/GetDetailsGridData
         [HttpPost("GetDetailsGridData")]
         public async Task<ResultVM> GetDetailsGridData(GridOptions options)
         {
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
-                _purchaseOrderService = new PurchaseOrderService();
-                resultVM = await _purchaseOrderService.GetDetailsGridData(options, new[] { "H.BranchId", "H.IsPost", "H.OrderDate between", "H.OrderDate between" }, new[] { options.vm.BranchId.ToString(), options.vm.IsPost.ToString(), options.vm.FromDate.ToString(), options.vm.ToDate.ToString() });
+                _service = new PurchaseReturnService();
+                resultVM = await _service.GetDetailsGridData(options, new[] { "H.BranchId", "H.IsPost", "H.PurchaseReturnDate between", "H.PurchaseReturnDate between" }, new[] { options.vm.BranchId.ToString(), options.vm.IsPost.ToString(), options.vm.FromDate.ToString(), options.vm.ToDate.ToString() });
                 return resultVM;
             }
             catch (Exception ex)
@@ -255,41 +234,15 @@ namespace ShampanPOS.Controllers
             }
         }
 
-
-
-
-        // POST: api/PurchaseOrder/PurchaseOrderList
-        [HttpPost("PurchaseOrderList")]
-        public async Task<ResultVM> PurchaseOrderList(CommonVM vm)
+        // POST: api/PurchaseReturn/GetPurchaseReturnDetailDataById
+        [HttpPost("GetPurchaseReturnDetailDataById")]
+        public async Task<ResultVM> GetPurchaseReturnDetailDataById(GridOptions options, int masterId)
         {
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
-                _purchaseOrderService = new PurchaseOrderService();
-                resultVM = await _purchaseOrderService.PurchaseOrderList(vm.IDs);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = ex.Message,
-                    ExMessage = ex.Message,
-                    DataVM = vm
-                };
-            }
-        }
-
-        // POST: api/PurchaseOrder/GetPurchaseOrderDetailDataById
-        [HttpPost("GetPurchaseOrderDetailDataById")]
-        public async Task<ResultVM> GetPurchaseOrderDetailDataById(GridOptions options, int masterId)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                _purchaseOrderService = new PurchaseOrderService();
-                resultVM = await _purchaseOrderService.GetPurchaseOrderDetailDataById(options, masterId);
+                _service = new PurchaseReturnService();
+                resultVM = await _service.GetPurchaseReturnDetailDataById(options, masterId);
                 return resultVM;
             }
             catch (Exception ex)
@@ -304,10 +257,34 @@ namespace ShampanPOS.Controllers
             }
         }
 
+        // POST: api/PurchaseReturn/SummaryReport
+        //[HttpPost("SummaryReport")]
+        //public async Task<ResultVM> SummaryReport(CommonVM vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        _service = new PurchaseReturnService();
+        //        PeramModel param = new PeramModel();
+        //        param.FromDate = vm.FromDate;
+        //        param.ToDate = vm.ToDate;
+        //        resultVM = await _service.SummaryReport(new[] { "M.BranchId", "M.IsPost" }, new[] { vm.BranchId, vm.IsPost.ToLower() == "false" ? "0" : "1" }, param);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = ex.Message,
+        //            ExMessage = ex.Message,
+        //            DataVM = vm
+        //        };
+        //    }
+        //}
 
 
-
-        // POST: api/PurchaseOrder/ReportPreview
+        // POST: api/PurchaseReturn/ReportPreview
         [HttpPost("ReportPreview")]
         public async Task<FileStreamResult> ReportPreview(CommonVM vm)
         {
@@ -331,10 +308,10 @@ namespace ShampanPOS.Controllers
                     throw new Exception("Report API Url Not Found!");
                 }
 
-                _purchaseOrderService = new PurchaseOrderService();
+                _service = new PurchaseReturnService();
                 PeramModel peramModel = new PeramModel();
                 peramModel.CompanyId = vm.CompanyId;
-                var resultVM = await _purchaseOrderService.ReportPreview(new[] { "M.Id", "M.BranchId", "M.OrderDate between", "M.OrderDate between" }, new[] { vm.Id, vm.BranchId, vm.FromDate, vm.ToDate }, peramModel);
+                var resultVM = await _service.ReportPreview(new[] { "M.Id", "M.BranchId", "M.PurchaseReturnDate between", "M.PurchaseReturnDate between" }, new[] { vm.Id, vm.BranchId, vm.FromDate, vm.ToDate }, peramModel);
 
                 if (resultVM.Status == "Success" && resultVM.DataVM is DataTable dt && dt.Rows.Count > 0)
                 {
@@ -347,7 +324,7 @@ namespace ShampanPOS.Controllers
                         PathName = baseUrl
                     });
 
-                    var stream = httpRequestHelper.PostDataReport(baseUrl + "/api/Purchase/GetPurchaseOrder", authModel, json);
+                    var stream = httpRequestHelper.PostDataReport(baseUrl + "/api/Purchase/GetPurchaseReturn", authModel, json);
 
                     if (stream == null)
                     {
@@ -367,35 +344,6 @@ namespace ShampanPOS.Controllers
                 throw new Exception($"Error generating report: {ex.Message}");
             }
         }
-
-
-
-
-
-        // POST: api/PurchaseOrder/FromPurchaseOrderGridData
-        [HttpPost("FromPurchaseOrderGridData")]
-        public async Task<ResultVM> FromPurchaseOrderGridData(GridOptions options)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                _purchaseOrderService = new PurchaseOrderService();
-                resultVM = await _purchaseOrderService.FromPurchaseOrderGridData(options);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = ex.Message,
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
-
-
 
     }
 }

@@ -445,6 +445,33 @@ namespace ShampanPOS.Controllers
             }
         }
 
+        // POST: api/Common/GetProductModalForSaleData
+        [HttpPost("GetProductModalForSaleData")]
+        public async Task<ResultVM> GetProductModalForSaleData(ProductDataVM model)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                CommonService _commonService = new CommonService();
+                PeramModel vm = new PeramModel();
+                vm = model.PeramModel;
+
+                resultVM = await _commonService.GetProductModalForSaleData(new[] { "P.Code like", "P.Name like", "P.BanglaName like", "P.HSCodeNo like", "PG.Name like", "UOM.Name like", "P.ImagePath like" }, new[] { model.ProductCode, model.ProductName, model.BanglaName, model.HSCodeNo, model.ProductGroupName, model.UOMName, model.ImagePath }, vm);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = ex.Message,
+                    ExMessage = ex.Message,
+                    DataVM = model
+                };
+            }
+        }
+
+
 
     }
 }

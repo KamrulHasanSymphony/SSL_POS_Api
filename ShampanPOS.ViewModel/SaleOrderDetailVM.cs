@@ -1,21 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
 namespace ShampanPOS.ViewModel
 {
-    public class PurchaseOrderDetailVM
+
+    public class SaleOrderDetailVM
     {
         public int Id { get; set; }
 
-        [Display(Name = "Purchase Order")]
-        public int? PurchaseOrderId { get; set; }
+
+        [Display(Name = "Sale Order")]
+        public int? SaleOrderId { get; set; }
+
 
         [Display(Name = "Branch")]
         public int? BranchId { get; set; }
+
 
         [Display(Name = "Line")]
         public int? Line { get; set; }
@@ -23,17 +27,19 @@ namespace ShampanPOS.ViewModel
 
         [Display(Name = "Product")]
         public int? ProductId { get; set; }
-        public string? ProductCode { get; set; }
         public string? ProductName { get; set; }
-        public string? UOMName { get; set; }
+        public string? ProductCode { get; set; }
+
 
         [Display(Name = "Quantity")]
         [DataType(DataType.Currency)]
         public decimal? Quantity { get; set; }
 
-        [Display(Name = "Unit Price")]
+
+        [Display(Name = "Unit Rate")]
         [DataType(DataType.Currency)]
-        public decimal? UnitPrice { get; set; }
+        public decimal? UnitRate { get; set; }
+
 
         [Display(Name = "Subtotal")]
         [DataType(DataType.Currency)]
@@ -59,16 +65,16 @@ namespace ShampanPOS.ViewModel
         public decimal? VATAmount { get; set; }
 
 
-        [Display(Name = "Others Amount")]
-        [DataType(DataType.Currency)]
-        public decimal? OthersAmount { get; set; }
-
-
         [Display(Name = "Line Total")]
         [DataType(DataType.Currency)]
         public decimal? LineTotal { get; set; }
+
+        [Display(Name = "Comments")]
+        public string? Comments { get; set; }
+        public string? Operation { get; set; }
         public decimal? CompletedQty { get; set; }
         public decimal? RemainQty { get; set; }
-        public bool? IsCompleted { get; set; }
+
     }
+
 }

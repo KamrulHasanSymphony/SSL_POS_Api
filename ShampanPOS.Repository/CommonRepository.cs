@@ -1660,83 +1660,83 @@ WHERE
         }
 
 
-        public async Task<ResultVM> GetProductModalForSaleCountData(
-    string[] conditionalFields,
-    string[] conditionalValues,
-    PeramModel vm = null,
-    SqlConnection conn = null,
-    SqlTransaction transaction = null)
-        {
-            bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+//        public async Task<ResultVM> GetProductModalForSaleCountData(
+//    string[] conditionalFields,
+//    string[] conditionalValues,
+//    PeramModel vm = null,
+//    SqlConnection conn = null,
+//    SqlTransaction transaction = null)
+//        {
+//            bool isNewConnection = false;
+//            DataTable dataTable = new DataTable();
+//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
 
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    conn.Open();
-                    isNewConnection = true;
-                }
+//            try
+//            {
+//                if (conn == null)
+//                {
+//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+//                    conn.Open();
+//                    isNewConnection = true;
+//                }
 
-                // ✅ Get Customer Category
-                SqlCommand checkCommand = new SqlCommand("SELECT CustomerCategory FROM Customers WHERE Id=@Id", conn, transaction);
-                checkCommand.Parameters.Add("@Id", SqlDbType.BigInt).Value = vm.CustomerId;
-                object res = checkCommand.ExecuteScalar();
-                string customerCategory = res != null ? res.ToString() : "0";
+//                // ✅ Get Customer Category
+//                SqlCommand checkCommand = new SqlCommand("SELECT CustomerCategory FROM Customers WHERE Id=@Id", conn, transaction);
+//                checkCommand.Parameters.Add("@Id", SqlDbType.BigInt).Value = vm.CustomerId;
+//                object res = checkCommand.ExecuteScalar();
+//                string customerCategory = res != null ? res.ToString() : "0";
 
-                // ✅ Main Count Query (Removed @FromDate)
-                string query = @"
-SELECT
-    COALESCE(COUNT(P.Id), 0) AS FilteredCount
-FROM Products P
-LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
-LEFT OUTER JOIN ProductSalePriceBatchHistories PBH ON P.Id = PBH.ProductId
-LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
-WHERE PBH.PriceCategory = @PriceCategory 
-  AND PBH.BranchId = @BranchId 
-  AND P.IsActive = 1
-";
+//                // ✅ Main Count Query (Removed @FromDate)
+//                string query = @"
+//SELECT
+//    COALESCE(COUNT(P.Id), 0) AS FilteredCount
+//FROM Products P
+//LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+//LEFT OUTER JOIN ProductSalePriceBatchHistories PBH ON P.Id = PBH.ProductId
+//LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
+//WHERE PBH.PriceCategory = @PriceCategory 
+//  AND PBH.BranchId = @BranchId 
+//  AND P.IsActive = 1
+//";
 
-                // ✅ Apply dynamic conditions
-                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
+//                // ✅ Apply dynamic conditions
+//                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
 
-                // ✅ Create adapter and apply parameters
-                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
-                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+//                // ✅ Create adapter and apply parameters
+//                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+//                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
-                if (vm != null && !string.IsNullOrEmpty(vm.BranchId))
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
-                }
-                if (customerCategory != null)
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@PriceCategory", customerCategory);
-                }
+//                if (vm != null && !string.IsNullOrEmpty(vm.BranchId))
+//                {
+//                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
+//                }
+//                if (customerCategory != null)
+//                {
+//                    objComm.SelectCommand.Parameters.AddWithValue("@PriceCategory", customerCategory);
+//                }
 
-                objComm.Fill(dataTable);
+//                objComm.Fill(dataTable);
 
-                // ✅ Return result
-                result.Status = "Success";
-                result.Message = "Data retrieved successfully.";
-                result.Count = Convert.ToInt32(dataTable.Rows[0][0]);
-                return result;
-            }
-            catch (Exception ex)
-            {
-                result.ExMessage = ex.Message;
-                result.Message = ex.Message;
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
+//                // ✅ Return result
+//                result.Status = "Success";
+//                result.Message = "Data retrieved successfully.";
+//                result.Count = Convert.ToInt32(dataTable.Rows[0][0]);
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                result.ExMessage = ex.Message;
+//                result.Message = ex.Message;
+//                return result;
+//            }
+//            finally
+//            {
+//                if (isNewConnection && conn != null)
+//                {
+//                    conn.Close();
+//                }
+//            }
+//        }
 
         public async Task<ResultVM> GetProductModalForPurchaseCountData(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {
@@ -2195,6 +2195,297 @@ WHERE P.IsActive = 1
                 }
             }
         }
+
+        public async Task<ResultVM> GetProductModalForSaleCountData(
+    string[] conditionalFields,
+    string[] conditionalValues,
+    PeramModel vm = null,
+    SqlConnection conn = null,
+    SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                // ✅ Get Customer Category
+                SqlCommand checkCommand = new SqlCommand("SELECT CustomerCategory FROM Customers WHERE Id=@Id", conn, transaction);
+                checkCommand.Parameters.Add("@Id", SqlDbType.BigInt).Value = vm.CustomerId;
+                object res = checkCommand.ExecuteScalar();
+                string customerCategory = res != null ? res.ToString() : "0";
+
+                // ✅ Main Count Query (Removed @FromDate)
+                string query = @"
+SELECT
+    COALESCE(COUNT(P.Id), 0) AS FilteredCount
+FROM Products P
+LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+LEFT OUTER JOIN ProductSalePriceBatchHistories PBH ON P.Id = PBH.ProductId
+LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
+WHERE PBH.PriceCategory = @PriceCategory 
+  AND PBH.BranchId = @BranchId 
+  AND P.IsActive = 1
+";
+
+                // ✅ Apply dynamic conditions
+                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
+
+                // ✅ Create adapter and apply parameters
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                if (vm != null && !string.IsNullOrEmpty(vm.BranchId))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
+                }
+                if (customerCategory != null)
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@PriceCategory", customerCategory);
+                }
+
+                objComm.Fill(dataTable);
+
+                // ✅ Return result
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.Count = Convert.ToInt32(dataTable.Rows[0][0]);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
+
+
+
+        public async Task<ResultVM> GetProductModalForSaleData(
+            string[] conditionalFields,
+            string[] conditionalValues,
+            PeramModel vm = null,
+            SqlConnection conn = null,
+            SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                // ✅ Get Customer Category
+                SqlCommand checkCommand = new SqlCommand("SELECT CustomerCategory FROM Customers WHERE Id=@Id", conn, transaction);
+                checkCommand.Parameters.Add("@Id", SqlDbType.BigInt).Value = vm.CustomerId;
+                object res = checkCommand.ExecuteScalar();
+                string customerCategory = res != null ? res.ToString() : "0";
+
+                // ✅ Main Query (All @FromDate Removed)
+                string query = @"
+SELECT 
+    ISNULL(P.Id,0) AS ProductId, 
+    ISNULL(P.Name,'') AS ProductName,
+    ISNULL(P.BanglaName,'') AS BanglaName, 
+    ISNULL(P.Code,'') AS ProductCode, 
+    ISNULL(P.HSCodeNo,'') AS HSCodeNo,ISNULL(P.ImagePath, '') AS ImagePath,
+    CASE  WHEN P.ImagePath IS NULL OR P.ImagePath = '' THEN '/Content/Products/No_Image_Available.jpg' ELSE P.ImagePath END AS ImagePathImage,
+    ISNULL(P.ProductGroupId, 0) AS ProductGroupId,
+    ISNULL(PG.Name,'') AS ProductGroupName,
+    0 AS UOMId,
+    ISNULL(UOM.Name,'') AS UOMName,
+    ISNULL(PBH.CostPrice,0) AS CostPrice, 
+    ISNULL(PBH.SalesPrice,0) AS SalesPrice, 
+    ISNULL(PBH.PurchasePrice,0) AS PurchasePrice, 
+    ISNULL(PBH.SD,0) AS SD, 
+    ISNULL(PBH.VATRate,0) AS VATRate, 
+    ISNULL(stock.Quantity,0) AS QuantityInHand,
+	ISNULL(CampaignRate.DiscountRate,0)DiscountRate,
+    P.CtnSize AS UOMName,
+    P.CtnSizeFactor AS UOMConversion,
+    CASE WHEN P.IsActive = 1 THEN 'Active' ELSE 'Inactive' END AS Status
+
+FROM Products P
+LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+LEFT OUTER JOIN ProductSalePriceBatchHistories PBH ON P.Id = PBH.ProductId
+LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
+
+LEFT OUTER JOIN (
+    SELECT BranchId, ProductId, SUM(Quantity) AS Quantity 
+    FROM (
+        SELECT 
+            BranchId,
+            ProductId,
+            SUM(
+                CASE 
+                    WHEN Type = 'Purchase' THEN Quantity 
+                    WHEN Type = 'Sales' THEN -Quantity 
+                    ELSE 0 
+                END
+            ) AS Quantity
+        FROM DayEndDetails
+        WHERE BranchId = @BranchId
+        GROUP BY BranchId, ProductId
+
+        UNION ALL
+
+        SELECT 
+            ProductsOpeningStocks.BranchId,
+            ProductId,
+            SUM(OpeningQuantity) AS Quantity
+        FROM ProductsOpeningStocks
+        WHERE BranchId = @BranchId
+		GROUP BY ProductsOpeningStocks.BranchId, ProductId
+
+        UNION ALL
+
+        SELECT 
+            Purchases.BranchId,
+            ProductId,
+            SUM(Quantity) AS Quantity
+        FROM PurchaseDetails
+        LEFT OUTER JOIN Purchases ON Purchases.Id = PurchaseDetails.PurchaseId
+        WHERE Purchases.BranchId = @BranchId
+        GROUP BY Purchases.BranchId, ProductId
+
+        UNION ALL
+
+        SELECT 
+            SaleOrders.BranchId,
+            ProductId,
+            SUM(Quantity) * -1 AS Quantity
+        FROM SaleOrderDetails
+        LEFT OUTER JOIN SaleOrders ON SaleOrders.Id = SaleOrderDetails.SaleOrderId
+        WHERE SaleOrders.BranchId = @BranchId
+        GROUP BY SaleOrders.BranchId, ProductId
+    ) AS Result
+    GROUP BY BranchId, ProductId
+) stock ON P.Id = stock.ProductId
+
+LEFT OUTER JOIN (
+  SELECT ProductId ,DiscountRateBasedOnUnitPrice DiscountRate
+FROM CampaignDetailByProductValues cd 
+left outer join Campaigns c on c.Id=cd.CampaignId
+
+WHERE @FromDate BETWEEN c.CampaignStartDate AND c.CampaignEndDate
+        and c.BranchId =60
+) CampaignRate ON P.Id = CampaignRate.ProductId
+
+
+WHERE PBH.PriceCategory = @PriceCategory 
+  AND PBH.BranchId = @BranchId 
+  AND P.IsActive = 1
+";
+
+                // ✅ Apply additional filters (dynamic)
+                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
+                query += @" ORDER BY " + vm.OrderName + " " + vm.orderDir;
+                query += @" OFFSET " + vm.startRec + " ROWS FETCH NEXT " + vm.pageSize + " ROWS ONLY";
+
+                // ✅ Prepare and execute
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                if (vm != null && !string.IsNullOrEmpty(vm.BranchId))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
+                }
+                if (vm != null && !string.IsNullOrEmpty(vm.FromDate))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@FromDate", vm.FromDate);
+                }
+                if (customerCategory != null)
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@PriceCategory", customerCategory);
+                }
+
+                objComm.Fill(dataTable);
+
+                string setting = @"
+                    SELECT 
+                    ISNULL(SettingValue, 'http://103.231.239.121:8012/') AS SettingValue
+                    FROM Settings
+                    WHERE SettingGroup = 'DMSUIUrl'
+                ";
+
+                string apiBaseUrl = "";
+
+                using (SqlCommand cmdSetting = new SqlCommand(setting, conn, transaction))
+                {
+                    var value = cmdSetting.ExecuteScalar();
+                    apiBaseUrl = value?.ToString() ?? "";
+                }
+
+                // ✅ Map Data
+                var modelList = dataTable.AsEnumerable().Select(row => new ProductDataVM
+                {
+                    ProductId = row.Field<int>("ProductId"),
+                    ProductName = row.Field<string>("ProductName"),
+                    BanglaName = row.Field<string>("BanglaName"),
+                    ProductCode = row.Field<string>("ProductCode"),
+                    HSCodeNo = row.Field<string>("HSCodeNo"),
+                    ImagePath = row.Field<string>("ImagePath"),
+                    ImagePathImage = apiBaseUrl + (row.Field<string>("ImagePathImage") ?? "http://103.231.239.121:8012/Content/Products/No_Image_Available.jpg"),
+                    ProductGroupId = row.Field<int>("ProductGroupId"),
+                    SDRate = row.Field<decimal>("SD"),
+                    VATRate = row.Field<decimal>("VATRate"),
+                    CostPrice = row.Field<decimal>("CostPrice"),
+                    SalesPrice = row.Field<decimal>("SalesPrice"),
+                    PurchasePrice = row.Field<decimal>("PurchasePrice"),
+                    ProductGroupName = row.Field<string>("ProductGroupName"),
+                    UOMId = row.Field<int>("UOMId"),
+                    QuantityInHand = row.Field<decimal>("QuantityInHand"),
+                    UOMName = row.Field<string>("UOMName"),
+                    UOMConversion = row.Field<string>("UOMConversion"),
+                    Status = row.Field<string>("Status"),
+                }).ToList();
+
+
+                // ✅ Return Success
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
+
+
     }
 
 }
