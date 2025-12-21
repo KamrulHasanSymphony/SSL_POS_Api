@@ -51,7 +51,6 @@
     <Compile Remove="SalePersonYearlyTargetDetailRepository.cs" />
     <Compile Remove="SalePersonYearlyTargetRepository.cs" />
     <Compile Remove="SaleReturnDetailRepository.cs" />
-    <Compile Remove="SaleReturnRepository.cs" />
     <Compile Remove="SalesPersonRepository.cs" />
   </ItemGroup>
 

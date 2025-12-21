@@ -57,18 +57,18 @@ public async Task<ResultVM> Insert(SaleOrderVM saleOrder)
                 }
 
 
-                if (saleOrder.saleOrderDetailsList == null || !saleOrder.saleOrderDetailsList.Any())
-                {
-                    throw new Exception("Sale Order must have at least one detail!");
-                }
+                //if (saleOrder.saleOrderDetailsList == null || !saleOrder.saleOrderDetailsList.Any())
+                //{
+                //    throw new Exception("Sale Order must have at least one detail!");
+                //}
 
                 // Sum up the quantities if there are multiple items in the list
-                var totalQuantity = saleOrder.saleOrderDetailsList.Sum(detail => detail.Quantity);
+                //var totalQuantity = saleOrder.saleOrderDetailsList.Sum(detail => detail.Quantity);
 
-                if (totalQuantity == 0)
-                {
-                    throw new Exception("Quantity Required!");
-                }
+                //if (totalQuantity == 0)
+                //{
+                //    throw new Exception("Quantity Required!");
+                //}
 
                 
 
@@ -119,12 +119,12 @@ public async Task<ResultVM> Insert(SaleOrderVM saleOrder)
 
                         
                         decimal subtotal = 0;
-                        decimal DiscountGain = 0;
-                        decimal SumtotalAfterDisCount = 0;
-                        decimal VATAmountAfterDisCount = 0;
-                        decimal LineDiscountGain = 0;
-                        decimal InvoiceDiscount = 0;
-                        decimal totalInvoiceValue = 0;
+                        //decimal DiscountGain = 0;
+                        //decimal SumtotalAfterDisCount = 0;
+                        //decimal VATAmountAfterDisCount = 0;
+                        //decimal LineDiscountGain = 0;
+                        //decimal InvoiceDiscount = 0;
+                        //decimal totalInvoiceValue = 0;
 
                         foreach (var details in saleOrder.saleOrderDetailsList)
                         {
@@ -237,18 +237,18 @@ public async Task<ResultVM> Insert(SaleOrderVM saleOrder)
                 isNewConnection = true;
                 transaction = conn.BeginTransaction();
 
-                if (saleOrder.saleOrderDetailsList == null || !saleOrder.saleOrderDetailsList.Any())
-                {
-                    throw new Exception("Sale Order must have at least one detail!");
-                }
+                //if (saleOrder.saleOrderDetailsList == null || !saleOrder.saleOrderDetailsList.Any())
+                //{
+                //    throw new Exception("Sale Order must have at least one detail!");
+                //}
 
                 // Sum up the quantities if there are multiple items in the list
                 var totalQuantity = saleOrder.saleOrderDetailsList.Sum(detail => detail.Quantity);
 
-                if (totalQuantity == 0)
-                {
-                    throw new Exception("Quantity Required!");
-                }               
+                //if (totalQuantity == 0)
+                //{
+                //    throw new Exception("Quantity Required!");
+                //}               
 
                 var record = _commonRepo.DetailsDelete("SaleOrderDetails", new[] { "SaleOrderId" }, new[] { saleOrder.Id.ToString() }, conn, transaction);
 
@@ -266,12 +266,12 @@ public async Task<ResultVM> Insert(SaleOrderVM saleOrder)
                     int LineNo = 1;
                     
                     decimal subtotal = 0;
-                    decimal DiscountGain = 0;
-                    decimal SumtotalAfterDisCount = 0;
-                    decimal VATAmountAfterDisCount = 0;
-                    decimal LineDiscountGain = 0;
-                    decimal InvoiceDiscount = 0;
-                    decimal totalInvoiceValue = 0;
+                    //decimal DiscountGain = 0;
+                    //decimal SumtotalAfterDisCount = 0;
+                    //decimal VATAmountAfterDisCount = 0;
+                    //decimal LineDiscountGain = 0;
+                    //decimal InvoiceDiscount = 0;
+                    //decimal totalInvoiceValue = 0;
 
 
 

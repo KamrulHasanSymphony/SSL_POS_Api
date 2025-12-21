@@ -197,8 +197,8 @@ namespace ShampanPOS.Controllers
                 List<string> conditionFields = new List<string>
                  {
                      "H.BranchId",
-                     "H.InvoiceDateTime between",
-                     "H.InvoiceDateTime between"
+                     "H.OrderDate between",
+                     "H.OrderDate between"
                  };
 
                 List<string> conditionValues = new List<string>

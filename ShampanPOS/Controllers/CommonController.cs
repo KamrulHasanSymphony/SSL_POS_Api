@@ -473,5 +473,40 @@ namespace ShampanPOS.Controllers
 
 
 
+
+        // POST: api/Common/SaleOrderList
+        [HttpPost("SaleOrderList")]
+        public async Task<ResultVM> SaleOrderList(CommonVM Vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                string[] conditionFields = null;
+                string[] conditionValues = null;
+
+                if (!string.IsNullOrEmpty(Vm.BranchId))
+                {
+                    conditionFields = new string[] { "H.BranchId" };
+                    conditionValues = new string[] { Vm.BranchId };
+                }
+
+                CommonService _commonService = new CommonService();
+                resultVM = await _commonService.SaleOrderList(conditionFields, conditionValues, null);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
+
+
+
     }
 }

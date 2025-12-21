@@ -1,27 +1,30 @@
-﻿using ShampanPOS.Repository;
-using ShampanPOS.ViewModel.CommonVMs;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using ShampanPOS.Repository;
 using ShampanPOS.ViewModel;
+using ShampanPOS.ViewModel.CommonVMs;
+using ShampanPOS.ViewModel.KendoCommon;
+using ShampanPOS.ViewModel.Utility;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Data;
-using ShampanPOS.ViewModel.Utility;
-using ShampanPOS.ViewModel.KendoCommon;
 
 namespace ShampanPOS.Service
 {
-    public class SaleReturnService 
+    public class SaleService
     {
         CommonRepository _commonRepo = new CommonRepository();
 
-        public async Task<ResultVM> Insert(SaleReturnVM sale)
+        public async Task<ResultVM> Insert(SaleVM sale)
         {
-            string CodeGroup = "SaleReturn";
-            string CodeName = "SaleReturn";
-            SaleReturnRepository _repo = new SaleReturnRepository();
+            string CodeGroup = "Sale";
+            string CodeName = "Sale";
+            SaleRepository _repo = new SaleRepository();
             _commonRepo = new CommonRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
@@ -35,13 +38,14 @@ namespace ShampanPOS.Service
                 isNewConnection = true;
 
                 transaction = conn.BeginTransaction();
+
                 //#region Current Fiscal Period Status
                 //var PeriodName = Convert.ToDateTime(sale.InvoiceDateTime).ToString("MMM-yy");
                 //result = new FiscalYearRepository().DetailsList(new[] { "PeriodName" }, new[] { PeriodName }, null, conn, transaction);
 
                 //#endregion
-                string code = _commonRepo.GenerateCode(CodeGroup, CodeName, sale.InvoiceDateTime, sale.BranchId, conn, transaction);
 
+                string code = _commonRepo.GenerateCode(CodeGroup, CodeName, sale.InvoiceDateTime, sale.BranchId, conn, transaction);
 
                 if (!string.IsNullOrEmpty(code))
                 {
@@ -54,14 +58,14 @@ namespace ShampanPOS.Service
                     int LineNo = 1;
                     decimal subtotal = 0;
 
-                    foreach (var details in sale.saleReturnDetailList)
+                    foreach (var details in sale.saleDetailsList)
                     {
 
-                        details.SaleReturnId = sale.Id;
-                        //details.SaleOrderId = sale.SaleOrderId;
+                        details.SaleId = sale.Id;
+                        details.SaleOrderId = sale.SaleOrderId;
                         details.SDAmount = 0;
                         details.VATAmount = 0;
-                        //details.BranchId = sale.BranchId;
+                        details.BranchId = sale.BranchId;
                         details.Line = LineNo;
 
 
@@ -131,9 +135,24 @@ namespace ShampanPOS.Service
             }
         }
 
+        //public async Task<ResultVM> DetailInsert(SaleVM details)
+        //{
+        //    SaleRepository _repo = new SaleRepository();
+        //    _commonRepo = new CommonRepository();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
 
-        //        result = await _repo.Insert(sale, conn, transaction);
+        //        transaction = conn.BeginTransaction();
+
+        //        result = await _repo.InsertDetails(details, conn, transaction);
 
         //        if (isNewConnection && result.Status == "Success")
         //        {
@@ -166,9 +185,9 @@ namespace ShampanPOS.Service
         //}
 
 
-        public async Task<ResultVM> Update(SaleReturnVM sale)
+        public async Task<ResultVM> Update(SaleVM sale)
         {
-            SaleReturnRepository _repo = new SaleReturnRepository();
+            SaleRepository _repo = new SaleRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             _commonRepo = new CommonRepository();
             bool isNewConnection = false;
@@ -182,7 +201,7 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                var record = _commonRepo.DetailsDelete("SaleReturnDetails", new[] { "SaleReturnId" }, new[] { sale.Id.ToString() }, conn, transaction);
+                var record = _commonRepo.DetailsDelete("SaleDetails", new[] { "SaleId" }, new[] { sale.Id.ToString() }, conn, transaction);
 
                 if (record.Status == "Fail")
                 {
@@ -190,7 +209,6 @@ namespace ShampanPOS.Service
                 }
 
                 result = await _repo.Update(sale, conn, transaction);
-
 
 
                 if (result.Status.ToLower() == "success")
@@ -201,12 +219,12 @@ namespace ShampanPOS.Service
 
 
 
-                    foreach (var details in sale.saleReturnDetailList)
+                    foreach (var details in sale.saleDetailsList)
                     {
-                        details.SaleReturnId = sale.Id;
+                        details.SaleId = sale.Id;
                         details.SDAmount = 0;
                         details.VATAmount = 0;
-                        //details.BranchId = sale.BranchId;
+                        details.BranchId = sale.BranchId;
                         details.Line = LineNo;
 
 
@@ -307,11 +325,9 @@ namespace ShampanPOS.Service
         //    }
         //}
 
-
-
         public async Task<ResultVM> List(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
         {
-            SaleReturnRepository _repo = new SaleReturnRepository();
+            SaleRepository _repo = new SaleRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
             bool isNewConnection = false;
@@ -359,7 +375,7 @@ namespace ShampanPOS.Service
 
         public async Task<ResultVM> ListAsDataTable(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
         {
-            SaleReturnRepository _repo = new SaleReturnRepository();
+            SaleRepository _repo = new SaleRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
             bool isNewConnection = false;
@@ -407,7 +423,7 @@ namespace ShampanPOS.Service
 
         public async Task<ResultVM> Dropdown()
         {
-            SaleReturnRepository _repo = new SaleReturnRepository();
+            SaleRepository _repo = new SaleRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
             bool isNewConnection = false;
@@ -456,7 +472,7 @@ namespace ShampanPOS.Service
 
         public async Task<ResultVM> MultiplePost(CommonVM vm)
         {
-            SaleReturnRepository _repo = new SaleReturnRepository();
+            SaleRepository _repo = new SaleRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, IDs = vm.IDs, DataVM = null };
 
             bool isNewConnection = false;
@@ -505,7 +521,7 @@ namespace ShampanPOS.Service
 
         public async Task<ResultVM> GetGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues)
         {
-            SaleReturnRepository _repo = new SaleReturnRepository();
+            SaleRepository _repo = new SaleRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
             bool isNewConnection = false;
@@ -553,7 +569,7 @@ namespace ShampanPOS.Service
 
         public async Task<ResultVM> GetDetailsGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues)
         {
-            SaleReturnRepository _repo = new SaleReturnRepository();
+            SaleRepository _repo = new SaleRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
             bool isNewConnection = false;
@@ -598,58 +614,10 @@ namespace ShampanPOS.Service
                 }
             }
         }
-        //public async Task<ResultVM> DetailInsert(SaleReturnVM details)
-        //{
-        //    SaleReturnRepository _repo = new SaleReturnRepository();
-        //    _commonRepo = new CommonRepository();
-        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-
-        //    bool isNewConnection = false;
-        //    SqlConnection conn = null;
-        //    SqlTransaction transaction = null;
-        //    try
-        //    {
-        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-        //        conn.Open();
-        //        isNewConnection = true;
-
-        //        transaction = conn.BeginTransaction();
-
-        //        result = await _repo.InsertDetail(details, conn, transaction);
-
-        //        if (isNewConnection && result.Status == "Success")
-        //        {
-        //            transaction.Commit();
-        //        }
-        //        else
-        //        {
-        //            throw new Exception(result.Message);
-        //        }
-
-        //        return result;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        if (transaction != null && isNewConnection)
-        //        {
-        //            transaction.Rollback();
-        //        }
-        //        result.Message = ex.ToString();
-        //        result.ExMessage = ex.ToString();
-        //        return result;
-        //    }
-        //    finally
-        //    {
-        //        if (isNewConnection && conn != null)
-        //        {
-        //            conn.Close();
-        //        }
-        //    }
-        //}
 
         //public async Task<ResultVM> SummaryReport(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
         //{
-        //    SaleReturnRepository _repo = new SaleReturnRepository();
+        //    SaleRepository _repo = new SaleRepository();
         //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
         //    bool isNewConnection = false;
@@ -663,7 +631,7 @@ namespace ShampanPOS.Service
 
         //        transaction = conn.BeginTransaction();
 
-        //        result = await _repo.ProductWiseSaleReturn(conditionalFields, conditionalValues, vm, conn, transaction);
+        //        result = await _repo.ProductWiseSale(conditionalFields, conditionalValues, vm, conn, transaction);
 
         //        if (isNewConnection && result.Status == "Success")
         //        {
@@ -697,7 +665,7 @@ namespace ShampanPOS.Service
 
         public async Task<ResultVM> ReportPreview(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
         {
-            SaleReturnRepository _repo = new SaleReturnRepository();
+            SaleRepository _repo = new SaleRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
             bool isNewConnection = false;
@@ -730,7 +698,7 @@ namespace ShampanPOS.Service
 
                     if (!dataTable.Columns.Contains("ReportType"))
                     {
-                        var ReportType = new DataColumn("ReportType") { DefaultValue = "Sale Return Invoice" };
+                        var ReportType = new DataColumn("ReportType") { DefaultValue = "Sale Invoice" };
                         dataTable.Columns.Add(ReportType);
                     }
 
@@ -757,6 +725,7 @@ namespace ShampanPOS.Service
                 }
             }
         }
+
 
     }
 

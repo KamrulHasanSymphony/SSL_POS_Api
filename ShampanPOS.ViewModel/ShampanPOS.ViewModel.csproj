@@ -67,9 +67,7 @@
     <Compile Remove="SalePersonYearlyTargetVM.cs" />
     <Compile Remove="SaleReportVM.cs" />
     <Compile Remove="SaleReturnDetail.cs" />
-    <Compile Remove="SaleReturnDetailVM.cs" />
     <Compile Remove="SaleReturnReportVM.cs" />
-    <Compile Remove="SaleReturnVM.cs" />
     <Compile Remove="SalesDataModel.cs" />
     <Compile Remove="SalesPersonVM.cs" />
   </ItemGroup>

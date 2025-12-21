@@ -1405,7 +1405,7 @@ WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take);";
                 ,ISNULL(H.Id,0)	Id
 				,ISNULL(H.Code,'')	Code
 				,ISNULL(H.DeliveryAddress,'')	DeliveryAddress				
-				,ISNULL(FORMAT(H.InvoiceDateTime,'yyyy-MM-dd HH:mm'),'1900-01-01') InvoiceDateTime
+				,ISNULL(FORMAT(H.OrderDate,'yyyy-MM-dd HH:mm'),'1900-01-01') OrderDate
 				,ISNULL(FORMAT(H.DeliveryDate,'yyyy-MM-dd HH:mm'),'1900-01-01') DeliveryDate	
 				,ISNULL(H.GrandTotalAmount,0) GrandTotalAmount
 				,ISNULL(H.GrandTotalSDAmount,0) GrandTotalSDAmount
@@ -1619,7 +1619,7 @@ ISNULL(C.Address, '') AS CustomerAddress,
 ISNULL(M.SalePersonId, 0) AS SalePersonId,
 ISNULL(SP.Name, '') AS SalePersonName,
 ISNULL(M.DeliveryAddress, '') AS DeliveryAddress,
-ISNULL(FORMAT(M.InvoiceDateTime, 'yyyy-MM-dd'), '1900-01-01') AS InvoiceDateTime,
+ISNULL(FORMAT(M.OrderDate, 'yyyy-MM-dd'), '1900-01-01') AS OrderDate,
 ISNULL(FORMAT(M.DeliveryDate, 'yyyy-MM-dd'), '1900-01-01') AS DeliveryDate,
 ISNULL(M.GrandTotalAmount, 0) AS GrandTotalAmount,
 ISNULL(M.GrandTotalSDAmount, 0) AS GrandTotalSDAmount,
@@ -1831,7 +1831,7 @@ WHERE h.IsCompleted = 1
         h.BranchId, 
         Br.Name AS BranchName,
         r.Name AS RouteName,
-        ISNULL(FORMAT(h.InvoiceDateTime,'yyyy-MM-dd HH:mm'),'1900-01-01') InvoiceDateTime,
+        ISNULL(FORMAT(h.OrderDate,'yyyy-MM-dd HH:mm'),'1900-01-01') OrderDate,
         P.Name AS ProductName,
         SUM(d.Quantity) AS Quantity
     FROM SaleOrderDetails d
@@ -1854,7 +1854,7 @@ WHERE h.IsCompleted = 1
                 sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
 
                 sqlQuery += @"
-    GROUP BY h.BranchId, Br.Name, r.Name,FORMAT(h.InvoiceDateTime, 'yyyy-MM-dd HH:mm'), P.Name
+    GROUP BY h.BranchId, Br.Name, r.Name,FORMAT(h.OrderDate, 'yyyy-MM-dd HH:mm'), P.Name
 )
 SELECT * FROM OrderedData
 WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take);";

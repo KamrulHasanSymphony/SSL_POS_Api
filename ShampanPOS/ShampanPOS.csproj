@@ -44,7 +44,6 @@
     <Compile Remove="Controllers\SalePersonVisitHistrieController.cs" />
     <Compile Remove="Controllers\SalePersonYearlyTargetController.cs" />
     <Compile Remove="Controllers\SalePersonYearlyTargetDetailController.cs" />
-    <Compile Remove="Controllers\SaleReturnController.cs" />
     <Compile Remove="Controllers\SaleReturnDetailController.cs" />
     <Compile Remove="Controllers\SalesPersonController.cs" />
   </ItemGroup>

@@ -2228,11 +2228,8 @@ SELECT
     COALESCE(COUNT(P.Id), 0) AS FilteredCount
 FROM Products P
 LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
-LEFT OUTER JOIN ProductSalePriceBatchHistories PBH ON P.Id = PBH.ProductId
 LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
-WHERE PBH.PriceCategory = @PriceCategory 
-  AND PBH.BranchId = @BranchId 
-  AND P.IsActive = 1
+WHERE P.IsActive = 1
 ";
 
                 // ✅ Apply dynamic conditions
@@ -2298,10 +2295,10 @@ WHERE PBH.PriceCategory = @PriceCategory
                 }
 
                 // ✅ Get Customer Category
-                SqlCommand checkCommand = new SqlCommand("SELECT CustomerCategory FROM Customers WHERE Id=@Id", conn, transaction);
-                checkCommand.Parameters.Add("@Id", SqlDbType.BigInt).Value = vm.CustomerId;
-                object res = checkCommand.ExecuteScalar();
-                string customerCategory = res != null ? res.ToString() : "0";
+                //SqlCommand checkCommand = new SqlCommand("SELECT CustomerCategory FROM Customers WHERE Id=@Id", conn, transaction);
+                //checkCommand.Parameters.Add("@Id", SqlDbType.BigInt).Value = vm.CustomerId;
+                //object res = checkCommand.ExecuteScalar();
+                //string customerCategory = res != null ? res.ToString() : "0";
 
                 // ✅ Main Query (All @FromDate Removed)
                 string query = @"
@@ -2316,87 +2313,11 @@ SELECT
     ISNULL(PG.Name,'') AS ProductGroupName,
     0 AS UOMId,
     ISNULL(UOM.Name,'') AS UOMName,
-    ISNULL(PBH.CostPrice,0) AS CostPrice, 
-    ISNULL(PBH.SalesPrice,0) AS SalesPrice, 
-    ISNULL(PBH.PurchasePrice,0) AS PurchasePrice, 
-    ISNULL(PBH.SD,0) AS SD, 
-    ISNULL(PBH.VATRate,0) AS VATRate, 
-    ISNULL(stock.Quantity,0) AS QuantityInHand,
-	ISNULL(CampaignRate.DiscountRate,0)DiscountRate,
-    P.CtnSize AS UOMName,
-    P.CtnSizeFactor AS UOMConversion,
     CASE WHEN P.IsActive = 1 THEN 'Active' ELSE 'Inactive' END AS Status
 
 FROM Products P
 LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
-LEFT OUTER JOIN ProductSalePriceBatchHistories PBH ON P.Id = PBH.ProductId
 LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
-
-LEFT OUTER JOIN (
-    SELECT BranchId, ProductId, SUM(Quantity) AS Quantity 
-    FROM (
-        SELECT 
-            BranchId,
-            ProductId,
-            SUM(
-                CASE 
-                    WHEN Type = 'Purchase' THEN Quantity 
-                    WHEN Type = 'Sales' THEN -Quantity 
-                    ELSE 0 
-                END
-            ) AS Quantity
-        FROM DayEndDetails
-        WHERE BranchId = @BranchId
-        GROUP BY BranchId, ProductId
-
-        UNION ALL
-
-        SELECT 
-            ProductsOpeningStocks.BranchId,
-            ProductId,
-            SUM(OpeningQuantity) AS Quantity
-        FROM ProductsOpeningStocks
-        WHERE BranchId = @BranchId
-		GROUP BY ProductsOpeningStocks.BranchId, ProductId
-
-        UNION ALL
-
-        SELECT 
-            Purchases.BranchId,
-            ProductId,
-            SUM(Quantity) AS Quantity
-        FROM PurchaseDetails
-        LEFT OUTER JOIN Purchases ON Purchases.Id = PurchaseDetails.PurchaseId
-        WHERE Purchases.BranchId = @BranchId
-        GROUP BY Purchases.BranchId, ProductId
-
-        UNION ALL
-
-        SELECT 
-            SaleOrders.BranchId,
-            ProductId,
-            SUM(Quantity) * -1 AS Quantity
-        FROM SaleOrderDetails
-        LEFT OUTER JOIN SaleOrders ON SaleOrders.Id = SaleOrderDetails.SaleOrderId
-        WHERE SaleOrders.BranchId = @BranchId
-        GROUP BY SaleOrders.BranchId, ProductId
-    ) AS Result
-    GROUP BY BranchId, ProductId
-) stock ON P.Id = stock.ProductId
-
-LEFT OUTER JOIN (
-  SELECT ProductId ,DiscountRateBasedOnUnitPrice DiscountRate
-FROM CampaignDetailByProductValues cd 
-left outer join Campaigns c on c.Id=cd.CampaignId
-
-WHERE @FromDate BETWEEN c.CampaignStartDate AND c.CampaignEndDate
-        and c.BranchId =60
-) CampaignRate ON P.Id = CampaignRate.ProductId
-
-
-WHERE PBH.PriceCategory = @PriceCategory 
-  AND PBH.BranchId = @BranchId 
-  AND P.IsActive = 1
 ";
 
                 // ✅ Apply additional filters (dynamic)
@@ -2416,10 +2337,10 @@ WHERE PBH.PriceCategory = @PriceCategory
                 {
                     objComm.SelectCommand.Parameters.AddWithValue("@FromDate", vm.FromDate);
                 }
-                if (customerCategory != null)
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@PriceCategory", customerCategory);
-                }
+                //if (customerCategory != null)
+                //{
+                //    objComm.SelectCommand.Parameters.AddWithValue("@PriceCategory", customerCategory);
+                //}
 
                 objComm.Fill(dataTable);
 
@@ -2449,16 +2370,9 @@ WHERE PBH.PriceCategory = @PriceCategory
                     ImagePath = row.Field<string>("ImagePath"),
                     ImagePathImage = apiBaseUrl + (row.Field<string>("ImagePathImage") ?? "http://103.231.239.121:8012/Content/Products/No_Image_Available.jpg"),
                     ProductGroupId = row.Field<int>("ProductGroupId"),
-                    SDRate = row.Field<decimal>("SD"),
-                    VATRate = row.Field<decimal>("VATRate"),
-                    CostPrice = row.Field<decimal>("CostPrice"),
-                    SalesPrice = row.Field<decimal>("SalesPrice"),
-                    PurchasePrice = row.Field<decimal>("PurchasePrice"),
                     ProductGroupName = row.Field<string>("ProductGroupName"),
                     UOMId = row.Field<int>("UOMId"),
-                    QuantityInHand = row.Field<decimal>("QuantityInHand"),
                     UOMName = row.Field<string>("UOMName"),
-                    UOMConversion = row.Field<string>("UOMConversion"),
                     Status = row.Field<string>("Status"),
                 }).ToList();
 
@@ -2484,8 +2398,73 @@ WHERE PBH.PriceCategory = @PriceCategory
             }
         }
 
+        public async Task<ResultVM> SaleOrderList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string sqlQuery = @"
+                      SELECT DISTINCT
+                        ISNULL(H.Id, 0) AS Id,
+                        ISNULL(H.Code, '') AS Code,
+                        ISNULL(H.BranchId, 1) AS BranchId,
+                        ISNULL(H.CustomerId, '') AS CustomerId,
+			            ISNULL(C.Name, '')AS CustomerName
+                    FROM SaleOrders H
+                    LEFT OUTER JOIN Customers C ON H.CustomerId= C.Id
+                ";
 
 
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+                SqlDataAdapter objComm = CreateAdapter(sqlQuery, conn, transaction);
+
+                // SET additional conditions param
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new SaleOrderVM
+                {
+                    Id = Convert.ToInt32(row["Id"]),
+                    CustomerName = row["CustomerName"]?.ToString(),
+                    Code = row["Code"]?.ToString(),
+                    BranchId = Convert.ToInt32(row["BranchId"]?.ToString())
+
+                }).ToList();
+
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
     }
 
 }

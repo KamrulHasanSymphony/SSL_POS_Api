@@ -50,7 +50,6 @@
     <Compile Remove="SalePersonYearlyTargetDetailService.cs" />
     <Compile Remove="SalePersonYearlyTargetService.cs" />
     <Compile Remove="SaleReturnDetailService.cs" />
-    <Compile Remove="SaleReturnService.cs" />
     <Compile Remove="SalesPersonService.cs" />
   </ItemGroup>
 
