@@ -40,10 +40,10 @@ namespace ShampanPOS.Repository
 
                 string query = @"
                 INSERT INTO PurchaseOrders 
-                (Code, BranchId, SupplierId, OrderDate, DeliveryDateTime, Comments, TransactionType,
+                (Code, BranchId,CompanyId, SupplierId, OrderDate, DeliveryDateTime, Comments, TransactionType,
                 PeriodId,IsPost, CreatedBy,CreatedOn,CreatedFrom)
                 VALUES 
-                (@Code, @BranchId, @SupplierId, @OrderDate, @DeliveryDateTime, @Comments, @TransactionType, 
+                (@Code, @BranchId,@CompanyId, @SupplierId, @OrderDate, @DeliveryDateTime, @Comments, @TransactionType, 
                  @PeriodId,@IsPost, @CreatedBy,@CreatedOn,@CreatedFrom);
                 SELECT SCOPE_IDENTITY();";
 
@@ -61,6 +61,9 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@CreatedBy", purchaseOrder.CreatedBy);
                     cmd.Parameters.AddWithValue("@CreatedFrom", purchaseOrder.CreatedFrom);
                     cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
+
+                    cmd.Parameters.Add("@CompanyId", SqlDbType.Int)
+                                 .Value = (object?)purchaseOrder.CompanyId ?? DBNull.Value;
 
                     object newId = cmd.ExecuteScalar();
                     purchaseOrder.Id = Convert.ToInt32(newId);
@@ -109,6 +112,7 @@ namespace ShampanPOS.Repository
                     PurchaseOrderId, 
                     BranchId, 
                     Line, 
+                    CompanyId,
                     ProductId, 
                     Quantity, 
                     UnitPrice, 
@@ -128,6 +132,7 @@ namespace ShampanPOS.Repository
                     @PurchaseOrderId, 
                     @BranchId, 
                     @Line, 
+                    @CompanyId, 
                     @ProductId, 
                     @Quantity, 
                     @UnitPrice, 
@@ -163,6 +168,7 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@CompletedQty", details.CompletedQty ?? 0);
                     cmd.Parameters.AddWithValue("@RemainQty", details.RemainQty ?? 0);
                     cmd.Parameters.AddWithValue("@IsCompleted", details.IsCompleted ?? false);
+                    cmd.Parameters.AddWithValue("@CompanyId", details.CompanyId ?? 0);
 
 
                     object newId = cmd.ExecuteScalar();
@@ -208,7 +214,7 @@ namespace ShampanPOS.Repository
                 string query = @"
                 UPDATE PurchaseOrders 
                 SET 
-                   SupplierId = @SupplierId, OrderDate = @OrderDate, DeliveryDateTime = @DeliveryDateTime,  
+                   SupplierId = @SupplierId,CompanyId = @CompanyId, OrderDate = @OrderDate, DeliveryDateTime = @DeliveryDateTime,  
                      Comments = @Comments, TransactionType = @TransactionType, PeriodId = @PeriodId, 
                     LastModifiedBy = @LastModifiedBy, LastModifiedOn = @LastModifiedOn,LastUpdateFrom = @LastUpdateFrom
                 WHERE Id = @Id";
@@ -216,6 +222,7 @@ namespace ShampanPOS.Repository
                 using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
                 {
                     cmd.Parameters.AddWithValue("@Id", purchaseOrder.Id);
+                    cmd.Parameters.AddWithValue("@CompanyId", purchaseOrder.CompanyId ?? 0);
                     cmd.Parameters.AddWithValue("@SupplierId", purchaseOrder.SupplierId);
                     cmd.Parameters.AddWithValue("@OrderDate", purchaseOrder.OrderDate);
                     cmd.Parameters.AddWithValue("@DeliveryDateTime", purchaseOrder.DeliveryDateTime);
@@ -285,6 +292,7 @@ SELECT
     ISNULL(M.Id, 0) AS Id,
     ISNULL(M.Code, '') AS Code,
     ISNULL(M.BranchId, 0) AS BranchId,
+    ISNULL(M.CompanyId, 0) AS CompanyId,
     ISNULL(M.SupplierId, 0) AS SupplierId,
     ISNULL(S.Name, '') AS SupplierName,
     ISNULL(S.Address, '') AS SupplierAddress,
@@ -300,11 +308,16 @@ SELECT
     ISNULL(M.CreatedBy, '') AS CreatedBy,
     ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS CreatedOn,
     ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
-    ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn
+    ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
+	ISNULL(Br.Name,'') BranchName,
+    ISNULL(CP.CompanyName,'') CompanyName
     
 FROM 
     PurchaseOrders M
 LEFT OUTER JOIN Suppliers S ON ISNULL(M.SupplierId,0) = S.Id
+LEFT OUTER JOIN CompanyProfiles CP ON M.CompanyId = CP.Id
+    LEFT OUTER JOIN BranchProfiles Br ON M.BranchId = Br.Id
+
 WHERE  1 = 1
  ";
 
@@ -337,6 +350,7 @@ WHERE  1 = 1
                         Id = Convert.ToInt32(row["Id"]),
                         Code = row["Code"].ToString(),
                         BranchId = Convert.ToInt32(row["BranchId"]),
+                        CompanyId = Convert.ToInt32(row["CompanyId"]),
                         SupplierId = Convert.ToInt32(row["SupplierId"]),
                         SupplierName = Convert.ToString(row["SupplierName"]),
                         OrderDate = row["OrderDate"].ToString(),
@@ -390,35 +404,35 @@ WHERE  1 = 1
 
                 string query = @"
                 SELECT 
-                ISNULL(D.Id, 0) AS Id,
-                ISNULL(D.PurchaseOrderId, 0) AS PurchaseOrderId,
-                ISNULL(D.BranchId, 0) AS BranchId,
-                ISNULL(D.Line, 0) AS Line,
-                ISNULL(D.ProductId, 0) AS ProductId,
-                ISNULL(D.Quantity, 0) AS Quantity,
-                ISNULL(D.UnitPrice, 0) AS UnitPrice,
-                ISNULL(D.SubTotal,0) AS SubTotal,
-                ISNULL(D.SD,0) AS SD,
-                ISNULL(D.SDAmount,0) AS SDAmount,
-                ISNULL(D.VATRate,0) AS VATRate,
-                ISNULL(D.VATAmount,0) AS VATAmount,
-                ISNULL(D.LineTotal,0) AS LineTotal,
-                ISNULL(D.OthersAmount,0) AS OthersAmount,
-                ISNULL(P.Name,'') ProductName,
-                ISNULL(P.BanglaName,'') BanglaName, 
-                ISNULL(P.Code,'') ProductCode, 
-                ISNULL(P.HSCodeNo,'') HSCodeNo,
-                ISNULL(P.ProductGroupId,0) ProductGroupId,
-                ISNULL(PG.Name,'') ProductGroupName,
-                ISNULL(UOM.Name,'') UOMName,
-                ISNULL(UOM.Name,'') UOMFromName
+        ISNULL(D.Id, 0) AS Id,
+        ISNULL(D.PurchaseOrderId, 0) AS PurchaseOrderId,
+        ISNULL(D.BranchId, 0) AS BranchId,
+        ISNULL(D.CompanyId, 0) AS CompanyId,
+        ISNULL(D.Line, 0) AS Line,
+        ISNULL(D.ProductId, 0) AS ProductId,
+        ISNULL(D.Quantity, 0) AS Quantity,
+        ISNULL(D.UnitPrice, 0) AS UnitPrice,
+        ISNULL(D.SubTotal,0) AS SubTotal,
+        ISNULL(D.SD,0) AS SD,
+        ISNULL(D.SDAmount,0) AS SDAmount,
+        ISNULL(D.VATRate,0) AS VATRate,
+        ISNULL(D.VATAmount,0) AS VATAmount,
+        ISNULL(D.LineTotal,0) AS LineTotal,
+        ISNULL(D.OthersAmount,0) AS OthersAmount,
+        ISNULL(P.Name,'') ProductName,
+        ISNULL(P.BanglaName,'') BanglaName, 
+        ISNULL(P.Code,'') ProductCode, 
+        ISNULL(P.HSCodeNo,'') HSCodeNo,
+        ISNULL(P.ProductGroupId,0) ProductGroupId,
+        ISNULL(PG.Name,'') ProductGroupName,
+        ISNULL(CP.CompanyName,'') CompanyName
 
-                FROM 
-                PurchaseOrderDetails D
-                LEFT OUTER JOIN Products P ON D.ProductId = P.Id
-                LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
-                LEFT OUTER JOIN UOMs uom ON P.UOMId = uom.Id
-                WHERE 1 = 1 ";
+        FROM 
+        PurchaseOrderDetails D
+        LEFT OUTER JOIN Products P ON D.ProductId = P.Id
+        LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+        LEFT OUTER JOIN CompanyProfiles CP ON D.CompanyId = CP.Id
+        WHERE 1 = 1 ";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
                 {
@@ -727,7 +741,7 @@ ORDER BY Code";
             }
         }
         public async Task<ResultVM> GetGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
-        {
+         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
@@ -746,12 +760,13 @@ ORDER BY Code";
                 // Define your SQL query string
                 string sqlQuery = $@"
     -- Count query
-    SELECT COUNT(DISTINCT H.Id) AS totalcount
-            FROM PurchaseOrders H
-            LEFT OUTER JOIN Suppliers s on h.SupplierId = s.Id
-            LEFT OUTER JOIN BranchProfiles br on h.BranchId = br.Id
+            SELECT COUNT(DISTINCT H.Id) AS totalcount
+			FROM PurchaseOrders H
+				LEFT OUTER JOIN Suppliers s on h.SupplierId = s.Id
+				LEFT OUTER JOIN BranchProfiles br on h.BranchId = br.Id
+				LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
 
-	WHERE 1 = 1
+				WHERE 1 = 1
     -- Add the filter condition
         " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PurchaseOrderVM>.FilterCondition(options.filter) + ")" : "");
 
@@ -778,18 +793,18 @@ ORDER BY Code";
 	            ISNULL(H.PeriodId, 0) AS PeriodId,
                 ISNULL(H.CreatedBy, '') AS CreatedBy,
                 ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
-                ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS CreatedOn,                
+                ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS CreatedOn,  
+				ISNULL(CP.CompanyName,'') CompanyName,
+
 	       
-                ISNULL(br.Name, '') AS BranchName,                
-                ISNULL(br.Address, '') AS BranchAddress
+                ISNULL(br.Name, '') AS BranchName
 
+				FROM PurchaseOrders H
+				LEFT OUTER JOIN Suppliers s on h.SupplierId = s.Id
+				LEFT OUTER JOIN BranchProfiles br on h.BranchId = br.Id
+				LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
 
-
-            FROM PurchaseOrders H
-            LEFT OUTER JOIN Suppliers s on h.SupplierId = s.Id
-            LEFT OUTER JOIN BranchProfiles br on h.BranchId = br.Id
-
-        WHERE 1 = 1
+				WHERE 1 = 1
 
     -- Add the filter condition
         " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PurchaseOrderVM>.FilterCondition(options.filter) + ")" : "");
@@ -845,13 +860,15 @@ ORDER BY Code";
                 string sqlQuery = $@"
     -- Count query
     SELECT COUNT(DISTINCT H.Id) AS totalcount
-            FROM PurchaseOrders H
-            LEFT OUTER JOIN Suppliers s on h.SupplierId = s.Id
-            LEFT OUTER JOIN BranchProfiles br on h.BranchId = br.Id
-            LEFT OUTER JOIN PurchaseOrderDetails D on h.Id = D.PurchaseOrderId            
-            LEFT OUTER JOIN Products P ON D.ProductId = P.Id
+				FROM PurchaseOrders H
+				LEFT OUTER JOIN Suppliers s ON h.SupplierId = s.Id
+				LEFT OUTER JOIN BranchProfiles br ON h.BranchId = br.Id
+				LEFT OUTER JOIN PurchaseOrderDetails D ON h.Id = D.PurchaseOrderId
+				LEFT OUTER JOIN CompanyProfiles CP ON D.CompanyId = CP.Id
+				LEFT OUTER JOIN Products P ON D.ProductId = P.Id
 
-	WHERE 1 = 1
+
+			    WHERE 1 = 1
     -- Add the filter condition
         " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PurchaseOrderDetailVM>.FilterCondition(options.filter) + ")" : "");
 
@@ -865,9 +882,12 @@ ORDER BY Code";
         SELECT 
         ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC") + $@") AS rowindex,
         
-                ISNULL(H.Id, 0) AS Id,
+                         
+			
+			ISNULL(H.Id, 0) AS Id,
                 ISNULL(H.Code, '') AS Code,
 	            ISNULL(H.SupplierId, 0) AS SupplierId,
+				ISNULL(D.CompanyId, 0) AS CompanyId,
                 ISNULL(s.Name, 0) AS SupplierName,
                 CASE WHEN ISNULL(H.IsPost, 0) = 1 THEN 'Posted' ELSE 'Not-posted' END AS Status, 
                 ISNULL(FORMAT(H.OrderDate, 'yyyy-MM-dd') , '') AS OrderDate,
@@ -880,30 +900,32 @@ ORDER BY Code";
                 ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS CreatedOn,                
 	            ISNULL(H.IsPost, 0) AS IsPost,	            
                 ISNULL(br.Name, '') AS BranchName,
-        -- Sales Details
-            ISNULL(D.Id, 0) AS PurchaseOrderDetail,
-            ISNULL(D.PurchaseOrderId, 0) AS PurchaseOrderId,
-            ISNULL(D.BranchId, 0) AS BranchId,
-            ISNULL(D.Line, 0) AS Line,
-            ISNULL(D.ProductId, 0) AS ProductId,
-            ISNULL(P.Name,'') ProductName,
-            ISNULL(D.Quantity, 0) AS Quantity,
-            ISNULL(D.UnitPrice, 0) AS UnitPrice,
-            ISNULL(D.SubTotal, 0) AS SubTotal,
-            ISNULL(D.SD, 0) AS SD,
-            ISNULL(D.SDAmount, 0) AS SDAmount,
-            ISNULL(D.VATRate, 0) AS VATRate,
-            ISNULL(D.VATAmount, 0) AS VATAmount,
-            ISNULL(D.OthersAmount, 0) AS OthersAmount
+			-- Sales Details
+				ISNULL(D.Id, 0) AS PurchaseOrderDetail,
+				ISNULL(D.PurchaseOrderId, 0) AS PurchaseOrderId,
+				ISNULL(D.BranchId, 0) AS BranchId,
+				ISNULL(D.Line, 0) AS Line,
+				ISNULL(D.ProductId, 0) AS ProductId,
+				ISNULL(P.Name,'') ProductName,
+				ISNULL(D.Quantity, 0) AS Quantity,
+				ISNULL(D.UnitPrice, 0) AS UnitPrice,
+				ISNULL(D.SubTotal, 0) AS SubTotal,
+				ISNULL(D.SD, 0) AS SD,
+				ISNULL(D.SDAmount, 0) AS SDAmount,
+				ISNULL(D.VATRate, 0) AS VATRate,
+				ISNULL(D.VATAmount, 0) AS VATAmount,
+				ISNULL(D.OthersAmount, 0) AS OthersAmount,
+				ISNULL(CP.CompanyName,'') CompanyName
+
+				FROM PurchaseOrders H
+				LEFT OUTER JOIN Suppliers s ON h.SupplierId = s.Id
+				LEFT OUTER JOIN BranchProfiles br ON h.BranchId = br.Id
+				LEFT OUTER JOIN PurchaseOrderDetails D ON h.Id = D.PurchaseOrderId
+				LEFT OUTER JOIN CompanyProfiles CP ON D.CompanyId = CP.Id
+				LEFT OUTER JOIN Products P ON D.ProductId = P.Id
 
 
-            FROM PurchaseOrders H
-            LEFT OUTER JOIN Suppliers s on h.SupplierId = s.Id
-            LEFT OUTER JOIN BranchProfiles br on h.BranchId = br.Id
-            LEFT OUTER JOIN PurchaseOrderDetails D on h.Id = D.PurchaseOrderId            
-            LEFT OUTER JOIN Products P ON D.ProductId = P.Id
-
-        WHERE 1 = 1
+			    WHERE 1 = 1
 
     -- Add the filter condition
         " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PurchaseOrderDetailVM>.FilterCondition(options.filter) + ")" : "");
@@ -1273,7 +1295,6 @@ WHERE  1 = 1
             SELECT COUNT(DISTINCT H.Id) AS totalcount
             FROM PurchaseOrderDetails h
             LEFT OUTER JOIN Products p ON h.ProductId = p.Id
-            LEFT OUTER JOIN UOMs u ON h.UOMId = u.Id
             WHERE h.PurchaseOrderId = @masterId
 
     -- Add the filter condition
@@ -1287,8 +1308,6 @@ WHERE  1 = 1
         
             ISNULL(H.Id, 0) AS Id,
             ISNULL(H.ProductId, 0) AS ProductId,
-            ISNULL(H.UOMId, 0) AS UOMId,
-            ISNULL(H.UOMFromId, 0) AS UOMFromId,
             ISNULL(H.PurchaseOrderId, 0) AS PurchaseOrderId,
             ISNULL(P.Name, '') AS ProductName,
             ISNULL(H.Line, '') AS Line,
@@ -1300,19 +1319,10 @@ WHERE  1 = 1
             ISNULL(H.VATRate, 0) AS VATRate,
             ISNULL(H.VATAmount, 0) AS VATAmount,
             ISNULL(H.OthersAmount, 0) AS OthersAmount,
-            ISNULL(H.LineTotal, 0) AS LineTotal,
-            ISNULL(u.Name, '') AS UOMName,
-            ISNULL(H.UOMconversion, '') AS UOMconversion,
-            ISNULL(H.Comments, '') AS Comments,
-            ISNULL(H.VATType, '') AS VATType,
-            ISNULL(H.TransactionType, '') AS TransactionType,
-            ISNULL(FORMAT(H.InvoiceDateTime, 'yyyy-MM-dd'), '1900-01-01') AS InvoiceDateTime,
-            ISNULL(H.IsFixedVAT, 0) AS IsFixedVAT,
-            ISNULL(H.FixedVATAmount, 0) AS FixedVATAmount
+            ISNULL(H.LineTotal, 0) AS LineTotal
 
             FROM PurchaseOrderDetails h
             LEFT OUTER JOIN Products p ON h.ProductId = p.Id
-            LEFT OUTER JOIN UOMs u ON h.UOMId = u.Id
             WHERE h.PurchaseOrderId = @masterId
 
     -- Add the filter condition
@@ -1480,7 +1490,6 @@ SELECT
     ISNULL(M.BranchId, 0) AS BranchId,
     ISNULL(TRIM(branch.Name), '') AS BranchName,
     ISNULL(TRIM(branch.Code), '') AS BranchCode,
-    ISNULL(TRIM(branch.Address), '') AS BranchAddress,
     ISNULL(M.SupplierId, 0) AS SupplierId,
     ISNULL(TRIM(C.Name), '') AS CurrencyName,
     ISNULL(TRIM(S.Name), '') AS SupplierName,

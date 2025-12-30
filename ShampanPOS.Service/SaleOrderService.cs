@@ -132,11 +132,9 @@ public async Task<ResultVM> Insert(SaleOrderVM saleOrder)
                             details.SaleOrderId = saleOrder.Id;
                             details.SDAmount = 0;
                             details.VATAmount = 0;
-                            details.BranchId = saleOrder.BranchId;
                             details.Line = LineNo;
+                            details.CompanyId = saleOrder.CompanyId;
 
-            
-        
 
 
                             #region Line Total Summation
@@ -155,6 +153,7 @@ public async Task<ResultVM> Insert(SaleOrderVM saleOrder)
                             #endregion
                             
                             var resultDetail = await _repo.InsertDetails(details, conn, transaction);
+
                             if (resultDetail.Status.ToLower() == "success")
                             {
 
@@ -277,18 +276,11 @@ public async Task<ResultVM> Insert(SaleOrderVM saleOrder)
 
                     foreach (var details in saleOrder.saleOrderDetailsList)
                     {
-                        ResultVM Deleterecord = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-
-                        if (Deleterecord.Status == "Fail")
-                        {
-                            throw new Exception("Error in Delete for Details Data.");
-                        }
 
 
                         details.SaleOrderId = saleOrder.Id;
                         details.SDAmount = 0;
                         details.VATAmount = 0;
-                        details.BranchId = saleOrder.BranchId;
                         details.Line = LineNo;
 
 

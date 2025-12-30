@@ -36,13 +36,13 @@ namespace ShampanPOS.Repository
                 string query = @"
                 INSERT INTO SaleOrders 
                 (
-                    Code, BranchId, CustomerId, DeliveryAddress, OrderDate, 
+                    Code, BranchId, CompanyId, CustomerId, DeliveryAddress, OrderDate, 
                     DeliveryDate, Comments, 
                     TransactionType,CreatedBy, CreatedOn
                 )
                 VALUES 
                 (
-                    @Code, @BranchId, @CustomerId, @DeliveryAddress, @OrderDate, 
+                    @Code, @BranchId, @CompanyId,@CustomerId, @DeliveryAddress, @OrderDate, 
                     @DeliveryDate, @Comments, 
                     @TransactionType,@CreatedBy, @CreatedOn
                 );
@@ -52,6 +52,7 @@ namespace ShampanPOS.Repository
                 {
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
+                    //cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
                     cmd.Parameters.AddWithValue("@CustomerId", vm.CustomerId);
                     cmd.Parameters.AddWithValue("@DeliveryAddress", vm.DeliveryAddress ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@OrderDate", vm.OrderDate);
@@ -60,6 +61,8 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@TransactionType", vm.TransactionType ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy ?? "ERP");
                     cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
+                    cmd.Parameters.Add("@CompanyId", SqlDbType.Int)
+                                  .Value = (object?)vm.CompanyId ?? DBNull.Value;
                     object newId = cmd.ExecuteScalar();
                     vm.Id = Convert.ToInt32(newId);
 
@@ -121,7 +124,7 @@ namespace ShampanPOS.Repository
                 string query = @"
                 UPDATE SaleOrders 
                 SET 
-                    BranchId = @BranchId, CustomerId = @CustomerId, DeliveryAddress = @DeliveryAddress, OrderDate = @OrderDate, 
+                    BranchId = @BranchId,  CompanyId = @CompanyId, CustomerId = @CustomerId, DeliveryAddress = @DeliveryAddress, OrderDate = @OrderDate, 
                     DeliveryDate = @DeliveryDate, Comments = @Comments, TransactionType = @TransactionType, 
                     LastModifiedBy = @LastModifiedBy, LastModifiedOn = GETDATE()
 
@@ -131,6 +134,7 @@ namespace ShampanPOS.Repository
                 {
                     cmd.Parameters.AddWithValue("@Id", vm.Id);
                     cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId ?? 0);
                     cmd.Parameters.AddWithValue("@CustomerId", vm.CustomerId);
                     cmd.Parameters.AddWithValue("@DeliveryAddress", vm.DeliveryAddress ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@OrderDate", vm.OrderDate);
@@ -203,29 +207,34 @@ namespace ShampanPOS.Repository
                 }
 
                 string query = @"
-                                ISNULL(M.Id, 0) AS Id,
-                                ISNULL(M.Code, '') AS Code,
-                                ISNULL(M.BranchId, 0) AS BranchId,
-                                ISNULL(M.CustomerId, 0) AS CustomerId,
-                                ISNULL(C.Name, 0) AS CustomerName,
-                                ISNULL(M.DeliveryAddress, '') AS DeliveryAddress,
-                                ISNULL(FORMAT(M.OrderDate, 'yyyy-MM-dd'), '1900-01-01') AS OrderDate,
-                                ISNULL(FORMAT(M.DeliveryDate, 'yyyy-MM-dd'), '1900-01-01') AS DeliveryDate,
+    SELECT
+        ISNULL(M.Id, 0) AS Id,
+        ISNULL(M.Code, '') AS Code,
+        ISNULL(M.BranchId, 0) AS BranchId,
+	    ISNULL(M.CompanyId, 0) AS CompanyId,
+        ISNULL(M.CustomerId, 0) AS CustomerId,
+        ISNULL(C.Name, '') AS CustomerName,
+        ISNULL(M.DeliveryAddress, '') AS DeliveryAddress,
+        ISNULL(FORMAT(M.OrderDate, 'yyyy-MM-dd'), '1900-01-01') AS OrderDate,
+        ISNULL(FORMAT(M.DeliveryDate, 'yyyy-MM-dd'), '1900-01-01') AS DeliveryDate,
 
-                                ISNULL(M.Comments, '') AS Comments,
-                                ISNULL(M.TransactionType, '') AS TransactionType,
-                                ISNULL(M.IsPost, 0) AS IsPost,
-                                ISNULL(M.PostedBy, '') AS PostedBy,
-                                ISNULL(FORMAT(M.PostedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS PostedOn,
-                                ISNULL(M.CreatedBy, '') AS CreatedBy,
-                                ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS CreatedOn,
-                                ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
-                                ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn
-                   
-                            FROM SaleOrders M
-							LEFT OUTER JOIN Customers C on M.CustomerId = C.Id
-
-                            WHERE 1 = 1";
+        ISNULL(M.Comments, '') AS Comments,
+        ISNULL(M.TransactionType, '') AS TransactionType,
+        ISNULL(M.IsPost, 0) AS IsPost,
+        ISNULL(M.PostedBy, '') AS PostedBy,
+        ISNULL(FORMAT(M.PostedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS PostedOn,
+        ISNULL(M.CreatedBy, '') AS CreatedBy,
+        ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS CreatedOn,
+        ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
+        ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
+	ISNULL(Br.Name,'') BranchName,
+    ISNULL(CP.CompanyName,'') CompanyName
+    FROM SaleOrders M
+    LEFT JOIN Customers C ON M.CustomerId = C.Id
+    LEFT OUTER JOIN BranchProfiles Br ON M.BranchId = Br.Id
+	LEFT OUTER JOIN CompanyProfiles CP ON M.CompanyId = CP.Id
+    WHERE 1 = 1
+";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
                 {
@@ -253,6 +262,7 @@ namespace ShampanPOS.Repository
                         Id = Convert.ToInt32(row["Id"]),
                         Code = row["Code"].ToString(),
                         BranchId = Convert.ToInt32(row["BranchId"]),
+                        CompanyId = Convert.ToInt32(row["CompanyId"]),
                         CustomerId = Convert.ToInt32(row["CustomerId"]),
                         CustomerName = row.Field<string>("CustomerName"),
                         DeliveryAddress = row.Field<string>("DeliveryAddress") ?? string.Empty,
@@ -434,15 +444,14 @@ namespace ShampanPOS.Repository
             {
                 string query = @"
                     INSERT INTO SaleOrderDetails
-                    (SaleOrderId, BranchId, Line, ProductId, Quantity, UnitRate, SubTotal,SD,CompletedQty,RemainQty, SDAmount, VATRate, VATAmount, LineTotal)
+                    (SaleOrderId, Line, ProductId, Quantity, UnitRate, SubTotal,SD,CompletedQty,RemainQty, SDAmount, VATRate, VATAmount, LineTotal,CompanyId)
                     VALUES 
-                    (@SaleOrderId, @BranchId, @Line, @ProductId, @Quantity, @UnitRate,@CompletedQty,@RemainQty, @SubTotal, @SD, @SDAmount, @VATRate, @VATAmount, @LineTotal, @Comments);
+                    (@SaleOrderId, @Line, @ProductId, @Quantity, @UnitRate,@CompletedQty,@RemainQty, @SubTotal, @SD, @SDAmount, @VATRate, @VATAmount, @LineTotal,@CompanyId);
                     SELECT SCOPE_IDENTITY();";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
                 {
                     cmd.Parameters.AddWithValue("@SaleOrderId", details.SaleOrderId);
-                    cmd.Parameters.AddWithValue("@BranchId", details.BranchId );
                     cmd.Parameters.AddWithValue("@Line", details.Line );
                     cmd.Parameters.AddWithValue("@ProductId", details.ProductId ?? 0);
                     cmd.Parameters.AddWithValue("@Quantity", details.Quantity);
@@ -457,6 +466,8 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@CompletedQty", details.CompletedQty);
 
                     cmd.Parameters.AddWithValue("@RemainQty", details.RemainQty);
+                    cmd.Parameters.AddWithValue("@CompanyId", details.CompanyId ?? 0);
+
 
 
                     object newId = cmd.ExecuteScalar();
@@ -500,6 +511,7 @@ namespace ShampanPOS.Repository
                 ISNULL(D.SaleOrderId, 0) AS SaleOrderId,
                 ISNULL(D.Line, 0) AS Line,
                 ISNULL(D.ProductId, 0) AS ProductId,
+                ISNULL(D.CompanyId, 0) AS CompanyId,
                 ISNULL(D.Quantity, 0.00) AS Quantity,
                 ISNULL(FORMAT(D.UnitRate, 'N2'), '0.00') AS UnitRate,
                 ISNULL(FORMAT(D.SubTotal, 'N2'), '0.00') AS SubTotal,
@@ -508,6 +520,8 @@ namespace ShampanPOS.Repository
                 ISNULL(FORMAT(D.VATRate, 'N2'), '0.00') AS VATRate,
                 ISNULL(FORMAT(D.VATAmount, 'N2'), '0.00') AS VATAmount,
                 ISNULL(FORMAT(D.LineTotal, 'N2'), '0.00') AS LineTotal,
+                ISNULL(FORMAT(D.CompletedQty, 'N2'), '0.00') AS CompletedQty,
+                ISNULL(FORMAT(D.RemainQty, 'N2'), '0.00') AS RemainQty,
 
 
                 ISNULL(P.Name,'') ProductName,
@@ -516,10 +530,7 @@ namespace ShampanPOS.Repository
                 ISNULL(P.HSCodeNo,'') HSCodeNo,
                 ISNULL(P.ProductGroupId,0) ProductGroupId,
                 ISNULL(PG.Name,'') ProductGroupName,
-                ISNULL(P.UOMId,0) UOMId,
-                ISNULL(UOM.Name,'') UOMName,
-                ISNULL(P.UOMId,0) UOMFromId,
-                ISNULL(UOM.Name,'') UOMFromName
+                ISNULL(CP.CompanyName,'') CompanyName
 
 
 
@@ -527,7 +538,8 @@ namespace ShampanPOS.Repository
                 SaleOrderDetails D
                 LEFT OUTER JOIN Products P ON D.ProductId = P.Id
                 LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
-                LEFT OUTER JOIN UOMs uom ON P.UOMId = uom.Id
+                LEFT OUTER JOIN CompanyProfiles CP ON D.CompanyId = CP.Id
+
                 WHERE 1 = 1 ";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
@@ -668,7 +680,7 @@ namespace ShampanPOS.Repository
 				LEFT OUTER JOIN BranchProfiles BF ON H.BranchId = BF.Id
 				LEFT OUTER JOIN Customers C ON H.CustomerId = C.Id
 				LEFT OUTER JOIN BranchProfiles BR on h.BranchId = BR.Id
-				
+				LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
 				WHERE 1 = 1
     -- Add the filter condition
     " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleOrderVM>.FilterCondition(options.filter) + ")" : ""); /*+ @"*/
@@ -680,14 +692,14 @@ namespace ShampanPOS.Repository
     SELECT * 
     FROM (
         SELECT 
-        ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC") + @") AS rowindex
+        ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC") + @") AS rowindex,
         
-                ,ISNULL(H.Id,0)	Id
+                 ISNULL(H.Id,0)	Id
 				,ISNULL(H.Code,'')	Code
 				,ISNULL(H.DeliveryAddress,'')	DeliveryAddress				
 				,ISNULL(FORMAT(H.OrderDate,'yyyy-MM-dd HH:mm'),'1900-01-01') OrderDate
 				,ISNULL(FORMAT(H.DeliveryDate,'yyyy-MM-dd HH:mm'),'1900-01-01') DeliveryDate	
-	
+
 				,ISNULL(H.Comments,'')	Comments	
 				,ISNULL(H.TransactionType,'')	TransactionType				
 				
@@ -701,6 +713,7 @@ namespace ShampanPOS.Repository
 		        ,ISNULL(H.CustomerId,0) CustomerId
 		        ,ISNULL(C.Name,'') CustomerName
 		        ,ISNULL(BR.Name,'-') BranchName
+				,ISNULL(CP.CompanyName,'') CompanyName
 		        ,ISNULL(H.IsPost,0) IsPost
 		        ,CASE WHEN ISNULL(H.IsPost, 0) = 1 THEN 'Yes' ELSE 'No' END AS PostStatus
 
@@ -708,7 +721,7 @@ namespace ShampanPOS.Repository
 				LEFT OUTER JOIN BranchProfiles BF ON H.BranchId = BF.Id
 				LEFT OUTER JOIN Customers C ON H.CustomerId = C.Id
 				LEFT OUTER JOIN BranchProfiles BR on h.BranchId = BR.Id
-				
+				LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
 				WHERE 1 = 1
 
     -- Add the filter condition
@@ -1295,9 +1308,8 @@ WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take);";
                 string sqlQuery = @"
     -- Count query
             SELECT COUNT(DISTINCT H.Id) AS totalcount
-             FROM SaleOrderDetails h
+            FROM SaleOrderDetails h
             LEFT OUTER JOIN Products p ON h.ProductId = p.Id
-            LEFT OUTER JOIN UOMs u ON h.UOMId = u.Id
             WHERE h.SaleOrderId = @masterId
 
     -- Add the filter condition
@@ -1311,8 +1323,6 @@ WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take);";
         
             ISNULL(H.Id, 0) AS Id,
             ISNULL(H.ProductId, 0) AS ProductId,
-            ISNULL(H.UOMId, 0) AS UOMId,
-            ISNULL(H.UOMFromId, 0) AS UOMFromId,
             ISNULL(H.SaleOrderId, 0) AS SaleOrderId,
             ISNULL(P.Name, '') AS ProductName,
             ISNULL(H.Line, '') AS Line,
@@ -1323,14 +1333,10 @@ WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take);";
             ISNULL(H.SDAmount, 0) AS SDAmount,
             ISNULL(H.VATRate, 0) AS VATRate,
             ISNULL(H.VATAmount, 0) AS VATAmount,
-            ISNULL(H.LineTotal, 0) AS LineTotal,
-            ISNULL(u.Name, '') AS UOMName,
-            ISNULL(H.UOMconversion, '') AS UOMconversion,
-            ISNULL(H.Comments, '') AS Comments
+            ISNULL(H.LineTotal, 0) AS LineTotal
 
             FROM SaleOrderDetails h
             LEFT OUTER JOIN Products p ON h.ProductId = p.Id
-            LEFT OUTER JOIN UOMs u ON h.UOMId = u.Id
             WHERE h.SaleOrderId = @masterId
 
     -- Add the filter condition

@@ -17,6 +17,9 @@ namespace ShampanPOS.Controllers
     [ApiController]
     public class SaleReturnController : ControllerBase
     {
+
+        SaleReturnService _SaleReturnService = new SaleReturnService();
+
         CommonService _common = new CommonService();
 
         // POST: api/SaleReturn/Insert
@@ -297,6 +300,30 @@ namespace ShampanPOS.Controllers
             catch (Exception ex)
             {
                 throw new Exception($"Error generating report: {ex.Message}");
+            }
+        }
+
+
+        // POST: api/SaleReturn/GetSaleReturnDetailDataById
+        [HttpPost("GetSaleReturnDetailDataById")]
+        public async Task<ResultVM> GetSaleReturnDetailDataById(GridOptions options, int masterId)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                _SaleReturnService = new SaleReturnService();
+                resultVM = await _SaleReturnService.GetSaleReturnDetailDataById(options, masterId);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = ex.Message,
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
             }
         }
 

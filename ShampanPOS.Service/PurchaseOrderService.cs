@@ -63,6 +63,7 @@ namespace ShampanPOS.Service
                             details.PurchaseOrderId = model.Id;                            
                             details.BranchId = model.BranchId;
                             details.Line = LineNo;
+                            details.CompanyId = model.CompanyId;
 
                             var resultDetail = await _repo.InsertDetails(details, conn, transaction);
 

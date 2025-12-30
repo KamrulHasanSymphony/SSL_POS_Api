@@ -33,11 +33,11 @@ namespace ShampanPOS.Repository
 
                 string query = @"
         INSERT INTO Sales 
-        (Code, BranchId, CustomerId, SaleOrderId, DeliveryAddress,
+        (Code, BranchId,CompanyId, CustomerId, SaleOrderId, DeliveryAddress,
          InvoiceDateTime, Comments, 
         TransactionType, IsPost, PeriodId, CreatedBy, CreatedOn, CreatedFrom)
         VALUES 
-        (@Code, @BranchId, @CustomerId, @SaleOrderId,@DeliveryAddress, 
+        (@Code, @BranchId,@CompanyId, @CustomerId, @SaleOrderId,@DeliveryAddress, 
          @InvoiceDateTime, @Comments, @TransactionType, @IsPost, @PeriodId, 
          @CreatedBy, GETDATE(), @CreatedFrom);
         SELECT SCOPE_IDENTITY();";
@@ -46,6 +46,7 @@ namespace ShampanPOS.Repository
                 {
                     cmd.Parameters.AddWithValue("@Code", sale.Code);
                     cmd.Parameters.AddWithValue("@BranchId", sale.BranchId);
+                    cmd.Parameters.AddWithValue("@CompanyId", sale.CompanyId);
                     cmd.Parameters.AddWithValue("@CustomerId", sale.CustomerId);
                     cmd.Parameters.AddWithValue("@SaleOrderId", sale.SaleOrderId);
                     cmd.Parameters.AddWithValue("@DeliveryAddress", sale.DeliveryAddress ?? (object)DBNull.Value);
@@ -103,10 +104,10 @@ namespace ShampanPOS.Repository
             {
                 string query = @"
                 INSERT INTO SaleDetails
-                (SaleId, SaleOrderDetailId, Line, ProductId, 
+                (SaleId, SaleOrderDetailId, Line, ProductId, CompanyId,
                  Quantity, UnitRate, SubTotal, SD, SDAmount, VATRate, VATAmount, LineTotal)
                 VALUES 
-                (@SaleId, @SaleOrderDetailId, @Line, @ProductId, 
+                (@SaleId, @SaleOrderDetailId, @Line, @ProductId, @CompanyId,
                  @Quantity, @UnitRate, @SubTotal, @SD, @SDAmount, @VATRate, @VATAmount, @LineTotal );
                 SELECT SCOPE_IDENTITY();";
 
@@ -126,8 +127,11 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@VATRate", details.VATRate ?? 0);
                     cmd.Parameters.AddWithValue("@VATAmount", details.VATAmount ?? 0);
                     cmd.Parameters.AddWithValue("@LineTotal", details.LineTotal ?? 0);
-                    cmd.Parameters.AddWithValue("@VATType", "VAT");
-                    cmd.Parameters.AddWithValue("@IsPost", false);
+                    //cmd.Parameters.AddWithValue("@VATType", "VAT");
+                    //cmd.Parameters.AddWithValue("@IsPost", false);
+                    cmd.Parameters.Add("@CompanyId", SqlDbType.Int)
+                                  .Value = (object?)details.CompanyId ?? DBNull.Value;
+
 
                     // Execute the query and get the new ID (primary key)
                     object newId = cmd.ExecuteScalar();
@@ -171,28 +175,30 @@ namespace ShampanPOS.Repository
                     transaction = conn.BeginTransaction();
                 }
                 string query = @"
-UPDATE Sales
-SET 
-    BranchId = @BranchId,
-    CustomerId = @CustomerId,
-    SaleOrderId = @SaleOrderId,
-    DeliveryAddress = @DeliveryAddress,
-    InvoiceDateTime = @InvoiceDateTime,
-    Comments = @Comments,
-    TransactionType = @TransactionType,
-    IsPost = @IsPost,
-    PeriodId = @PeriodId,
-    LastModifiedBy = @LastModifiedBy,
-    LastModifiedOn = @LastModifiedOn,
-    LastUpdateFrom = @LastUpdateFrom
-WHERE Id = @Id;
-";
+                UPDATE Sales
+                SET 
+                    BranchId = @BranchId,
+                    CompanyId = @CompanyId,
+                    CustomerId = @CustomerId,
+                    SaleOrderId = @SaleOrderId,
+                    DeliveryAddress = @DeliveryAddress,
+                    InvoiceDateTime = @InvoiceDateTime,
+                    Comments = @Comments,
+                    TransactionType = @TransactionType,
+                    IsPost = @IsPost,
+                    PeriodId = @PeriodId,
+                    LastModifiedBy = @LastModifiedBy,
+                    LastModifiedOn = @LastModifiedOn,
+                    LastUpdateFrom = @LastUpdateFrom
+                WHERE Id = @Id;
+                ";
 
 
                 using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
                 {
                     cmd.Parameters.AddWithValue("@Id", sale.Id);
                     cmd.Parameters.AddWithValue("@BranchId", sale.BranchId);
+                    cmd.Parameters.AddWithValue("@CompanyId", sale.CompanyId);
                     cmd.Parameters.AddWithValue("@CustomerId", sale.CustomerId);
                     cmd.Parameters.AddWithValue("@SaleOrderId", sale.SaleOrderId);
                     cmd.Parameters.AddWithValue("@DeliveryAddress", sale.DeliveryAddress ?? (object)DBNull.Value);
@@ -270,6 +276,7 @@ SELECT
     ISNULL(M.Id, 0) AS Id,
     ISNULL(M.Code, '') AS Code,
     ISNULL(M.BranchId, 0) AS BranchId,
+	ISNULL(M.CompanyId, 0) AS CompanyId,
     ISNULL(M.CustomerId, 0) AS CustomerId,
     ISNULL(M.SaleOrderId, 0) AS SaleOrderId,
     ISNULL(M.DeliveryAddress, '') AS DeliveryAddress,
@@ -284,9 +291,15 @@ SELECT
     ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
     ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
     ISNULL(M.CreatedFrom, '') AS CreatedFrom,
-    ISNULL(M.LastUpdateFrom, '') AS LastUpdateFrom
+    ISNULL(M.LastUpdateFrom, '') AS LastUpdateFrom,
+	ISNULL(Br.Name,'') BranchName,
+    ISNULL(CP.CompanyName,'') CompanyName,
+    ISNULL(cus.Name,'') CustomerName
 FROM 
     Sales M
+	            LEFT OUTER JOIN BranchProfiles Br ON M.BranchId = Br.Id
+				LEFT OUTER JOIN CompanyProfiles CP ON M.CompanyId = CP.Id
+                LEFT OUTER JOIN Customers cus ON M.CustomerId = cus.Id
 WHERE 
     1 = 1
  ";
@@ -320,6 +333,7 @@ WHERE
                         Id = Convert.ToInt32(row["Id"]),
                         Code = row["Code"].ToString(),
                         BranchId = Convert.ToInt32(row["BranchId"]),
+                        CompanyId = Convert.ToInt32(row["CompanyId"]),
                         CustomerId = Convert.ToInt32(row["CustomerId"]),
                         SaleOrderId = Convert.ToInt32(row["SaleOrderId"]),
                         DeliveryAddress = row["DeliveryAddress"].ToString(),
@@ -389,6 +403,8 @@ WHERE
                 string query = @"
 SELECT 
 ISNULL(D.Id, 0) AS Id,
+ISNULL(D.SaleId, 0) AS SaleId,
+ISNULL(D.CompanyId, 0) AS CompanyId,
 ISNULL(D.SaleOrderDetailId, 0) AS SaleOrderDetailId,
 ISNULL(D.Line, 0) AS Line,
 ISNULL(D.ProductId, 0) AS ProductId,
@@ -405,12 +421,16 @@ ISNULL(P.BanglaName,'') BanglaName,
 ISNULL(P.Code,'') ProductCode, 
 ISNULL(P.HSCodeNo,'') HSCodeNo,
 ISNULL(P.ProductGroupId,0) ProductGroupId,
-ISNULL(PG.Name,'') ProductGroupName
+ISNULL(PG.Name,'') ProductGroupName,
+ISNULL(CP.CompanyName,'') CompanyName
+
 
 FROM 
 SaleDetails D
 LEFT OUTER JOIN Products P ON D.ProductId = P.Id
 LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+LEFT OUTER JOIN CompanyProfiles CP ON D.CompanyId = CP.Id
+
 WHERE 1 = 1 ";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
@@ -681,6 +701,7 @@ WHERE
             SELECT COUNT(DISTINCT H.Id) AS totalcount
                 FROM Sales H 
                 LEFT OUTER JOIN BranchProfiles Br ON H.BranchId = Br.Id
+				LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
                 LEFT OUTER JOIN Customers cus ON H.CustomerId = cus.Id
                 WHERE 1 = 1
             -- Add the filter condition
@@ -697,7 +718,7 @@ WHERE
                 ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC") + @") AS rowindex,
         
                 
-                ISNULL(H.Id,0)	Id
+	             ISNULL(H.Id,0)	Id
                 ,ISNULL(H.Code,'') Code
                 ,ISNULL(H.DeliveryAddress,'') DeliveryAddress
                 ,ISNULL(H.Comments,'') Comments
@@ -706,10 +727,12 @@ WHERE
                 ,ISNULL(FORMAT(H.InvoiceDateTime,'yyyy-MM-dd'),'1900-01-01') InvoiceDateTime
 
                 ,ISNULL(Br.Name,'') BranchName
+				,ISNULL(CP.CompanyName,'') CompanyName
                 ,ISNULL(cus.Name,'') CustomerName
 
                 FROM Sales H 
                 LEFT OUTER JOIN BranchProfiles Br ON H.BranchId = Br.Id
+				LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
                 LEFT OUTER JOIN Customers cus ON H.CustomerId = cus.Id
                 WHERE 1 = 1
 
@@ -769,12 +792,15 @@ WHERE
                 string sqlQuery = @"
             -- Count query
             SELECT COUNT(DISTINCT H.Id) AS totalcount
-		FROM Sales H 
-		LEFT OUTER JOIN BranchProfiles Br ON H.BranchId = Br.Id
-	    LEFT OUTER JOIN Customers cus ON H.CustomerId = cus.Id
-        LEFT OUTER JOIN SaleDetails D ON H.Code = D.SaleId
-        LEFT OUTER JOIN Products PD ON D.ProductId = PD.Id
-		WHERE 1 = 1
+                FROM SaleOrders H
+                LEFT OUTER JOIN BranchProfiles BF ON H.BranchId = BF.Id
+                LEFT OUTER JOIN Customers C ON H.CustomerId = C.Id
+                LEFT OUTER JOIN BranchProfiles BR ON H.BranchId = BR.Id
+                LEFT OUTER JOIN SaleOrderDetails D ON H.Id = D.SaleOrderId
+                LEFT OUTER JOIN Products PD ON D.ProductId = PD.Id
+	            LEFT OUTER JOIN CompanyProfiles CP ON D.CompanyId = CP.Id
+
+                WHERE 1 = 1
             -- Add the filter condition
             " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleDetailVM>.FilterCondition(options.filter) + ")" : "");
 
@@ -792,20 +818,24 @@ WHERE
                 ISNULL(H.Id, 0) AS Id,
                 ISNULL(H.Code, '') AS Code,
                 ISNULL(H.DeliveryAddress, '') AS DeliveryAddress,
+                ISNULL(FORMAT(H.OrderDate, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS OrderDate,
+                ISNULL(FORMAT(H.DeliveryDate, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS DeliveryDate,
                 ISNULL(H.Comments, '') AS Comments,
-                ISNULL(H.IsPost, 0) AS IsPost,
-                CASE WHEN ISNULL(H.IsPost, 0) = 1 THEN 'Posted' ELSE 'Not-posted' END AS Status,
-                ISNULL(FORMAT(H.InvoiceDateTime, 'yyyy-MM-dd'), '1900-01-01') AS InvoiceDateTime,
-                ISNULL(Br.Name, '') AS BranchName,
-                ISNULL(cus.Name, '') AS CustomerName,
-                ISNULL(PD.Name, '') AS ProductName,
                 ISNULL(H.TransactionType, '') AS TransactionType,
+                ISNULL(H.CreatedBy, '') AS CreatedBy,
+                ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
+                ISNULL(H.CreatedFrom, '') AS CreatedFrom,
+                ISNULL(H.LastUpdateFrom, '') AS LastUpdateFrom,
+                ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS CreatedOn,
+                ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS LastModifiedOn,
+                ISNULL(H.BranchId, 0) AS BranchId,
                 ISNULL(H.CustomerId, 0) AS CustomerId,
-                
-                -- Sale Details
-                ISNULL(D.Id, 0) AS SaleDeliveryDetailId,
-                ISNULL(D.SaleOrderDetailId, 0) AS SaleOrderDetailId,
-                ISNULL(D.ProductId, 0) AS ProductId,
+                ISNULL(C.Name, '') AS CustomerName,
+                ISNULL(BR.Name, '-') AS BranchName,
+                ISNULL(PD.Name, '') AS ProductName,
+	            ISNULL(CP.CompanyName,'') CompanyName,
+
+                -- Detail Information
                 ISNULL(D.Quantity, 0) AS Quantity,
                 ISNULL(D.UnitRate, 0) AS UnitRate,
                 ISNULL(D.SubTotal, 0) AS SubTotal,
@@ -814,13 +844,18 @@ WHERE
                 ISNULL(D.VATRate, 0) AS VATRate,
                 ISNULL(D.VATAmount, 0) AS VATAmount,
                 ISNULL(D.LineTotal, 0) AS LineTotal
+  
+    
+  
 
-                FROM Sales H
-                LEFT OUTER JOIN BranchProfiles Br ON H.BranchId = Br.Id
-                LEFT OUTER JOIN Customers cus ON H.CustomerId = cus.Id
-                LEFT OUTER JOIN SaleDetails D ON H.Code = D.SaleId
+                FROM SaleOrders H
+                LEFT OUTER JOIN BranchProfiles BF ON H.BranchId = BF.Id
+                LEFT OUTER JOIN Customers C ON H.CustomerId = C.Id
+                LEFT OUTER JOIN BranchProfiles BR ON H.BranchId = BR.Id
+                LEFT OUTER JOIN SaleOrderDetails D ON H.Id = D.SaleOrderId
                 LEFT OUTER JOIN Products PD ON D.ProductId = PD.Id
-                
+	            LEFT OUTER JOIN CompanyProfiles CP ON D.CompanyId = CP.Id
+
                 WHERE 1 = 1
 
             -- Add the filter condition
@@ -1164,6 +1199,104 @@ WHERE  1 = 1 ";
             }
         }
 
+
+
+
+        public async Task<ResultVM> GetSaleDetailDataById(GridOptions options, int masterId, SqlConnection conn, SqlTransaction transaction)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                var data = new GridEntity<SaleDetailVM>();
+
+                // Define your SQL query string
+                string sqlQuery = @"
+    -- Count query
+            SELECT COUNT(DISTINCT D.Id) AS totalcount
+            FROM 
+            SaleDetails D
+            LEFT OUTER JOIN Products P ON D.ProductId = P.Id
+            LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+            LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
+            WHERE D.SaleId= @masterId
+
+    -- Add the filter condition
+    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleDetailVM>.FilterCondition(options.filter) + ")" : "") + @"
+
+    -- Data query with pagination and sorting
+    SELECT * 
+    FROM (
+        SELECT 
+        ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "D.Id DESC") + @") AS rowindex,
+        
+            ISNULL(D.Id, 0) AS Id,
+            ISNULL(D.SaleId, 0) AS SaleId,
+            ISNULL(D.Line, 0) AS Line,
+            ISNULL(D.ProductId, 0) AS ProductId,
+            ISNULL(D.Quantity, 0) AS Quantity,
+            ISNULL(D.UnitRate,0) AS UnitRate,
+            ISNULL(D.SubTotal,0) AS SubTotal,
+            ISNULL(D.SD,0) AS SD,
+            ISNULL(D.SDAmount,0) AS SDAmount,
+            ISNULL(D.VATRate,0) AS VATRate,
+            ISNULL(D.VATAmount,0) AS VATAmount,
+            ISNULL(D.LineTotal,0) AS LineTotal,
+
+            ISNULL(P.Name, '') AS ProductName,
+            ISNULL(P.BanglaName, '') AS BanglaName,
+            ISNULL(P.Code, '') AS ProductCode,
+            ISNULL(P.HSCodeNo, '') AS HSCodeNo,
+            ISNULL(P.ProductGroupId, 0) AS ProductGroupId,
+            ISNULL(PG.Name, '') AS ProductGroupName,
+            ISNULL(UOM.Name, '') AS UOMName,
+            ISNULL(UOM.Name, '') AS UOMFromName
+            FROM 
+            SaleDetails D
+            LEFT OUTER JOIN Products P ON D.ProductId = P.Id
+            LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+            LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
+            WHERE D.SaleId= @masterId
+
+    -- Add the filter condition
+    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleDetailVM>.FilterCondition(options.filter) + ")" : "") + @"
+
+    ) AS a
+    WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
+";
+
+                sqlQuery = sqlQuery.Replace("@masterId", "" + masterId + "");
+                data = KendoGrid<SaleDetailVM>.GetGridData_CMD(options, sqlQuery, "D.Id");
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = data;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
 
 
     }

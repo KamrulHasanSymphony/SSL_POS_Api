@@ -99,8 +99,9 @@ namespace ShampanPOS.Service
                             details.VATAmount = 0;
                             details.BranchId = model.BranchId;
                             details.Line = LineNo;
+                            details.CompanyId = model.CompanyId;
 
-                            
+
 
 
 

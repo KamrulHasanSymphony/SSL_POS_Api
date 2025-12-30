@@ -1180,8 +1180,7 @@ WHERE 1 = 1 ";
             LEFT OUTER JOIN Products P ON D.ProductId = P.Id
             LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
             LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
-            LEFT OUTER JOIN UOMConversations UOMCon ON D.UOMFromId = UOMCon.Id
-            WHERE D.PurchaseReturnId = @masterId
+            WHERE D.PurchasesReturnId = @masterId
 
     -- Add the filter condition
     " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PurchaseReturnDetailVM>.FilterCondition(options.filter) + ")" : "") + @"
@@ -1193,10 +1192,7 @@ WHERE 1 = 1 ";
         ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "D.Id DESC") + @") AS rowindex,
         
             ISNULL(D.Id, 0) AS Id,
-            ISNULL(D.PurchaseReturnId, 0) AS PurchaseReturnId,
-            ISNULL(D.PurchaseId, 0) AS PurchaseId,
-            ISNULL(D.PurchaseDetailId, 0) AS PurchaseDetailId,
-            ISNULL(D.BranchId, 0) AS BranchId,
+            ISNULL(D.PurchasesReturnId, 0) AS PurchasesReturnId,
             ISNULL(D.Line, 0) AS Line,
             ISNULL(D.ProductId, 0) AS ProductId,
             ISNULL(D.Quantity, 0) AS Quantity,
@@ -1208,16 +1204,8 @@ WHERE 1 = 1 ";
             ISNULL(D.VATAmount,0) AS VATAmount,
             ISNULL(D.LineTotal,0) AS LineTotal,
             ISNULL(D.OthersAmount,0) AS OthersAmount,
-            ISNULL(D.FixedVATAmount,0) AS FixedVATAmount,
-            ISNULL(CAST(D.IsFixedVAT AS BIT), 0) AS IsFixedVAT,     
             ISNULL(CAST(D.IsPost AS BIT), 0) AS IsPost, 
 
-            ISNULL(D.UOMId, 0) AS UOMId,
-            ISNULL(D.UOMFromId, 0) AS UOMFromId,
-            ISNULL(D.UOMConversion,0) AS UOMConversion,
-            ISNULL(D.Comments, '') AS Comments,
-            ISNULL(D.VATType, '') AS VATType,
-            ISNULL(D.ReturnReason, '') AS ReturnReason,
             ISNULL(P.Name, '') AS ProductName,
             ISNULL(P.BanglaName, '') AS BanglaName,
             ISNULL(P.Code, '') AS ProductCode,
@@ -1231,8 +1219,7 @@ WHERE 1 = 1 ";
             LEFT OUTER JOIN Products P ON D.ProductId = P.Id
             LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
             LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
-            LEFT OUTER JOIN UOMConversations UOMCon ON D.UOMFromId = UOMCon.Id
-            WHERE D.PurchaseReturnId = @masterId
+            WHERE D.PurchasesReturnId = @masterId
 
     -- Add the filter condition
     " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PurchaseReturnDetailVM>.FilterCondition(options.filter) + ")" : "") + @"

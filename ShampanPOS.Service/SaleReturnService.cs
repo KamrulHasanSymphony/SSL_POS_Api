@@ -63,6 +63,7 @@ namespace ShampanPOS.Service
                         details.VATAmount = 0;
                         //details.BranchId = sale.BranchId;
                         details.Line = LineNo;
+                        details.CompanyId = sale.CompanyId;
 
 
 
@@ -191,7 +192,10 @@ namespace ShampanPOS.Service
 
                 result = await _repo.Update(sale, conn, transaction);
 
-
+                if (sale.saleReturnDetailList == null || !sale.saleReturnDetailList.Any())
+                {
+                    throw new Exception("Sale Return Details is empty or null.");
+                }
 
                 if (result.Status.ToLower() == "success")
                 {
@@ -757,6 +761,57 @@ namespace ShampanPOS.Service
                 }
             }
         }
+
+
+
+        public async Task<ResultVM> GetSaleReturnDetailDataById(GridOptions options, int masterId)
+        {
+            SaleReturnRepository _repo = new SaleReturnRepository();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            bool isNewConnection = false;
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+            try
+            {
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+
+                transaction = conn.BeginTransaction();
+
+                result = await _repo.GetSaleReturnDetailDataById(options, masterId, conn, transaction);
+
+                if (isNewConnection && result.Status == "Success")
+                {
+                    transaction.Commit();
+                }
+                else
+                {
+                    throw new Exception(result.Message);
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection)
+                {
+                    transaction.Rollback();
+                }
+                result.Message = ex.Message.ToString();
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
 
     }
 
