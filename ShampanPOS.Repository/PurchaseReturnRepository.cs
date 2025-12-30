@@ -42,12 +42,12 @@ namespace ShampanPOS.Repository
                 string query = @"
                     INSERT INTO PurchasesReturn
                     (
-                        Code, BranchId, SupplierId, BENumber, PurchaseDate, InvoiceDateTime,Comments, 
+                        Code, BranchId,CompanyId, SupplierId, BENumber, PurchaseDate, InvoiceDateTime,Comments, 
                         TransactionType, IsPost, FiscalYear, PeriodId, CreatedBy, CreatedOn,CreatedFrom
                     )
                     VALUES 
                     (
-                        @Code, @BranchId, @SupplierId, @BENumber, @PurchaseDate,@InvoiceDateTime,@Comments, 
+                        @Code, @BranchId,@CompanyId, @SupplierId, @BENumber, @PurchaseDate,@InvoiceDateTime,@Comments, 
                         @TransactionType, @IsPost,@FiscalYear, @PeriodId, @CreatedBy, @CreatedOn,@CreatedFrom
                     );
                     SELECT SCOPE_IDENTITY();";
@@ -68,6 +68,8 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
                     cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom ?? (object)DBNull.Value);
+                    cmd.Parameters.Add("@CompanyId", SqlDbType.Int)
+                                 .Value = (object?)vm.CompanyId ?? DBNull.Value;
 
                     object newId = cmd.ExecuteScalar();
                     vm.Id = Convert.ToInt32(newId);
@@ -116,9 +118,9 @@ namespace ShampanPOS.Repository
             {
                 string query = @"
         INSERT INTO PurchaseReturnDetails
-        (PurchasesReturnId, Line, ProductId,Quantity, UnitPrice, SubTotal,IsPost, SD, SDAmount, VATRate, VATAmount,LineTotal,OthersAmount)
+        (PurchasesReturnId, Line,CompanyId, ProductId,Quantity, UnitPrice, SubTotal,IsPost, SD, SDAmount, VATRate, VATAmount,LineTotal,OthersAmount)
         VALUES 
-        (@PurchasesReturnId, @Line, @ProductId,@Quantity, @UnitPrice, @SubTotal, @SD, @SDAmount, @VATRate, @VATAmount,@LineTotal,@IsPost, @OthersAmount);
+        (@PurchasesReturnId, @Line,@CompanyId, @ProductId,@Quantity, @UnitPrice, @SubTotal, @SD, @SDAmount, @VATRate, @VATAmount,@LineTotal,@IsPost, @OthersAmount);
         SELECT SCOPE_IDENTITY();";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
@@ -138,7 +140,7 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@VATAmount", details.VATAmount);
                     cmd.Parameters.AddWithValue("@LineTotal", details.LineTotal);
                     cmd.Parameters.AddWithValue("@IsPost", details.IsPost);
-                    
+                    cmd.Parameters.AddWithValue("@CompanyId", details.CompanyId ?? 0);
 
 
                     object newId = cmd.ExecuteScalar();
@@ -185,7 +187,7 @@ namespace ShampanPOS.Repository
                 string query = @"
                 UPDATE PurchasesReturn
                 SET 
-                    SupplierId = @SupplierId, BENumber = @BENumber,InvoiceDateTime=@InvoiceDateTime, 
+                    SupplierId = @SupplierId,CompanyId = @CompanyId, BENumber = @BENumber,InvoiceDateTime=@InvoiceDateTime, 
                     PurchaseDate = @PurchaseDate, Comments = @Comments,
                     FiscalYear = @FiscalYear, PeriodId = @PeriodId, LastModifiedBy = @LastModifiedBy, LastUpdateFrom = @LastUpdateFrom, LastModifiedOn = GETDATE()
                 WHERE Id = @Id";
@@ -194,6 +196,7 @@ namespace ShampanPOS.Repository
                 {
                     cmd.Parameters.AddWithValue("@Id", vm.Id);
                     cmd.Parameters.AddWithValue("@SupplierId", vm.SupplierId);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId ?? 0);
                     cmd.Parameters.AddWithValue("@BENumber", vm.BENumber ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@PurchaseDate", vm.PurchaseDate);
                     cmd.Parameters.AddWithValue("@InvoiceDateTime", vm.InvoiceDateTime);
@@ -528,6 +531,7 @@ SELECT
     ISNULL(M.Id, 0) AS Id,
     ISNULL(M.Code, '') AS Code,
     ISNULL(M.BranchId, 0) AS BranchId,
+	ISNULL(M.CompanyId, 0) AS CompanyId,
     ISNULL(M.SupplierId, 0) AS SupplierId,
     ISNULL(M.BENumber, '') AS BENumber,
     ISNULL(FORMAT(M.PurchaseDate, 'yyyy-MM-dd'), '1900-01-01') AS PurchaseDate,
@@ -543,9 +547,15 @@ SELECT
     ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
     ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
     ISNULL(M.CreatedFrom, '') AS CreatedFrom,
-    ISNULL(M.LastUpdateFrom, '') AS LastUpdateFrom
+    ISNULL(M.LastUpdateFrom, '') AS LastUpdateFrom,
+    ISNULL(S.Name, '') AS SupplierName,
+	ISNULL(Br.Name,'') BranchName,
+    ISNULL(CP.CompanyName,'') CompanyName
 FROM 
     PurchasesReturn M
+    LEFT OUTER JOIN Suppliers S ON ISNULL(M.SupplierId,0) = S.Id
+    LEFT OUTER JOIN BranchProfiles Br ON M.BranchId = Br.Id
+	LEFT OUTER JOIN CompanyProfiles CP ON M.CompanyId = CP.Id
 WHERE 1 = 1
  ";
 
@@ -578,6 +588,7 @@ WHERE 1 = 1
                         Id = row.Field<int>("Id"),
                         Code = row.Field<string>("Code"),
                         BranchId = row.Field<int>("BranchId"),
+                        CompanyId = row.Field<int>("CompanyId"),
                         SupplierId = row.Field<int>("SupplierId"),
                         BENumber = row.Field<string>("BENumber"),
                         PurchaseDate = row.Field<string>("PurchaseDate"),
@@ -636,10 +647,7 @@ WHERE 1 = 1
                 string query = @"
 SELECT 
     ISNULL(D.Id, 0) AS Id,
-    ISNULL(D.PurchaseReturnId, 0) AS PurchaseReturnId,
-    ISNULL(D.PurchaseId, 0) AS PurchaseId,
-    ISNULL(D.PurchaseDetailId, 0) AS PurchaseDetailId,
-    ISNULL(D.BranchId, 0) AS BranchId,
+    ISNULL(D.PurchasesReturnId, 0) AS PurchasesReturnId,
     ISNULL(D.Line, 0) AS Line,
     ISNULL(D.ProductId, 0) AS ProductId,
     ISNULL(D.Quantity, 0.00) AS Quantity,
@@ -651,33 +659,23 @@ SELECT
     ISNULL(FORMAT(D.VATAmount, 'N2'), '0.00') AS VATAmount,
     ISNULL(FORMAT(D.LineTotal, 'N2'), '0.00') AS LineTotal,
     ISNULL(FORMAT(D.OthersAmount, 'N2'), '0.00') AS OthersAmount,
-    ISNULL(FORMAT(D.FixedVATAmount, 'N2'), '0.00') AS FixedVATAmount,
-    ISNULL(CAST(D.IsFixedVAT AS BIT), 0) AS IsFixedVAT,     
     ISNULL(CAST(D.IsPost AS BIT), 0) AS IsPost, 
 
-    ISNULL(D.UOMId, 0) AS UOMId,
-    ISNULL(D.UOMFromId, 0) AS UOMFromId,
-    ISNULL(FORMAT(D.UOMConversion, 'N2'), '0.00') AS UOMConversion,
-    ISNULL(D.Comments, '') AS Comments,
-    ISNULL(D.VATType, '') AS VATType,
-    ISNULL(D.ReturnReason, '') AS ReturnReason,
     ISNULL(P.Name, '') AS ProductName,
     ISNULL(P.BanglaName, '') AS BanglaName,
     ISNULL(P.Code, '') AS ProductCode,
     ISNULL(P.HSCodeNo, '') AS HSCodeNo,
     ISNULL(P.ProductGroupId, 0) AS ProductGroupId,
     ISNULL(PG.Name, '') AS ProductGroupName,
-    ISNULL(UOM.Name, '') AS UOMName,
-    ISNULL(UOM.Name, '') AS UOMFromName,
-    ISNULL(PUR.Code,'') POCode
+    ISNULL(CP.CompanyName,'') CompanyName
+
 
 FROM 
     PurchaseReturnDetails D
     LEFT OUTER JOIN Products P ON D.ProductId = P.Id
     LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
-    LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
-    LEFT OUTER JOIN UOMConversations UOMCon ON D.UOMFromId = UOMCon.Id
-    LEFT OUTER JOIN Purchases PUR ON D.PurchaseId = PUR.Id
+ LEFT OUTER JOIN CompanyProfiles CP ON D.CompanyId = CP.Id
+
 WHERE 
     1 = 1 ";
 
@@ -955,6 +953,7 @@ WHERE 1 = 1 ";
                     FROM PurchasesReturn H 
                     LEFT OUTER JOIN BranchProfiles Br ON H.BranchId = Br.Id
                     LEFT OUTER JOIN Suppliers S ON H.SupplierId = S.Id
+				    LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
                     WHERE 1 = 1
     -- Add the filter condition
         " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PurchaseReturnVM>.FilterCondition(options.filter) + ")" : "");
@@ -972,6 +971,7 @@ WHERE 1 = 1 ";
                     ISNULL(H.Id, 0) AS Id,
                     ISNULL(H.Code, '') AS Code,
                     ISNULL(H.BranchId, 0) AS BranchId,
+                    ISNULL(H.CompanyId, 0) AS CompanyId,
                     ISNULL(H.SupplierId, 0) AS SupplierId,
                     ISNULL(H.BENumber, '') AS BENumber,
                     ISNULL(FORMAT(H.PurchaseDate, 'yyyy-MM-dd'), '1900-01-01') AS PurchaseDate,
@@ -993,11 +993,14 @@ WHERE 1 = 1 ";
                     ISNULL(Br.Name,'') BranchName,
                     ISNULL(Br.Address, '') AS BranchAddress,
                     ISNULL(S.Name,'') SupplierName,
-                    ISNULL(S.Address, '') AS SupplierAddress
+                    ISNULL(S.Address, '') AS SupplierAddress,
+				    ISNULL(CP.CompanyName,'') CompanyName
+
 
                     FROM PurchasesReturn H 
                     LEFT OUTER JOIN BranchProfiles Br ON H.BranchId = Br.Id
                     LEFT OUTER JOIN Suppliers S ON H.SupplierId = S.Id
+				    LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
                     WHERE 1 = 1
 
                 -- Add the filter condition
@@ -1060,6 +1063,8 @@ WHERE 1 = 1 ";
         LEFT OUTER JOIN Suppliers S ON H.SupplierId = S.Id
         LEFT OUTER JOIN PurchaseReturnDetails D ON H.Id = D.PurchasesReturnId            
         LEFT OUTER JOIN Products P ON D.ProductId = P.Id
+		LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
+
         WHERE 1 = 1
     -- Add the filter condition
         " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PurchaseReturnDetailVM>.FilterCondition(options.filter) + ")" : "");
@@ -1077,6 +1082,7 @@ WHERE 1 = 1 ";
 	    ISNULL(H.Id, 0) AS Id,
         ISNULL(H.Code, '') AS Code,
         ISNULL(H.BranchId, 0) AS BranchId,
+		ISNULL(H.CompanyId, 0) AS CompanyId,
         ISNULL(Br.Name,'') BranchName,
         ISNULL(H.SupplierId, 0) AS SupplierId,
         ISNULL(S.Name,'') SupplierName,
@@ -1111,13 +1117,17 @@ WHERE 1 = 1 ";
             ISNULL(D.VATRate, 0) AS VATRate,
             ISNULL(D.VATAmount, 0) AS VATAmount,
             ISNULL(D.OthersAmount, 0) AS OthersAmount,
-            ISNULL(D.IsPost, 0) AS DetailIsPost
+            ISNULL(D.IsPost, 0) AS DetailIsPost,
+			ISNULL(CP.CompanyName,'') CompanyName
+
 
         FROM PurchasesReturn H 
         LEFT OUTER JOIN BranchProfiles Br ON H.BranchId = Br.Id
         LEFT OUTER JOIN Suppliers S ON H.SupplierId = S.Id
         LEFT OUTER JOIN PurchaseReturnDetails D ON H.Id = D.PurchasesReturnId            
         LEFT OUTER JOIN Products P ON D.ProductId = P.Id
+		LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
+
         WHERE 1 = 1
 
     -- Add the filter condition

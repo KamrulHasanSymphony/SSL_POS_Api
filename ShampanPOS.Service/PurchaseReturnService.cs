@@ -95,6 +95,8 @@ namespace ShampanPOS.Service
                             //details.TransactionType = model.TransactionType;
                             details.Line = LineNo;
                             details.IsPost = model.IsPost;
+                            details.CompanyId = model.CompanyId;
+
 
 
                             #region Line Total Summation
@@ -243,7 +245,7 @@ namespace ShampanPOS.Service
                         //details.TransactionType = model.TransactionType;
                         details.Line = LineNo;
                         details.IsPost = model.IsPost;
-
+                        details.CompanyId = model.CompanyId;
 
                         #region Line Total Summation
                         if (details.SD > 0)
