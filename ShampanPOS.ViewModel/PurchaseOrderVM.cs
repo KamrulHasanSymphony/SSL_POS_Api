@@ -22,6 +22,7 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Supplier")]
         public int? SupplierId { get; set; }
         public string? SupplierName { get; set; }
+        public string? SupplierAddress { get; set; }
 
         [Display(Name = "Order Date")]
         public string? OrderDate { get; set; }

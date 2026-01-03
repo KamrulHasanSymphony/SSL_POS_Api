@@ -15,6 +15,8 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Code")]
         public string? Code { get; set; }
 
+        public string? PurchaseOrderCode { get; set; }
+
         [Required]
         [Display(Name = "Branch")]
         public int? BranchId { get; set; }
@@ -34,14 +36,6 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Purchase Date")]
         public string PurchaseDate { get; set; }
 
-        //[Display(Name = "Grand Total Amount")]
-        //public decimal? GrandTotalAmount { get; set; }
-
-        //[Display(Name = "Grand Total SD Amount")]
-        //public decimal? GrandTotalSDAmount { get; set; }
-
-        //[Display(Name = "Grand Total VAT Amount")]
-        //public decimal? GrandTotalVATAmount { get; set; }
 
         [Display(Name = "Comments")]
         public string? Comments { get; set; }
@@ -53,8 +47,7 @@ namespace ShampanPOS.ViewModel
         [Required]
         [Display(Name = "Posted")]
         public bool IsPost { get; set; }
-        //public bool IsCompleted { get; set; }
-        //public string? Completed { get; set; }
+
 
         [Display(Name = "Posted By")]
         public string? PostedBy { get; set; }
@@ -62,23 +55,14 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Posted On")]
         public string? PostedOn { get; set; }
         public string? CreatedFrom { get; set; }
-        //[Required]
-        //[Display(Name = "Currency")]
-        //public int CurrencyId { get; set; }
-        //public int? UOMId { get; set; }
         public int? PurchaseOrderId { get; set; }
 
-        //[Display(Name = "Currency Rate from BDT")]
-        //public decimal? CurrencyRateFromBDT { get; set; }
+        public decimal SubTotal { get; set; }
+        public decimal TotalSD { get; set; }
+        public decimal TotalVAT { get; set; }
+        public decimal GrandTotal { get; set; }
+        public decimal PaidAmount { get; set; }
 
-        //[Display(Name = "Import ID Excel")]
-        //public string? ImportIDExcel { get; set; }
-
-        //[Display(Name = "File Name")]
-        //public string? FileName { get; set; }
-
-        //[Display(Name = "Custom House")]
-        //public string? CustomHouse { get; set; }
 
         [Display(Name = "Fiscal Year")]
         public string? FiscalYear { get; set; }
@@ -111,12 +95,10 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "To Date")]
         public string? ToDate { get; set; }
         public string? SupplierName { get; set; }
-        //public string? CurrencyName { get; set; }
         public string? BranchName { get; set; }
         public int? CompanyId { get; set; }
         public string? CompanyName { get; set; }
         public string? BranchAddress { get; set; }
-        //public decimal? TotalQuantity { get; set; }
 
 
         public List<PurchaseDetailVM> purchaseDetailList { get; set; }

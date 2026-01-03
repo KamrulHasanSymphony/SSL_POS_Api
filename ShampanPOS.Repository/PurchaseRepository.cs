@@ -42,12 +42,12 @@ namespace ShampanPOS.Repository
                 string query = @"
                     INSERT INTO Purchases
                     (
-                        Code, BranchId,CompanyId, SupplierId, BENumber, InvoiceDateTime, PurchaseDate, 
+                        Code, BranchId,PurchaseOrderId, CompanyId, SupplierId, BENumber, InvoiceDateTime, PurchaseDate, SubTotal,TotalSD, TotalVAT,GrandTotal,PaidAmount
                         Comments, TransactionType,FiscalYear,PeriodId, IsPost,CreatedBy, CreatedOn,CreatedFrom
                     )
                     VALUES 
                     (
-                        @Code, @BranchId,@CompanyId, @SupplierId, @BENumber, @InvoiceDateTime, @PurchaseDate, 
+                        @Code, @BranchId,@PurchaseOrderId,@CompanyId, @SupplierId, @BENumber, @InvoiceDateTime, @PurchaseDate, @SubTotal,@TotalSD,@TotalVAT,@GrandTotal,@PaidAmount,
                         @Comments, @TransactionType, @IsPost,@FiscalYear, @PeriodId, @CreatedBy, @CreatedOn,@CreatedFrom
                     );
                     SELECT SCOPE_IDENTITY();";
@@ -57,9 +57,16 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
                     cmd.Parameters.AddWithValue("@SupplierId", vm.SupplierId);
+                    cmd.Parameters.AddWithValue("@PurchaseOrderId", vm.PurchaseOrderId);
                     cmd.Parameters.AddWithValue("@BENumber", vm.BENumber ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@InvoiceDateTime", vm.InvoiceDateTime);
                     cmd.Parameters.AddWithValue("@PurchaseDate", vm.PurchaseDate);
+                    cmd.Parameters.AddWithValue("@SubTotal", vm.SubTotal);
+                    cmd.Parameters.AddWithValue("@TotalSD", vm.TotalSD);
+                    cmd.Parameters.AddWithValue("@TotalVAT", vm.TotalVAT);
+                    cmd.Parameters.AddWithValue("@GrandTotal", vm.GrandTotal);
+                    cmd.Parameters.AddWithValue("@PaidAmount", vm.PaidAmount);
+
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@TransactionType", vm.TransactionType ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsPost", vm.IsPost);
@@ -188,7 +195,7 @@ namespace ShampanPOS.Repository
                 string query = @"
                 UPDATE Purchases
                 SET 
-                    SupplierId = @SupplierId, CompanyId = @CompanyId, BENumber = @BENumber, 
+                    SupplierId = @SupplierId, CompanyId = @CompanyId, BENumber = @BENumber, PurchaseOrderId = @PurchaseOrderId, SubTotal = @SubTotal, TotalSD = @TotalSD, TotalVAT = @TotalVAT, GrandTotal = @GrandTotal, PaidAmount = @PaidAmount,
                     InvoiceDateTime = @InvoiceDateTime, PurchaseDate = @PurchaseDate, 
                     Comments = @Comments, 
                     FiscalYear = @FiscalYear, PeriodId = @PeriodId, LastModifiedBy = @LastModifiedBy, LastUpdateFrom = @LastUpdateFrom, LastModifiedOn = GETDATE()
@@ -198,10 +205,16 @@ namespace ShampanPOS.Repository
                 {
                     cmd.Parameters.AddWithValue("@Id", vm.Id);
                     cmd.Parameters.AddWithValue("@SupplierId", vm.SupplierId);
+                    cmd.Parameters.AddWithValue("@PurchaseOrderId", vm.PurchaseOrderId);
                     cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId ?? 0);
                     cmd.Parameters.AddWithValue("@BENumber", vm.BENumber ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@InvoiceDateTime", vm.InvoiceDateTime);
                     cmd.Parameters.AddWithValue("@PurchaseDate", vm.PurchaseDate);
+                    cmd.Parameters.AddWithValue("@SubTotal", vm.SubTotal);
+                    cmd.Parameters.AddWithValue("@TotalSD", vm.TotalSD);
+                    cmd.Parameters.AddWithValue("@TotalVAT", vm.TotalVAT);
+                    cmd.Parameters.AddWithValue("@GrandTotal", vm.GrandTotal);
+                    cmd.Parameters.AddWithValue("@PaidAmount", vm.PaidAmount);
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@FiscalYear", vm.FiscalYear ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@PeriodId", vm.PeriodId ?? (object)DBNull.Value);
@@ -530,8 +543,14 @@ SELECT
     ISNULL(M.Code, '') AS Code,
     ISNULL(M.BranchId, 0) AS BranchId,
 	ISNULL(M.CompanyId, 0) AS CompanyId,
+	ISNULL(M.PurchaseOrderId, 0) AS PurchaseOrderId,
     ISNULL(M.SupplierId, 0) AS SupplierId,
     ISNULL(M.BENumber, '') AS BENumber,
+	ISNULL(M.SubTotal, 0) AS SubTotal,
+	ISNULL(M.TotalSD, 0) AS TotalSD,
+	ISNULL(M.TotalVAT, 0) AS TotalVAT,
+	ISNULL(M.GrandTotal, 0) AS GrandTotal,
+	ISNULL(M.PaidAmount, 0) AS PaidAmount,
     ISNULL(FORMAT(M.InvoiceDateTime, 'yyyy-MM-dd'), '1900-01-01') AS InvoiceDateTime,
 	ISNULL(FORMAT(M.PurchaseDate, 'yyyy-MM-dd'), '1900-01-01') AS PurchaseDate,
     ISNULL(M.Comments, '') AS Comments,
@@ -548,6 +567,7 @@ SELECT
     ISNULL(M.CreatedFrom, '') AS CreatedFrom,
     ISNULL(M.LastUpdateFrom, '') AS LastUpdateFrom ,   
     ISNULL(S.Name, '') AS SupplierName,
+	ISNULL(P.Code, '') AS PurchaseOrderCode,
 	ISNULL(Br.Name,'') BranchName,
     ISNULL(CP.CompanyName,'') CompanyName
 
@@ -556,6 +576,7 @@ Purchases M
 LEFT OUTER JOIN Suppliers S ON ISNULL(M.SupplierId,0) = S.Id
     LEFT OUTER JOIN BranchProfiles Br ON M.BranchId = Br.Id
 	LEFT OUTER JOIN CompanyProfiles CP ON M.CompanyId = CP.Id
+	LEFT OUTER JOIN PurchaseOrders P ON M.PurchaseOrderId = P.Id 
 WHERE 1 = 1
  ";
 
@@ -586,10 +607,17 @@ WHERE 1 = 1
                     lst.Add(new PurchaseVM
                     {
                         Id = row.Field<int>("Id"),
+                        SubTotal = row.Field<int>("SubTotal"),
+                        TotalSD = row.Field<int>("TotalSD"),
+                        TotalVAT = row.Field<int>("TotalVAT"),
+                        GrandTotal = row.Field<int>("GrandTotal"),
+                        PaidAmount = row.Field<int>("PaidAmount"),
                         Code = row.Field<string>("Code"),
+                        PurchaseOrderCode = row.Field<string>("PurchaseOrderCode"),
                         BranchId = row.Field<int>("BranchId"),
                         CompanyId = row.Field<int>("CompanyId"),
                         SupplierId = row.Field<int>("SupplierId"),
+                        PurchaseOrderId = row.Field<int>("PurchaseOrderId"),
                         SupplierName = row.Field<string>("SupplierName"),
                         BENumber = row.Field<string>("BENumber"),
                         InvoiceDateTime = row.Field<string>("InvoiceDateTime"),
