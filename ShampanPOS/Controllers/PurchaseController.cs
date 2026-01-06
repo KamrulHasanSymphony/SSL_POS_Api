@@ -472,5 +472,30 @@ namespace ShampanPOS.Controllers
 
 
 
+
+        // POST: api/Purchase/PurchaseListForPayment
+        [HttpPost("PurchaseListForPayment")]
+        public async Task<ResultVM> PurchaseListForPayment(CommonVM vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                _service = new PurchaseService();
+                resultVM = await _service.PurchaseListForPayment(vm.IDs);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = ex.Message,
+                    ExMessage = ex.Message,
+                    DataVM = vm
+                };
+            }
+        }
+
+
     }
 }

@@ -1,4 +1,5 @@
-﻿using ShampanPOS.ViewModel;
+﻿using Newtonsoft.Json;
+using ShampanPOS.ViewModel;
 using ShampanPOS.ViewModel.CommonVMs;
 using ShampanPOS.ViewModel.KendoCommon;
 using ShampanPOS.ViewModel.Utility;
@@ -40,20 +41,26 @@ namespace ShampanPOS.Repository
                 }
 
                 string query = @"
-                    INSERT INTO Purchases
-                    (
-                        Code, BranchId,PurchaseOrderId, CompanyId, SupplierId, BENumber, InvoiceDateTime, PurchaseDate, SubTotal,TotalSD, TotalVAT,GrandTotal,PaidAmount
-                        Comments, TransactionType,FiscalYear,PeriodId, IsPost,CreatedBy, CreatedOn,CreatedFrom
-                    )
-                    VALUES 
-                    (
-                        @Code, @BranchId,@PurchaseOrderId,@CompanyId, @SupplierId, @BENumber, @InvoiceDateTime, @PurchaseDate, @SubTotal,@TotalSD,@TotalVAT,@GrandTotal,@PaidAmount,
-                        @Comments, @TransactionType, @IsPost,@FiscalYear, @PeriodId, @CreatedBy, @CreatedOn,@CreatedFrom
-                    );
-                    SELECT SCOPE_IDENTITY();";
+        INSERT INTO Purchases
+        (
+            Code, BranchId, PurchaseOrderId, CompanyId, SupplierId, BENumber, InvoiceDateTime, PurchaseDate, SubTotal, TotalSD, TotalVAT, GrandTotal, PaidAmount,
+            Comments, TransactionType, FiscalYear, PeriodId, IsPost, CreatedBy, CreatedOn, CreatedFrom
+        )
+        VALUES 
+        (
+            @Code, @BranchId, @PurchaseOrderId, @CompanyId, @SupplierId, @BENumber, @InvoiceDateTime, @PurchaseDate, @SubTotal, @TotalSD, @TotalVAT, @GrandTotal, @PaidAmount,
+            @Comments, @TransactionType, @FiscalYear, @PeriodId, @IsPost, @CreatedBy, @CreatedOn, @CreatedFrom
+        );
+        SELECT SCOPE_IDENTITY();";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
                 {
+                    // Serialize the `vm` object to JSON
+                    string serializedVm = JsonConvert.SerializeObject(vm);
+
+                    // Insert the serialized data as part of the query (if needed in the future)
+                    cmd.Parameters.AddWithValue("@SerializedVm", serializedVm); // Optional: Insert the entire object serialized if needed
+
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
                     cmd.Parameters.AddWithValue("@SupplierId", vm.SupplierId);
@@ -66,19 +73,17 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@TotalVAT", vm.TotalVAT);
                     cmd.Parameters.AddWithValue("@GrandTotal", vm.GrandTotal);
                     cmd.Parameters.AddWithValue("@PaidAmount", vm.PaidAmount);
-
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@TransactionType", vm.TransactionType ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@IsPost", vm.IsPost);
+                    cmd.Parameters.AddWithValue("@IsPost", false);  // Setting IsPost to false explicitly
                     cmd.Parameters.AddWithValue("@FiscalYear", vm.FiscalYear ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@PeriodId", vm.PeriodId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
                     cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom ?? (object)DBNull.Value);
-                    cmd.Parameters.Add("@CompanyId", SqlDbType.Int)
-                                 .Value = (object?)vm.CompanyId ?? DBNull.Value;
+                    cmd.Parameters.Add("@CompanyId", SqlDbType.Int).Value = (object?)vm.CompanyId ?? DBNull.Value;
 
-                    object newId = cmd.ExecuteScalar();
+                    object newId = await cmd.ExecuteScalarAsync();  // Use ExecuteScalarAsync to support async execution
                     vm.Id = Convert.ToInt32(newId);
 
                     result.Status = "Success";
@@ -607,11 +612,11 @@ WHERE 1 = 1
                     lst.Add(new PurchaseVM
                     {
                         Id = row.Field<int>("Id"),
-                        SubTotal = row.Field<int>("SubTotal"),
-                        TotalSD = row.Field<int>("TotalSD"),
-                        TotalVAT = row.Field<int>("TotalVAT"),
-                        GrandTotal = row.Field<int>("GrandTotal"),
-                        PaidAmount = row.Field<int>("PaidAmount"),
+                        SubTotal = row.Field<decimal>("SubTotal"),
+                        TotalSD = row.Field<decimal>("TotalSD"),
+                        TotalVAT = row.Field<decimal>("TotalVAT"),
+                        GrandTotal = row.Field<decimal>("GrandTotal"),
+                        PaidAmount = row.Field<decimal>("PaidAmount"),
                         Code = row.Field<string>("Code"),
                         PurchaseOrderCode = row.Field<string>("PurchaseOrderCode"),
                         BranchId = row.Field<int>("BranchId"),
@@ -1134,16 +1139,17 @@ WHERE 1 = 1 ";
 
                 // Define your SQL query string
                 string sqlQuery = $@"
-    -- Count query
-    SELECT COUNT(DISTINCT H.Id) AS totalcount
+                -- Count query
+                SELECT COUNT(DISTINCT H.Id) AS totalcount
 
-            FROM Purchases H
-            LEFT OUTER JOIN Suppliers s on h.SupplierId = s.Id
-            LEFT OUTER JOIN BranchProfiles br on h.BranchId = br.Id
-				LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
+                FROM Purchases H
+                LEFT OUTER JOIN Suppliers s on h.SupplierId = s.Id
+                LEFT OUTER JOIN BranchProfiles br on h.BranchId = br.Id
+		        LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
+			    LEFT OUTER JOIN PurchaseOrders P ON H.PurchaseOrderId = P.Id 
 
-        WHERE 1 = 1
-    -- Add the filter condition
+                WHERE 1 = 1
+            -- Add the filter condition
         " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PurchaseVM>.FilterCondition(options.filter) + ")" : "");
 
                 // Apply additional conditions
@@ -1156,11 +1162,17 @@ WHERE 1 = 1 ";
         SELECT 
         ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC") + $@") AS rowindex,
         
-	           ISNULL(H.Id, 0) AS Id,
+    	        ISNULL(H.Id, 0) AS Id,
                 ISNULL(H.Code, '') AS Code,
                 ISNULL(H.BranchId, 0) AS BranchId,
                 ISNULL(H.CompanyId, 0) AS CompanyId,
                 ISNULL(H.SupplierId, 0) AS SupplierId,
+				ISNULL(H.PurchaseOrderId, 0) AS PurchaseOrderId,
+				ISNULL(H.SubTotal, 0) AS SubTotal,
+				ISNULL(H.TotalSD, 0) AS TotalSD,
+				ISNULL(H.TotalVAT, 0) AS TotalVAT,
+				ISNULL(H.GrandTotal, 0) AS GrandTotal,
+				ISNULL(H.PaidAmount, 0) AS PaidAmount,
                 ISNULL(H.BENumber, '') AS BENumber,
                 ISNULL(FORMAT(H.InvoiceDateTime, 'yyyy-MM-dd'), '1900-01-01') AS InvoiceDateTime,
                 ISNULL(FORMAT(H.PurchaseDate, 'yyyy-MM-dd'), '1900-01-01') AS PurchaseDate,
@@ -1178,7 +1190,7 @@ WHERE 1 = 1 ";
                 ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
                 ISNULL(H.CreatedFrom, '') AS CreatedFrom,
                 ISNULL(H.LastUpdateFrom, '') AS LastUpdateFrom,
-
+				ISNULL(P.Code, '') AS PurchaseOrderCode,
                 ISNULL(Br.Name,'') BranchName,               
                 ISNULL(Br.Address, '') AS BranchAddress,
                 ISNULL(S.Name,'') SupplierName,
@@ -1187,12 +1199,13 @@ WHERE 1 = 1 ";
 
 
 
-            FROM Purchases H
-            LEFT OUTER JOIN Suppliers s on h.SupplierId = s.Id
-            LEFT OUTER JOIN BranchProfiles br on h.BranchId = br.Id
-				LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
+                FROM Purchases H
+                LEFT OUTER JOIN Suppliers s on h.SupplierId = s.Id
+                LEFT OUTER JOIN BranchProfiles br on h.BranchId = br.Id
+		        LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
+			    LEFT OUTER JOIN PurchaseOrders P ON H.PurchaseOrderId = P.Id 
 
-        WHERE 1 = 1
+                WHERE 1 = 1
 
     -- Add the filter condition
         " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PurchaseVM>.FilterCondition(options.filter) + ")" : "");
@@ -2159,6 +2172,212 @@ WHERE  1 = 1  ";
         }
 
 
+
+        public async Task<ResultVM> PurchaseListForPayment(string?[] IDs, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = @"
+SELECT 
+    ISNULL(M.Id, 0) AS Id,
+    ISNULL(M.Id, 0) AS PurchaseId,
+    ISNULL(M.Code, '') AS Code,
+    ISNULL(M.BranchId, 0) AS BranchId,
+    ISNULL(M.SupplierId, 0) AS SupplierId,
+    ISNULL(M.BENumber, '') AS BENumber,
+    ISNULL(FORMAT(M.InvoiceDateTime, 'yyyy-MM-dd'), '1900-01-01') AS InvoiceDateTime,
+    ISNULL(FORMAT(M.PurchaseDate, 'yyyy-MM-dd'), '1900-01-01') AS PurchaseDate,
+    ISNULL(M.Comments, '') AS Comments,
+    ISNULL(M.TransactionType, '') AS TransactionType,
+    ISNULL(M.IsPost, 0) AS IsPost,
+    ISNULL(M.PostedBy, '') AS PostedBy,
+    ISNULL(FORMAT(M.PostedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS PostedOn,
+    ISNULL(M.FiscalYear, '') AS FiscalYear,
+    ISNULL(M.PeriodId, '') AS PeriodId,
+    ISNULL(M.CreatedBy, '') AS CreatedBy,
+    ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS CreatedOn,
+    ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
+    ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
+    ISNULL(M.CreatedFrom, '') AS CreatedFrom,
+    ISNULL(M.LastUpdateFrom, '') AS LastUpdateFrom
+FROM 
+    Purchases M
+WHERE 1 = 1
+ ";
+
+                string inClause = string.Join(", ", IDs.Select((id, index) => $"@Id{index}"));
+
+                if (IDs.Length > 0)
+                {
+                    query += $" AND M.Id IN ({inClause}) ";
+                }
+
+                using (SqlDataAdapter adapter = new SqlDataAdapter(query, conn))
+                {
+                    if (transaction != null)
+                    {
+                        adapter.SelectCommand.Transaction = transaction;
+                    }
+
+                    for (int i = 0; i < IDs.Length; i++)
+                    {
+                        adapter.SelectCommand.Parameters.AddWithValue($"@Id{i}", IDs[i]);
+                    }
+
+                    adapter.Fill(dataTable);
+                }
+
+                var lst = new List<PaymentVM>();
+
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    lst.Add(new PaymentVM
+                    {
+                        Id = row.Field<int>("Id"),
+                        //PurchaseId = row.Field<int>("PurchaseId"),
+                        Code = row.Field<string>("Code"),
+                        //BranchId = row.Field<int>("BranchId"),
+                        SupplierId = row.Field<int>("SupplierId"),
+                        //BENumber = row.Field<string>("BENumber"),
+                        //InvoiceDateTime = row.Field<string>("InvoiceDateTime"),
+                        //PurchaseDate = row.Field<string>("PurchaseDate"),
+                        Comments = row.Field<string>("Comments"),
+                        //TransactionType = row.Field<string>("TransactionType"),
+                        //IsPost = row.Field<bool>("IsPost"),
+                        //PostedBy = row.Field<string>("PostedBy"),
+                        //PostedOn = row.Field<string?>("PostedOn"),
+                        //FiscalYear = row.Field<string>("FiscalYear"),
+                        //PeriodId = row.Field<string>("PeriodId"),
+                        CreatedBy = row.Field<string>("CreatedBy"),
+                        CreatedOn = row.Field<string>("CreatedOn"),
+                        LastModifiedBy = row.Field<string>("LastModifiedBy"),
+                        LastModifiedOn = row.Field<string?>("LastModifiedOn"),
+                        LastUpdateFrom = row.Field<string?>("LastUpdateFrom")
+                    });
+                }
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = lst;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
+
+        public async Task<ResultVM> PurchaseDetailsListForPayment(string?[] IDs, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = @"
+SELECT 
+
+ISNULL(D.Id, 0) AS Id,
+ISNULL(D.Id, 0) AS PurchaseDetailId,
+ISNULL(D.PurchaseId, 0) AS PurchaseId,
+ISNULL(D.BranchId, 0) AS BranchId,
+ISNULL(D.Line, 0) AS Line,
+ISNULL(D.ProductId, 0) AS ProductId,
+ISNULL(FORMAT(D.UnitPrice, 'N2'), 0.00) AS UnitPrice,
+ISNULL(FORMAT(D.SD, 'N2'), '0.00') AS SD,
+ISNULL(FORMAT(D.SDAmount, 'N2'), '0.00') AS SDAmount,
+ISNULL(FORMAT(D.VATRate, 'N2'), '0.00') AS VATRate,
+ISNULL(FORMAT(D.VATAmount, 'N2'), '0.00') AS VATAmount,
+ISNULL(FORMAT(D.OthersAmount, 'N2'), '0.00') AS OthersAmount,
+
+ISNULL(P.Name,'') ProductName,
+ISNULL(P.BanglaName,'') BanglaName, 
+ISNULL(P.Code,'') ProductCode, 
+ISNULL(P.HSCodeNo,'') HSCodeNo,
+ISNULL(P.ProductGroupId,0) ProductGroupId,
+ISNULL(PG.Name,'') ProductGroupName
+
+
+FROM 
+PurchaseDetails D
+LEFT OUTER JOIN Products P ON D.ProductId = P.Id
+LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+
+WHERE 1 = 1";
+
+
+                string inClause = string.Join(", ", IDs.Select((id, index) => $"@Id{index}"));
+
+                if (IDs.Length > 0)
+                {
+                    query += $" AND D.PurchaseId IN ({inClause}) ";
+                }
+
+                using (SqlDataAdapter adapter = new SqlDataAdapter(query, conn))
+                {
+                    if (transaction != null)
+                    {
+                        adapter.SelectCommand.Transaction = transaction;
+                    }
+
+                    for (int i = 0; i < IDs.Length; i++)
+                    {
+                        adapter.SelectCommand.Parameters.AddWithValue($"@Id{i}", IDs[i]);
+                    }
+
+                    adapter.Fill(dataTable);
+                }
+
+                result.Status = "Success";
+                result.Message = "Details Data retrieved successfully.";
+                result.DataVM = dataTable;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
 
     }
 

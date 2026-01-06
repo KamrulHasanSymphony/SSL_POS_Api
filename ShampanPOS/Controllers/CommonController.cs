@@ -613,5 +613,55 @@ namespace ShampanPOS.Controllers
         //    }
         //}
 
+        [HttpPost("BankAccountList")]
+        public async Task<ResultVM> BankAccountList(CommonVM Vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                CommonService _commonService = new CommonService();
+                resultVM = await _commonService.BankAccountList(new[] { "" }, new[] { "" }, null);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
+
+
+        // POST: api/Common/GetPurchaseData
+        [HttpPost("GetPurchaseData")]
+        public async Task<ResultVM> GetPurchaseData(PurchaseDataVM model)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                CommonService _commonService = new CommonService();
+                PeramModel vm = new PeramModel();
+                vm = model.PeramModel;
+
+                resultVM = await _commonService.GetPurchaseData(new[] { "M.Code like", "S.Name like", "E.Code like"}, new[] { model.Code, model.SupplierName, model.PurchaseOrderCode }, vm);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = ex.Message,
+                    ExMessage = ex.Message,
+                    DataVM = model
+                };
+            }
+        }
+
+
     }
 }

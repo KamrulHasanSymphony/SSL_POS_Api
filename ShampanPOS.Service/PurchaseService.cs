@@ -1247,6 +1247,81 @@ namespace ShampanPOS.Service
 
 
 
+        public async Task<ResultVM> PurchaseListForPayment(string?[] IDs)
+        {
+            PurchaseRepository _repo = new PurchaseRepository();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            bool isNewConnection = false;
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+            try
+            {
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+
+                transaction = conn.BeginTransaction();
+
+                result = await _repo.PurchaseListForPayment(IDs, conn, transaction);
+
+                var lst = new List<PaymentVM>();
+
+                string data = JsonConvert.SerializeObject(result.DataVM);
+                lst = JsonConvert.DeserializeObject<List<PaymentVM>>(data);
+
+                bool allSame = lst.Select(p => p.SupplierId).Distinct().Count() == 1;
+                if (!allSame)
+                {
+                    throw new Exception("Supplier is not distinct!");
+                }
+
+
+                var detailsDataList = await _repo.PurchaseDetailsListForPayment(IDs, conn, transaction);
+
+                if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
+                {
+                    string json = JsonConvert.SerializeObject(dt);
+                    var details = JsonConvert.DeserializeObject<List<PaymentDetailVM>>(json);
+                    details.ToList().ForEach(item => item.PaymentCode = lst.FirstOrDefault().Code);
+                    lst.FirstOrDefault().paymentDetailList = details;
+                    result.DataVM = lst;
+                }
+
+                if (isNewConnection && result.Status == "Success")
+                {
+                    transaction.Commit();
+                }
+                else
+                {
+                    throw new Exception(result.Message);
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection)
+                {
+                    transaction.Rollback();
+                }
+                result.Status = "Fail";
+                result.Message = ex.Message.ToString();
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
+
+
+
     }
 
 

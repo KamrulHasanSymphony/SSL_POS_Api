@@ -14,16 +14,16 @@ using System.Threading.Tasks;
 
 namespace ShampanPOS.Service
 {
-    public class PurchaseOrderService
+    public class PaymentService
     {
         CommonRepository _commonRepo = new CommonRepository();
 
-        public async Task<ResultVM> Insert(PurchaseOrderVM model)
+        public async Task<ResultVM> Insert(PaymentVM model)
         {
-            string CodeGroup = "PurchaseOrder";
-            string CodeName = "PurchaseOrder";
+            string CodeGroup = "Payment";
+            string CodeName = "Payment";
 
-            PurchaseOrderRepository _repo = new PurchaseOrderRepository();
+            PaymentRepository _repo = new PaymentRepository();
             _commonRepo = new CommonRepository();
 
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
@@ -39,14 +39,14 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                #region Date Check
-                if (Convert.ToDateTime(model.DeliveryDateTime) < Convert.ToDateTime(model.OrderDate))
-                {
-                    throw new Exception("Delivery Date cannot be smaller then Order Date!");
-                }
-                #endregion                
+                //#region Date Check
+                //if (Convert.ToDateTime(model.DeliveryDateTime) < Convert.ToDateTime(model.TransactionDate))
+                //{
+                //    throw new Exception("Delivery Date cannot be smaller then Order Date!");
+                //}
+                //#endregion                
 
-                string code = _commonRepo.GenerateCode(CodeGroup, CodeName, model.OrderDate, model.BranchId, conn, transaction);
+                string code = _commonRepo.CodeGenerationNo(CodeGroup, CodeName, conn, transaction);
 
                 if (!string.IsNullOrEmpty(code))
                 {
@@ -58,12 +58,13 @@ namespace ShampanPOS.Service
                     if (result.Status.ToLower() == "success")
                     {
                         int LineNo = 1;
-                        foreach (var details in model.purchaseOrderDetailsList)
+                        foreach (var details in model.paymentDetailList)
                         {
-                            details.PurchaseOrderId = model.Id;                            
-                            details.BranchId = model.BranchId;
-                            details.Line = LineNo;
-                            details.CompanyId = model.CompanyId;
+                            details.PaymentId = model.Id;
+                            details.SupplierId = model.SupplierId;
+                            //details.BranchId = model.BranchId;
+                            //details.Line = LineNo;
+                            //details.CompanyId = model.CompanyId;
 
                             var resultDetail = await _repo.InsertDetails(details, conn, transaction);
 
@@ -76,7 +77,7 @@ namespace ShampanPOS.Service
                                 throw new Exception(resultDetail.Message);
                             }
                         }
-                        
+
                     }
                     else
                     {
@@ -118,9 +119,11 @@ namespace ShampanPOS.Service
                 }
             }
         }
-        public async Task<ResultVM> Update(PurchaseOrderVM model)
+
+
+        public async Task<ResultVM> Update(PaymentVM model)
         {
-            PurchaseOrderRepository _repo = new PurchaseOrderRepository();
+            PaymentRepository _repo = new PaymentRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             _commonRepo = new CommonRepository();
 
@@ -134,15 +137,15 @@ namespace ShampanPOS.Service
                 isNewConnection = true;
                 transaction = conn.BeginTransaction();
 
-                #region Date Check
-                if (Convert.ToDateTime(model.DeliveryDateTime) < Convert.ToDateTime(model.OrderDate))
-                {
-                    throw new Exception("Delivery Date cannot be smaller then Order Date!");
-                }
-                #endregion
+                //#region Date Check
+                //if (Convert.ToDateTime(model.DeliveryDateTime) < Convert.ToDateTime(model.OrderDate))
+                //{
+                //    throw new Exception("Delivery Date cannot be smaller then Order Date!");
+                //}
+                //#endregion
 
 
-                var record = _commonRepo.DetailsDelete("PurchaseOrderDetails", new[] { "PurchaseOrderId" }, new[] { model.Id.ToString() }, conn, transaction);
+                var record = _commonRepo.DetailsDelete("PaymentDetails", new[] { "PaymentId" }, new[] { model.Id.ToString() }, conn, transaction);
 
                 if (record.Status == "Fail")
                 {
@@ -154,11 +157,11 @@ namespace ShampanPOS.Service
                 if (result.Status.ToLower() == "success")
                 {
                     int LineNo = 1;
-                    foreach (var details in model.purchaseOrderDetailsList)
+                    foreach (var details in model.paymentDetailList)
                     {
-                        details.PurchaseOrderId = model.Id;                        
-                        details.BranchId = model.BranchId;
-                        details.Line = LineNo;
+                        details.PaymentId = model.Id;
+                        //details.BranchId = model.BranchId;
+                        //details.Line = LineNo;
 
                         var resultDetail = await _repo.InsertDetails(details, conn, transaction);
 
@@ -170,7 +173,7 @@ namespace ShampanPOS.Service
                         {
                             throw new Exception(resultDetail.Message);
                         }
-                    }                    
+                    }
                 }
                 else
                 {
@@ -209,12 +212,13 @@ namespace ShampanPOS.Service
         }
         public async Task<ResultVM> Delete(string[] IDs)
         {
-            PurchaseOrderRepository _repo = new PurchaseOrderRepository();
+            PaymentRepository _repo = new PaymentRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, IDs = IDs, DataVM = null };
 
             bool isNewConnection = false;
             SqlConnection conn = null;
             SqlTransaction transaction = null;
+
             try
             {
                 conn = new SqlConnection(DatabaseHelper.GetConnectionString());
@@ -254,9 +258,10 @@ namespace ShampanPOS.Service
                 }
             }
         }
+
         public async Task<ResultVM> List(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
         {
-            PurchaseOrderRepository _repo = new PurchaseOrderRepository();
+            PaymentRepository _repo = new PaymentRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
             bool isNewConnection = false;
@@ -272,19 +277,19 @@ namespace ShampanPOS.Service
 
                 result = await _repo.List(conditionalFields, conditionalValues, vm, conn, transaction);
 
-                var lst = new List<PurchaseOrderVM>();
+                var lst = new List<PaymentVM>();
 
                 string data = JsonConvert.SerializeObject(result.DataVM);
-                lst = JsonConvert.DeserializeObject<List<PurchaseOrderVM>>(data);
+                lst = JsonConvert.DeserializeObject<List<PaymentVM>>(data);
 
-                var detailsDataList = await _repo.DetailsList(new[] { "D.PurchaseOrderId" }, conditionalValues, vm, conn, transaction);
+                var detailsDataList = await _repo.DetailsList(new[] { "D.PaymentId" }, conditionalValues, vm, conn, transaction);
 
                 if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
                 {
                     string json = JsonConvert.SerializeObject(dt);
-                    var details = JsonConvert.DeserializeObject<List<PurchaseOrderDetailVM>>(json);
+                    var details = JsonConvert.DeserializeObject<List<PaymentDetailVM>>(json);
 
-                    lst.FirstOrDefault().purchaseOrderDetailsList = details;
+                    lst.FirstOrDefault().paymentDetailList = details;
                     result.DataVM = lst;
                 }
 
@@ -319,7 +324,7 @@ namespace ShampanPOS.Service
         }
         public async Task<ResultVM> ListAsDataTable(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
         {
-            PurchaseOrderRepository _repo = new PurchaseOrderRepository();
+            PaymentRepository _repo = new PaymentRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
             bool isNewConnection = false;
@@ -362,7 +367,7 @@ namespace ShampanPOS.Service
         }
         public async Task<ResultVM> Dropdown()
         {
-            PurchaseOrderRepository _repo = new PurchaseOrderRepository();
+            PaymentRepository _repo = new PaymentRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
             bool isNewConnection = false;
@@ -405,7 +410,7 @@ namespace ShampanPOS.Service
         }
         public async Task<ResultVM> MultiplePost(CommonVM vm)
         {
-            PurchaseOrderRepository _repo = new PurchaseOrderRepository();
+            PaymentRepository _repo = new PaymentRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, IDs = vm.IDs, DataVM = null };
 
             bool isNewConnection = false;
@@ -450,56 +455,9 @@ namespace ShampanPOS.Service
                 }
             }
         }
-        public async Task<ResultVM> MultipleIsCompleted(CommonVM vm)
-        {
-            PurchaseOrderRepository _repo = new PurchaseOrderRepository();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, IDs = vm.IDs, DataVM = null };
-
-            bool isNewConnection = false;
-            SqlConnection conn = null;
-            SqlTransaction transaction = null;
-            try
-            {
-                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                conn.Open();
-                isNewConnection = true;
-
-                transaction = conn.BeginTransaction();
-
-                result = await _repo.MultipleIsCompleted(vm, conn, transaction);
-
-                if (isNewConnection && result.Status == "Success")
-                {
-                    transaction.Commit();
-                }
-                else
-                {
-                    throw new Exception(result.Message);
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                if (transaction != null && isNewConnection)
-                {
-                    transaction.Rollback();
-                }
-                result.Message = ex.Message.ToString();
-                result.ExMessage = ex.ToString();
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
         public async Task<ResultVM> GetGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues)
         {
-            PurchaseOrderRepository _repo = new PurchaseOrderRepository();
+            PaymentRepository _repo = new PaymentRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
             bool isNewConnection = false;
@@ -522,10 +480,10 @@ namespace ShampanPOS.Service
                     companyName = company.FirstOrDefault()?.CompanyName;
                 }
 
-                if (result.Status == "Success" && !string.IsNullOrEmpty(companyName) && result.DataVM is GridEntity<PurchaseOrderVM> gridData)
+                if (result.Status == "Success" && !string.IsNullOrEmpty(companyName) && result.DataVM is GridEntity<PaymentVM> gridData)
                 {
                     var items = gridData.Items;
-                    items.ToList().ForEach(item => item.CompanyName = companyName);
+                    //items.ToList().ForEach(item => item.CompanyName = companyName);
                 }
 
                 if (isNewConnection && result.Status == "Success")
@@ -559,7 +517,7 @@ namespace ShampanPOS.Service
         }
         public async Task<ResultVM> GetDetailsGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues)
         {
-            PurchaseOrderRepository _repo = new PurchaseOrderRepository();
+            PaymentRepository _repo = new PaymentRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
             bool isNewConnection = false;
@@ -605,239 +563,78 @@ namespace ShampanPOS.Service
             }
         }
 
-        public async Task<ResultVM> PurchaseOrderList(string?[] IDs)
-        {
-            PurchaseOrderRepository _repo = new PurchaseOrderRepository();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //public async Task<ResultVM> GetDetailsGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues, SqlTransaction Vtransaction = null, SqlConnection VcurrConn = null)
+        //{
+        //    SaleRepository _repo = new SaleRepository();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, IDs = null, DataVM = null };
 
-            bool isNewConnection = false;
-            SqlConnection conn = null;
-            SqlTransaction transaction = null;
-            try
-            {
-                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                conn.Open();
-                isNewConnection = true;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
 
-                transaction = conn.BeginTransaction();
+        //    try
+        //    {
+        //        #region open connection and transaction
+        //        if (VcurrConn != null)
+        //        {
+        //            conn = VcurrConn;
+        //        }
+        //        if (Vtransaction != null)
+        //        {
+        //            transaction = Vtransaction;
+        //        }
+        //        if (conn == null)
+        //        {
+        //            conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //            if (conn.State != ConnectionState.Open)
+        //            {
+        //                conn.Open();
+        //            }
+        //        }
+        //        if (transaction == null)
+        //        {
+        //            transaction = conn.BeginTransaction("");
+        //        }
+        //        #endregion open connection and transaction
 
-                result = await _repo.PurchaseOrderList(IDs, conn, transaction);
+        //        result = await _repo.GetDetailsGridData(options, conditionalFields, conditionalValues, conn, transaction);
 
-                var lst = new List<PurchaseVM>();
+        //        #region Commit
+        //        if (Vtransaction == null && transaction != null)
+        //        {
+        //            if (result.Status == "Success")
+        //            {
+        //                transaction.Commit();
+        //            }
+        //            else
+        //            {
+        //                throw new Exception(result.Message);
+        //            }
+        //        }
+        //        #endregion Commit
+        //    }
+        //    #region Catch & Finally
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && Vtransaction == null) { transaction.Rollback(); }
 
-                string data = JsonConvert.SerializeObject(result.DataVM);
-                lst = JsonConvert.DeserializeObject<List<PurchaseVM>>(data);
-
-                bool allSame = lst.Select(p => p.SupplierId).Distinct().Count() == 1;
-                if (!allSame)
-                {
-                    throw new Exception("Supplier is not distinct!");
-                }
-
-                //allSame = lst.Select(p => p.CurrencyId).Distinct().Count() == 1;
-                //if (!allSame)
-                //{
-                //    throw new Exception("Currency is not distinct!");
-                //}
-
-                var detailsDataList = await _repo.PurchaseOrderDetailsList(IDs, conn, transaction);
-
-                if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
-                {
-                    string json = JsonConvert.SerializeObject(dt);
-                    var details = JsonConvert.DeserializeObject<List<PurchaseDetailVM>>(json);
-                    details.ToList().ForEach(item => item.POCode = lst.FirstOrDefault().Code);
-                    lst.FirstOrDefault().purchaseDetailList = details;
-                    result.DataVM = lst;
-                }
-
-                if (isNewConnection && result.Status == "Success")
-                {
-                    transaction.Commit();
-                }
-                else
-                {
-                    throw new Exception(result.Message);
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                if (transaction != null && isNewConnection)
-                {
-                    transaction.Rollback();
-                }
-                result.Status = "Fail";
-                result.Message = ex.Message.ToString();
-                result.ExMessage = ex.ToString();
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
-        public async Task<ResultVM> GetPurchaseOrderDetailDataById(GridOptions options, int masterId)
-        {
-            PurchaseOrderRepository _repo = new PurchaseOrderRepository();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-
-            bool isNewConnection = false;
-            SqlConnection conn = null;
-            SqlTransaction transaction = null;
-            try
-            {
-                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                conn.Open();
-                isNewConnection = true;
-
-                transaction = conn.BeginTransaction();
-
-                result = await _repo.GetPurchaseOrderDetailDataById(options, masterId, conn, transaction);
-
-                if (isNewConnection && result.Status == "Success")
-                {
-                    transaction.Commit();
-                }
-                else
-                {
-                    throw new Exception(result.Message);
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                if (transaction != null && isNewConnection)
-                {
-                    transaction.Rollback();
-                }
-                result.Message = ex.Message.ToString();
-                result.ExMessage = ex.ToString();
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
-
-        public async Task<ResultVM> ReportPreview(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
-        {
-            PurchaseOrderRepository _repo = new PurchaseOrderRepository();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-
-            bool isNewConnection = false;
-            SqlConnection conn = null;
-            SqlTransaction transaction = null;
-            try
-            {
-                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                conn.Open();
-                isNewConnection = true;
-
-                transaction = conn.BeginTransaction();
-
-                result = await _repo.ReportPreview(conditionalFields, conditionalValues, vm, conn, transaction);
-
-                var companyData = await new CompanyProfileRepository().List(new[] { "H.Id" }, new[] { vm.CompanyId }, null, conn, transaction);
-                string companyName = string.Empty;
-                if (companyData.Status == "Success" && companyData.DataVM is List<CompanyProfileVM> company)
-                {
-                    companyName = company.FirstOrDefault()?.CompanyName;
-                }
-
-                if (result.Status == "Success" && !string.IsNullOrEmpty(companyName) && result.DataVM is DataTable dataTable)
-                {
-                    if (!dataTable.Columns.Contains("CompanyName"))
-                    {
-                        var CompanyName = new DataColumn("CompanyName") { DefaultValue = companyName };
-                        dataTable.Columns.Add(CompanyName);
-                    }
-
-                    if (!dataTable.Columns.Contains("ReportType"))
-                    {
-                        var ReportType = new DataColumn("ReportType") { DefaultValue = "Purchase Order Invoice" };
-                        dataTable.Columns.Add(ReportType);
-                    }
-
-                    result.DataVM = dataTable;
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                if (transaction != null && isNewConnection)
-                {
-                    transaction.Rollback();
-                }
-                result.Message = ex.Message.ToString();
-                result.ExMessage = ex.ToString();
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
-
-        public async Task<ResultVM> FromPurchaseOrderGridData(GridOptions options)
-        {
-            PurchaseOrderRepository _repo = new PurchaseOrderRepository();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-
-            bool isNewConnection = false;
-            SqlConnection conn = null;
-            SqlTransaction transaction = null;
-            try
-            {
-                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                conn.Open();
-                isNewConnection = true;
-
-                transaction = conn.BeginTransaction();
-
-                result = await _repo.FromPurchaseOrderGridData(options, conn, transaction);
-
-                if (isNewConnection && result.Status == "Success")
-                {
-                    transaction.Commit();
-                }
-                else
-                {
-                    throw new Exception(result.Message);
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                if (transaction != null && isNewConnection)
-                {
-                    transaction.Rollback();
-                }
-                result.Message = ex.Message.ToString();
-                result.ExMessage = ex.ToString();
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
+        //        result.Message = ex.Message.ToString();
+        //        result.ExMessage = ex.ToString();
+        //    }
+        //    finally
+        //    {
+        //        if (VcurrConn == null)
+        //        {
+        //            if (conn != null)
+        //            {
+        //                if (conn.State == ConnectionState.Open)
+        //                {
+        //                    conn.Close();
+        //                }
+        //            }
+        //        }
+        //    }
+        //    #endregion Catch & Finally
+        //    return result;
+        //}
     }
 }

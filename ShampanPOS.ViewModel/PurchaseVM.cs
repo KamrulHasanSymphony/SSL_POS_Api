@@ -12,29 +12,34 @@ namespace ShampanPOS.ViewModel
     {
         public int Id { get; set; }
 
-        [Display(Name = "Code")]
+        [Display(Name = "Code (Auto Generate)")]
         public string? Code { get; set; }
-
         public string? PurchaseOrderCode { get; set; }
 
         [Required]
-        [Display(Name = "Branch")]
+        [Display(Name = "Distributor")]
         public int? BranchId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Supplier is required")]
         [Display(Name = "Supplier")]
-        public int SupplierId { get; set; }
+        public int? SupplierId { get; set; }
 
-        [Display(Name = "BE Number")]
+        //[Required(ErrorMessage = "Currency is required")]
+        //[Display(Name = "Currency")]
+        //public int? CurrencyId { get; set; }
+
+        [Required(ErrorMessage = "BE Number (Challan No.) is required")]
+        [Display(Name = "BE Number (Challan No.)")]
         public string? BENumber { get; set; }
 
         [Required]
         [Display(Name = "Invoice Date")]
-        public string InvoiceDateTime { get; set; }
+        public string? InvoiceDateTime { get; set; }
 
         [Required]
         [Display(Name = "Purchase Date")]
-        public string PurchaseDate { get; set; }
+        public string? PurchaseDate { get; set; }
+
 
 
         [Display(Name = "Comments")]
@@ -48,13 +53,15 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Posted")]
         public bool IsPost { get; set; }
 
-
         [Display(Name = "Posted By")]
         public string? PostedBy { get; set; }
 
         [Display(Name = "Posted On")]
         public string? PostedOn { get; set; }
         public string? CreatedFrom { get; set; }
+
+
+        [Display(Name = "Purchase Order")]
         public int? PurchaseOrderId { get; set; }
 
         public decimal SubTotal { get; set; }
@@ -62,6 +69,7 @@ namespace ShampanPOS.ViewModel
         public decimal TotalVAT { get; set; }
         public decimal GrandTotal { get; set; }
         public decimal PaidAmount { get; set; }
+
 
 
         [Display(Name = "Fiscal Year")]
@@ -82,31 +90,32 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Last Modified On")]
         public string? LastModifiedOn { get; set; }
         public string? LastUpdateFrom { get; set; }
-
+        public string[]? IDs { get; set; }
         public string? Operation { get; set; }
         public string? Status { get; set; }
-
+        public string? BranchAddress { get; set; }
         [Display(Name = "Branch Name")]
         public int? Branchs { get; set; }
-
+        [Display(Name = "Posted")]
+        public string? IsPosted { get; set; }
         [Display(Name = "From Date")]
         public string? FromDate { get; set; }
-
+        public int? DecimalPlace { get; set; }
         [Display(Name = "To Date")]
         public string? ToDate { get; set; }
         public string? SupplierName { get; set; }
+
         public string? BranchName { get; set; }
         public int? CompanyId { get; set; }
         public string? CompanyName { get; set; }
-        public string? BranchAddress { get; set; }
 
-
+        public PeramModel PeramModel { get; set; }
         public List<PurchaseDetailVM> purchaseDetailList { get; set; }
         //public List<PurchaseDetailExportVM> purchaseDetailExportList { get; set; }
-
         public PurchaseVM()
         {
             purchaseDetailList = new List<PurchaseDetailVM>();
+            PeramModel = new PeramModel();
             //purchaseDetailExportList = new List<PurchaseDetailExportVM>();
         }
 
