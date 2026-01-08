@@ -16,13 +16,8 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Sale Order")]
         public int? SaleOrderId { get; set; }
 
-
-
-
-
         [Display(Name = "Line")]
         public int? Line { get; set; }
-
 
         [Display(Name = "Product")]
         public int? ProductId { get; set; }
@@ -30,40 +25,32 @@ namespace ShampanPOS.ViewModel
         public string? ProductName { get; set; }
         public string? ProductCode { get; set; }
 
-
         [Display(Name = "Quantity")]
         [DataType(DataType.Currency)]
         public decimal? Quantity { get; set; }
-
 
         [Display(Name = "Unit Rate")]
         [DataType(DataType.Currency)]
         public decimal? UnitRate { get; set; }
 
-
         [Display(Name = "Subtotal")]
         [DataType(DataType.Currency)]
         public decimal? SubTotal { get; set; }
-
 
         [Display(Name = "SD")]
         [DataType(DataType.Currency)]
         public decimal? SD { get; set; }
 
-
         [Display(Name = "SD Amount")]
         [DataType(DataType.Currency)]
         public decimal? SDAmount { get; set; }
 
-
         [Display(Name = "VAT Rate")]
         public decimal? VATRate { get; set; }
-
 
         [Display(Name = "VAT Amount")]
         [DataType(DataType.Currency)]
         public decimal? VATAmount { get; set; }
-
 
         [Display(Name = "Line Total")]
         [DataType(DataType.Currency)]

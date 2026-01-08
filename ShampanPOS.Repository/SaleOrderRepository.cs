@@ -208,7 +208,8 @@ namespace ShampanPOS.Repository
 
                 string query = @"
     SELECT
-        ISNULL(M.Id, 0) AS Id,
+        ISNULL(M.Id, 0) AS Id,        
+        ISNULL(M.Id, 0) AS SaleOrderId,
         ISNULL(M.Code, '') AS Code,
         ISNULL(M.BranchId, 0) AS BranchId,
 	    ISNULL(M.CompanyId, 0) AS CompanyId,
@@ -260,6 +261,7 @@ namespace ShampanPOS.Repository
                     model.Add(new SaleOrderVM
                     {
                         Id = Convert.ToInt32(row["Id"]),
+                        SaleOrderId = Convert.ToInt32(row["SaleOrderId"]),
                         Code = row["Code"].ToString(),
                         BranchId = Convert.ToInt32(row["BranchId"]),
                         CompanyId = Convert.ToInt32(row["CompanyId"]),

@@ -3046,6 +3046,193 @@ WHERE 1 = 1
 
 
 
+
+
+        public async Task<ResultVM> GetSaleData(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = @"
+SELECT
+    ISNULL(M.Id, 0) AS Id,
+    ISNULL(M.Code, '') AS Code,
+    ISNULL(M.CustomerId, 0) AS CustomerId,
+    ISNULL(M.SaleOrderId, 0) AS SaleOrderId,
+    ISNULL(C.Code, '') AS SaleOrderCode,
+    ISNULL(S.Name, '') AS CustomerName,
+    ISNULL(M.Comments, '') AS Comments,
+    ISNULL(M.GrandTotal, 0) AS GrandTotal  
+FROM 
+    Sales M
+LEFT OUTER JOIN Customers S ON ISNULL(M.CustomerId, 0) = S.Id
+LEFT OUTER JOIN SaleOrders C ON ISNULL(M.SaleOrderId, 0) = C.Id
+WHERE 1 = 1
+
+
+";
+
+                if (vm != null && !string.IsNullOrEmpty(vm.FromDate))
+                {
+                    query = query.Replace("@param", " PBH.BranchId = @BranchId AND CAST(PBH.EffectDate AS DATE) <= " + "@FromDate" + " AND ");
+                }
+                else
+                {
+                    query = query.Replace("@param", "");
+                }
+
+                // Apply additional conditions
+                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
+                query += @"  ORDER BY " + vm.OrderName + "  " + vm.orderDir;
+                query += @" OFFSET  " + vm.startRec + @" ROWS FETCH NEXT " + vm.pageSize + " ROWS ONLY";
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                // SET additional conditions param
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                if (vm != null && !string.IsNullOrEmpty(vm.BranchId))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
+                }
+                if (vm != null && !string.IsNullOrEmpty(vm.FromDate))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@FromDate", vm.FromDate);
+                }
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new SaleDataVM
+                {
+                    Id = row.Field<int>("Id"),
+                    CustomerId = row.Field<int>("CustomerId"),
+                    SaleOrderId = row.Field<int>("SaleOrderId"),
+                    Code = row.Field<string>("Code"),
+                    SaleOrderCode = row.Field<string>("SaleOrderCode"),
+                    CustomerName = row.Field<string>("CustomerName"),
+                    GrandTotal = row.Field<decimal>("GrandTotal"),
+                    Comments = row.Field<string>("Comments")
+
+                }).ToList();
+
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
+
+        public async Task<ResultVM> GetSaleCountData(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+                if (transaction == null)
+                {
+                    transaction = conn.BeginTransaction();
+                }
+                string query = @"
+SELECT
+
+COALESCE(COUNT(M.Id), 0) AS FilteredCount
+
+FROM 
+    Sales M
+LEFT OUTER JOIN Customers S ON ISNULL(M.CustomerId, 0) = S.Id
+LEFT OUTER JOIN SaleOrders C ON ISNULL(M.SaleOrderId, 0) = C.Id
+WHERE 1 = 1
+";
+
+                if (vm != null && !string.IsNullOrEmpty(vm.FromDate))
+                {
+                    query = query.Replace("@param", " PBH.BranchId = @BranchId AND CAST(PBH.EffectDate AS DATE) <= " + "@FromDate" + " AND ");
+                }
+                else
+                {
+                    query = query.Replace("@param", "");
+                }
+
+                // Apply additional conditions
+                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                // SET additional conditions param
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                if (vm != null && !string.IsNullOrEmpty(vm.BranchId))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
+                }
+                if (vm != null && !string.IsNullOrEmpty(vm.FromDate))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@FromDate", vm.FromDate);
+                }
+
+                objComm.Fill(dataTable);
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.Count = Convert.ToInt32(dataTable.Rows[0][0]);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
+
+
+
+
+
+
+
+
     }
 
 }

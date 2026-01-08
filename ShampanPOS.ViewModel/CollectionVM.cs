@@ -15,7 +15,7 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Code")]
         public string? Code { get; set; }
 
-        //public string? PaymentCode { get; set; }
+        public string? SaleCode { get; set; }
 
         [Display(Name = "Bank Account")]
         public int BankAccountId { get; set; }
@@ -23,7 +23,7 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Customer")]
         public int CustomerId { get; set; }
 
-        //public string? SupplierName { get; set; }
+        public string? CustomerName { get; set; }
         public string? AccountNo { get; set; }
         public string? AccountName { get; set; }
 

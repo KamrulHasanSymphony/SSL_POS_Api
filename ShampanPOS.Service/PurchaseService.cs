@@ -1276,17 +1276,44 @@ namespace ShampanPOS.Service
                     throw new Exception("Supplier is not distinct!");
                 }
 
-
                 var detailsDataList = await _repo.PurchaseDetailsListForPayment(IDs, conn, transaction);
 
                 if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
                 {
                     string json = JsonConvert.SerializeObject(dt);
                     var details = JsonConvert.DeserializeObject<List<PaymentDetailVM>>(json);
-                    details.ToList().ForEach(item => item.PaymentCode = lst.FirstOrDefault().Code);
-                    lst.FirstOrDefault().paymentDetailList = details;
-                    result.DataVM = lst;
+
+                    // Check if lst is not null and contains items
+                    if (lst != null && lst.Any())
+                    {
+                        lst.FirstOrDefault().paymentDetailList = details;
+                        result.DataVM = lst;
+                    }
+                    else
+                    {
+                        // Handle the case where lst is null or empty
+                        // You can log or set default values here
+                        result.Status = "Fail";
+                        result.Message = "lst is null or empty.";
+                    }
                 }
+                else
+                {
+                    // Handle failure in detailsDataList.Status or invalid DataVM
+                    result.Status = "Fail";
+                    result.Message = "Failed to retrieve purchase details.";
+                }
+
+                //var detailsDataList = await _repo.PurchaseDetailsListForPayment(IDs, conn, transaction);
+
+                //if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
+                //{
+                //    string json = JsonConvert.SerializeObject(dt);
+                //    var details = JsonConvert.DeserializeObject<List<PaymentDetailVM>>(json);
+                //    //details.ToList().ForEach(item => item.PaymentCode = lst.FirstOrDefault().Code);
+                //    lst.FirstOrDefault().paymentDetailList = details;
+                //    result.DataVM = lst;
+                //}
 
                 if (isNewConnection && result.Status == "Success")
                 {

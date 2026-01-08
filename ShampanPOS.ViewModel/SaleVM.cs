@@ -23,6 +23,14 @@ namespace ShampanPOS.ViewModel
         public string? CustomerName { get; set; }
 
         public int? SaleOrderId { get; set; }
+        public string? SaleOrderCode { get; set; }
+
+        public decimal SubTotal { get; set; }
+        public decimal TotalSD { get; set; }
+        public decimal TotalVAT { get; set; }
+        public decimal GrandTotal { get; set; }
+        public decimal PaidAmount { get; set; }
+
 
         [Display(Name = "Delivery Address")]
         public string? DeliveryAddress { get; set; }

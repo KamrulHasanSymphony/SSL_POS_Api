@@ -11,6 +11,7 @@ namespace ShampanPOS.ViewModel
     public class SaleOrderVM
     {
         public int Id { get; set; }
+        public int? SaleOrderId { get; set; }
         [Display(Name = "Code(Auto Generate)")]
         public string? Code { get; set; }
         [Display(Name = "Distributor")]

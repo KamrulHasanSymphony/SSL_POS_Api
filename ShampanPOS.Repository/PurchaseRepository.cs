@@ -2210,7 +2210,9 @@ SELECT
     ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
     ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
     ISNULL(M.CreatedFrom, '') AS CreatedFrom,
-    ISNULL(M.LastUpdateFrom, '') AS LastUpdateFrom
+    ISNULL(M.LastUpdateFrom, '') AS LastUpdateFrom,
+    ISNULL(M.GrandTotal, 0) AS GrandTotal
+
 FROM 
     Purchases M
 WHERE 1 = 1
@@ -2245,7 +2247,7 @@ WHERE 1 = 1
                     lst.Add(new PaymentVM
                     {
                         Id = row.Field<int>("Id"),
-                        //PurchaseId = row.Field<int>("PurchaseId"),
+                        GrandTotal = row.Field<decimal>("GrandTotal"),
                         Code = row.Field<string>("Code"),
                         //BranchId = row.Field<int>("BranchId"),
                         SupplierId = row.Field<int>("SupplierId"),
@@ -2306,7 +2308,9 @@ WHERE 1 = 1
 
                 string query = @"
 SELECT 
-
+ISNULL(Pur.Code,'') PurchaseCode,
+ISNULL(Pur.Id,0) PurchaseId,
+ISNULL(FORMAT(Pur.GrandTotal, 'N2'), '0.00') AS PurchaseAmount,
 ISNULL(D.Id, 0) AS Id,
 ISNULL(D.Id, 0) AS PurchaseDetailId,
 ISNULL(D.PurchaseId, 0) AS PurchaseId,
@@ -2321,7 +2325,7 @@ ISNULL(FORMAT(D.VATAmount, 'N2'), '0.00') AS VATAmount,
 ISNULL(FORMAT(D.OthersAmount, 'N2'), '0.00') AS OthersAmount,
 
 ISNULL(P.Name,'') ProductName,
-ISNULL(P.BanglaName,'') BanglaName, 
+ISNULL(P.BanglaName,'') BanglaName,
 ISNULL(P.Code,'') ProductCode, 
 ISNULL(P.HSCodeNo,'') HSCodeNo,
 ISNULL(P.ProductGroupId,0) ProductGroupId,
@@ -2332,6 +2336,7 @@ FROM
 PurchaseDetails D
 LEFT OUTER JOIN Products P ON D.ProductId = P.Id
 LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+LEFT OUTER JOIN Purchases Pur ON D.PurchaseId = Pur.Id
 
 WHERE 1 = 1";
 
