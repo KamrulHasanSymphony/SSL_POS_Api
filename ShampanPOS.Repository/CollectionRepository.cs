@@ -1,4 +1,5 @@
-﻿using ShampanPOS.ViewModel;
+﻿using Newtonsoft.Json;
+using ShampanPOS.ViewModel;
 using ShampanPOS.ViewModel.CommonVMs;
 using ShampanPOS.ViewModel.KendoCommon;
 using ShampanPOS.ViewModel.Utility;
@@ -257,11 +258,130 @@ namespace ShampanPOS.Repository
 
 
         // List Method
-        public async Task<ResultVM> List(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+//        public async Task<ResultVM> List(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+//        {
+//            bool isNewConnection = false;
+//            DataTable dataTable = new DataTable();
+//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+//            try
+//            {
+//                if (conn == null)
+//                {
+//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+//                    conn.Open();
+//                    isNewConnection = true;
+//                }
+
+//                string query = @"
+//SELECT 
+//    ISNULL(M.Id, 0) AS Id,
+//    ISNULL(M.Code, '') AS Code,
+//	ISNULL(M.BankAccountId, 0) AS BankAccountId,
+//	ISNULL(e.AccountNo, 0) AS AccountNo,
+//	ISNULL(M.ChequeNo, '') AS ChequeNo,
+//    ISNULL(M.ChequeBankName, '') AS ChequeBankName,
+//    ISNULL(M.CustomerId, 0) AS CustomerId,
+//	ISNULL(S.Name, 0) AS CustomerName,
+//	ISNULL(M.TotalCollectAmount, 0) AS TotalCollectAmount,
+//    ISNULL(FORMAT(M.TransactionDate, 'yyyy-MM-dd'), '1900-01-01') AS TransactionDate,
+//	ISNULL(FORMAT(M.ChequeDate, 'yyyy-MM-dd'), '1900-01-01') AS ChequeDate,
+//    ISNULL(M.Comments, '') AS Comments,
+//    ISNULL(M.IsArchive, 0) AS IsArchive,
+//    ISNULL(M.IsCash, 0) AS IsCash,   
+//	ISNULL(M.IsActive, 0) AS IsActive, 
+//    ISNULL(M.CreatedBy, '') AS CreatedBy,
+//    ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS CreatedOn,
+//    ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
+//    ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
+//    ISNULL(M.CreatedFrom, '') AS CreatedFrom,
+//    ISNULL(M.LastUpdateFrom, '') AS LastUpdateFrom ,   
+//    ISNULL(S.Name, '') AS SupplierName
+
+//FROM 
+//Collections M
+//LEFT OUTER JOIN Customers S ON ISNULL(M.CustomerId,0) = S.Id
+//LEFT OUTER JOIN BankAccounts e on M.BankAccountId= e.AccountNo
+
+//WHERE 1 = 1
+// ";
+
+//                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+//                {
+//                    query += " AND M.Id = @Id ";
+//                }
+
+//                // Apply additional conditions
+//                query = ApplyConditions(query, conditionalFields, conditionalValue, false);
+
+//                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+//                // SET additional conditions param
+//                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValue);
+
+//                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+//                {
+//                    objComm.SelectCommand.Parameters.AddWithValue("@Id", vm.Id);
+//                }
+
+//                objComm.Fill(dataTable);
+
+//                var lst = new List<CollectionVM>();
+
+//                foreach (DataRow row in dataTable.Rows)
+//                {
+//                    lst.Add(new CollectionVM
+//                    {
+//                        Id = row.Field<int>("Id"),
+//                        Code = row.Field<string>("Code"),
+//                        TotalCollectAmount = row.Field<decimal>("TotalCollectAmount"),
+//                        BankAccountId = row.Field<int>("BankAccountId"),
+//                        CustomerId = row.Field<int>("CustomerId"),
+//                        CustomerName = row.Field<string>("CustomerName"),
+//                        AccountNo = row.Field<string>("AccountNo"),
+//                        TransactionDate = row.Field<string>("TransactionDate"),
+//                        Comments = row.Field<string>("Comments"),
+//                        IsArchive = row.Field<bool>("IsArchive"),
+//                        IsActive = row.Field<bool>("IsActive"),
+//                        IsCash = row.Field<bool>("IsCash"),
+//                        CreatedBy = row.Field<string>("CreatedBy"),
+//                        CreatedOn = row.Field<string>("CreatedOn"),
+//                        LastModifiedBy = row.Field<string>("LastModifiedBy"),
+//                        LastModifiedOn = row.Field<string?>("LastModifiedOn"),
+//                        LastUpdateFrom = row.Field<string?>("LastUpdateFrom")
+//                    });
+//                }
+
+//                result.Status = "Success";
+//                result.Message = "Data retrieved successfully.";
+//                result.DataVM = lst;
+
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                result.ExMessage = ex.Message;
+//                result.Message = ex.Message;
+//                return result;
+//            }
+//            finally
+//            {
+//                if (isNewConnection && conn != null)
+//                {
+//                    conn.Close();
+//                }
+//            }
+//        }
+
+
+
+
+        // List Method
+        public async Task<ResultVM> List(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
 
             try
             {
@@ -303,20 +423,18 @@ LEFT OUTER JOIN Customers S ON ISNULL(M.CustomerId,0) = S.Id
 LEFT OUTER JOIN BankAccounts e on M.BankAccountId= e.AccountNo
 
 WHERE 1 = 1
- ";
+";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
                 {
                     query += " AND M.Id = @Id ";
                 }
 
-                // Apply additional conditions
-                query = ApplyConditions(query, conditionalFields, conditionalValue, false);
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
-
                 // SET additional conditions param
-                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValue);
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
                 {
@@ -325,11 +443,10 @@ WHERE 1 = 1
 
                 objComm.Fill(dataTable);
 
-                var lst = new List<CollectionVM>();
-
+                var model = new List<CollectionVM>();
                 foreach (DataRow row in dataTable.Rows)
                 {
-                    lst.Add(new CollectionVM
+                    model.Add(new CollectionVM
                     {
                         Id = row.Field<int>("Id"),
                         Code = row.Field<string>("Code"),
@@ -351,16 +468,25 @@ WHERE 1 = 1
                     });
                 }
 
+                var detailsDataList = DetailsList(new[] { "D.SaleOrderId" }, conditionalValues, vm, conn, transaction);
+
+                if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
+                {
+                    string json = JsonConvert.SerializeObject(dt);
+                    var details = JsonConvert.DeserializeObject<List<CollectionDetailVM>>(json);
+
+                    model.FirstOrDefault().collectionDetailList = details;
+                }
+
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";
-                result.DataVM = lst;
-
+                result.DataVM = model;
                 return result;
             }
             catch (Exception ex)
             {
                 result.ExMessage = ex.Message;
-                result.Message = ex.Message;
+                result.Message = "Error in List.";
                 return result;
             }
             finally
@@ -372,7 +498,86 @@ WHERE 1 = 1
             }
         }
 
-        public async Task<ResultVM> DetailsList(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+
+
+
+
+//        public async Task<ResultVM> DetailsList(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+//        {
+//            bool isNewConnection = false;
+//            DataTable dataTable = new DataTable();
+//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+//            try
+//            {
+//                if (conn == null)
+//                {
+//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+//                    conn.Open();
+//                    isNewConnection = true;
+//                }
+
+//                string query = @"
+//SELECT 
+
+//ISNULL(D.Id, 0) AS Id,
+//ISNULL(D.CollectionId, 0) AS CollectionId,
+//ISNULL(D.CustomerId, 0) AS CustomerId,
+//ISNULL(D.SaleId, 0) AS SaleId,
+//ISNULL(D.Comments, 0) AS Comments,
+//ISNULL(D.CollectionAmount,0) AS CollectionAmount,
+//ISNULL(D.SaleAmount,0) AS SaleAmount
+
+
+//FROM 
+//CollectionDetails D
+
+//WHERE 1 = 1 ";
+
+//                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+//                {
+//                    query += " AND D.Id = @Id ";
+//                }
+
+//                // Apply additional conditions
+//                query = ApplyConditions(query, conditionalFields, conditionalValue, false);
+
+//                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+//                // SET additional conditions param
+//                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValue);
+
+//                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+//                {
+//                    objComm.SelectCommand.Parameters.AddWithValue("@Id", vm.Id);
+//                }
+
+//                objComm.Fill(dataTable);
+
+//                result.Status = "Success";
+//                result.Message = "Details Data retrieved successfully.";
+//                result.DataVM = dataTable;
+
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                result.ExMessage = ex.Message;
+//                result.Message = ex.Message;
+//                return result;
+//            }
+//            finally
+//            {
+//                if (isNewConnection && conn != null)
+//                {
+//                    conn.Close();
+//                }
+//            }
+//        }
+
+
+
+        public ResultVM DetailsList(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();
@@ -402,7 +607,7 @@ ISNULL(D.SaleAmount,0) AS SaleAmount
 FROM 
 CollectionDetails D
 
-WHERE 1 = 1 ";
+WHERE 1 = 1  ";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
                 {
@@ -444,6 +649,10 @@ WHERE 1 = 1 ";
                 }
             }
         }
+
+
+
+
 
         public async Task<ResultVM> ListAsDataTable(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {

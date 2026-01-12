@@ -323,5 +323,51 @@ namespace ShampanPOS.Controllers
             }
         }
 
+
+        // POST: api/Purchase/SaleList
+        [HttpPost("SaleList")]
+        public async Task<ResultVM> SaleList(CommonVM vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                _SaleService = new SaleService();
+                resultVM = await _SaleService.SaleList(vm.IDs);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = ex.Message,
+                    ExMessage = ex.Message,
+                    DataVM = vm
+                };
+            }
+        }
+
+        // POST: api/Purchase/SaleListForPayment
+        [HttpPost("SaleListForPayment")]
+        public async Task<ResultVM> SaleListForPayment(CommonVM vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                _SaleService = new SaleService();
+                resultVM = await _SaleService.SaleListForPayment(vm.IDs);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = ex.Message,
+                    ExMessage = ex.Message,
+                    DataVM = vm
+                };
+            }
+        }
     }
 }

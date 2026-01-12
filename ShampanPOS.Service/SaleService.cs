@@ -775,6 +775,258 @@ namespace ShampanPOS.Service
             }
         }
 
+        public async Task<ResultVM> SaleList(string?[] IDs)
+        {
+            SaleRepository _repo = new SaleRepository();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            bool isNewConnection = false;
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+            try
+            {
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+
+                transaction = conn.BeginTransaction();
+
+                result = await _repo.SaleList(IDs, conn, transaction);
+
+                var lst = new List<SaleReturnVM>();
+
+                string data = JsonConvert.SerializeObject(result.DataVM);
+                lst = JsonConvert.DeserializeObject<List<SaleReturnVM>>(data);
+
+                bool allSame = lst.Select(p => p.CustomerId).Distinct().Count() == 1;
+                if (!allSame)
+                {
+                    throw new Exception("Supplier is not distinct!");
+                }
+
+
+                var detailsDataList = await _repo.SaleDetailsList(IDs, conn, transaction);
+
+                if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
+                {
+                    string json = JsonConvert.SerializeObject(dt);
+                    var details = JsonConvert.DeserializeObject<List<SaleReturnDetailVM>>(json);
+                    details.ToList().ForEach(item => item.SaleReturnCode = lst.FirstOrDefault().Code);
+                    lst.FirstOrDefault().saleReturnDetailList = details;
+                    result.DataVM = lst;
+                }
+
+                if (isNewConnection && result.Status == "Success")
+                {
+                    transaction.Commit();
+                }
+                else
+                {
+                    throw new Exception(result.Message);
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection)
+                {
+                    transaction.Rollback();
+                }
+                result.Status = "Fail";
+                result.Message = ex.Message.ToString();
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
+
+
+        //public async Task<ResultVM> SaleListForPayment(string?[] IDs)
+        //{
+        //    PurchaseRepository _repo = new PurchaseRepository();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
+
+        //        transaction = conn.BeginTransaction();
+
+        //        result = await _repo.SaleListForPayment(IDs, conn, transaction);
+
+        //        var lst = new List<CollectionVM>();
+
+        //        string data = JsonConvert.SerializeObject(result.DataVM);
+        //        lst = JsonConvert.DeserializeObject<List<CollectionVM>>(data);
+
+        //        bool allSame = lst.Select(p => p.CustomerId).Distinct().Count() == 1;
+        //        if (!allSame)
+        //        {
+        //            throw new Exception("Supplier is not distinct!");
+        //        }
+
+        //        var detailsDataList = await _repo.SaleDetailsListForPayment(IDs, conn, transaction);
+
+        //        if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
+        //        {
+        //            string json = JsonConvert.SerializeObject(dt);
+        //            var details = JsonConvert.DeserializeObject<List<CollectionDetailVM>>(json);
+
+        //            // Check if lst is not null and contains items
+        //            if (lst != null && lst.Any())
+        //            {
+        //                lst.FirstOrDefault().collectionDetailList = details;
+        //                result.DataVM = lst;
+        //            }
+        //            else
+        //            {
+        //                // Handle the case where lst is null or empty
+        //                // You can log or set default values here
+        //                result.Status = "Fail";
+        //                result.Message = "lst is null or empty.";
+        //            }
+        //        }
+        //        else
+        //        {
+        //            // Handle failure in detailsDataList.Status or invalid DataVM
+        //            result.Status = "Fail";
+        //            result.Message = "Failed to retrieve purchase details.";
+        //        }
+
+
+        //        if (isNewConnection && result.Status == "Success")
+        //        {
+        //            transaction.Commit();
+        //        }
+        //        else
+        //        {
+        //            throw new Exception(result.Message);
+        //        }
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+        //        result.Status = "Fail";
+        //        result.Message = ex.Message.ToString();
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
+
+
+        public async Task<ResultVM> SaleListForPayment(string?[] IDs)
+        {
+            SaleRepository _repo = new SaleRepository();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            bool isNewConnection = false;
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+            try
+            {
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+
+                transaction = conn.BeginTransaction();
+
+                result = await _repo.SaleListForPayment(IDs, conn, transaction);
+
+                var lst = new List<CollectionVM>();
+
+                string data = JsonConvert.SerializeObject(result.DataVM);
+                lst = JsonConvert.DeserializeObject<List<CollectionVM>>(data);
+
+                bool allSame = lst.Select(p => p.CustomerId).Distinct().Count() == 1;
+                if (!allSame)
+                {
+                    throw new Exception("Supplier is not distinct!");
+                }
+
+                var detailsDataList = await _repo.SaleDetailsListForPayment(IDs, conn, transaction);
+
+                if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
+                {
+                    string json = JsonConvert.SerializeObject(dt);
+                    var details = JsonConvert.DeserializeObject<List<CollectionDetailVM>>(json);
+
+                    // Check if lst is not null and contains items
+                    if (lst != null && lst.Any())
+                    {
+                        lst.FirstOrDefault().collectionDetailList = details;
+                        result.DataVM = lst;
+                    }
+                    else
+                    {
+                        // Handle the case where lst is null or empty
+                        // You can log or set default values here
+                        result.Status = "Fail";
+                        result.Message = "lst is null or empty.";
+                    }
+                }
+                else
+                {
+                    // Handle failure in detailsDataList.Status or invalid DataVM
+                    result.Status = "Fail";
+                    result.Message = "Failed to retrieve purchase details.";
+                }
+
+
+                if (isNewConnection && result.Status == "Success")
+                {
+                    transaction.Commit();
+                }
+                else
+                {
+                    throw new Exception(result.Message);
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection)
+                {
+                    transaction.Rollback();
+                }
+                result.Status = "Fail";
+                result.Message = ex.Message.ToString();
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
 
     }
 

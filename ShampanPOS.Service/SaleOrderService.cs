@@ -666,6 +666,9 @@ public async Task<ResultVM> Insert(SaleOrderVM saleOrder)
                 }
             }
         }
+
+
+
         //public async Task<ResultVM> SaleOrderList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
         //{
         //    SaleOrderRepository _repo = new SaleOrderRepository();
@@ -729,6 +732,92 @@ public async Task<ResultVM> Insert(SaleOrderVM saleOrder)
         //        }
         //    }
         //}
+
+
+
+
+        public async Task<ResultVM> SaleOrderList(string?[] IDs)
+        {
+            SaleOrderRepository _repo = new SaleOrderRepository();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error" };
+
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+
+            try
+            {
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                transaction = conn.BeginTransaction();
+
+                // 🔹 Master
+                result = await _repo.SaleOrderList(IDs, conn, transaction);
+
+                if (result.Status != "Success" || result.DataVM == null)
+                {
+                    throw new Exception("No sale order data found.");
+                }
+
+                var lst = JsonConvert.DeserializeObject<List<SaleVM>>(
+                    JsonConvert.SerializeObject(result.DataVM)
+                ) ?? new List<SaleVM>();
+
+                if (!lst.Any())
+                {
+                    throw new Exception("No sale order data found.");
+                }
+
+                // ✅ Customer distinct check (SAFE)
+                bool allSameCustomer = lst
+                    .Where(p => p.CustomerId.HasValue)
+                    .Select(p => p.CustomerId.Value)
+                    .Distinct()
+                    .Count() == 1;
+
+                if (!allSameCustomer)
+                {
+                    throw new Exception("Customer is not distinct!");
+                }
+
+                // 🔹 Details
+                var detailsDataList = await _repo.SaleOrderDetailsList(IDs, conn, transaction);
+
+                if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
+                {
+                    var details = JsonConvert.DeserializeObject<List<SaleDetailVM>>(
+                        JsonConvert.SerializeObject(dt)
+                    );
+
+                    var master = lst.First();
+                    details.ForEach(d => d.SaleOrderCode = master.Code);
+                    master.saleDetailsList = details;
+                }
+
+                result.Status = "Success";
+                result.DataVM = lst;
+
+                transaction.Commit();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                transaction?.Rollback();
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = ex.Message,
+                    ExMessage = ex.ToString()
+                };
+            }
+            finally
+            {
+                conn?.Close();
+            }
+        }
+
+
+
+
 
         public async Task<ResultVM> GetSaleOrderDetailDataById(GridOptions options, int masterId)
         {

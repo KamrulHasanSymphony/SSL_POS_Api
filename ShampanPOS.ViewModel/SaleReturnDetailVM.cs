@@ -15,6 +15,8 @@ namespace ShampanPOS.ViewModel
         public int SaleReturnId { get; set; }
         public int? CompanyId { get; set; }
 
+        public string? SaleReturnCode { get; set; }
+
         //[Display(Name = "Sale")]
         //public int SaleId { get; set; }
 

@@ -259,6 +259,72 @@ namespace ShampanPOS.Service
             }
         }
 
+        //public async Task<ResultVM> List(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
+        //{
+        //    CollectionRepository _repo = new CollectionRepository();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
+
+        //        transaction = conn.BeginTransaction();
+
+        //        result = await _repo.List(conditionalFields, conditionalValues, vm, conn, transaction);
+
+        //        var lst = new List<CollectionVM>();
+
+        //        string data = JsonConvert.SerializeObject(result.DataVM);
+        //        lst = JsonConvert.DeserializeObject<List<CollectionVM>>(data);
+
+        //        var detailsDataList = await _repo.DetailsList(new[] { "D.BankAccountId" }, conditionalValues, vm, conn, transaction);
+
+        //        if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
+        //        {
+        //            string json = JsonConvert.SerializeObject(dt);
+        //            var details = JsonConvert.DeserializeObject<List<CollectionDetailVM>>(json);
+
+        //            lst.FirstOrDefault().collectionDetailList = details;
+        //            result.DataVM = lst;
+        //        }
+
+        //        if (isNewConnection && result.Status == "Success")
+        //        {
+        //            transaction.Commit();
+        //        }
+        //        else
+        //        {
+        //            throw new Exception(result.Message);
+        //        }
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+        //        result.Message = ex.Message.ToString();
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
+
+
+
         public async Task<ResultVM> List(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
         {
             CollectionRepository _repo = new CollectionRepository();
@@ -277,29 +343,9 @@ namespace ShampanPOS.Service
 
                 result = await _repo.List(conditionalFields, conditionalValues, vm, conn, transaction);
 
-                var lst = new List<CollectionVM>();
-
-                string data = JsonConvert.SerializeObject(result.DataVM);
-                lst = JsonConvert.DeserializeObject<List<CollectionVM>>(data);
-
-                var detailsDataList = await _repo.DetailsList(new[] { "D.PaymentId" }, conditionalValues, vm, conn, transaction);
-
-                if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
-                {
-                    string json = JsonConvert.SerializeObject(dt);
-                    var details = JsonConvert.DeserializeObject<List<CollectionDetailVM>>(json);
-
-                    lst.FirstOrDefault().collectionDetailList = details;
-                    result.DataVM = lst;
-                }
-
-                if (isNewConnection && result.Status == "Success")
+                if (isNewConnection)
                 {
                     transaction.Commit();
-                }
-                else
-                {
-                    throw new Exception(result.Message);
                 }
 
                 return result;
@@ -310,7 +356,7 @@ namespace ShampanPOS.Service
                 {
                     transaction.Rollback();
                 }
-                result.Message = ex.Message.ToString();
+
                 result.ExMessage = ex.ToString();
                 return result;
             }
@@ -322,6 +368,10 @@ namespace ShampanPOS.Service
                 }
             }
         }
+
+
+
+
         public async Task<ResultVM> ListAsDataTable(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
         {
             CollectionRepository _repo = new CollectionRepository();

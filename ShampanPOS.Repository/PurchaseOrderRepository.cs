@@ -620,7 +620,7 @@ ORDER BY Code";
                 string inClause = string.Join(", ", vm.IDs.Select((id, index) => $"@Id{index}"));
 
                 string query = $" UPDATE PurchaseOrders SET IsPost = 1, PostBy = @PostedBy , LastUpdateFrom = @LastUpdateFrom ,PostedOn = GETDATE() WHERE Id IN ({inClause}) ";
-                query += $" UPDATE PurchaseOrderDetails SET IsPost = 1 WHERE PurchaseOrderId IN ({inClause}) ";
+                //query += $" UPDATE PurchaseOrderDetails SET IsPost = 1 WHERE PurchaseOrderId IN ({inClause}) ";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
                 {
@@ -785,6 +785,7 @@ ORDER BY Code";
 	            ISNULL(H.SupplierId, 0) AS SupplierId,
                 ISNULL(s.Name, 0) AS SupplierName,
                 ISNULL(S.Address, '') AS SupplierAddress,
+	            ISNULL(H.IsPost, 0) AS IsPost,
                 CASE WHEN ISNULL(H.IsPost, 0) = 1 THEN 'Posted' ELSE 'Not-posted' END AS Status,                
                 ISNULL(FORMAT(H.OrderDate, 'yyyy-MM-dd') , '') AS OrderDate,
                 ISNULL(FORMAT(H.DeliveryDateTime, 'yyyy-MM-dd') , '') AS DeliveryDateTime,

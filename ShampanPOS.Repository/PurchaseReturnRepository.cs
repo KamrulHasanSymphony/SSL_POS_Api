@@ -877,8 +877,8 @@ WHERE 1 = 1 ";
 
                 string inClause = string.Join(", ", vm.IDs.Select((id, index) => $"@Id{index}"));
 
-                string query = $" UPDATE PurchaseReturns SET IsPost = 1, PostedBy = @PostedBy , LastUpdateFrom = @LastUpdateFrom ,PostedOn = GETDATE() WHERE Id IN ({inClause}) ";
-                query += $" UPDATE PurchaseReturnDetails SET IsPost = 1 WHERE PurchaseReturnId IN ({inClause}) ";
+                string query = $" UPDATE PurchasesReturn SET IsPost = 1, PostedBy = @PostedBy , LastUpdateFrom = @LastUpdateFrom ,PostedOn = GETDATE() WHERE Id IN ({inClause}) ";
+                //query += $" UPDATE PurchaseReturnDetails SET IsPost = 1 WHERE PurchaseReturnId IN ({inClause}) ";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
                 {

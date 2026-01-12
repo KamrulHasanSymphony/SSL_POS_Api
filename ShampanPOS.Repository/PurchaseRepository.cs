@@ -998,7 +998,7 @@ WHERE 1 = 1 ";
                 string inClause = string.Join(", ", vm.IDs.Select((id, index) => $"@Id{index}"));
 
                 string query = $" UPDATE Purchases SET IsPost = 1, PostedBy = @PostedBy , LastUpdateFrom = @LastUpdateFrom ,PostedOn = GETDATE() WHERE Id IN ({inClause}) ";
-                query += $" UPDATE PurchaseDetails SET IsPost = 1 WHERE PurchaseId IN ({inClause}) ";
+                //query += $" UPDATE PurchaseDetails SET IsPost = 1 WHERE PurchaseId IN ({inClause}) ";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
                 {
@@ -1622,43 +1622,29 @@ ISNULL(D.PurchaseId, 0) AS PurchaseId,
 ISNULL(D.BranchId, 0) AS BranchId,
 ISNULL(D.Line, 0) AS Line,
 ISNULL(D.ProductId, 0) AS ProductId,
-(ISNULL(D.Quantity, 0.00)-ISNULL(D.CompletedQty, 0.00)) AS Quantity,
 ISNULL(FORMAT(D.UnitPrice, 'N2'), 0.00) AS UnitPrice,
-(ISNULL(D.Quantity, 0.00)-ISNULL(D.CompletedQty, 0.00))*ISNULL(D.UnitPrice,0.00) AS SubTotal,
 ISNULL(FORMAT(D.SD, 'N2'), '0.00') AS SD,
 ISNULL(FORMAT(D.SDAmount, 'N2'), '0.00') AS SDAmount,
 ISNULL(FORMAT(D.VATRate, 'N2'), '0.00') AS VATRate,
 ISNULL(FORMAT(D.VATAmount, 'N2'), '0.00') AS VATAmount,
-(ISNULL(D.Quantity, 0.00)-ISNULL(D.CompletedQty, 0.00))*ISNULL(D.UnitPrice,0.00) AS LineTotal,
 ISNULL(FORMAT(D.OthersAmount, 'N2'), '0.00') AS OthersAmount,
-ISNULL(FORMAT(D.FixedVATAmount, 'N2'), '0.00') AS FixedVATAmount,
-ISNULL(D.IsFixedVAT, 0) AS IsFixedVAT,
-ISNULL(D.UOMId, 0) AS UOMId,
-ISNULL(D.UOMFromId, 0) AS UOMFromId,
-ISNULL(FORMAT(D.UOMConversion, 'N2'), '0.00') AS UOMConversion,
-ISNULL(D.IsPost, 0) AS IsPost,
-ISNULL(D.Comments, '') AS Comments,
-ISNULL(D.VATType, '') AS VATType,
+ISNULL(FORMAT(D.LineTotal, 'N2'), '0.00') AS LineTotal,
+
 
 ISNULL(P.Name,'') ProductName,
 ISNULL(P.BanglaName,'') BanglaName, 
 ISNULL(P.Code,'') ProductCode, 
 ISNULL(P.HSCodeNo,'') HSCodeNo,
 ISNULL(P.ProductGroupId,0) ProductGroupId,
-ISNULL(PG.Name,'') ProductGroupName,
-ISNULL(UOM.Name,'') UOMName,
-ISNULL(UOM.Name,'') UOMFromName,
-ISNULL(D.CtnQuantity,0) CtnQuantity,
-ISNULL(D.PcsQuantity,0) PcsQuantity
+ISNULL(PG.Name,'') ProductGroupName
+
 
 FROM 
 PurchaseDetails D
 LEFT OUTER JOIN Products P ON D.ProductId = P.Id
 LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
-LEFT OUTER JOIN UOMs uom ON P.UOMId = uom.Id
-LEFT OUTER JOIN UOMConversations uomCon ON D.UOMFromId = uomCon.Id
 
-WHERE 1 = 1  AND (ISNULL(D.Quantity, 0.00)-ISNULL(D.CompletedQty, 0.00)) > 0 ";
+WHERE 1 = 1  AND ISNULL(D.Quantity, 0.00) > 0";
 
 
                 string inClause = string.Join(", ", IDs.Select((id, index) => $"@Id{index}"));

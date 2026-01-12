@@ -43,6 +43,7 @@ namespace ShampanPOS.ViewModel
 
             [Display(Name = "Posted By")]
             public string? PostBy { get; set; }
+            public string? PostedBy { get; set; }
 
 
             public string? PostedOn { get; set; }

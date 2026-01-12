@@ -303,7 +303,7 @@ namespace ShampanPOS.Controllers
             }
         }
 
-        // POST: api/SaleOrder/SaleOrderList
+        //// POST: api/SaleOrder/SaleOrderList
         //[HttpPost("SaleOrderList")]
         //public async Task<ResultVM> SaleOrderList(CommonVM vm)
         //{
@@ -325,6 +325,35 @@ namespace ShampanPOS.Controllers
         //        };
         //    }
         //}
+
+
+
+
+        // POST: api/PurchaseOrder/SaleOrderList
+        [HttpPost("SaleOrderList")]
+        public async Task<ResultVM> SaleOrderList(CommonVM vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                _saleOrderService = new SaleOrderService();
+                resultVM = await _saleOrderService.SaleOrderList(vm.IDs);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = ex.Message,
+                    ExMessage = ex.Message,
+                    DataVM = vm
+                };
+            }
+        }
+
+
+
 
         // POST: api/SaleOrder/GetSaleOrderDetailDataById
         [HttpPost("GetSaleOrderDetailDataById")]

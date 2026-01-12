@@ -387,7 +387,7 @@ namespace ShampanPOS.Service
                 string data = JsonConvert.SerializeObject(result.DataVM);
                 lst = JsonConvert.DeserializeObject<List<PurchaseReturnVM>>(data);
 
-                var detailsDataList = await _repo.DetailsList(new[] { "D.PurchaseReturnId" }, conditionalValues, vm, conn, transaction);
+                var detailsDataList = await _repo.DetailsList(new[] { "D.PurchasesReturnId" }, conditionalValues, vm, conn, transaction);
 
                 if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
                 {

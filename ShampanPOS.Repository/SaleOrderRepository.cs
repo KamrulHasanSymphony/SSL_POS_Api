@@ -607,7 +607,7 @@ namespace ShampanPOS.Repository
                 string inClause = string.Join(", ", vm.IDs.Select((id, index) => $"@Id{index}"));
 
                 string query = $" UPDATE SaleOrders SET IsPost = 1, PostedBy = @PostedBy , LastUpdateFrom = @LastUpdateFrom ,PostedOn = GETDATE() WHERE Id IN ({inClause}) ";
-                query += $" UPDATE SaleOrderDetails SET IsPost = 1 WHERE SaleOrderId IN ({inClause}) ";
+                //query += $" UPDATE SaleOrderDetails SET IsPost = 1 WHERE SaleOrderId IN ({inClause}) ";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
                 {
@@ -1371,117 +1371,117 @@ WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take);";
             }
         }
 
-        public async Task<ResultVM> FromSaleOrderGridData(GridOptions options, SqlConnection conn, SqlTransaction transaction)
-        {
-            bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+//        public async Task<ResultVM> FromSaleOrderGridData(GridOptions options, SqlConnection conn, SqlTransaction transaction)
+//        {
+//            bool isNewConnection = false;
+//            DataTable dataTable = new DataTable();
+//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    conn.Open();
-                    isNewConnection = true;
-                }
+//            try
+//            {
+//                if (conn == null)
+//                {
+//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+//                    conn.Open();
+//                    isNewConnection = true;
+//                }
 
-                var data = new GridEntity<SaleOrderVM>();
+//                var data = new GridEntity<SaleOrderVM>();
 
-                // Define your SQL query string
-                string sqlQuery = @"
-    -- Count query
-    SELECT COUNT(DISTINCT H.Id) AS totalcount
-					FROM SaleOrders H 
-					LEFT OUTER JOIN BranchProfiles BF ON H.BranchId = BF.Id
-					LEFT OUTER JOIN Customers C ON H.CustomerId = C.Id
-					LEFT OUTER JOIN SalesPersons SP ON H.SalePersonId = SP.Id
-					LEFT OUTER JOIN Routes R ON H.RouteId = R.Id
-					LEFT OUTER JOIN Currencies CR ON H.CurrencyId = CR.Id
-                    LEFT OUTER JOIN BranchProfiles BR on h.BranchId = BR.Id
+//                // Define your SQL query string
+//                string sqlQuery = @"
+//    -- Count query
+//    SELECT COUNT(DISTINCT H.Id) AS totalcount
+//					FROM SaleOrders H 
+//					LEFT OUTER JOIN BranchProfiles BF ON H.BranchId = BF.Id
+//					LEFT OUTER JOIN Customers C ON H.CustomerId = C.Id
+//					LEFT OUTER JOIN SalesPersons SP ON H.SalePersonId = SP.Id
+//					LEFT OUTER JOIN Routes R ON H.RouteId = R.Id
+//					LEFT OUTER JOIN Currencies CR ON H.CurrencyId = CR.Id
+//                    LEFT OUTER JOIN BranchProfiles BR on h.BranchId = BR.Id
 
-					WHERE 1 = 1
-    -- Add the filter condition
-    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleOrderVM>.FilterCondition(options.filter) + ")" : "") + @"
+//					WHERE 1 = 1
+//    -- Add the filter condition
+//    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleOrderVM>.FilterCondition(options.filter) + ")" : "") + @"
 
-    -- Data query with pagination and sorting
-    SELECT * 
-    FROM (
-        SELECT 
-        ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC") + @") AS rowindex
+//    -- Data query with pagination and sorting
+//    SELECT * 
+//    FROM (
+//        SELECT 
+//        ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC") + @") AS rowindex
         
-                ,ISNULL(H.Id,0)	Id
-				,ISNULL(H.Code,'')	Code
-				,ISNULL(H.DeliveryAddress,'')	DeliveryAddress				
-				,ISNULL(FORMAT(H.OrderDate,'yyyy-MM-dd HH:mm'),'1900-01-01') OrderDate
-				,ISNULL(FORMAT(H.DeliveryDate,'yyyy-MM-dd HH:mm'),'1900-01-01') DeliveryDate	
-				,ISNULL(H.GrandTotalAmount,0) GrandTotalAmount
-				,ISNULL(H.GrandTotalSDAmount,0) GrandTotalSDAmount
-				,ISNULL(H.GrandTotalVATAmount,0) GrandTotalVATAmount
-				,ISNULL(H.Comments,'')	Comments	
-				,ISNULL(H.TransactionType,'')	TransactionType				
-				,ISNULL(H.CurrencyRateFromBDT,0) CurrencyRateFromBDT
+//                ,ISNULL(H.Id,0)	Id
+//				,ISNULL(H.Code,'')	Code
+//				,ISNULL(H.DeliveryAddress,'')	DeliveryAddress				
+//				,ISNULL(FORMAT(H.OrderDate,'yyyy-MM-dd HH:mm'),'1900-01-01') OrderDate
+//				,ISNULL(FORMAT(H.DeliveryDate,'yyyy-MM-dd HH:mm'),'1900-01-01') DeliveryDate	
+//				,ISNULL(H.GrandTotalAmount,0) GrandTotalAmount
+//				,ISNULL(H.GrandTotalSDAmount,0) GrandTotalSDAmount
+//				,ISNULL(H.GrandTotalVATAmount,0) GrandTotalVATAmount
+//				,ISNULL(H.Comments,'')	Comments	
+//				,ISNULL(H.TransactionType,'')	TransactionType				
+//				,ISNULL(H.CurrencyRateFromBDT,0) CurrencyRateFromBDT
 				
-				,ISNULL(H.CreatedBy,'') CreatedBy
-				,ISNULL(H.LastModifiedBy,'') LastModifiedBy
-				,ISNULL(H.CreatedFrom,'') CreatedFrom
-				,ISNULL(H.LastUpdateFrom,'') LastUpdateFrom		
-				,ISNULL(FORMAT(H.CreatedOn,'yyyy-MM-dd HH:mm'),'1900-01-01') CreatedOn
-				,ISNULL(FORMAT(H.LastModifiedOn,'yyyy-MM-dd HH:mm'),'1900-01-01') LastModifiedOn
-		        ,ISNULL(H.BranchId,0) BranchId
-		        ,ISNULL(H.CustomerId,0) CustomerId
-		        ,ISNULL(C.Name,'') CustomerName
-		        ,ISNULL(H.SalePersonId,0) SalePersonId
-		        ,ISNULL(SP.Name,0) SalePersonName
-		        ,ISNULL(H.RouteId,0) RouteId
-		        ,ISNULL(R.Name,'') RouteName
-		        ,ISNULL(H.CurrencyId,0) CurrencyId
-		        ,ISNULL(CR.Name,0) CurrencyName
-		        ,ISNULL(BR.Name,'-') BranchName
-		        ,ISNULL(H.IsCompleted,0) IsCompleted
-		        ,CASE WHEN ISNULL(H.IsCompleted, 0) = 1 THEN 'Yes' ELSE 'No' END AS Status
+//				,ISNULL(H.CreatedBy,'') CreatedBy
+//				,ISNULL(H.LastModifiedBy,'') LastModifiedBy
+//				,ISNULL(H.CreatedFrom,'') CreatedFrom
+//				,ISNULL(H.LastUpdateFrom,'') LastUpdateFrom		
+//				,ISNULL(FORMAT(H.CreatedOn,'yyyy-MM-dd HH:mm'),'1900-01-01') CreatedOn
+//				,ISNULL(FORMAT(H.LastModifiedOn,'yyyy-MM-dd HH:mm'),'1900-01-01') LastModifiedOn
+//		        ,ISNULL(H.BranchId,0) BranchId
+//		        ,ISNULL(H.CustomerId,0) CustomerId
+//		        ,ISNULL(C.Name,'') CustomerName
+//		        ,ISNULL(H.SalePersonId,0) SalePersonId
+//		        ,ISNULL(SP.Name,0) SalePersonName
+//		        ,ISNULL(H.RouteId,0) RouteId
+//		        ,ISNULL(R.Name,'') RouteName
+//		        ,ISNULL(H.CurrencyId,0) CurrencyId
+//		        ,ISNULL(CR.Name,0) CurrencyName
+//		        ,ISNULL(BR.Name,'-') BranchName
+//		        ,ISNULL(H.IsCompleted,0) IsCompleted
+//		        ,CASE WHEN ISNULL(H.IsCompleted, 0) = 1 THEN 'Yes' ELSE 'No' END AS Status
 
-				FROM SaleOrders H 
-				LEFT OUTER JOIN BranchProfiles BF ON H.BranchId = BF.Id
-				LEFT OUTER JOIN Customers C ON H.CustomerId = C.Id
-				LEFT OUTER JOIN SalesPersons SP ON H.SalePersonId = SP.Id
-				LEFT OUTER JOIN Routes R ON H.RouteId = R.Id
-				LEFT OUTER JOIN Currencies CR ON H.CurrencyId = CR.Id
-				LEFT OUTER JOIN BranchProfiles BR on h.BranchId = BR.Id
+//				FROM SaleOrders H 
+//				LEFT OUTER JOIN BranchProfiles BF ON H.BranchId = BF.Id
+//				LEFT OUTER JOIN Customers C ON H.CustomerId = C.Id
+//				LEFT OUTER JOIN SalesPersons SP ON H.SalePersonId = SP.Id
+//				LEFT OUTER JOIN Routes R ON H.RouteId = R.Id
+//				LEFT OUTER JOIN Currencies CR ON H.CurrencyId = CR.Id
+//				LEFT OUTER JOIN BranchProfiles BR on h.BranchId = BR.Id
 				
-				WHERE 1 = 1
+//				WHERE 1 = 1
 
-    -- Add the filter condition
-    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleOrderVM>.FilterCondition(options.filter) + ")" : "") + @"
+//    -- Add the filter condition
+//    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleOrderVM>.FilterCondition(options.filter) + ")" : "") + @"
 
-    ) AS a
-    WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
-";
+//    ) AS a
+//    WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
+//";
 
 
 
-                data = KendoGrid<SaleOrderVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+//                data = KendoGrid<SaleOrderVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
 
-                result.Status = "Success";
-                result.Message = "Data retrieved successfully.";
-                result.DataVM = data;
+//                result.Status = "Success";
+//                result.Message = "Data retrieved successfully.";
+//                result.DataVM = data;
 
-                return result;
-            }
-            catch (Exception ex)
-            {
-                result.ExMessage = ex.Message;
-                result.Message = ex.Message;
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                result.ExMessage = ex.Message;
+//                result.Message = ex.Message;
+//                return result;
+//            }
+//            finally
+//            {
+//                if (isNewConnection && conn != null)
+//                {
+//                    conn.Close();
+//                }
+//            }
+//        }
 
 //        public async Task<ResultVM> ProductWiseSaleOrder(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
 //        {
@@ -1892,6 +1892,310 @@ WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take);";
         }
 
 
+        public async Task<ResultVM> SaleOrderDetailsList(string?[] IDs, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = @"
+                SELECT 
+                ISNULL(D.Id, 0) AS Id,                
+                ISNULL(D.Id, 0) AS PurchaseOrderDetailId,
+                ISNULL(D.SaleOrderId, 0) AS SaleOrderId,
+                ISNULL(D.Line, 0) AS Line,
+                ISNULL(D.ProductId, 0) AS ProductId,
+                (ISNULL(D.Quantity, 0.00)-ISNULL(D.CompletedQty, 0.00)) AS Quantity,
+                ISNULL(D.UnitRate,0.00) AS UnitRate,
+                (ISNULL(D.Quantity, 0.00)-ISNULL(D.CompletedQty, 0.00))*ISNULL(D.UnitRate,0.00) AS SubTotal,
+                ISNULL(D.SD,0.00) AS SD,
+                ISNULL(D.SDAmount,0.00) AS SDAmount,
+                ISNULL(D.VATRate,0.00) AS VATRate,
+                ISNULL(D.VATAmount,0.00) AS VATAmount,
+                (ISNULL(D.Quantity, 0.00)-ISNULL(D.CompletedQty, 0.00))*ISNULL(D.UnitRate,0.00) AS LineTotal,
+                ISNULL(P.Name,'') ProductName,
+                ISNULL(P.BanglaName,'') BanglaName, 
+                ISNULL(P.Code,'') ProductCode, 
+                ISNULL(P.HSCodeNo,'') HSCodeNo,
+                ISNULL(P.ProductGroupId,0) ProductGroupId,
+                ISNULL(PG.Name,'') ProductGroupName
+
+                FROM 
+                SaleOrderDetails D
+                LEFT OUTER JOIN Products P ON D.ProductId = P.Id
+                LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+                WHERE 1 = 1 AND (ISNULL(D.Quantity, 0.00)-ISNULL(D.CompletedQty, 0.00)) > 0 ";
+
+                string inClause = string.Join(", ", IDs.Select((id, index) => $"@Id{index}"));
+
+                if (IDs.Length > 0)
+                {
+                    query += $" AND D.SaleOrderId IN ({inClause}) ";
+                }
+
+                using (SqlDataAdapter adapter = new SqlDataAdapter(query, conn))
+                {
+                    if (transaction != null)
+                    {
+                        adapter.SelectCommand.Transaction = transaction;
+                    }
+
+                    for (int i = 0; i < IDs.Length; i++)
+                    {
+                        adapter.SelectCommand.Parameters.AddWithValue($"@Id{i}", IDs[i]);
+                    }
+
+                    adapter.Fill(dataTable);
+                }
+
+                result.Status = "Success";
+                result.Message = "Details Data retrieved successfully.";
+                result.DataVM = dataTable;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
+        public async Task<ResultVM> SaleOrderList(string?[] IDs, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = @"
+SELECT 
+
+    ISNULL(M.Id, 0) AS Id,    
+    ISNULL(M.Id, 0) AS SaleOrderId,
+	ISNULL(M.Code, '') AS SaleOrderCode,
+    ISNULL(M.Code, '') AS Code,
+    ISNULL(M.Code, '') AS PurchaseOrderCode,
+    ISNULL(M.BranchId, 0) AS BranchId,
+    ISNULL(M.CustomerId, 0) AS CustomerId,
+    ISNULL(S.Name, 0) AS CustomerName,
+    ISNULL(FORMAT(M.OrderDate, 'yyyy-MM-dd'), '1900-01-01') AS OrderDate,
+    ISNULL(FORMAT(M.DeliveryDate, 'yyyy-MM-dd'), '1900-01-01') AS DeliveryDate,
+    ISNULL(M.Comments, '') AS Comments,
+    ISNULL(M.TransactionType, '') AS TransactionType,
+	ISNULL(M.IsPost, 0) AS IsPost,
+	ISNULL(M.PostedBy, '') AS PostedBy,
+    ISNULL(FORMAT(M.PostedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS PostedOn,
+    ISNULL(M.PeriodId,0) AS PeriodId,   
+    
+    ISNULL(M.CreatedBy, '') AS CreatedBy,
+    ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS CreatedOn,
+    ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
+    ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn
+    
+FROM 
+    SaleOrders M
+    LEFT OUTER JOIN Customers s on M.CustomerId = s.Id
+WHERE  1 = 1
+ ";
+
+                string inClause = string.Join(", ", IDs.Select((id, index) => $"@Id{index}"));
+
+                if (IDs.Length > 0)
+                {
+                    query += $" AND M.Id IN ({inClause}) ";
+                }
+
+                using (SqlDataAdapter adapter = new SqlDataAdapter(query, conn))
+                {
+                    if (transaction != null)
+                    {
+                        adapter.SelectCommand.Transaction = transaction;
+                    }
+
+                    for (int i = 0; i < IDs.Length; i++)
+                    {
+                        adapter.SelectCommand.Parameters.AddWithValue($"@Id{i}", IDs[i]);
+                    }
+
+                    adapter.Fill(dataTable);
+                }
+
+                var lst = new List<SaleVM>();
+
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    lst.Add(new SaleVM
+                    {
+                        Id = Convert.ToInt32(row["Id"]),
+                        SaleOrderId = Convert.ToInt32(row["SaleOrderId"]),
+                        BranchId = Convert.ToInt32(row["BranchId"]),
+                        CustomerId = Convert.ToInt32(row["CustomerId"]),
+                        CustomerName = Convert.ToString(row["CustomerName"]),
+                        InvoiceDateTime = row["DeliveryDate"].ToString(),
+                        Comments = row["Comments"].ToString(),
+                        Code = row["Code"].ToString(),
+                        SaleOrderCode = row["SaleOrderCode"].ToString(),
+                        TransactionType = row["TransactionType"].ToString(),
+                        IsPost = Convert.ToBoolean(row["IsPost"]),
+                        PostedBy = row["PostedBy"].ToString(),
+                        PostedOn = row["PostedOn"].ToString(),
+                        PeriodId = Convert.ToString(row["PeriodId"]),
+                        CreatedBy = row["CreatedBy"].ToString(),
+                        CreatedOn = row["CreatedOn"].ToString(),
+                        LastModifiedBy = row["LastModifiedBy"].ToString(),
+                        LastModifiedOn = row["LastModifiedOn"].ToString()
+                    });
+                }
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = lst;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
+
+
+        public async Task<ResultVM> FromSaleOrderGridData(GridOptions options, SqlConnection conn, SqlTransaction transaction)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                var data = new GridEntity<SaleOrderVM>();
+
+                // Define your SQL query string
+                string sqlQuery = @"
+    -- Count query
+    SELECT COUNT(DISTINCT H.Id) AS totalcount
+            FROM SaleOrders H
+            LEFT OUTER JOIN Customers s on h.CustomerId = s.Id
+            LEFT OUTER JOIN BranchProfiles br on h.BranchId = br.Id
+
+            LEFT JOIN 
+					    (
+						    SELECT d.PurchaseOrderId, SUM(ISNULL(d.Quantity,0)) AS TotalQuantity, SUM(ISNULL(d.CompletedQty,0)) AS TotalCompletedQty
+						    FROM [dbo].[PurchaseOrderDetails] d   
+						    GROUP BY d.PurchaseOrderId
+					    ) SD ON H.Id = SD.PurchaseOrderId
+            WHERE H.IsPost != 1 AND  (SD.TotalCompletedQty < SD.TotalQuantity)
+    -- Add the filter condition
+    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleOrderVM>.FilterCondition(options.filter) + ")" : "") + @"
+
+    -- Data query with pagination and sorting
+    SELECT * 
+    FROM (
+        SELECT 
+        ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC") + @") AS rowindex,
+        
+                ISNULL(H.Id, 0) AS Id,
+                ISNULL(H.Code, '') AS Code,
+	            ISNULL(H.CustomerId, 0) AS CustomerId,
+                ISNULL(s.Name, 0) AS CustomerName,
+                CASE WHEN ISNULL(H.IsPost, 0) = 1 THEN 'Posted' ELSE 'Not-posted' END AS Status,
+                ISNULL(FORMAT(H.OrderDate, 'yyyy-MM-dd') , '') AS OrderDate,
+                ISNULL(FORMAT(H.DeliveryDate, 'yyyy-MM-dd') , '') AS DeliveryDate,
+                (ISNULL(SD.TotalQuantity, 0)-ISNULL(SD.TotalCompletedQty, 0)) AS TotalQuantity,
+                ISNULL(SD.TotalCompletedQty, 0) AS TotalCompletedQty,
+	            ISNULL(H.Comments, '') AS Comments,
+	            ISNULL(H.TransactionType, '') AS TransactionType,
+	            ISNULL(H.PeriodId, 0) AS PeriodId,
+                ISNULL(H.CreatedBy, '') AS CreatedBy,
+                ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
+                ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS CreatedOn,                
+	            ISNULL(H.IsPost, 'N') AS IsPost,
+                ISNULL(br.Name, '') AS BranchName
+
+
+            FROM SaleOrders H
+            LEFT OUTER JOIN Customers s on h.CustomerId = s.Id
+            LEFT OUTER JOIN BranchProfiles br on h.BranchId = br.Id
+
+            LEFT JOIN 
+					    (
+						    SELECT d.PurchaseOrderId, SUM(ISNULL(d.Quantity,0)) AS TotalQuantity, SUM(ISNULL(d.CompletedQty,0)) AS TotalCompletedQty
+						    FROM [dbo].[PurchaseOrderDetails] d   
+						    GROUP BY d.PurchaseOrderId
+					    ) SD ON H.Id = SD.PurchaseOrderId
+            WHERE H.IsPost != 1 AND  (SD.TotalCompletedQty < SD.TotalQuantity)
+
+    -- Add the filter condition
+    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleOrderVM>.FilterCondition(options.filter) + ")" : "") + @"
+
+    ) AS a
+    WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
+";
+
+                data = KendoGrid<SaleOrderVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = data;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
 
     }
 
