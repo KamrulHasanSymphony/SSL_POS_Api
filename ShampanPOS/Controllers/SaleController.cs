@@ -369,5 +369,29 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
+
+
+        // POST: api/Purchase/FromSaleGridData
+        [HttpPost("FromSaleGridData")]
+        public async Task<ResultVM> FromSaleGridData(GridOptions options)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                _SaleService = new SaleService();
+                resultVM = await _SaleService.FromSaleGridData(options);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = ex.Message,
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
     }
 }

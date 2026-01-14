@@ -2120,7 +2120,10 @@ ISNULL(PG.Name,'') ProductGroupName,
 ISNULL(P.UOMId,0) UOMId,
 ISNULL(UOM.Name,'') UOMName,
 ISNULL(P.PurchasePrice,0) PurchasePrice,
-CASE WHEN P.IsActive = 1 THEN 'Active' ELSE 'Inactive' END Status
+ISNULL(P.SalePrice,0) SalesPrice,
+CASE WHEN P.IsActive = 1 THEN 'Active' ELSE 'Inactive' END Status,
+ISNULL(P.SDRate,0) SDRate,
+ISNULL(P.VATRate,0) VATRate
 
 FROM Products P
 LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
@@ -2171,6 +2174,9 @@ WHERE P.IsActive = 1
                     UOMId = row.Field<int>("UOMId"),
                     UOMName = row.Field<string>("UOMName"),
                     PurchasePrice = row.Field<decimal>("PurchasePrice"),
+                    SalesPrice = row.Field<decimal>("SalesPrice"),
+                    SDRate = row.Field<decimal>("SDRate"),
+                    VATRate = row.Field<decimal>("VATRate"),
                     Status = row.Field<string>("Status")
 
                 }).ToList();
@@ -2313,7 +2319,11 @@ SELECT
     ISNULL(PG.Name,'') AS ProductGroupName,
     0 AS UOMId,
     ISNULL(UOM.Name,'') AS UOMName,
-    CASE WHEN P.IsActive = 1 THEN 'Active' ELSE 'Inactive' END AS Status
+    CASE WHEN P.IsActive = 1 THEN 'Active' ELSE 'Inactive' END AS Status,
+    ISNULL(P.SDRate,0) SDRate,
+	ISNULL(P.VATRate,0) VATRate,
+    ISNULL(P.PurchasePrice,0) PurchasePrice,
+    ISNULL(P.SalePrice,0) SalesPrice
 
 FROM Products P
 LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
@@ -2374,6 +2384,10 @@ LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
                     UOMId = row.Field<int>("UOMId"),
                     UOMName = row.Field<string>("UOMName"),
                     Status = row.Field<string>("Status"),
+                    SDRate = row.Field<decimal>("SDRate"),
+                    VATRate = row.Field<decimal>("VATRate"),
+                    PurchasePrice = row.Field<decimal>("PurchasePrice"),
+                    SalesPrice = row.Field<decimal>("SalesPrice")
                 }).ToList();
 
 

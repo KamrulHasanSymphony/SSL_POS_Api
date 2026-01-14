@@ -130,9 +130,12 @@ public async Task<ResultVM> Insert(SaleOrderVM saleOrder)
                         {
                        
                             details.SaleOrderId = saleOrder.Id;
-                            details.SDAmount = 0;
-                            details.VATAmount = 0;
+                            //details.SDAmount = 0;
+                            //details.VATAmount = 0;
                             details.Line = LineNo;
+                            details.CompletedQty = 0;
+
+                            details.RemainQty = details.Quantity;
                             details.CompanyId = saleOrder.CompanyId;
 
 
@@ -279,8 +282,9 @@ public async Task<ResultVM> Insert(SaleOrderVM saleOrder)
 
 
                         details.SaleOrderId = saleOrder.Id;
-                        details.SDAmount = 0;
-                        details.VATAmount = 0;
+                        //details.SDAmount = 0;
+                        //details.VATAmount = 0;
+                        details.RemainQty = details.Quantity - details.CompletedQty;
                         details.Line = LineNo;
 
 

@@ -446,10 +446,40 @@ namespace ShampanPOS.Repository
             {
                 string query = @"
                     INSERT INTO SaleOrderDetails
-                    (SaleOrderId, Line, ProductId, Quantity, UnitRate, SubTotal,SD,CompletedQty,RemainQty, SDAmount, VATRate, VATAmount, LineTotal,CompanyId)
-                    VALUES 
-                    (@SaleOrderId, @Line, @ProductId, @Quantity, @UnitRate,@CompletedQty,@RemainQty, @SubTotal, @SD, @SDAmount, @VATRate, @VATAmount, @LineTotal,@CompanyId);
-                    SELECT SCOPE_IDENTITY();";
+                    (
+SaleOrderId
+,Line
+,ProductId
+,Quantity
+,UnitRate
+,SubTotal
+,SD
+,CompletedQty
+,RemainQty
+,SDAmount
+,VATRate
+,VATAmount
+,LineTotal
+,CompanyId
+)             
+VALUES 
+                    (
+@SaleOrderId
+,@Line
+,@ProductId
+,@Quantity
+,@UnitRate
+,@SubTotal
+,@SD
+,@CompletedQty
+,@RemainQty
+,@SDAmount
+,@VATRate
+,@VATAmount
+,@LineTotal
+,@CompanyId
+);
+SELECT SCOPE_IDENTITY();";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
                 {
@@ -460,14 +490,14 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@UnitRate", details.UnitRate ?? 0);
                     cmd.Parameters.AddWithValue("@SubTotal", details.SubTotal ?? 0);
                     cmd.Parameters.AddWithValue("@SD", details.SD ?? 0);
+                    cmd.Parameters.AddWithValue("@CompletedQty", details.CompletedQty);
+                    cmd.Parameters.AddWithValue("@RemainQty", details.RemainQty);
                     cmd.Parameters.AddWithValue("@SDAmount", details.SDAmount ?? 0);
                     cmd.Parameters.AddWithValue("@VATRate", details.VATRate ?? 0);
                     cmd.Parameters.AddWithValue("@VATAmount", details.VATAmount ?? 0);
                     cmd.Parameters.AddWithValue("@LineTotal", details.LineTotal ?? 0);
                     cmd.Parameters.AddWithValue("@Comments", details.Comments ?? "-");
-                    cmd.Parameters.AddWithValue("@CompletedQty", details.CompletedQty);
 
-                    cmd.Parameters.AddWithValue("@RemainQty", details.RemainQty);
                     cmd.Parameters.AddWithValue("@CompanyId", details.CompanyId ?? 0);
 
 
@@ -1909,31 +1939,40 @@ WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take);";
 
                 string query = @"
                 SELECT 
-                ISNULL(D.Id, 0) AS Id,                
-                ISNULL(D.Id, 0) AS PurchaseOrderDetailId,
+                ISNULL(D.Id, 0) AS Id,
                 ISNULL(D.SaleOrderId, 0) AS SaleOrderId,
                 ISNULL(D.Line, 0) AS Line,
                 ISNULL(D.ProductId, 0) AS ProductId,
-                (ISNULL(D.Quantity, 0.00)-ISNULL(D.CompletedQty, 0.00)) AS Quantity,
-                ISNULL(D.UnitRate,0.00) AS UnitRate,
-                (ISNULL(D.Quantity, 0.00)-ISNULL(D.CompletedQty, 0.00))*ISNULL(D.UnitRate,0.00) AS SubTotal,
-                ISNULL(D.SD,0.00) AS SD,
-                ISNULL(D.SDAmount,0.00) AS SDAmount,
-                ISNULL(D.VATRate,0.00) AS VATRate,
-                ISNULL(D.VATAmount,0.00) AS VATAmount,
-                (ISNULL(D.Quantity, 0.00)-ISNULL(D.CompletedQty, 0.00))*ISNULL(D.UnitRate,0.00) AS LineTotal,
+                ISNULL(D.CompanyId, 0) AS CompanyId,
+                ISNULL(D.Quantity, 0.00) AS Quantity,
+                ISNULL(FORMAT(D.UnitRate, 'N2'), '0.00') AS UnitRate,
+                ISNULL(FORMAT(D.SubTotal, 'N2'), '0.00') AS SubTotal,
+                ISNULL(FORMAT(D.SD, 'N2'), '0.00') AS SD,
+                ISNULL(FORMAT(D.SDAmount, 'N2'), '0.00') AS SDAmount,
+                ISNULL(FORMAT(D.VATRate, 'N2'), '0.00') AS VATRate,
+                ISNULL(FORMAT(D.VATAmount, 'N2'), '0.00') AS VATAmount,
+                ISNULL(FORMAT(D.LineTotal, 'N2'), '0.00') AS LineTotal,
+                ISNULL(FORMAT(D.CompletedQty, 'N2'), '0.00') AS CompletedQty,
+                ISNULL(FORMAT(D.RemainQty, 'N2'), '0.00') AS RemainQty,
+
+
                 ISNULL(P.Name,'') ProductName,
                 ISNULL(P.BanglaName,'') BanglaName, 
                 ISNULL(P.Code,'') ProductCode, 
                 ISNULL(P.HSCodeNo,'') HSCodeNo,
                 ISNULL(P.ProductGroupId,0) ProductGroupId,
-                ISNULL(PG.Name,'') ProductGroupName
+                ISNULL(PG.Name,'') ProductGroupName,
+                ISNULL(CP.CompanyName,'') CompanyName
+
+
 
                 FROM 
                 SaleOrderDetails D
                 LEFT OUTER JOIN Products P ON D.ProductId = P.Id
                 LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
-                WHERE 1 = 1 AND (ISNULL(D.Quantity, 0.00)-ISNULL(D.CompletedQty, 0.00)) > 0 ";
+                LEFT OUTER JOIN CompanyProfiles CP ON D.CompanyId = CP.Id
+
+                WHERE 1 = 1";
 
                 string inClause = string.Join(", ", IDs.Select((id, index) => $"@Id{index}"));
 
@@ -1999,8 +2038,6 @@ SELECT
     ISNULL(M.Id, 0) AS Id,    
     ISNULL(M.Id, 0) AS SaleOrderId,
 	ISNULL(M.Code, '') AS SaleOrderCode,
-    ISNULL(M.Code, '') AS Code,
-    ISNULL(M.Code, '') AS PurchaseOrderCode,
     ISNULL(M.BranchId, 0) AS BranchId,
     ISNULL(M.CustomerId, 0) AS CustomerId,
     ISNULL(S.Name, 0) AS CustomerName,
@@ -2059,7 +2096,6 @@ WHERE  1 = 1
                         CustomerName = Convert.ToString(row["CustomerName"]),
                         InvoiceDateTime = row["DeliveryDate"].ToString(),
                         Comments = row["Comments"].ToString(),
-                        Code = row["Code"].ToString(),
                         SaleOrderCode = row["SaleOrderCode"].ToString(),
                         TransactionType = row["TransactionType"].ToString(),
                         IsPost = Convert.ToBoolean(row["IsPost"]),
@@ -2136,36 +2172,35 @@ WHERE  1 = 1
         SELECT 
         ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC") + @") AS rowindex,
         
-                ISNULL(H.Id, 0) AS Id,
-                ISNULL(H.Code, '') AS Code,
-	            ISNULL(H.CustomerId, 0) AS CustomerId,
-                ISNULL(s.Name, 0) AS CustomerName,
-                CASE WHEN ISNULL(H.IsPost, 0) = 1 THEN 'Posted' ELSE 'Not-posted' END AS Status,
-                ISNULL(FORMAT(H.OrderDate, 'yyyy-MM-dd') , '') AS OrderDate,
-                ISNULL(FORMAT(H.DeliveryDate, 'yyyy-MM-dd') , '') AS DeliveryDate,
-                (ISNULL(SD.TotalQuantity, 0)-ISNULL(SD.TotalCompletedQty, 0)) AS TotalQuantity,
-                ISNULL(SD.TotalCompletedQty, 0) AS TotalCompletedQty,
-	            ISNULL(H.Comments, '') AS Comments,
-	            ISNULL(H.TransactionType, '') AS TransactionType,
-	            ISNULL(H.PeriodId, 0) AS PeriodId,
-                ISNULL(H.CreatedBy, '') AS CreatedBy,
-                ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
-                ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS CreatedOn,                
-	            ISNULL(H.IsPost, 'N') AS IsPost,
-                ISNULL(br.Name, '') AS BranchName
+                 ISNULL(H.Id,0)	Id
+				,ISNULL(H.Code,'')	Code
+				,ISNULL(H.DeliveryAddress,'')	DeliveryAddress				
+				,ISNULL(FORMAT(H.OrderDate,'yyyy-MM-dd HH:mm'),'1900-01-01') OrderDate
+				,ISNULL(FORMAT(H.DeliveryDate,'yyyy-MM-dd HH:mm'),'1900-01-01') DeliveryDate	
 
+				,ISNULL(H.Comments,'')	Comments	
+				,ISNULL(H.TransactionType,'')	TransactionType				
+				
+				,ISNULL(H.CreatedBy,'') CreatedBy
+				,ISNULL(H.LastModifiedBy,'') LastModifiedBy
+				,ISNULL(H.CreatedFrom,'') CreatedFrom
+				,ISNULL(H.LastUpdateFrom,'') LastUpdateFrom		
+				,ISNULL(FORMAT(H.CreatedOn,'yyyy-MM-dd HH:mm'),'1900-01-01') CreatedOn
+				,ISNULL(FORMAT(H.LastModifiedOn,'yyyy-MM-dd HH:mm'),'1900-01-01') LastModifiedOn
+		        ,ISNULL(H.BranchId,0) BranchId
+		        ,ISNULL(H.CustomerId,0) CustomerId
+		        ,ISNULL(C.Name,'') CustomerName
+		        ,ISNULL(BR.Name,'-') BranchName
+				,ISNULL(CP.CompanyName,'') CompanyName
+		        ,ISNULL(H.IsPost,0) IsPost
+		        ,CASE WHEN ISNULL(H.IsPost, 0) = 1 THEN 'Yes' ELSE 'No' END AS PostStatus
 
-            FROM SaleOrders H
-            LEFT OUTER JOIN Customers s on h.CustomerId = s.Id
-            LEFT OUTER JOIN BranchProfiles br on h.BranchId = br.Id
-
-            LEFT JOIN 
-					    (
-						    SELECT d.PurchaseOrderId, SUM(ISNULL(d.Quantity,0)) AS TotalQuantity, SUM(ISNULL(d.CompletedQty,0)) AS TotalCompletedQty
-						    FROM [dbo].[PurchaseOrderDetails] d   
-						    GROUP BY d.PurchaseOrderId
-					    ) SD ON H.Id = SD.PurchaseOrderId
-            WHERE H.IsPost != 1 AND  (SD.TotalCompletedQty < SD.TotalQuantity)
+				FROM SaleOrders H 
+				LEFT OUTER JOIN BranchProfiles BF ON H.BranchId = BF.Id
+				LEFT OUTER JOIN Customers C ON H.CustomerId = C.Id
+				LEFT OUTER JOIN BranchProfiles BR on h.BranchId = BR.Id
+				LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
+				WHERE H.IsPost = 1
 
     -- Add the filter condition
     " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleOrderVM>.FilterCondition(options.filter) + ")" : "") + @"

@@ -23,6 +23,9 @@ namespace ShampanPOS.ViewModel
         public string? CustomerName { get; set; }
 
         public int? SaleOrderId { get; set; }
+
+        [Display(Name = "Sale Order Code")]
+
         public string? SaleOrderCode { get; set; }
 
         public decimal SubTotal { get; set; }

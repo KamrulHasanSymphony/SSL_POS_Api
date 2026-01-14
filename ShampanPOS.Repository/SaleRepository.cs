@@ -303,6 +303,7 @@ namespace ShampanPOS.Repository
 				ISNULL(M.CompanyId, 0) AS CompanyId,
 				ISNULL(M.CustomerId, 0) AS CustomerId,
 				ISNULL(M.SaleOrderId, 0) AS SaleOrderId,
+				ISNULL(S.Code, 0) AS SaleOrderCode,
 				ISNULL(M.SubTotal, 0) AS SubTotal,
 				ISNULL(M.TotalSD, 0) AS TotalSD,
 				ISNULL(M.TotalVAT, 0) AS TotalVAT,
@@ -329,6 +330,7 @@ namespace ShampanPOS.Repository
 	            LEFT OUTER JOIN BranchProfiles Br ON M.BranchId = Br.Id
 				LEFT OUTER JOIN CompanyProfiles CP ON M.CompanyId = CP.Id
                 LEFT OUTER JOIN Customers cus ON M.CustomerId = cus.Id
+				LEFT OUTER JOIN SaleOrders S ON M.SaleOrderId = S.Id
 			WHERE 
 				1 = 1
  ";
@@ -366,6 +368,7 @@ namespace ShampanPOS.Repository
                         GrandTotal = row.Field<decimal>("GrandTotal"),
                         PaidAmount = row.Field<decimal>("PaidAmount"),
                         Code = row["Code"].ToString(),
+                        SaleOrderCode = row["SaleOrderCode"].ToString(),
                         BranchId = Convert.ToInt32(row["BranchId"]),
                         CompanyId = Convert.ToInt32(row["CompanyId"]),
                         CustomerId = Convert.ToInt32(row["CustomerId"]),
@@ -1381,7 +1384,6 @@ WHERE  1 = 1 ";
                 string query = @"
 SELECT 
     ISNULL(M.Id, 0) AS Id,
-    ISNULL(M.Code, '') AS Code,
     ISNULL(M.BranchId, 0) AS BranchId,
     ISNULL(M.CustomerId, 0) AS CustomerId,
     ISNULL(FORMAT(M.InvoiceDateTime, 'yyyy-MM-dd'), '1900-01-01') AS InvoiceDateTime,
@@ -1432,7 +1434,6 @@ WHERE 1 = 1
                     {
                         Id = row.Field<int>("Id"),
                         //SaleId = row.Field<int>("SaleId"),
-                        Code = row.Field<string>("Code"),
                         BranchId = row.Field<int>("BranchId"),
                         CustomerId = row.Field<int>("CustomerId"),
                         InvoiceDateTime = row.Field<string>("InvoiceDateTime"),
@@ -1491,34 +1492,37 @@ WHERE 1 = 1
 
                 string query = @"
 SELECT 
-
 ISNULL(D.Id, 0) AS Id,
-ISNULL(D.Id, 0) AS SaleDetailId,
 ISNULL(D.SaleId, 0) AS SaleId,
+ISNULL(D.SaleOrderId, 0) AS SaleOrderId,
+ISNULL(D.CompanyId, 0) AS CompanyId,
+ISNULL(D.SaleOrderDetailId, 0) AS SaleOrderDetailId,
 ISNULL(D.Line, 0) AS Line,
 ISNULL(D.ProductId, 0) AS ProductId,
-ISNULL(FORMAT(D.UnitRate, 'N2'), 0.00) AS UnitRate,
+ISNULL(D.Quantity, 0.00) AS Quantity,
+ISNULL(FORMAT(D.UnitRate, 'N2'), '0.00') AS UnitRate,
+ISNULL(FORMAT(D.SubTotal, 'N2'), '0.00') AS SubTotal,
 ISNULL(FORMAT(D.SD, 'N2'), '0.00') AS SD,
 ISNULL(FORMAT(D.SDAmount, 'N2'), '0.00') AS SDAmount,
 ISNULL(FORMAT(D.VATRate, 'N2'), '0.00') AS VATRate,
 ISNULL(FORMAT(D.VATAmount, 'N2'), '0.00') AS VATAmount,
 ISNULL(FORMAT(D.LineTotal, 'N2'), '0.00') AS LineTotal,
-
-
 ISNULL(P.Name,'') ProductName,
 ISNULL(P.BanglaName,'') BanglaName, 
 ISNULL(P.Code,'') ProductCode, 
 ISNULL(P.HSCodeNo,'') HSCodeNo,
 ISNULL(P.ProductGroupId,0) ProductGroupId,
-ISNULL(PG.Name,'') ProductGroupName
+ISNULL(PG.Name,'') ProductGroupName,
+ISNULL(CP.CompanyName,'') CompanyName
 
 
 FROM 
 SaleDetails D
 LEFT OUTER JOIN Products P ON D.ProductId = P.Id
 LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+LEFT OUTER JOIN CompanyProfiles CP ON D.CompanyId = CP.Id
 
-WHERE 1 = 1  AND ISNULL(D.Quantity, 0.00) > 0";
+WHERE 1 = 1";
 
 
                 string inClause = string.Join(", ", IDs.Select((id, index) => $"@Id{index}"));
@@ -1798,7 +1802,6 @@ WHERE 1 = 1  AND ISNULL(D.Quantity, 0.00) > 0";
 SELECT 
     ISNULL(M.Id, 0) AS Id,
     ISNULL(M.Id, 0) AS PurchaseId,
-    ISNULL(M.Code, '') AS Code,
     ISNULL(M.BranchId, 0) AS BranchId,
     ISNULL(M.CustomerId, 0) AS CustomerId,
     ISNULL(FORMAT(M.InvoiceDateTime, 'yyyy-MM-dd'), '1900-01-01') AS InvoiceDateTime,
@@ -1851,7 +1854,6 @@ WHERE 1 = 1
                     {
                         Id = row.Field<int>("Id"),
                         GrandTotal = row.Field<decimal>("GrandTotal"),
-                        Code = row.Field<string>("Code"),
                         //BranchId = row.Field<int>("BranchId"),
                         CustomerId = row.Field<int>("CustomerId"),
                         //BENumber = row.Field<string>("BENumber"),
@@ -1985,6 +1987,114 @@ WHERE 1 = 1";
                 }
             }
         }
+
+
+        public async Task<ResultVM> FromSaleGridData(GridOptions options, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                var data = new GridEntity<SaleVM>();
+
+                // Define your SQL query string
+                string sqlQuery = @"
+    -- Count query
+    SELECT COUNT(DISTINCT H.Id) AS totalcount
+        FROM Sales H 
+        LEFT OUTER JOIN BranchProfiles Br ON H.BranchId = Br.Id
+        LEFT OUTER JOIN Customers S ON H.CustomerId = S.Id
+        LEFT JOIN 
+					(
+						SELECT d.PurchaseId, SUM(ISNULL(d.Quantity,0)) AS TotalQuantity
+						FROM [dbo].[PurchaseDetails] d   
+						GROUP BY d.PurchaseId
+					) SD ON H.Id = SD.PurchaseId
+        WHERE H.IsPost = 1 
+    -- Add the filter condition
+    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleVM>.FilterCondition(options.filter) + ")" : "") + @"
+
+    -- Data query with pagination and sorting
+    SELECT * 
+    FROM (
+        SELECT 
+        ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC") + @") AS rowindex,
+        
+
+        ISNULL(H.Id, 0) AS Id,
+        ISNULL(H.Code, '') AS Code,
+        ISNULL(H.BranchId, 0) AS BranchId,
+        ISNULL(H.CustomerId, 0) AS CustomerId,
+        ISNULL(S.Name, '') AS CustomerName,
+        ISNULL(FORMAT(H.InvoiceDateTime, 'yyyy-MM-dd'), '1900-01-01') AS InvoiceDateTime,
+        ISNULL(H.Comments, '') AS Comments,
+        ISNULL(H.TransactionType, '') AS TransactionType,
+        ISNULL(H.IsPost, 0) AS IsPost,
+        CASE WHEN ISNULL(H.IsPost, 0) = 1 THEN 'Posted' ELSE 'Not-posted' END AS Status,
+        ISNULL(H.PostedBy, '') AS PostedBy,
+        ISNULL(FORMAT(H.PostedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS PostedOn,
+        ISNULL(H.PeriodId, '') AS PeriodId,
+        ISNULL(H.CreatedBy, '') AS CreatedBy,
+        ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS CreatedOn,
+        ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
+        ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
+        ISNULL(H.CreatedFrom, '') AS CreatedFrom,
+        ISNULL(H.LastUpdateFrom, '') AS LastUpdateFrom,
+
+        ISNULL(Br.Name,'') BranchName,
+        ISNULL(S.Name,'') SupplierName
+
+        FROM Sales H 
+        LEFT OUTER JOIN BranchProfiles Br ON H.BranchId = Br.Id
+        LEFT OUTER JOIN Customers S ON H.CustomerId = S.Id
+        LEFT JOIN 
+					(
+						SELECT d.PurchaseId, SUM(ISNULL(d.Quantity,0)) AS TotalQuantity
+						FROM [dbo].[PurchaseDetails] d   
+						GROUP BY d.PurchaseId
+					) SD ON H.Id = SD.PurchaseId
+        WHERE H.IsPost = 1 
+
+
+    -- Add the filter condition
+    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleVM>.FilterCondition(options.filter) + ")" : "") + @"
+
+    ) AS a
+    WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
+";
+
+                data = KendoGrid<SaleVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = data;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
 
 
     }
