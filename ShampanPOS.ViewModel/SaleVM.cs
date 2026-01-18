@@ -34,7 +34,6 @@ namespace ShampanPOS.ViewModel
         public decimal GrandTotal { get; set; }
         public decimal PaidAmount { get; set; }
 
-
         [Display(Name = "Delivery Address")]
         public string? DeliveryAddress { get; set; }
 
@@ -75,6 +74,12 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Last Modified On")]
         public string? LastModifiedOn { get; set; }
         public string? LastUpdateFrom { get; set; }
+
+
+        [Display(Name = "Expected Delivery Date")]
+        public string? DeliveryDate { get; set; }
+        public string? OrderDate { get; set; }
+
 
         public int? DecimalPlace { get; set; }
         public string? Operation { get; set; }

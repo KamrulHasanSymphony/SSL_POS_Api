@@ -1629,6 +1629,7 @@ ISNULL(FORMAT(D.VATRate, 'N2'), '0.00') AS VATRate,
 ISNULL(FORMAT(D.VATAmount, 'N2'), '0.00') AS VATAmount,
 ISNULL(FORMAT(D.OthersAmount, 'N2'), '0.00') AS OthersAmount,
 ISNULL(FORMAT(D.LineTotal, 'N2'), '0.00') AS LineTotal,
+ISNULL(FORMAT(D.SubTotal, 'N2'), '0.00') AS SubTotal,
 
 
 ISNULL(P.Name,'') ProductName,

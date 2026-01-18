@@ -378,7 +378,7 @@ public async Task<ResultVM> Insert(SaleOrderVM saleOrder)
             }
             catch (Exception ex)
             {
-                if (transaction != null && isNewConnection)
+                if (transaction != null && isNewConnection) 
                 {
                     transaction.Rollback();
                 }
@@ -438,6 +438,56 @@ public async Task<ResultVM> Insert(SaleOrderVM saleOrder)
                 }
             }
         }
+
+
+
+
+        public async Task<ResultVM> OrderList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
+        {
+            SaleOrderRepository _repo = new SaleOrderRepository();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            bool isNewConnection = false;
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+            try
+            {
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+
+                transaction = conn.BeginTransaction();
+
+                result = await _repo.OrderList(conditionalFields, conditionalValues, vm, conn, transaction);
+
+                if (isNewConnection)
+                {
+                    transaction.Commit();
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection)
+                {
+                    transaction.Rollback();
+                }
+
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
+
+
 
         public async Task<ResultVM> ListAsDataTable(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
         {
@@ -771,17 +821,7 @@ public async Task<ResultVM> Insert(SaleOrderVM saleOrder)
                     throw new Exception("No sale order data found.");
                 }
 
-                // ✅ Customer distinct check (SAFE)
-                bool allSameCustomer = lst
-                    .Where(p => p.CustomerId.HasValue)
-                    .Select(p => p.CustomerId.Value)
-                    .Distinct()
-                    .Count() == 1;
-
-                if (!allSameCustomer)
-                {
-                    throw new Exception("Customer is not distinct!");
-                }
+                
 
                 // 🔹 Details
                 var detailsDataList = await _repo.SaleOrderDetailsList(IDs, conn, transaction);
@@ -793,7 +833,6 @@ public async Task<ResultVM> Insert(SaleOrderVM saleOrder)
                     );
 
                     var master = lst.First();
-                    details.ForEach(d => d.SaleOrderCode = master.Code);
                     master.saleDetailsList = details;
                 }
 

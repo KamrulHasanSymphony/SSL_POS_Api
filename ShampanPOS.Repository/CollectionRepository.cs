@@ -444,12 +444,15 @@ WHERE 1 = 1
                 objComm.Fill(dataTable);
 
                 var model = new List<CollectionVM>();
+
                 foreach (DataRow row in dataTable.Rows)
                 {
                     model.Add(new CollectionVM
                     {
                         Id = row.Field<int>("Id"),
                         Code = row.Field<string>("Code"),
+                        ChequeNo = row.Field<string>("ChequeNo"),
+                        ChequeBankName = row.Field<string>("ChequeBankName"),
                         TotalCollectAmount = row.Field<decimal>("TotalCollectAmount"),
                         BankAccountId = row.Field<int>("BankAccountId"),
                         CustomerId = row.Field<int>("CustomerId"),
@@ -468,19 +471,20 @@ WHERE 1 = 1
                     });
                 }
 
-                var detailsDataList = DetailsList(new[] { "D.SaleOrderId" }, conditionalValues, vm, conn, transaction);
+                //var detailsDataList = DetailsList(new[] { "D.SaleId" }, conditionalValues, vm, conn, transaction);
 
-                if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
-                {
-                    string json = JsonConvert.SerializeObject(dt);
-                    var details = JsonConvert.DeserializeObject<List<CollectionDetailVM>>(json);
+                //if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
+                //{
+                //    string json = JsonConvert.SerializeObject(dt);
+                //    var details = JsonConvert.DeserializeObject<List<CollectionDetailVM>>(json);
 
-                    model.FirstOrDefault().collectionDetailList = details;
-                }
+                //    model.FirstOrDefault().collectionDetailList = details;
+                //}
 
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";
                 result.DataVM = model;
+
                 return result;
             }
             catch (Exception ex)
@@ -599,6 +603,7 @@ ISNULL(D.Id, 0) AS Id,
 ISNULL(D.CollectionId, 0) AS CollectionId,
 ISNULL(D.CustomerId, 0) AS CustomerId,
 ISNULL(D.SaleId, 0) AS SaleId,
+ISNULL(S.Code,0) AS SaleCode,
 ISNULL(D.Comments, 0) AS Comments,
 ISNULL(D.CollectionAmount,0) AS CollectionAmount,
 ISNULL(D.SaleAmount,0) AS SaleAmount
@@ -606,8 +611,8 @@ ISNULL(D.SaleAmount,0) AS SaleAmount
 
 FROM 
 CollectionDetails D
-
-WHERE 1 = 1  ";
+LEFT OUTER JOIN Sales S ON D.SaleId= S.Id
+WHERE 1 = 1 ";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
                 {

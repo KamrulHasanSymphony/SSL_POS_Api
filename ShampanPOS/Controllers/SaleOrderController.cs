@@ -117,6 +117,39 @@ namespace ShampanPOS.Controllers
             }
         }
 
+
+
+
+
+        // POST: api/SaleOrder/OrderList
+        [HttpPost("OrderList")]
+        public async Task<ResultVM> OrderList(CommonVM vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                _saleOrderService = new SaleOrderService();
+
+                resultVM = await _saleOrderService.OrderList(new[] { "M.Id" }, new[] { vm.Id.ToString() }, null);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = vm
+                };
+            }
+        }
+
+
+
+
+
+
         // GET: api/SaleOrder/ListAsDataTable
         [HttpGet("ListAsDataTable")]
         public async Task<ResultVM> ListAsDataTable(SaleOrderVM saleOrder)

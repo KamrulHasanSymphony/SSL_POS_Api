@@ -988,11 +988,11 @@ namespace ShampanPOS.Service
                 string data = JsonConvert.SerializeObject(result.DataVM);
                 lst = JsonConvert.DeserializeObject<List<PurchaseReturnVM>>(data);
 
-                bool allSame = lst.Select(p => p.SupplierId).Distinct().Count() == 1;
-                if (!allSame)
-                {
-                    throw new Exception("Supplier is not distinct!");
-                }
+                //bool allSame = lst.Select(p => p.SupplierId).Distinct().Count() == 1;
+                //if (!allSame)
+                //{
+                //    throw new Exception("Supplier is not distinct!");
+                //}
 
 
                 var detailsDataList = await _repo.PurchaseDetailsList(IDs, conn, transaction);

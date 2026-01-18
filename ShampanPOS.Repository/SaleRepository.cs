@@ -1386,6 +1386,7 @@ SELECT
     ISNULL(M.Id, 0) AS Id,
     ISNULL(M.BranchId, 0) AS BranchId,
     ISNULL(M.CustomerId, 0) AS CustomerId,
+    ISNULL(cus.Name,'') CustomerName,
     ISNULL(FORMAT(M.InvoiceDateTime, 'yyyy-MM-dd'), '1900-01-01') AS InvoiceDateTime,
     ISNULL(M.Comments, '') AS Comments,
     ISNULL(M.TransactionType, '') AS TransactionType,
@@ -1401,6 +1402,8 @@ SELECT
     ISNULL(M.LastUpdateFrom, '') AS LastUpdateFrom
 FROM 
     Sales M
+LEFT OUTER JOIN Customers cus ON M.CustomerId = cus.Id
+
 WHERE 1 = 1
  ";
 
@@ -1438,6 +1441,7 @@ WHERE 1 = 1
                         CustomerId = row.Field<int>("CustomerId"),
                         InvoiceDateTime = row.Field<string>("InvoiceDateTime"),
                         Comments = row.Field<string>("Comments"),
+                        CustomerName = row.Field<string>("CustomerName"),
                         TransactionType = row.Field<string>("TransactionType"),
                         IsPost = row.Field<bool>("IsPost"),
                         PostBy = row.Field<string>("PostedBy"),
