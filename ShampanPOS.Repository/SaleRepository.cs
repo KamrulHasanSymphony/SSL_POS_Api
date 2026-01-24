@@ -125,7 +125,6 @@ namespace ShampanPOS.Repository
 
                 using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
                 {
-                    // Adding parameters to the SQL command
                     cmd.Parameters.AddWithValue("@SaleId", details.SaleId);
                     cmd.Parameters.AddWithValue("@SaleOrderId", details.SaleOrderId ?? 0);
                     cmd.Parameters.AddWithValue("@SaleOrderDetailId", details.SaleOrderDetailId ?? 0);
@@ -139,13 +138,10 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@VATRate", details.VATRate ?? 0);
                     cmd.Parameters.AddWithValue("@VATAmount", details.VATAmount ?? 0);
                     cmd.Parameters.AddWithValue("@LineTotal", details.LineTotal ?? 0);
-                    //cmd.Parameters.AddWithValue("@VATType", "VAT");
-                    //cmd.Parameters.AddWithValue("@IsPost", false);
                     cmd.Parameters.Add("@CompanyId", SqlDbType.Int)
                                   .Value = (object?)details.CompanyId ?? DBNull.Value;
 
 
-                    // Execute the query and get the new ID (primary key)
                     object newId = cmd.ExecuteScalar();
                     details.Id = Convert.ToInt32(newId);
 
@@ -391,7 +387,7 @@ namespace ShampanPOS.Repository
 
                 //conditionalValue = new string[] { model.FirstOrDefault().Code.ToString() };
 
-                var detailsDataList = DetailsList(new[] { "D.SaleId" }, conditionalValue, vm, conn, transaction);
+                var detailsDataList = DetailsList(new[] { "sd.SaleId" }, conditionalValue, vm, conn, transaction);
 
                 if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
                 {
@@ -438,22 +434,30 @@ namespace ShampanPOS.Repository
                 }
 
                 string query = @"
+
 SELECT 
-ISNULL(D.Id, 0) AS Id,
-ISNULL(D.SaleId, 0) AS SaleId,
-ISNULL(D.SaleOrderId, 0) AS SaleOrderId,
-ISNULL(D.CompanyId, 0) AS CompanyId,
-ISNULL(D.SaleOrderDetailId, 0) AS SaleOrderDetailId,
-ISNULL(D.Line, 0) AS Line,
-ISNULL(D.ProductId, 0) AS ProductId,
-ISNULL(D.Quantity, 0.00) AS Quantity,
-ISNULL(FORMAT(D.UnitRate, 'N2'), '0.00') AS UnitRate,
-ISNULL(FORMAT(D.SubTotal, 'N2'), '0.00') AS SubTotal,
-ISNULL(FORMAT(D.SD, 'N2'), '0.00') AS SD,
-ISNULL(FORMAT(D.SDAmount, 'N2'), '0.00') AS SDAmount,
-ISNULL(FORMAT(D.VATRate, 'N2'), '0.00') AS VATRate,
-ISNULL(FORMAT(D.VATAmount, 'N2'), '0.00') AS VATAmount,
-ISNULL(FORMAT(D.LineTotal, 'N2'), '0.00') AS LineTotal,
+ISNULL(sd.Id, 0) AS Id,
+ISNULL(sd.SaleId, 0) AS SaleId,
+ISNULL(sd.SaleOrderId, 0) AS SaleOrderId,
+ISNULL(sd.CompanyId, 0) AS CompanyId,
+ISNULL(sd.SaleOrderDetailId, 0) AS SaleOrderDetailId,
+ISNULL(sd.Line, 0) AS Line,
+ISNULL(sd.ProductId, 0) AS ProductId,
+
+ISNULL(sod.Quantity, 0.00) AS OrderQuantity,
+ISNULL(FORMAT(sod.CompletedQty, 'N2'), '0.00') AS CompletedQty,
+ISNULL(FORMAT(sod.RemainQty, 'N2'), '0.00') AS RemainQty,
+
+ISNULL(sod.RemainQty, 0.00) AS Quantity,
+
+ISNULL(FORMAT(sd.UnitRate, 'N2'), '0.00') AS UnitRate,
+ISNULL(FORMAT(sd.SubTotal, 'N2'), '0.00') AS SubTotal,
+ISNULL(FORMAT(sd.SD, 'N2'), '0.00') AS SD,
+ISNULL(FORMAT(sd.SDAmount, 'N2'), '0.00') AS SDAmount,
+ISNULL(FORMAT(sd.VATRate, 'N2'), '0.00') AS VATRate,
+ISNULL(FORMAT(sd.VATAmount, 'N2'), '0.00') AS VATAmount,
+ISNULL(FORMAT(sd.LineTotal, 'N2'), '0.00') AS LineTotal,
+
 ISNULL(P.Name,'') ProductName,
 ISNULL(P.BanglaName,'') BanglaName, 
 ISNULL(P.Code,'') ProductCode, 
@@ -462,18 +466,18 @@ ISNULL(P.ProductGroupId,0) ProductGroupId,
 ISNULL(PG.Name,'') ProductGroupName,
 ISNULL(CP.CompanyName,'') CompanyName
 
-
-FROM 
-SaleDetails D
-LEFT OUTER JOIN Products P ON D.ProductId = P.Id
-LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
-LEFT OUTER JOIN CompanyProfiles CP ON D.CompanyId = CP.Id
-
-WHERE 1 = 1 ";
+FROM SaleDetails sd
+LEFT JOIN Sales S ON sd.SaleId = S.Id  
+LEFT JOIN SaleOrderDetails sod ON sd.SaleOrderId = sod.SaleOrderId and sd.ProductId=sod.ProductId 
+LEFT JOIN Products P ON sd.ProductId = P.Id
+LEFT JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+LEFT JOIN CompanyProfiles CP ON sd.CompanyId = CP.Id
+WHERE 1 = 1
+";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
                 {
-                    query += " AND D.Id = @Id ";
+                    query += " AND sd.Id = @Id ";
                 }
 
                 // Apply additional conditions
@@ -715,7 +719,7 @@ WHERE
         }
 
 
-        // GetGridData Method
+
         public async Task<ResultVM> GetGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
@@ -1062,8 +1066,8 @@ WHERE
         //                    LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
         //                    LEFT OUTER JOIN UOMs uom ON P.UOMId = uom.Id
         //                    LEFT OUTER JOIN UOMConversations uomCon ON D.UOMFromId = uomCon.Id
-		      //              WHERE 1 = 1 
-		      //            ";
+        //              WHERE 1 = 1 
+        //            ";
 
         //        if (vm != null && !string.IsNullOrEmpty(vm.Id))
         //        {
@@ -1266,8 +1270,6 @@ WHERE  1 = 1 ";
         }
 
 
-
-
         public async Task<ResultVM> GetSaleDetailDataById(GridOptions options, int masterId, SqlConnection conn, SqlTransaction transaction)
         {
             bool isNewConnection = false;
@@ -1363,8 +1365,6 @@ WHERE  1 = 1 ";
                 }
             }
         }
-
-
 
         public async Task<ResultVM> SaleList(string?[] IDs, SqlConnection conn = null, SqlTransaction transaction = null)
         {
@@ -1476,9 +1476,6 @@ WHERE 1 = 1
             }
         }
 
-
-
-
         public async Task<ResultVM> SaleDetailsList(string?[] IDs, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
@@ -1571,8 +1568,6 @@ WHERE 1 = 1";
                 }
             }
         }
-
-
 
         //        public async Task<ResultVM> SaleListForPayment(string?[] IDs, SqlConnection conn = null, SqlTransaction transaction = null)
         //        {
@@ -2098,6 +2093,280 @@ WHERE 1 = 1";
                 }
             }
         }
+
+
+
+
+        public ResultVM SaleOrderQtyCheck(int Id, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = @"
+
+SELECT 
+ISNULL(sd.Id, 0) AS Id,
+ISNULL(sd.SaleId, 0) AS SaleId,
+ISNULL(sd.SaleOrderId, 0) AS SaleOrderId,
+ISNULL(sd.CompanyId, 0) AS CompanyId,
+ISNULL(sd.SaleOrderDetailId, 0) AS SaleOrderDetailId,
+ISNULL(sd.Line, 0) AS Line,
+ISNULL(sd.ProductId, 0) AS ProductId,
+
+ISNULL(sod.Quantity, 0.00) AS OrderQuantity,
+ISNULL(FORMAT(sod.CompletedQty, 'N2'), '0.00') AS CompletedQty,
+ISNULL(FORMAT(sod.RemainQty, 'N2'), '0.00') AS RemainQty,
+
+ISNULL(sod.RemainQty, 0.00) AS Quantity,
+
+ISNULL(FORMAT(sd.UnitRate, 'N2'), '0.00') AS UnitRate,
+ISNULL(FORMAT(sd.SubTotal, 'N2'), '0.00') AS SubTotal,
+ISNULL(FORMAT(sd.SD, 'N2'), '0.00') AS SD,
+ISNULL(FORMAT(sd.SDAmount, 'N2'), '0.00') AS SDAmount,
+ISNULL(FORMAT(sd.VATRate, 'N2'), '0.00') AS VATRate,
+ISNULL(FORMAT(sd.VATAmount, 'N2'), '0.00') AS VATAmount,
+ISNULL(FORMAT(sd.LineTotal, 'N2'), '0.00') AS LineTotal,
+
+ISNULL(P.Name,'') ProductName,
+ISNULL(P.BanglaName,'') BanglaName, 
+ISNULL(P.Code,'') ProductCode, 
+ISNULL(P.HSCodeNo,'') HSCodeNo,
+ISNULL(P.ProductGroupId,0) ProductGroupId,
+ISNULL(PG.Name,'') ProductGroupName,
+ISNULL(CP.CompanyName,'') CompanyName
+
+FROM SaleDetails sd
+LEFT JOIN Sales S ON sd.SaleId = S.Id  
+LEFT JOIN SaleOrderDetails sod ON sd.SaleOrderId = sod.SaleOrderId and sd.ProductId=sod.ProductId 
+LEFT JOIN Products P ON sd.ProductId = P.Id
+LEFT JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+LEFT JOIN CompanyProfiles CP ON sd.CompanyId = CP.Id
+WHERE 1 = 1
+";
+
+                if (Id > 0)
+                {
+                    query += " AND S.Id = @Id ";
+                }
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+
+                if (Id > 0)
+                {
+                    objComm.SelectCommand.Parameters.Add("@Id", SqlDbType.Int).Value = Id;
+                }
+
+
+                objComm.Fill(dataTable);
+
+                result.Status = "Success";
+                result.Message = "Details Data retrieved successfully.";
+                result.DataVM = dataTable;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
+        //public async Task<ResultVM> UpdateSaleOrderDetails(SaleOrderDetailVM details, SqlConnection conn = null,SqlTransaction transaction = null)
+        //{
+        //    bool isNewConnection = false;
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error" };
+
+        //    try
+        //    {
+        //        if (conn == null)
+        //        {
+        //            conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //            await conn.OpenAsync();
+        //            isNewConnection = true;
+        //        }
+
+        //        if (transaction == null && isNewConnection)
+        //        {
+        //            transaction = conn.BeginTransaction();
+        //        }
+
+        //        string query = @"
+        //    UPDATE SaleOrderDetails
+        //    SET CompletedQty = @CompletedQty,
+        //        RemainQty = @RemainQty
+        //    WHERE ProductId = @ProductId
+        //      AND SaleOrderId = @SaleOrderId";
+
+        //        using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
+        //        {
+        //            cmd.Parameters.Add("@CompletedQty", SqlDbType.Decimal).Value = details.CompletedQty;
+        //            cmd.Parameters.Add("@RemainQty", SqlDbType.Decimal).Value = details.RemainQty;
+        //            cmd.Parameters.Add("@ProductId", SqlDbType.Int).Value = details.ProductId;
+        //            cmd.Parameters.Add("@SaleOrderId", SqlDbType.Int).Value = details.SaleOrderId;
+
+        //            int rowsAffected = await cmd.ExecuteNonQueryAsync();
+
+        //            if (rowsAffected == 0)
+        //                throw new Exception("No rows were updated.");
+
+        //            result.Status = "Success";
+        //            result.Message = "Data updated successfully.";
+        //        }
+
+        //        if (isNewConnection)
+        //            transaction?.Commit();
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (isNewConnection)
+        //            transaction?.Rollback();
+
+        //        result.Message = ex.Message;
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection)
+        //            conn?.Close();
+        //    }
+        //}
+
+        public async Task<ResultVM> UpdateSaleOrderDetails(
+            int saleOrderDetailId,
+            int productId,
+            SqlConnection conn,
+            SqlTransaction transaction)
+        {
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error" };
+
+            try
+            {
+                string query = @"
+        WITH SaleDetailsSummary AS
+        (
+            SELECT 
+                SD.SaleOrderDetailId,
+                SD.ProductId,
+                SUM(SD.Quantity) AS TotalQuantity
+            FROM SaleDetails SD
+            WHERE SD.SaleOrderDetailId = @SaleOrderDetailId
+              AND SD.ProductId = @ProductId
+            GROUP BY SD.SaleOrderDetailId, SD.ProductId
+        )
+        UPDATE SOD
+        SET 
+            SOD.CompletedQty = ISNULL(SDS.TotalQuantity, 0),
+            SOD.RemainQty = SOD.Quantity - ISNULL(SDS.TotalQuantity, 0)
+        FROM SaleOrderDetails SOD
+        LEFT JOIN SaleDetailsSummary SDS
+               ON SDS.SaleOrderDetailId = SOD.Id
+              AND SDS.ProductId = SOD.ProductId
+        WHERE SOD.Id = @SaleOrderDetailId
+          AND SOD.ProductId = @ProductId;
+        ";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
+                {
+                    cmd.Parameters.Add("@SaleOrderDetailId", SqlDbType.Int).Value = saleOrderDetailId;
+                    cmd.Parameters.Add("@ProductId", SqlDbType.Int).Value = productId;
+
+                    int rows = await cmd.ExecuteNonQueryAsync();
+                    if (rows <= 0)
+                        throw new Exception("Sale order detail was not updated.");
+                }
+
+                result.Status = "Success";
+                result.Message = "Sale order quantities updated successfully.";
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Status = "Fail";
+                result.Message = ex.Message;
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+        }
+
+
+
+
+
+
+        public async Task<ResultVM> CheckRemaingQuantity(
+            int? saleOrderDetailId,
+            int? productId,
+            int? Id,
+            SqlConnection conn,
+            SqlTransaction transaction)
+        {
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error" };
+
+            try
+            {
+                string query = @"
+
+                SELECT 
+                    ISNULL(SUM(ISNULL(SD.Quantity, 0)),0) AS CompleteQty
+                FROM SaleDetails SD
+                WHERE SD.SaleOrderDetailId = @SaleOrderDetailId
+                  AND SD.ProductId = @ProductId
+                  and SD.Id != @Id
+                ";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
+                {
+                    cmd.Parameters.Add("@SaleOrderDetailId", SqlDbType.Int)
+                        .Value = saleOrderDetailId ?? (object)DBNull.Value;
+
+                    cmd.Parameters.Add("@ProductId", SqlDbType.Int)
+                        .Value = productId ?? (object)DBNull.Value;
+
+                    cmd.Parameters.Add("@Id", SqlDbType.Int)
+                        .Value = Id ?? (object)DBNull.Value;
+
+                    object value = await cmd.ExecuteScalarAsync();
+
+                    decimal completeQty = value != null ? Convert.ToDecimal(value) : 0;
+
+                    result.Status = "Success";
+                    result.Message = "Complete quantity calculated successfully.";
+                    result.DataVM = completeQty;
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Status = "Fail";
+                result.Message = ex.Message;
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+        }
+
 
 
 

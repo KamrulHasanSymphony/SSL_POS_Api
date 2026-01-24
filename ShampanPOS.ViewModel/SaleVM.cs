@@ -23,6 +23,7 @@ namespace ShampanPOS.ViewModel
         public string? CustomerName { get; set; }
 
         public int? SaleOrderId { get; set; }
+        public int? SaleOrderDetailId { get; set; }
 
         [Display(Name = "Sale Order Code")]
 

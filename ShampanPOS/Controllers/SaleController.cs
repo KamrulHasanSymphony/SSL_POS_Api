@@ -140,8 +140,8 @@ namespace ShampanPOS.Controllers
         }
 
 
-        // POST: api/Sale/MultiplePost
-        [HttpPost("MultiplePost")]
+        //POST: api/Sale/MultiplePost
+       [HttpPost("MultiplePost")]
         public async Task<ResultVM> MultiplePost(CommonVM vm)
         {
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, IDs = null, DataVM = null };

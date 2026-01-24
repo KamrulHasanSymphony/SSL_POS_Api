@@ -640,6 +640,215 @@ ORDER BY Name";
             }
         }
 
+
+//        public async Task<ResultVM> GetPurchaseBySupplier(string?[] IDs, SqlConnection conn = null, SqlTransaction transaction = null)
+//        {
+//            bool isNewConnection = false;
+//            DataTable dataTable = new DataTable();
+//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+//            try
+//            {
+//                if (conn == null)
+//                {
+//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+//                    conn.Open();
+//                    isNewConnection = true;
+//                }
+
+//                string query = @"
+//SELECT 
+//    ISNULL(M.Id, 0) AS Id,
+//    ISNULL(M.Id, 0) AS PurchaseId,
+//    ISNULL(M.BranchId, 0) AS BranchId,
+//    ISNULL(M.CustomerId, 0) AS CustomerId,
+//    ISNULL(FORMAT(M.InvoiceDateTime, 'yyyy-MM-dd'), '1900-01-01') AS InvoiceDateTime,
+//    ISNULL(M.Comments, '') AS Comments,
+//    ISNULL(M.TransactionType, '') AS TransactionType,
+//    ISNULL(M.IsPost, 0) AS IsPost,
+//    ISNULL(M.PostedBy, '') AS PostedBy,
+//    ISNULL(FORMAT(M.PostedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS PostedOn,
+//    ISNULL(M.PeriodId, '') AS PeriodId,
+//    ISNULL(M.CreatedBy, '') AS CreatedBy,
+//    ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS CreatedOn,
+//    ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
+//    ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
+//    ISNULL(M.CreatedFrom, '') AS CreatedFrom,
+//    ISNULL(M.LastUpdateFrom, '') AS LastUpdateFrom,
+//    ISNULL(M.GrandTotal, 0) AS GrandTotal
+
+//FROM 
+//    Sales M
+//WHERE 1 = 1
+// ";
+
+//                string inClause = string.Join(", ", IDs.Select((id, index) => $"@Id{index}"));
+
+//                if (IDs.Length > 0)
+//                {
+//                    query += $" AND M.Id IN ({inClause}) ";
+//                }
+
+//                using (SqlDataAdapter adapter = new SqlDataAdapter(query, conn))
+//                {
+//                    if (transaction != null)
+//                    {
+//                        adapter.SelectCommand.Transaction = transaction;
+//                    }
+
+//                    for (int i = 0; i < IDs.Length; i++)
+//                    {
+//                        adapter.SelectCommand.Parameters.AddWithValue($"@Id{i}", IDs[i]);
+//                    }
+
+//                    adapter.Fill(dataTable);
+//                }
+
+//                var lst = new List<CollectionVM>();
+
+//                foreach (DataRow row in dataTable.Rows)
+//                {
+//                    lst.Add(new CollectionVM
+//                    {
+//                        Id = row.Field<int>("Id"),
+//                        GrandTotal = row.Field<decimal>("GrandTotal"),
+//                        //BranchId = row.Field<int>("BranchId"),
+//                        CustomerId = row.Field<int>("CustomerId"),
+//                        //BENumber = row.Field<string>("BENumber"),
+//                        //InvoiceDateTime = row.Field<string>("InvoiceDateTime"),
+//                        //PurchaseDate = row.Field<string>("PurchaseDate"),
+//                        Comments = row.Field<string>("Comments"),
+//                        //TransactionType = row.Field<string>("TransactionType"),
+//                        //IsPost = row.Field<bool>("IsPost"),
+//                        //PostedBy = row.Field<string>("PostedBy"),
+//                        //PostedOn = row.Field<string?>("PostedOn"),
+//                        //FiscalYear = row.Field<string>("FiscalYear"),
+//                        //PeriodId = row.Field<string>("PeriodId"),
+//                        CreatedBy = row.Field<string>("CreatedBy"),
+//                        CreatedOn = row.Field<string>("CreatedOn"),
+//                        LastModifiedBy = row.Field<string>("LastModifiedBy"),
+//                        LastModifiedOn = row.Field<string?>("LastModifiedOn"),
+//                        LastUpdateFrom = row.Field<string?>("LastUpdateFrom")
+//                    });
+//                }
+
+//                result.Status = "Success";
+//                result.Message = "Data retrieved successfully.";
+//                result.DataVM = lst;
+
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                result.ExMessage = ex.Message;
+//                result.Message = ex.Message;
+//                return result;
+//            }
+//            finally
+//            {
+//                if (isNewConnection && conn != null)
+//                {
+//                    conn.Close();
+//                }
+//            }
+//        }
+
+
+
+
+
+//        public async Task<ResultVM> GetDetails(string?[] IDs, SqlConnection conn = null, SqlTransaction transaction = null)
+//        {
+//            bool isNewConnection = false;
+//            DataTable dataTable = new DataTable();
+//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+//            try
+//            {
+//                if (conn == null)
+//                {
+//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+//                    conn.Open();
+//                    isNewConnection = true;
+//                }
+
+//                string query = @"
+//SELECT 
+//ISNULL(Pur.Code,'') SaleCode,
+//ISNULL(Pur.Id,0) SaleId,
+//ISNULL(FORMAT(Pur.GrandTotal, 'N2'), '0.00') AS SaleAmount,
+//ISNULL(D.Id, 0) AS Id,
+//ISNULL(D.Id, 0) AS SaleDetailId,
+//ISNULL(D.SaleId, 0) AS SaleId,
+//ISNULL(D.Line, 0) AS Line,
+//ISNULL(D.ProductId, 0) AS ProductId,
+//ISNULL(FORMAT(D.UnitRate, 'N2'), 0.00) AS UnitRate,
+//ISNULL(FORMAT(D.SD, 'N2'), '0.00') AS SD,
+//ISNULL(FORMAT(D.SDAmount, 'N2'), '0.00') AS SDAmount,
+//ISNULL(FORMAT(D.VATRate, 'N2'), '0.00') AS VATRate,
+//ISNULL(FORMAT(D.VATAmount, 'N2'), '0.00') AS VATAmount,
+
+//ISNULL(P.Name,'') ProductName,
+//ISNULL(P.BanglaName,'') BanglaName,
+//ISNULL(P.Code,'') ProductCode, 
+//ISNULL(P.HSCodeNo,'') HSCodeNo,
+//ISNULL(P.ProductGroupId,0) ProductGroupId,
+//ISNULL(PG.Name,'') ProductGroupName
+
+
+//FROM 
+//SaleDetails D
+//LEFT OUTER JOIN Products P ON D.ProductId = P.Id
+//LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+//LEFT OUTER JOIN Sales Pur ON D.SaleId = Pur.Id
+
+//WHERE 1 = 1";
+
+
+//                string inClause = string.Join(", ", IDs.Select((id, index) => $"@Id{index}"));
+
+//                if (IDs.Length > 0)
+//                {
+//                    query += $" AND D.SaleId IN ({inClause}) ";
+//                }
+
+//                using (SqlDataAdapter adapter = new SqlDataAdapter(query, conn))
+//                {
+//                    if (transaction != null)
+//                    {
+//                        adapter.SelectCommand.Transaction = transaction;
+//                    }
+
+//                    for (int i = 0; i < IDs.Length; i++)
+//                    {
+//                        adapter.SelectCommand.Parameters.AddWithValue($"@Id{i}", IDs[i]);
+//                    }
+
+//                    adapter.Fill(dataTable);
+//                }
+
+//                result.Status = "Success";
+//                result.Message = "Details Data retrieved successfully.";
+//                result.DataVM = dataTable;
+
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                result.ExMessage = ex.Message;
+//                result.Message = ex.Message;
+//                return result;
+//            }
+//            finally
+//            {
+//                if (isNewConnection && conn != null)
+//                {
+//                    conn.Close();
+//                }
+//            }
+//        }
+
+
     }
 
 }

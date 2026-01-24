@@ -3243,9 +3243,245 @@ WHERE 1 = 1
 
 
 
+        public async Task<ResultVM> GetPurchaseDatabysupplier(
+            string[] conditionalFields,
+            string[] conditionalValues,
+            PeramModel vm,
+            SqlConnection conn,
+            SqlTransaction transaction)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                DataVM = null
+            };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = @"
+SELECT
+    ISNULL(M.Id, 0) AS Id,
+    ISNULL(M.Code, '') AS Code,
+    ISNULL(M.SupplierId, 0) AS SupplierId,
+    ISNULL(M.PurchaseOrderId, 0) AS PurchaseOrderId,
+    ISNULL(E.Code, '') AS PurchaseOrderCode,
+    ISNULL(S.Name, '') AS SupplierName,
+    ISNULL(M.Comments, '') AS Comments,
+    ISNULL(M.GrandTotal, 0) AS GrandTotal
+FROM Purchases M
+LEFT JOIN Suppliers S ON M.SupplierId = S.Id
+LEFT JOIN PurchaseOrders E ON M.PurchaseOrderId = E.Id
+WHERE 1 = 1
+AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
+";
+
+                // Date filter
+                if (vm != null && !string.IsNullOrEmpty(vm.FromDate))
+                {
+                    query += @" AND CAST(M.EffectDate AS DATE) <= @FromDate ";
+                }
+
+                // Apply dynamic search / conditions
+                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
+
+                // ---------- FIX 1: SAFE ORDER BY ----------
+                string orderName = "M.Id";
+                string orderDir = "ASC";
+
+                if (!string.IsNullOrWhiteSpace(vm?.OrderName))
+                {
+                    orderName = vm.OrderName;
+                }
+
+                if (!string.IsNullOrWhiteSpace(vm?.orderDir))
+                {
+                    orderDir = vm.orderDir;
+                }
+
+                query += @" ORDER BY " + orderName + " " + orderDir;
+                query += @" OFFSET " + vm.startRec + @" ROWS FETCH NEXT " + vm.pageSize + @" ROWS ONLY";
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                // Apply dynamic parameters
+                objComm.SelectCommand =
+                    ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                // ---------- FIX 2: CORRECT SupplierId ----------
+                int supplierId = 0;
+                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+                {
+                    int.TryParse(vm.Id, out supplierId);
+                }
+
+                objComm.SelectCommand.Parameters.AddWithValue("@SupplierId", supplierId);
+
+                // Branch
+                if (vm != null && !string.IsNullOrEmpty(vm.BranchId))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
+                }
+
+                // Date
+                if (vm != null && !string.IsNullOrEmpty(vm.FromDate))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@FromDate", vm.FromDate);
+                }
+
+                // Execute
+                objComm.Fill(dataTable);
+
+                // Map result
+                var modelList = dataTable.AsEnumerable().Select(row => new PurchaseDataVM
+                {
+                    Id = row.Field<int>("Id"),
+                    SupplierId = row.Field<int>("SupplierId"),
+                    PurchaseOrderId = row.Field<int>("PurchaseOrderId"),
+                    Code = row.Field<string>("Code"),
+                    PurchaseOrderCode = row.Field<string>("PurchaseOrderCode"),
+                    SupplierName = row.Field<string>("SupplierName"),
+                    GrandTotal = row.Field<decimal>("GrandTotal"),
+                    Comments = row.Field<string>("Comments")
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                result.Count = modelList.Count;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Status = "Fail";
+                result.Message = ex.Message;
+                result.ExMessage = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
 
 
 
+
+
+
+        public async Task<ResultVM> GetPurchasebysupplierCountData(
+            string[] conditionalFields,
+            string[] conditionalValues,
+            PeramModel vm,
+            SqlConnection conn,
+            SqlTransaction transaction)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                DataVM = null
+            };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                if (transaction == null)
+                {
+                    transaction = conn.BeginTransaction();
+                }
+
+                string query = @"
+SELECT
+    COALESCE(COUNT(M.Id), 0) AS FilteredCount
+FROM Purchases M
+LEFT JOIN Suppliers S ON M.SupplierId = S.Id
+LEFT JOIN PurchaseOrders E ON M.PurchaseOrderId = E.Id
+WHERE 1 = 1
+AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
+";
+
+                // Date filter (if required)
+                if (vm != null && !string.IsNullOrEmpty(vm.FromDate))
+                {
+                    query += @" AND CAST(M.EffectDate AS DATE) <= @FromDate ";
+                }
+
+                // Apply dynamic conditions (search, etc.)
+                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                // Apply dynamic parameters
+                objComm.SelectCommand =
+                    ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                // 🔥 SupplierId parameter (MAIN FIX)
+                int supplierId = 0;
+                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+                {
+                    int.TryParse(vm.Id, out supplierId);
+                }
+                objComm.SelectCommand.Parameters.AddWithValue("@SupplierId", supplierId);
+
+                // Branch
+                if (vm != null && !string.IsNullOrEmpty(vm.BranchId))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
+                }
+
+                // Date
+                if (vm != null && !string.IsNullOrEmpty(vm.FromDate))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@FromDate", vm.FromDate);
+                }
+
+                objComm.Fill(dataTable);
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.Count = Convert.ToInt32(dataTable.Rows[0][0]);
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Status = "Fail";
+                result.Message = ex.Message;
+                result.ExMessage = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
 
     }
 

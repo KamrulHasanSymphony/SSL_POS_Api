@@ -336,32 +336,6 @@ namespace ShampanPOS.Controllers
             }
         }
 
-        //// POST: api/SaleOrder/SaleOrderList
-        //[HttpPost("SaleOrderList")]
-        //public async Task<ResultVM> SaleOrderList(CommonVM vm)
-        //{
-        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-        //    try
-        //    {
-        //        _saleOrderService = new SaleOrderService();
-        //        resultVM = await _saleOrderService.SaleOrderList(new[] { "H.Id" }, new[] { vm.Id }, null);
-        //        return resultVM;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return new ResultVM
-        //        {
-        //            Status = "Fail",
-        //            Message = ex.Message,
-        //            ExMessage = ex.Message,
-        //            DataVM = vm
-        //        };
-        //    }
-        //}
-
-
-
-
         // POST: api/PurchaseOrder/SaleOrderList
         [HttpPost("SaleOrderList")]
         public async Task<ResultVM> SaleOrderList(CommonVM vm)
@@ -411,31 +385,6 @@ namespace ShampanPOS.Controllers
             }
         }
 
-        // POST: api/SaleOrder/SummaryReport
-        //[HttpPost("SummaryReport")]
-        //public async Task<ResultVM> SummaryReport(CommonVM vm)
-        //{
-        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-        //    try
-        //    {
-        //        _saleOrderService = new SaleOrderService();
-        //        PeramModel param = new PeramModel();
-        //        param.FromDate = vm.FromDate;
-        //        param.ToDate = vm.ToDate;
-        //        resultVM = await _saleOrderService.SummaryReport(new[] { "M.BranchId" }, new[] { vm.BranchId }, param);
-        //        return resultVM;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return new ResultVM
-        //        {
-        //            Status = "Fail",
-        //            Message = ex.Message,
-        //            ExMessage = ex.Message,
-        //            DataVM = vm
-        //        };
-        //    }
-        //}
 
         // POST: api/SaleOrder/ReportPreview
         [HttpPost("ReportPreview")]

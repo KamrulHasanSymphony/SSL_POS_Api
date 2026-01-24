@@ -181,7 +181,7 @@ namespace ShampanPOS.Controllers
             }
         }
 
-        // POST: api/Product/ReportPreview
+        // POST: api/Supplier/ReportPreview
         [HttpPost("ReportPreview")]
         public async Task<FileStreamResult> ReportPreview(CommonVM vm)
         {
@@ -243,5 +243,31 @@ namespace ShampanPOS.Controllers
                 throw new Exception($"Error generating report: {ex.Message}");
             }
         }
+
+
+        //// POST: api/Supplier/GetPurchaseBySupplier
+        //[HttpPost("GetPurchaseBySupplier")]
+        //public async Task<ResultVM> GetPurchaseBySupplier(CommonVM vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        _supplierService = new SupplierService();
+        //        resultVM = await _supplierService.GetPurchaseBySupplier(vm.IDs);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = ex.Message,
+        //            ExMessage = ex.Message,
+        //            DataVM = vm
+        //        };
+        //    }
+        //}
+
+
     }
 }

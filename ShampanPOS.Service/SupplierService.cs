@@ -1,15 +1,16 @@
-﻿using ShampanPOS.Repository;
-using ShampanPOS.ViewModel.CommonVMs;
+﻿using Newtonsoft.Json;
+using ShampanPOS.Repository;
 using ShampanPOS.ViewModel;
+using ShampanPOS.ViewModel.CommonVMs;
+using ShampanPOS.ViewModel.KendoCommon;
+using ShampanPOS.ViewModel.Utility;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Data;
-using ShampanPOS.ViewModel.Utility;
-using ShampanPOS.ViewModel.KendoCommon;
 
 namespace ShampanPOS.Service
 {
@@ -456,6 +457,97 @@ namespace ShampanPOS.Service
                 }
             }
         }
+
+        //public async Task<ResultVM> GetPurchaseBySupplier(string?[] IDs)
+        //{
+        //    SupplierRepository _repo = new SupplierRepository();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
+
+        //        transaction = conn.BeginTransaction();
+
+        //        result = await _repo.GetPurchaseBySupplier(IDs, conn, transaction);
+
+        //        var lst = new List<PaymentVM>();
+
+        //        string data = JsonConvert.SerializeObject(result.DataVM);
+        //        lst = JsonConvert.DeserializeObject<List<PaymentVM>>(data);
+
+        //        //bool allSame = lst.Select(p => p.CustomerId).Distinct().Count() == 1;
+        //        //if (!allSame)
+        //        //{
+        //        //    throw new Exception("Supplier is not distinct!");
+        //        //}
+
+        //        var detailsDataList = await _repo.GetDetails(IDs, conn, transaction);
+
+        //        if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
+        //        {
+        //            string json = JsonConvert.SerializeObject(dt);
+        //            var details = JsonConvert.DeserializeObject<List<PaymentDetailVM>>(json);
+
+        //            // Check if lst is not null and contains items
+        //            if (lst != null && lst.Any())
+        //            {
+        //                lst.FirstOrDefault().paymentDetailList = details;
+        //                result.DataVM = lst;
+        //            }
+        //            else
+        //            {
+        //                // Handle the case where lst is null or empty
+        //                // You can log or set default values here
+        //                result.Status = "Fail";
+        //                result.Message = "lst is null or empty.";
+        //            }
+        //        }
+        //        else
+        //        {
+        //            // Handle failure in detailsDataList.Status or invalid DataVM
+        //            result.Status = "Fail";
+        //            result.Message = "Failed to retrieve purchase details.";
+        //        }
+
+
+        //        if (isNewConnection && result.Status == "Success")
+        //        {
+        //            transaction.Commit();
+        //        }
+        //        else
+        //        {
+        //            throw new Exception(result.Message);
+        //        }
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+        //        result.Status = "Fail";
+        //        result.Message = ex.Message.ToString();
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
+
+
     }
 
 

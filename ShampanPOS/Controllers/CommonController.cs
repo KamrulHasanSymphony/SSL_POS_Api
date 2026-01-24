@@ -723,7 +723,32 @@ namespace ShampanPOS.Controllers
             }
         }
 
+        // POST: api/Common/GetPurchaseDatabysupplier
+        [HttpPost("GetPurchaseDatabysupplier")]
+        public async Task<ResultVM> GetPurchaseDatabysupplier(PurchaseDataVM model)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                CommonService _commonService = new CommonService();
+                PeramModel vm = new PeramModel();
+                vm = model.PeramModel;
+                vm.Id = model.SupplierId.ToString();
 
+                resultVM = await _commonService.GetPurchaseDatabysupplier(new[] { "M.Code like", "S.Name like", "E.Code like" }, new[] { model.Code, model.SupplierName, model.PurchaseOrderCode }, vm);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = ex.Message,
+                    ExMessage = ex.Message,
+                    DataVM = model
+                };
+            }
+        }
 
 
 

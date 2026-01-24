@@ -2164,7 +2164,7 @@ WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take);";
 
                 string query = @"
                 SELECT 
-                ISNULL(D.Id, 0) AS Id,
+                ISNULL(D.Id, 0) AS SaleOrderDetailId,
                 ISNULL(D.SaleOrderId, 0) AS SaleOrderId,
                 ISNULL(D.Line, 0) AS Line,
                 ISNULL(D.ProductId, 0) AS ProductId,
@@ -2266,10 +2266,10 @@ WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take);";
 
                 string query = @"
 
-
-    SELECT
+SELECT
         ISNULL(M.Id, 0) AS Id,        
         ISNULL(M.Id, 0) AS SaleOrderId,
+        ISNULL(SOD.Id, 0) AS SaleOrderDetailId,
         ISNULL(M.Code, '') AS SaleOrderCode,
         ISNULL(M.BranchId, 0) AS BranchId,
 	    ISNULL(M.CompanyId, 0) AS CompanyId,
@@ -2292,6 +2292,7 @@ WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take);";
     ISNULL(CP.CompanyName,'') CompanyName
     FROM SaleOrders M
     LEFT JOIN Customers C ON M.CustomerId = C.Id
+    LEFT OUTER JOIN SaleOrderDetails SOD ON M.Id = SOD.SaleOrderId
     LEFT OUTER JOIN BranchProfiles Br ON M.BranchId = Br.Id
 	LEFT OUTER JOIN CompanyProfiles CP ON M.CompanyId = CP.Id
     WHERE 1 = 1
@@ -2328,6 +2329,7 @@ WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take);";
                     {
                         Id = Convert.ToInt32(row["Id"]),
                         SaleOrderId = Convert.ToInt32(row["SaleOrderId"]),
+                        SaleOrderDetailId = Convert.ToInt32(row["SaleOrderDetailId"]),
                         SaleOrderCode = row["SaleOrderCode"].ToString(),
                         BranchId = Convert.ToInt32(row["BranchId"]),
                         CompanyId = Convert.ToInt32(row["CompanyId"]),
