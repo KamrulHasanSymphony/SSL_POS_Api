@@ -633,8 +633,6 @@ namespace ShampanPOS.Service
             }
         }
 
-        
-
     }
 
 }
