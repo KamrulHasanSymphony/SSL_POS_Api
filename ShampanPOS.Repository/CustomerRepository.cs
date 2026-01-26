@@ -39,7 +39,7 @@ namespace ShampanPOS.Repository
 INSERT INTO Customers
 (
     Code, Name, CustomerGroupId, BanglaName, Address, BanglaAddress, 
-     TelephoneNo, FaxNo, Email, TIN, BIN, NIDNo, 
+     TelephoneNo, FaxNo, Email, TINNo, BINNo, NIDNo, 
     Comments, IsArchive, IsActive, CreatedBy, CreatedOn,ImagePath
 )
 VALUES
@@ -141,8 +141,8 @@ SET
     TelephoneNo = @TelephoneNo,
     FaxNo = @FaxNo,
     Email = @Email,
-    TIN = @TINNo,
-    BIN = @BINNo,
+    TINNo = @TINNo,
+    BINNo = @BINNo,
     NIDNo = @NIDNo,
     Comments = @Comments,   
 
