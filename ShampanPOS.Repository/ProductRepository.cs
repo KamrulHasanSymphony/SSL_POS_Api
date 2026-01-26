@@ -1,12 +1,13 @@
-﻿using ShampanPOS.ViewModel;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Newtonsoft.Json;
+using ShampanPOS.ViewModel;
+using ShampanPOS.ViewModel.CommonVMs;
+using ShampanPOS.ViewModel.KendoCommon;
+using ShampanPOS.ViewModel.Utility;
+using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Text.Json;
-using ShampanPOS.ViewModel.CommonVMs;
-using ShampanPOS.ViewModel.Utility;
-using System;
-using ShampanPOS.ViewModel.KendoCommon;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Xml;
 
 namespace ShampanPOS.Repository
@@ -1184,85 +1185,85 @@ WHERE 1 = 1 ";
         }
 
 
-//        public async Task<ResultVM> ExportProductStockExcel(CommonVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
-//        {
-//            bool isNewConnection = false;
-//            DataTable dataTable = new DataTable();
-//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //        public async Task<ResultVM> ExportProductStockExcel(CommonVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
+        //        {
+        //            bool isNewConnection = false;
+        //            DataTable dataTable = new DataTable();
+        //            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
-//            try
-//            {
-//                if (conn == null)
-//                {
-//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-//                    conn.Open();
-//                    isNewConnection = true;
-//                }
+        //            try
+        //            {
+        //                if (conn == null)
+        //                {
+        //                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //                    conn.Open();
+        //                    isNewConnection = true;
+        //                }
 
-//                string query = @"
+        //                string query = @"
 
-//                        SELECT
-//                        ISNULL(M.Id, 0) AS Id,
-//                        ISNULL(M.Code, '') AS ProductCode,
-//                        ISNULL(M.Name, '') AS ProductName,
-//                        ISNULL(POS.OpeningDate, '1900-01-01') AS OpeningDate,
-//                        ISNULL(POS.OpeningQuantity, 0) AS OpeningQuantity,
-//                        ISNULL(POS.OpeningValue, 0) AS OpeningValue
-//                        FROM 
-//                        Products M
-//                        left outer join ProductsOpeningStocks POS ON M.Id = POS.ProductId
-//                    WHERE 1 = 1"
+        //                        SELECT
+        //                        ISNULL(M.Id, 0) AS Id,
+        //                        ISNULL(M.Code, '') AS ProductCode,
+        //                        ISNULL(M.Name, '') AS ProductName,
+        //                        ISNULL(POS.OpeningDate, '1900-01-01') AS OpeningDate,
+        //                        ISNULL(POS.OpeningQuantity, 0) AS OpeningQuantity,
+        //                        ISNULL(POS.OpeningValue, 0) AS OpeningValue
+        //                        FROM 
+        //                        Products M
+        //                        left outer join ProductsOpeningStocks POS ON M.Id = POS.ProductId
+        //                    WHERE 1 = 1"
 
-//;
+        //;
 
-//                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+        //                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
-//                objComm.Fill(dataTable);
+        //                objComm.Fill(dataTable);
 
-//                foreach (DataRow row in dataTable.Select("Id = 0"))
-//                {
-//                    dataTable.Rows.Remove(row);
-//                }
+        //                foreach (DataRow row in dataTable.Select("Id = 0"))
+        //                {
+        //                    dataTable.Rows.Remove(row);
+        //                }
 
-//                var lst = new List<ProductStockSummary>();
+        //                var lst = new List<ProductStockSummary>();
 
-//                int serialNumber = 1;
+        //                int serialNumber = 1;
 
-//                foreach (DataRow row in dataTable.Rows)
-//                {
-//                    lst.Add(new ProductStockSummary
-//                    {
+        //                foreach (DataRow row in dataTable.Rows)
+        //                {
+        //                    lst.Add(new ProductStockSummary
+        //                    {
 
-//                        ProductName = row["ProductName"].ToString(),
-//                        ProductCode = row["ProductCode"].ToString(),
-//                        OpeningDate = DateTime.Now.ToString("yyyy-MM-dd"),
-//                        OpeningQuantity = 0,
-//                        OpeningValue = 0
+        //                        ProductName = row["ProductName"].ToString(),
+        //                        ProductCode = row["ProductCode"].ToString(),
+        //                        OpeningDate = DateTime.Now.ToString("yyyy-MM-dd"),
+        //                        OpeningQuantity = 0,
+        //                        OpeningValue = 0
 
-//                    });
+        //                    });
 
-//                    serialNumber++;
-//                }
+        //                    serialNumber++;
+        //                }
 
-//                result.Status = "Success";
-//                result.Message = "Data retrieved successfully.";
-//                result.DataVM = lst;
-//                return result;
-//            }
-//            catch (Exception ex)
-//            {
-//                result.ExMessage = ex.Message;
-//                result.Message = ex.Message;
-//                return result;
-//            }
-//            finally
-//            {
-//                if (isNewConnection && conn != null)
-//                {
-//                    conn.Close();
-//                }
-//            }
-//        }
+        //                result.Status = "Success";
+        //                result.Message = "Data retrieved successfully.";
+        //                result.DataVM = lst;
+        //                return result;
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                result.ExMessage = ex.Message;
+        //                result.Message = ex.Message;
+        //                return result;
+        //            }
+        //            finally
+        //            {
+        //                if (isNewConnection && conn != null)
+        //                {
+        //                    conn.Close();
+        //                }
+        //            }
+        //        }
 
         //public async Task<ResultVM> PurchaseImportExcelFileInsert(ProductPriceGroupVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
         //{
@@ -1283,7 +1284,7 @@ WHERE 1 = 1 ";
         //            transaction = conn.BeginTransaction();
         //        }
 
-               
+
 
         //        #region BulKInsert
 
