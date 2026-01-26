@@ -862,15 +862,13 @@ WHERE
                 string sqlQuery = @"
             -- Count query
             SELECT COUNT(DISTINCT H.Id) AS totalcount
-                FROM SaleOrders H
-                LEFT OUTER JOIN BranchProfiles BF ON H.BranchId = BF.Id
-                LEFT OUTER JOIN Customers C ON H.CustomerId = C.Id
-                LEFT OUTER JOIN BranchProfiles BR ON H.BranchId = BR.Id
-                LEFT OUTER JOIN SaleOrderDetails D ON H.Id = D.SaleOrderId
-                LEFT OUTER JOIN Products PD ON D.ProductId = PD.Id
-	            LEFT OUTER JOIN CompanyProfiles CP ON D.CompanyId = CP.Id
+		FROM Sales H 
+		LEFT OUTER JOIN BranchProfiles Br ON H.BranchId = Br.Id
+	    LEFT OUTER JOIN Customers cus ON H.CustomerId = cus.Id
+        LEFT OUTER JOIN SaleDetails D ON H.Id = D.SaleId
+        LEFT OUTER JOIN Products PD ON D.ProductId = PD.Id
 
-                WHERE 1 = 1
+		WHERE 1 = 1
             -- Add the filter condition
             " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleDetailVM>.FilterCondition(options.filter) + ")" : "");
 
@@ -885,48 +883,39 @@ WHERE
                 ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC") + @") AS rowindex,
         
                 
-                ISNULL(H.Id, 0) AS Id,
-                ISNULL(H.Code, '') AS Code,
-                ISNULL(H.DeliveryAddress, '') AS DeliveryAddress,
-                ISNULL(FORMAT(H.OrderDate, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS OrderDate,
-                ISNULL(FORMAT(H.DeliveryDate, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS DeliveryDate,
-                ISNULL(H.Comments, '') AS Comments,
-                ISNULL(H.TransactionType, '') AS TransactionType,
-                ISNULL(H.CreatedBy, '') AS CreatedBy,
-                ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
-                ISNULL(H.CreatedFrom, '') AS CreatedFrom,
-                ISNULL(H.LastUpdateFrom, '') AS LastUpdateFrom,
-                ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS CreatedOn,
-                ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS LastModifiedOn,
-                ISNULL(H.BranchId, 0) AS BranchId,
-                ISNULL(H.CustomerId, 0) AS CustomerId,
-                ISNULL(C.Name, '') AS CustomerName,
-                ISNULL(BR.Name, '-') AS BranchName,
-                ISNULL(PD.Name, '') AS ProductName,
-	            ISNULL(CP.CompanyName,'') CompanyName,
 
-                -- Detail Information
-                ISNULL(D.Quantity, 0) AS Quantity,
-                ISNULL(D.UnitRate, 0) AS UnitRate,
-                ISNULL(D.SubTotal, 0) AS SubTotal,
-                ISNULL(D.SD, 0) AS SD,
-                ISNULL(D.SDAmount, 0) AS SDAmount,
-                ISNULL(D.VATRate, 0) AS VATRate,
-                ISNULL(D.VATAmount, 0) AS VATAmount,
-                ISNULL(D.LineTotal, 0) AS LineTotal
-  
-    
-  
+    ISNULL(H.Id, 0) AS Id,
+    ISNULL(H.Code, '') AS Code,
+    ISNULL(H.DeliveryAddress, '') AS DeliveryAddress,
+    ISNULL(H.Comments, '') AS Comments,
+    ISNULL(H.IsPost, 0) AS IsPost,
+    CASE WHEN ISNULL(H.IsPost, 0) = 1 THEN 'Posted' ELSE 'Not-posted' END AS Status,
+    ISNULL(H.InvoiceDateTime, '1900-01-01') AS InvoiceDateTime,
+    ISNULL(Br.Name, '') AS BranchName,
+    ISNULL(cus.Name, '') AS CustomerName,
+    ISNULL(PD.Name, '') AS ProductName,
+    ISNULL(H.TransactionType, '') AS TransactionType,
+    ISNULL(H.CustomerId, 0) AS CustomerId,
 
-                FROM SaleOrders H
-                LEFT OUTER JOIN BranchProfiles BF ON H.BranchId = BF.Id
-                LEFT OUTER JOIN Customers C ON H.CustomerId = C.Id
-                LEFT OUTER JOIN BranchProfiles BR ON H.BranchId = BR.Id
-                LEFT OUTER JOIN SaleOrderDetails D ON H.Id = D.SaleOrderId
-                LEFT OUTER JOIN Products PD ON D.ProductId = PD.Id
-	            LEFT OUTER JOIN CompanyProfiles CP ON D.CompanyId = CP.Id
-
-                WHERE 1 = 1
+    -- Sale Details
+    ISNULL(D.Id, 0) AS SaleDeliveryDetailId,
+    ISNULL(D.SaleOrderDetailId, 0) AS SaleOrderDetailId,
+    ISNULL(D.SaleOrderId, 0) AS SaleOrderId,
+    ISNULL(D.ProductId, 0) AS ProductId,
+    ISNULL(D.Quantity, 0) AS Quantity,
+    ISNULL(D.UnitRate, 0) AS UnitRate,
+    ISNULL(D.SubTotal, 0) AS SubTotal,
+    ISNULL(D.SD, 0) AS SD,
+    ISNULL(D.SDAmount, 0) AS SDAmount,
+    ISNULL(D.VATRate, 0) AS VATRate,
+    ISNULL(D.VATAmount, 0) AS VATAmount,
+    ISNULL(D.LineTotal, 0) AS LineTotal
+FROM Sales H
+LEFT JOIN BranchProfiles Br ON H.BranchId = Br.Id
+LEFT JOIN Customers cus ON H.CustomerId = cus.Id
+LEFT JOIN SaleDetails D ON H.Id = D.SaleId   
+LEFT JOIN Products PD ON D.ProductId = PD.Id
+WHERE 1 = 1
 
             -- Add the filter condition
             " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleDetailVM>.FilterCondition(options.filter) + ")" : "");

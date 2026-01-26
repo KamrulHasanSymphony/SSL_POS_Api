@@ -1059,11 +1059,11 @@ SELECT *
 FROM (
     SELECT 
     ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC") + @") AS rowindex,
-  ISNULL(H.Id, 0) AS Id,
+    ISNULL(H.Id, 0) AS Id,
     ISNULL(H.Code, '') AS Code,
     ISNULL(H.DeliveryAddress, '') AS DeliveryAddress,
-    ISNULL(FORMAT(H.OrderDate, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS OrderDate,
-    ISNULL(FORMAT(H.DeliveryDate, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS DeliveryDate,
+    ISNULL(H.OrderDate, '1900-01-01') AS OrderDate,
+    ISNULL(H.DeliveryDate, '1900-01-01') AS DeliveryDate,
     ISNULL(H.Comments, '') AS Comments,
     ISNULL(H.TransactionType, '') AS TransactionType,
     ISNULL(H.CreatedBy, '') AS CreatedBy,
