@@ -893,7 +893,9 @@ WHERE
     ISNULL(H.InvoiceDateTime, '1900-01-01') AS InvoiceDateTime,
     ISNULL(Br.Name, '') AS BranchName,
     ISNULL(cus.Name, '') AS CustomerName,
+    ISNULL(cus.Code, '') AS CustomerCode,
     ISNULL(PD.Name, '') AS ProductName,
+    ISNULL(PD.Code, '') AS ProductCode,
     ISNULL(H.TransactionType, '') AS TransactionType,
     ISNULL(H.CustomerId, 0) AS CustomerId,
 

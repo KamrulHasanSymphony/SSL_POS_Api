@@ -1059,8 +1059,11 @@ SELECT *
 FROM (
     SELECT 
     ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC") + @") AS rowindex,
+
+
     ISNULL(H.Id, 0) AS Id,
-    ISNULL(H.Code, '') AS Code,
+	ISNULL(D.Id, 0) AS SaleOrderId,
+    ISNULL(H.Code, '') AS SaleOrderCode,
     ISNULL(H.DeliveryAddress, '') AS DeliveryAddress,
     ISNULL(H.OrderDate, '1900-01-01') AS OrderDate,
     ISNULL(H.DeliveryDate, '1900-01-01') AS DeliveryDate,
@@ -1070,13 +1073,16 @@ FROM (
     ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
     ISNULL(H.CreatedFrom, '') AS CreatedFrom,
     ISNULL(H.LastUpdateFrom, '') AS LastUpdateFrom,
-    ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS CreatedOn,
-    ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS LastModifiedOn,
+    ISNULL(H.CreatedOn, '1900-01-01') AS CreatedOn,
+    ISNULL(H.LastModifiedOn, '1900-01-01') AS LastModifiedOn,
     ISNULL(H.BranchId, 0) AS BranchId,
     ISNULL(H.CustomerId, 0) AS CustomerId,
     ISNULL(C.Name, '') AS CustomerName,
+    ISNULL(C.Code,'') CustomerCode,
+
     ISNULL(BR.Name, '-') AS BranchName,
     ISNULL(PD.Name, '') AS ProductName,
+	ISNULL(PD.Code, 0) AS ProductCode,
 
 
     -- Detail Information

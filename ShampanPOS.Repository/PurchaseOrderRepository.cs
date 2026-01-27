@@ -886,7 +886,7 @@ ORDER BY Code";
                          
 			
 			ISNULL(H.Id, 0) AS Id,
-                ISNULL(H.Code, '') AS Code,
+                ISNULL(H.Code, '') AS PurchaseOrderCode,
 	            ISNULL(H.SupplierId, 0) AS SupplierId,
 				ISNULL(D.CompanyId, 0) AS CompanyId,
                 ISNULL(s.Name, 0) AS SupplierName,

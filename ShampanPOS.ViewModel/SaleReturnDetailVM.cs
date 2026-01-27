@@ -16,7 +16,7 @@ namespace ShampanPOS.ViewModel
         public int? CompanyId { get; set; }
 
         public string? SaleReturnCode { get; set; }
-
+        public string? CustomerCode { get; set; }
         //[Display(Name = "Sale")]
         //public int SaleId { get; set; }
 
@@ -31,6 +31,7 @@ namespace ShampanPOS.ViewModel
         public string? ProductName { get; set; }
 
         public string? ProductCode { get; set; }
+        public string? CustomerName { get; set; }
 
         [Display(Name = "Quantity")]
         public decimal Quantity { get; set; }
@@ -58,7 +59,17 @@ namespace ShampanPOS.ViewModel
         public decimal LineTotal { get; set; }
 
 
+        [Display(Name = "Branch Name")]
+        public int? Branchs { get; set; }
 
+        [Display(Name = "Branch")]
+        public int? BranchId { get; set; }
+
+        [Display(Name = "From Date")]
+        public string? FromDate { get; set; }
+
+        [Display(Name = "To Date")]
+        public string? ToDate { get; set; }
 
     }
 }

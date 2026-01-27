@@ -297,7 +297,7 @@ namespace ShampanPOS.Controllers
             try
             {
                 _saleOrderService = new SaleOrderService();
-                resultVM = await _saleOrderService.GetDetailsGridData(options, new[] { "H.BranchId", "H.InvoiceDateTime between", "H.InvoiceDateTime between" }, new[] { options.vm.BranchId.ToString(), options.vm.FromDate.ToString(), options.vm.ToDate.ToString() });
+                resultVM = await _saleOrderService.GetDetailsGridData(options, new[] { "H.BranchId", "H.OrderDate between", "H.OrderDate between" }, new[] { options.vm.BranchId.ToString(), options.vm.FromDate.ToString(), options.vm.ToDate.ToString() });
                 // resultVM = await _saleOrderService.GetGridData(options);
                 return resultVM;
             }

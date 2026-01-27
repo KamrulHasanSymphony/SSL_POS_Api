@@ -23,7 +23,9 @@ namespace ShampanPOS.ViewModel
         public int? ProductId { get; set; }
         public int? CompanyId { get; set; }
         public string? ProductName { get; set; }
+        public string? CustomerName { get; set; }
         public string? ProductCode { get; set; }
+        public string? SaleOrderCode { get; set; }
 
         [Display(Name = "Quantity")]
         [DataType(DataType.Currency)]
@@ -61,6 +63,9 @@ namespace ShampanPOS.ViewModel
         public string? Operation { get; set; }
         public decimal? CompletedQty { get; set; }
         public decimal? RemainQty { get; set; }
+        public string? InvoiceDateTime { get; set; }
+        public string? OrderDate { get; set; }
+        public string? DeliveryDate { get; set; }
 
     }
 

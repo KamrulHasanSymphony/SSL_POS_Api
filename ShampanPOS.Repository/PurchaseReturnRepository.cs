@@ -1080,7 +1080,7 @@ WHERE 1 = 1 ";
         ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC") + $@") AS rowindex,
         
 	    ISNULL(H.Id, 0) AS Id,
-        ISNULL(H.Code, '') AS Code,
+        ISNULL(H.Code, '') AS PurchasesReturnCode,
         ISNULL(H.BranchId, 0) AS BranchId,
 		ISNULL(H.CompanyId, 0) AS CompanyId,
         ISNULL(Br.Name,'') BranchName,

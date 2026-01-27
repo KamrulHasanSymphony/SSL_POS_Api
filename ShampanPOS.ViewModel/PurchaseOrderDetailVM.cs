@@ -27,6 +27,9 @@ namespace ShampanPOS.ViewModel
         public string? ProductCode { get; set; }
         public string? ProductName { get; set; }
         public string? UOMName { get; set; }
+        public string? BENumber { get; set; }
+        public string? SupplierName { get; set; }
+        public string? PurchaseOrderCode { get; set; }
 
         [Display(Name = "Quantity")]
         [DataType(DataType.Currency)]

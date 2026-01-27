@@ -824,7 +824,7 @@ WHERE 1 = 1 ";
         
                 
                  ISNULL(H.Id,0)	Id
-                ,ISNULL(H.Code,'') Code
+                ,ISNULL(H.Code,'') SaleReturnCode
                 ,ISNULL(H.DeliveryAddress,'') DeliveryAddress
                 ,ISNULL(H.Comments,'') Comments
                 ,ISNULL(H.IsPost, 0) IsPost
@@ -833,11 +833,13 @@ WHERE 1 = 1 ";
                 ,ISNULL(Br.Name,'') BranchName
 				,ISNULL(CP.CompanyName,'') CompanyName
                 ,ISNULL(cus.Name,'') CustomerName
+				,ISNULL(cus.Code,'') CustomerCode
                  -- Sales Details
                 ,ISNULL(D.Id, 0) AS SaleReturnDetailId
                 ,ISNULL(D.SaleReturnId, 0) AS SaleReturnId
                 ,ISNULL(D.ProductId, 0) AS ProductId
                 ,ISNULL(PD.Name, 0) AS ProductName
+				,ISNULL(PD.Code, 0) AS ProductCode
                 ,ISNULL(D.Quantity, 0) AS Quantity
                 ,ISNULL(D.UnitRate, 0) AS UnitRate
                 ,ISNULL(D.SubTotal, 0) AS SubTotal
@@ -845,6 +847,8 @@ WHERE 1 = 1 ";
                 ,ISNULL(D.SDAmount, 0) AS SDAmount
                 ,ISNULL(D.VATRate, 0) AS VATRate
                 ,ISNULL(D.VATAmount, 0) AS VATAmount
+				,ISNULL(D.LineTotal, 0) AS LineTotal
+
 
                 FROM SaleReturns H 
                 LEFT OUTER JOIN BranchProfiles Br ON H.BranchId = Br.Id

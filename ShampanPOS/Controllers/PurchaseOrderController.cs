@@ -240,7 +240,7 @@ namespace ShampanPOS.Controllers
             try
             {
                 _purchaseOrderService = new PurchaseOrderService();
-                resultVM = await _purchaseOrderService.GetDetailsGridData(options, new[] { "H.BranchId", "H.IsPost", "H.OrderDate between", "H.OrderDate between" }, new[] { options.vm.BranchId.ToString(), options.vm.IsPost.ToString(), options.vm.FromDate.ToString(), options.vm.ToDate.ToString() });
+                resultVM = await _purchaseOrderService.GetDetailsGridData(options, new[] { "H.BranchId", "H.OrderDate between", "H.OrderDate between" }, new[] { options.vm.BranchId.ToString(),  options.vm.FromDate.ToString(), options.vm.ToDate.ToString() });
                 return resultVM;
             }
             catch (Exception ex)
