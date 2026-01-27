@@ -106,6 +106,37 @@ namespace ShampanPOS.Controllers
             }
         }
 
+        [HttpPost("GetSaleReport")]
+        public async Task<ResultVM> GetSaleReport(CommonVM Vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                string[] conditionFields = null;
+                string[] conditionValues = null;
+
+                if (!string.IsNullOrEmpty(Vm.Id))
+                {
+                    conditionFields = new string[] { "M.Id" };
+                    conditionValues = new string[] { Vm.Id };
+                }
+
+                SaleService _service = new SaleService();
+                resultVM = await _service.List(conditionFields, conditionValues, null);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
+
 
     }
 }
