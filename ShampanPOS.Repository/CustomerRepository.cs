@@ -39,7 +39,7 @@ namespace ShampanPOS.Repository
 INSERT INTO Customers
 (
     Code, Name, CustomerGroupId, BanglaName, Address, BanglaAddress, 
-     TelephoneNo, FaxNo, Email, TIN, BIN, NIDNo, 
+     TelephoneNo, FaxNo, Email, TINNo, BINNo, NIDNo, 
     Comments, IsArchive, IsActive, CreatedBy, CreatedOn,ImagePath
 )
 VALUES
@@ -141,8 +141,8 @@ SET
     TelephoneNo = @TelephoneNo,
     FaxNo = @FaxNo,
     Email = @Email,
-    TIN = @TINNo,
-    BIN = @BINNo,
+    TINNo = @TINNo,
+    BINNo = @BINNo,
     NIDNo = @NIDNo,
     Comments = @Comments,   
 
@@ -323,8 +323,8 @@ SELECT
     ISNULL(M.TelephoneNo, '') AS TelephoneNo,
     ISNULL(M.FaxNo, '') AS FaxNo,
     ISNULL(M.Email, '') AS Email,
-    ISNULL(M.TIN, '') AS TINNo,
-    ISNULL(M.BIN, '') AS BINNo,
+    ISNULL(M.TINNo, '') AS TINNo,
+    ISNULL(M.BINNo, '') AS BINNo,
     ISNULL(M.NIDNo, '') AS NIDNo,
     ISNULL(M.Comments, '') AS Comments,
     ISNULL(M.IsArchive, 0) AS IsArchive,
@@ -707,8 +707,8 @@ ORDER BY Name";
         ISNULL(H.TelephoneNo, '') AS TelephoneNo,
         ISNULL(H.FaxNo, '') AS FaxNo,
         ISNULL(H.Email, '') AS Email,
-        ISNULL(H.TIN, '') AS TINNo,
-        ISNULL(H.BIN, '') AS BINNo,
+        ISNULL(H.TINNo, '') AS TINNo,
+        ISNULL(H.BINNo, '') AS BINNo,
         ISNULL(H.NIDNo, '') AS NIDNo,
         ISNULL(H.Comments, '') AS Comments,
         ISNULL(H.IsArchive, 0) AS IsArchive,
