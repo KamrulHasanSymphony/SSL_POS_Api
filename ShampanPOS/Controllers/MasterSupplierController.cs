@@ -223,7 +223,7 @@ namespace ShampanPOS.Controllers
                         PathName = baseUrl
                     });
 
-                    var stream = httpRequestHelper.PostDataReport(baseUrl + "/api/Supplier/GetSupplier", authModel, json);
+                    var stream = httpRequestHelper.PostDataReport(baseUrl + "/api/MasterSupplier/GetSupplier", authModel, json);
 
                     if (stream == null)
                     {
@@ -232,7 +232,7 @@ namespace ShampanPOS.Controllers
 
                     return new FileStreamResult(stream, "application/pdf")
                     {
-                        FileDownloadName = "Supplier.pdf"
+                        FileDownloadName = "MasterSupplier.pdf"
                     };
                 }
 
