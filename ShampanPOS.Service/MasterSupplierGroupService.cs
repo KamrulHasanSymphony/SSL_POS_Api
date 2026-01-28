@@ -109,7 +109,7 @@ namespace ShampanPOS.Service
                 string[] conditionField = { "Id not", "Name" };
                 string[] conditionValue = { masterSupplierGroup.Id.ToString(), masterSupplierGroup.Name.Trim() };
 
-                bool exist = _commonRepo.CheckExists("Products", conditionField, conditionValue, conn, transaction);
+                bool exist = _commonRepo.CheckExists("MasterSupplierGroup", conditionField, conditionValue, conn, transaction);
 
                 if (exist)
                 {
