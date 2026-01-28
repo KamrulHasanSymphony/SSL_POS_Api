@@ -199,6 +199,68 @@ namespace ShampanPOS.Controllers
             }
         }
 
+        [HttpPost("GetPurchaseOrderReport")]
+        public async Task<ResultVM> GetPurchaseOrderReport(CommonVM Vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                string[] conditionFields = null;
+                string[] conditionValues = null;
+
+                if (!string.IsNullOrEmpty(Vm.Id))
+                {
+                    conditionFields = new string[] { "M.Id" };
+                    conditionValues = new string[] { Vm.Id };
+                }
+
+                PurchaseOrderService _service = new PurchaseOrderService();
+                resultVM = await _service.List(conditionFields, conditionValues, null);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
+
+        [HttpPost("GetPurchaseReturnReport")]
+        public async Task<ResultVM> GetPurchaseReturnReport(CommonVM Vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                string[] conditionFields = null;
+                string[] conditionValues = null;
+
+                if (!string.IsNullOrEmpty(Vm.Id))
+                {
+                    conditionFields = new string[] { "M.Id" };
+                    conditionValues = new string[] { Vm.Id };
+                }
+
+                PurchaseReturnService _service = new PurchaseReturnService();
+                resultVM = await _service.List(conditionFields, conditionValues, null);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
+
 
     }
 }
