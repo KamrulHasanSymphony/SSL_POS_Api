@@ -17,6 +17,10 @@ namespace ShampanPOS.ViewModel
         public int? BranchId { get; set; }
         public int? CompanyId { get; set; }
         public string? PurchasesReturnCode { get; set; }
+        public string? PurchaseReturnDate { get; set; }
+
+        public string? PurchaseDate { get; set; }
+        public string? SupplierCode { get; set; }
         public string? SupplierName { get; set; }
         public string? SupplierAddress { get; set; }
         public string? BENumber { get; set; }

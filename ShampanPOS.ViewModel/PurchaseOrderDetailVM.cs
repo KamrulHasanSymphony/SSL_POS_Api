@@ -25,6 +25,7 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Product")]
         public int? ProductId { get; set; }
         public string? ProductCode { get; set; }
+        public string? SupplierCode { get; set; }
         public string? ProductName { get; set; }
         public string? UOMName { get; set; }
         public string? BENumber { get; set; }
@@ -74,5 +75,7 @@ namespace ShampanPOS.ViewModel
         public decimal? CompletedQty { get; set; }
         public decimal? RemainQty { get; set; }
         public bool? IsCompleted { get; set; }
+        public string? DeliveryDateTime { get; set; }
+        public string? OrderDate { get; set; }
     }
 }

@@ -205,8 +205,6 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@ImagePath", string.IsNullOrEmpty(vm.ImagePath) ? (object)DBNull.Value : vm.ImagePath);
                     cmd.Parameters.AddWithValue("@VATRate", vm.VATRate ?? 0.0m);
                     cmd.Parameters.AddWithValue("@SDRate", vm.SDRate ?? 0.0m);
-                    cmd.Parameters.AddWithValue("@PurchasePrice", vm.PurchasePrice ?? 0.0m);
-                    cmd.Parameters.AddWithValue("@SalePrice", vm.SalePrice ?? 0.0m);
 
                     int rowsAffected = cmd.ExecuteNonQuery();
                     if (rowsAffected > 0)
