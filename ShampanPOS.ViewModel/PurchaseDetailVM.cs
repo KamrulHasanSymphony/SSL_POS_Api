@@ -22,6 +22,7 @@ namespace ShampanPOS.ViewModel
         public int ProductId { get; set; }
         public string? ProductCode { get; set; }
         public string? PurchaseCode { get; set; }
+        public string? SupplierCode { get; set; }
         public string? ProductName { get; set; }
         public string? SupplierAddress { get; set; }
         public string? SupplierName { get; set; }
@@ -36,7 +37,8 @@ namespace ShampanPOS.ViewModel
         public decimal? OthersAmount { get; set; }
         public decimal? LineTotal { get; set; }
 
-
+        public string? InvoiceDateTime { get; set; }
+        public string? PurchaseDate { get; set; }
 
     }
 

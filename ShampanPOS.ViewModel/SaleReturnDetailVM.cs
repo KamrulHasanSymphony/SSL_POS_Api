@@ -71,6 +71,8 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "To Date")]
         public string? ToDate { get; set; }
 
+        public string? InvoiceDateTime { get; set; }
+
     }
 }
 

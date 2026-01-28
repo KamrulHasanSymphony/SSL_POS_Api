@@ -888,6 +888,7 @@ ORDER BY Code";
 			ISNULL(H.Id, 0) AS Id,
                 ISNULL(H.Code, '') AS PurchaseOrderCode,
 	            ISNULL(H.SupplierId, 0) AS SupplierId,
+				ISNULL(s.Code, '') AS SupplierCode,
 				ISNULL(D.CompanyId, 0) AS CompanyId,
                 ISNULL(s.Name, 0) AS SupplierName,
                 CASE WHEN ISNULL(H.IsPost, 0) = 1 THEN 'Posted' ELSE 'Not-posted' END AS Status, 
@@ -908,6 +909,8 @@ ORDER BY Code";
 				ISNULL(D.Line, 0) AS Line,
 				ISNULL(D.ProductId, 0) AS ProductId,
 				ISNULL(P.Name,'') ProductName,
+			    ISNULL(P.Code, '') AS ProductCode,
+
 				ISNULL(D.Quantity, 0) AS Quantity,
 				ISNULL(D.UnitPrice, 0) AS UnitPrice,
 				ISNULL(D.SubTotal, 0) AS SubTotal,
