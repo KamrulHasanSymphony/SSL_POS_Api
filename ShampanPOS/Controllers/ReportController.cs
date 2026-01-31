@@ -74,6 +74,36 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
+        [HttpPost("GetCustomerByCategory")]
+        public async Task<ResultVM> GetCustomerByCategory(CommonVM Vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                string[] conditionFields = null;
+                string[] conditionValues = null;
+
+                if (!string.IsNullOrEmpty(Vm.Id))
+                {
+                    conditionFields = new string[] { "M.CustomerGroupId" };
+                    conditionValues = new string[] { Vm.Id };
+                }
+
+                CustomerService _service = new CustomerService();
+                resultVM = await _service.ReportList(conditionFields, conditionValues, null);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
 
         [HttpPost("GetPurchaseReport")]
         public async Task<ResultVM> GetPurchaseReport(CommonVM Vm)
