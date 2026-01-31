@@ -18,6 +18,7 @@ namespace ShampanPOS.ViewModel
 
         [Display(Name = "Supplier Group ID")]
         public int? SupplierGroupId { get; set; }
+        public string? SupplierGroupName { get; set; }
         public string? GroupName { get; set; }
 
         [Display(Name = "Bangla Name")]

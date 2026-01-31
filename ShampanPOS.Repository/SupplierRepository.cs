@@ -276,6 +276,7 @@ SELECT
     ISNULL(M.Code, '') Code,
     ISNULL(M.Name, '') Name,
     ISNULL(M.SupplierGroupId, 0) SupplierGroupId,
+	ISNULL(SG.Name, '') AS SupplierGroupName,
     ISNULL(M.BanglaName, '') BanglaName,
     ISNULL(M.Address, '') Address,
     ISNULL(M.City, '') City,
@@ -292,7 +293,12 @@ SELECT
     ISNULL(M.ImagePath,'') AS ImagePath
    
 FROM Suppliers M
-WHERE 1 = 1";
+
+LEFT OUTER JOIN SupplierGroups SG 
+    ON M.SupplierGroupId = SG.Id
+
+WHERE 1 = 1
+";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
                 {
@@ -319,6 +325,7 @@ WHERE 1 = 1";
                     Code = row.Field<string>("Code"),
                     Name = row.Field<string>("Name"),
                     SupplierGroupId = row.Field<int>("SupplierGroupId"),
+                    SupplierGroupName = row.Field<string>("SupplierGroupName"),
                     BanglaName = row.Field<string>("BanglaName"),
                     Address = row.Field<string>("Address"),
                     City = row.Field<string>("City"),
@@ -497,8 +504,10 @@ ORDER BY Name";
                 string sqlQuery = @"
             -- Count query
             SELECT COUNT(DISTINCT H.Id) AS totalcount
-            FROM Suppliers H
-            WHERE H.IsArchive != 1
+FROM Suppliers H
+LEFT OUTER JOIN SupplierGroups SG 
+    ON H.SupplierGroupId = SG.Id
+WHERE ISNULL(H.IsArchive, 0) <> 1
             -- Add the filter condition
             " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SupplierVM>.FilterCondition(options.filter) + ")" : "") + @"
 
@@ -511,6 +520,7 @@ ORDER BY Name";
                 ISNULL(H.Code, '') AS Code,
                 ISNULL(H.Name, '') AS Name,
                 ISNULL(H.SupplierGroupId, 0) SupplierGroupId,
+                ISNULL(SG.Name, '') AS SupplierGroupName,
                 ISNULL(H.BanglaName, '') BanglaName,
                 ISNULL(H.Address, '') Address,
                 ISNULL(H.City, '') City,
@@ -526,9 +536,10 @@ ORDER BY Name";
                 ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS CreatedOn,
                 ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS LastModifiedOn
 
-            FROM Suppliers H
-           
-            WHERE H.IsArchive != 1
+FROM Suppliers H
+LEFT OUTER JOIN SupplierGroups SG 
+    ON H.SupplierGroupId = SG.Id
+WHERE ISNULL(H.IsArchive, 0) <> 1
             -- Add the filter condition
             " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SupplierVM>.FilterCondition(options.filter) + ")" : "") + @"
 
