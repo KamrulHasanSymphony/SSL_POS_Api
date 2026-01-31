@@ -20,6 +20,10 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Product Group")]
         public int? ProductGroupId { get; set; }
 
+        public int? MasterItemId { get; set; }
+        public int? MasterItemGroupId { get; set; }
+        public string? MasterItemGroupName { get; set; }
+
         [Display(Name = "Bangla Name")]
         public string? BanglaName { get; set; }
 
@@ -65,10 +69,15 @@ namespace ShampanPOS.ViewModel
         public string? ImagePath { get; set; }
      
         public List<BranchProfileVM> BranchProfileList { get; set; }
+        public PeramModel PeramModel { get; set; }
+
+        public List<ProductVM> MasterItemList { get; set; }
 
         public ProductVM()
         {
+            MasterItemList = new List<ProductVM>();
             BranchProfileList = new List<BranchProfileVM>();
+            PeramModel = new PeramModel();
         }
 
     }
