@@ -8,39 +8,18 @@ using System.ComponentModel.DataAnnotations;
 namespace ShampanPOS.ViewModel
 {
 
-    public class SupplierVM
+    public class MasterSupplierGroupVM
     {
         public int Id { get; set; }
+
         [Display(Name = "Code")]
         public string? Code { get; set; }
+
         [Display(Name = "Name")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
-        [Display(Name = "Supplier Group ID")]
-        public int? SupplierGroupId { get; set; }
-        public string? SupplierGroupName { get; set; }
-        public string? GroupName { get; set; }
-
-        [Display(Name = "Bangla Name")]
-        public string? BanglaName { get; set; }
-
-        [Display(Name = "Address")]
-        public string? Address { get; set; }
-
-        [Display(Name = "City")]
-        public string? City { get; set; }
-
-        [Display(Name = "Telephone No")]
-        public string? TelephoneNo { get; set; }
-
-        [Display(Name = "Email")]
-        public string? Email { get; set; }
-
-        [Display(Name = "Contact Person")]
-        public string? ContactPerson { get; set; }
-
-        [Display(Name = "Comments")]
-        public string? Comments { get; set; }
+        [Display(Name = "Description")]
+        public string? Description { get; set; }
 
         [Display(Name = "Archived")]
         public bool IsArchive { get; set; }
@@ -63,8 +42,6 @@ namespace ShampanPOS.ViewModel
         public string? LastUpdateFrom { get; set; }
         public string? Operation { get; set; }
         public string? Status { get; set; }
-        public string? ImagePath { get; set; }
-
     }
 
 }

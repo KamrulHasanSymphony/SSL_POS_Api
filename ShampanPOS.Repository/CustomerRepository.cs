@@ -1158,6 +1158,125 @@ M.IsArchive != 1 AND M.BranchId = @CusBranchId AND  sp.BranchId = @BranchId AND 
                 }
             }
         }
+
+        public async Task<ResultVM> ReportList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = @"
+SELECT
+    ISNULL(M.Id, 0) AS Id,
+    ISNULL(M.Code, '') AS Code,
+    ISNULL(M.Name, '') AS Name,
+    ISNULL(M.BanglaName, '') AS BanglaName,
+    ISNULL(M.CustomerGroupId, 0) AS CustomerGroupId,
+    ISNULL(M.Address, '') AS Address,
+    ISNULL(M.BanglaAddress, '') AS BanglaAddress,
+    ISNULL(M.TelephoneNo, '') AS TelephoneNo,
+    ISNULL(M.FaxNo, '') AS FaxNo,
+    ISNULL(M.Email, '') AS Email,
+    ISNULL(M.TINNo, '') AS TINNo,
+    ISNULL(M.BINNo, '') AS BINNo,
+    ISNULL(M.NIDNo, '') AS NIDNo,
+    ISNULL(M.Comments, '') AS Comments,
+    ISNULL(M.IsArchive, 0) AS IsArchive,
+    ISNULL(M.IsActive, 0) AS IsActive,   
+
+    ISNULL(M.CreatedBy, '') AS CreatedBy,
+    FORMAT(ISNULL(M.CreatedOn, '1900-01-01'), 'yyyy-MM-dd') AS CreatedOn,
+    ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
+    FORMAT(ISNULL(M.LastModifiedOn, '1900-01-01'), 'yyyy-MM-dd') AS LastModifiedOn,
+    ISNULL(M.ImagePath,'') AS ImagePath
+FROM Customers M
+WHERE 1 = 1
+and Code!='ALL'
+
+ ";
+
+
+                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+                {
+                    query += " AND Id = @Id ";
+                }
+
+                // Apply additional conditions
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                // SET additional conditions
+                // 
+
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@Id", vm.Id);
+                }
+
+                objComm.Fill(dataTable);
+
+                var model = new List<CustomerVM>();
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    model.Add(new CustomerVM
+                    {
+                        Id = row.Field<int>("Id"),
+                        Code = row.Field<string>("Code"),
+                        Name = row.Field<string>("Name"),
+                        BanglaName = row.Field<string>("BanglaName"),
+                        CustomerGroupId = row.Field<int>("CustomerGroupId"),
+                        Address = row.Field<string>("Address"),
+                        BanglaAddress = row.Field<string>("BanglaAddress"),
+                        TelephoneNo = row.Field<string>("TelephoneNo"),
+                        FaxNo = row.Field<string>("FaxNo"),
+                        Email = row.Field<string>("Email"),
+                        TINNo = row.Field<string>("TINNo"),
+                        BINNo = row.Field<string>("BINNo"),
+                        NIDNo = row.Field<string>("NIDNo"),
+                        Comments = row.Field<string>("Comments"),
+                        IsArchive = row.Field<bool>("IsArchive"),
+                        IsActive = row.Field<bool>("IsActive"),
+                        CreatedBy = row.Field<string>("CreatedBy"),
+                        CreatedOn = row.Field<string>("CreatedOn"),
+                        LastModifiedBy = row.Field<string>("LastModifiedBy"),
+                        LastModifiedOn = row.Field<string>("LastModifiedOn"),
+                        ImagePath = row.Field<string>("ImagePath")
+                    });
+                }
+
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = model;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = "Error in List.";
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
     }
 
 }

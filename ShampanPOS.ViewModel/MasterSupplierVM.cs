@@ -8,7 +8,7 @@ using System.ComponentModel.DataAnnotations;
 namespace ShampanPOS.ViewModel
 {
 
-    public class SupplierVM
+    public class MasterSupplierVM
     {
         public int Id { get; set; }
         [Display(Name = "Code")]
@@ -18,7 +18,6 @@ namespace ShampanPOS.ViewModel
 
         [Display(Name = "Supplier Group ID")]
         public int? SupplierGroupId { get; set; }
-        public string? SupplierGroupName { get; set; }
         public string? GroupName { get; set; }
 
         [Display(Name = "Bangla Name")]
@@ -38,9 +37,6 @@ namespace ShampanPOS.ViewModel
 
         [Display(Name = "Contact Person")]
         public string? ContactPerson { get; set; }
-
-        [Display(Name = "Comments")]
-        public string? Comments { get; set; }
 
         [Display(Name = "Archived")]
         public bool IsArchive { get; set; }

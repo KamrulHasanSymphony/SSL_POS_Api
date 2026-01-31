@@ -1,27 +1,29 @@
-﻿using ShampanPOS.Repository;
-using ShampanPOS.ViewModel.CommonVMs;
+﻿using Newtonsoft.Json;
+using ShampanPOS.Repository;
 using ShampanPOS.ViewModel;
+using ShampanPOS.ViewModel.CommonVMs;
+using ShampanPOS.ViewModel.KendoCommon;
+using ShampanPOS.ViewModel.Utility;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Data;
-using ShampanPOS.ViewModel.Utility;
-using ShampanPOS.ViewModel.KendoCommon;
 
 namespace ShampanPOS.Service
 {
-    public class CustomerService
+    public class MasterSupplierService
     {
         CommonRepository _commonRepo = new CommonRepository();
-        public async Task<ResultVM> Insert(CustomerVM customer)
+        public async Task<ResultVM> Insert(MasterSupplierVM masterSupplier)
+
         {
-            string CodeGroup = "Customer";
-            string CodeName = "Customer";
+            string CodeGroup = "masterSupplier";
+            string CodeName = "masterSupplier";
             CommonRepository _commonRepo = new CommonRepository();
-            CustomerRepository _repo = new CustomerRepository();
+            MasterSupplierRepository _repo = new MasterSupplierRepository();
 
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
@@ -37,10 +39,10 @@ namespace ShampanPOS.Service
                 transaction = conn.BeginTransaction();
 
                 #region Check Exist Data
-                string[] conditionField = { "TelephoneNo", "IsActive" };
-                string[] conditionValue = { customer.TelephoneNo.Trim(),"1" };
+                string[] conditionField = { "Name" };
+                string[] conditionValue = { masterSupplier.Name.Trim() };
 
-                bool exist = _commonRepo.CheckExists("Customers", conditionField, conditionValue, conn, transaction);
+                bool exist = _commonRepo.CheckExists("MasterSupplier", conditionField, conditionValue, conn, transaction);
 
                 if (exist)
                 {
@@ -53,13 +55,17 @@ namespace ShampanPOS.Service
 
                 if (!string.IsNullOrEmpty(code))
                 {
-                    customer.Code = code;
+                    masterSupplier.Code = code;
 
-                    result = await _repo.Insert(customer, conn, transaction);
+                    result = await _repo.Insert(masterSupplier, conn, transaction);
 
-                    if (isNewConnection)
+                    if (isNewConnection && result.Status == "Success")
                     {
                         transaction.Commit();
+                    }
+                    else
+                    {
+                        throw new Exception(result.Message);
                     }
 
                     return result;
@@ -88,9 +94,9 @@ namespace ShampanPOS.Service
             }
         }
 
-        public async Task<ResultVM> Update(CustomerVM customer)
+        public async Task<ResultVM> Update(MasterSupplierVM masterSupplier)
         {
-            CustomerRepository _repo = new CustomerRepository();
+            MasterSupplierRepository _repo = new MasterSupplierRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
             bool isNewConnection = false;
@@ -105,10 +111,10 @@ namespace ShampanPOS.Service
                 transaction = conn.BeginTransaction();
 
                 #region Check Exist Data
-                string[] conditionField = { "Id not", "TelephoneNo", "IsActive" };
-                string[] conditionValue = { customer.Id.ToString(), customer.TelephoneNo.Trim(),"1" };
+                string[] conditionField = { "Id not", "Name" };
+                string[] conditionValue = { masterSupplier.Id.ToString(), masterSupplier.Name.Trim() };
 
-                bool exist = _commonRepo.CheckExists("Customers", conditionField, conditionValue, conn, transaction);
+                bool exist = _commonRepo.CheckExists("MasterSupplier", conditionField, conditionValue, conn, transaction);
 
                 if (exist)
                 {
@@ -117,11 +123,15 @@ namespace ShampanPOS.Service
                 }
                 #endregion
 
-                result = await _repo.Update(customer, conn, transaction);
+                result = await _repo.Update(masterSupplier, conn, transaction);
 
-                if (isNewConnection)
+                if (isNewConnection && result.Status == "Success")
                 {
                     transaction.Commit();
+                }
+                else
+                {
+                    throw new Exception(result.Message);
                 }
 
                 return result;
@@ -147,7 +157,7 @@ namespace ShampanPOS.Service
 
         public async Task<ResultVM> Delete(CommonVM vm)
         {
-            CustomerRepository _repo = new CustomerRepository();
+            MasterSupplierRepository _repo = new MasterSupplierRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, IDs = vm.IDs, DataVM = null };
 
             bool isNewConnection = false;
@@ -161,7 +171,7 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                result = await _repo.Delete(vm, conn, transaction);
+             result = await _repo.Delete(vm, conn, transaction);
 
                 if (isNewConnection && result.Status == "Success")
                 {
@@ -195,7 +205,7 @@ namespace ShampanPOS.Service
 
         public async Task<ResultVM> List(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
         {
-            CustomerRepository _repo = new CustomerRepository();
+            MasterSupplierRepository _repo = new MasterSupplierRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
             bool isNewConnection = false;
@@ -209,11 +219,15 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                result = await _repo.List(conditionalFields, conditionalValues, vm,conn, transaction);
+                result = await _repo.List(conditionalFields, conditionalValues, vm, conn, transaction);
 
-                if (isNewConnection)
+                if (isNewConnection && result.Status == "Success")
                 {
                     transaction.Commit();
+                }
+                else
+                {
+                    throw new Exception(result.Message);
                 }
 
                 return result;
@@ -237,53 +251,9 @@ namespace ShampanPOS.Service
             }
         }
 
-
-        public async Task<ResultVM> GetCustomerListByRoute(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
-        {
-            CustomerRepository _repo = new CustomerRepository();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-
-            bool isNewConnection = false;
-            SqlConnection conn = null;
-            SqlTransaction transaction = null;
-            try
-            {
-                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                conn.Open();
-                isNewConnection = true;
-
-                transaction = conn.BeginTransaction();
-
-                result = await _repo.GetCustomerListByRoute(conditionalFields, conditionalValues, vm, conn, transaction);
-
-                if (isNewConnection)
-                {
-                    transaction.Commit();
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                if (transaction != null && isNewConnection)
-                {
-                    transaction.Rollback();
-                }
-
-                result.ExMessage = ex.ToString();
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
         public async Task<ResultVM> ListAsDataTable(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
         {
-            CustomerRepository _repo = new CustomerRepository();
+            MasterSupplierRepository _repo = new MasterSupplierRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
             bool isNewConnection = false;
@@ -297,11 +267,15 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                result = await _repo.ListAsDataTable(conditionalFields, conditionalValues, vm,conn, transaction);
+              result = await _repo.ListAsDataTable(conditionalFields, conditionalValues, vm,conn, transaction);
 
-                if (isNewConnection)
+                if (isNewConnection && result.Status == "Success")
                 {
                     transaction.Commit();
+                }
+                else
+                {
+                    throw new Exception(result.Message);
                 }
 
                 return result;
@@ -327,7 +301,7 @@ namespace ShampanPOS.Service
 
         public async Task<ResultVM> Dropdown()
         {
-            CustomerRepository _repo = new CustomerRepository();
+            MasterSupplierRepository _repo = new MasterSupplierRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
             bool isNewConnection = false;
@@ -341,11 +315,15 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-           result = await _repo.Dropdown(conn, transaction);
+       result = await _repo.Dropdown(conn, transaction);
 
-                if (isNewConnection)
+                if (isNewConnection && result.Status == "Success")
                 {
                     transaction.Commit();
+                }
+                else
+                {
+                    throw new Exception(result.Message);
                 }
 
                 return result;
@@ -369,11 +347,9 @@ namespace ShampanPOS.Service
             }
         }
 
-
-
-        public async Task<ResultVM> GetGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues)
+        public async Task<ResultVM> GetGridData(GridOptions options)
         {
-            CustomerRepository _repo = new CustomerRepository();
+            MasterSupplierRepository _repo = new MasterSupplierRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
             bool isNewConnection = false;
@@ -387,7 +363,7 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                result = await _repo.GetGridData(options, conditionalFields, conditionalValues,conn, transaction);
+                result = await _repo.GetGridData(options, conn, transaction);
 
                 if (isNewConnection && result.Status == "Success")
                 {
@@ -419,106 +395,9 @@ namespace ShampanPOS.Service
             }
         }
 
-        public async Task<ResultVM> GetCustomersBySalePersonAndBranch(int salePersonId, int branchId)
-        {
-            CustomerRepository _repo = new CustomerRepository();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-
-            bool isNewConnection = false;
-            SqlConnection conn = null;
-            SqlTransaction transaction = null;
-            try
-            {
-                // Create a new connection to the database
-                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                conn.Open();
-                isNewConnection = true;
-
-                // Begin a new transaction
-                transaction = conn.BeginTransaction();
-
-                // Pass the parameters directly to the repository's method (adjust this according to your repo method signature)
-                result = await _repo.ListCustomersBySalePersonAndBranch(salePersonId, branchId, conn, transaction);
-
-                // Commit the transaction if the connection is new
-                if (isNewConnection)
-                {
-                    transaction.Commit();
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                // Rollback the transaction if an error occurs
-                if (transaction != null && isNewConnection)
-                {
-                    transaction.Rollback();
-                }
-
-                result.ExMessage = ex.ToString();
-                return result;
-            }
-            finally
-            {
-                // Close the connection if it was opened
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
-
-        public async Task<ResultVM> DevitCredit(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
-        {
-            CustomerRepository _repo = new CustomerRepository();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-
-            bool isNewConnection = false;
-            SqlConnection conn = null;
-            SqlTransaction transaction = null;
-            try
-            {
-                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                conn.Open();
-                isNewConnection = true;
-
-                transaction = conn.BeginTransaction();
-
-                result = await _repo.BranchWiseDevitCrdit(conditionalFields, conditionalValues, vm, conn, transaction);
-
-                if (isNewConnection && result.Status == "Success")
-                {
-                    transaction.Commit();
-                }
-                else
-                {
-                    throw new Exception(result.Message);
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                if (transaction != null && isNewConnection)
-                {
-                    transaction.Rollback();
-                }
-                result.Message = ex.Message.ToString();
-                result.ExMessage = ex.ToString();
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
         public async Task<ResultVM> ReportPreview(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
         {
-            CustomerRepository _repo = new CustomerRepository();
+            MasterSupplierRepository _repo = new MasterSupplierRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
             bool isNewConnection = false;
@@ -551,7 +430,7 @@ namespace ShampanPOS.Service
 
                     if (!dataTable.Columns.Contains("ReportType"))
                     {
-                        var ReportType = new DataColumn("ReportType") { DefaultValue = "Customer" };
+                        var ReportType = new DataColumn("ReportType") { DefaultValue = "Supplier" };
                         dataTable.Columns.Add(ReportType);
                     }
 
@@ -578,51 +457,6 @@ namespace ShampanPOS.Service
                 }
             }
         }
-
-        public async Task<ResultVM> ReportList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
-        {
-            CustomerRepository _repo = new CustomerRepository();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-
-            bool isNewConnection = false;
-            SqlConnection conn = null;
-            SqlTransaction transaction = null;
-            try
-            {
-                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                conn.Open();
-                isNewConnection = true;
-
-                transaction = conn.BeginTransaction();
-
-                result = await _repo.ReportList(conditionalFields, conditionalValues, vm, conn, transaction);
-
-                if (isNewConnection)
-                {
-                    transaction.Commit();
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                if (transaction != null && isNewConnection)
-                {
-                    transaction.Rollback();
-                }
-
-                result.ExMessage = ex.ToString();
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
-
 
     }
 
