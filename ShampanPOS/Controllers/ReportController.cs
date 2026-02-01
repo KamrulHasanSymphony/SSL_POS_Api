@@ -75,22 +75,51 @@ namespace ShampanPOS.Controllers
             }
         }
         [HttpPost("GetCustomerByCategory")]
-        public async Task<ResultVM> GetCustomerByCategory(CommonVM Vm)
+        public async Task<ResultVM> GetCustomerByCategory(CustomerVM customer)
         {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+
             try
             {
-                string[] conditionFields = null;
-                string[] conditionValues = null;
+                List<string> conditionFields = new List<string>();
+                List<string> conditionValues = new List<string>();
 
-                if (!string.IsNullOrEmpty(Vm.Id))
+                // Customer Group
+                if (customer.Id != null && customer.Id != 0)
                 {
-                    conditionFields = new string[] { "M.CustomerGroupId" };
-                    conditionValues = new string[] { Vm.Id };
+                    conditionFields.Add("M.CustomerGroupId");
+                    conditionValues.Add(customer.Id.ToString());
+                }
+
+                // Customer Name
+                if (!string.IsNullOrEmpty(customer.Name))
+                {
+                    conditionFields.Add("M.Name");
+                    conditionValues.Add(customer.Name);
+                }
+
+                // Customer Code
+                if (!string.IsNullOrEmpty(customer.Code))
+                {
+                    conditionFields.Add("M.Code");
+                    conditionValues.Add(customer.Code);
                 }
 
                 CustomerService _service = new CustomerService();
-                resultVM = await _service.ReportList(conditionFields, conditionValues, null);
+
+                if (conditionFields.Count == 0)
+                {
+                    resultVM = await _service.ReportList(null, null, null);
+                }
+                else
+                {
+                    resultVM = await _service.ReportList(
+                        conditionFields.ToArray(),
+                        conditionValues.ToArray(),
+                        null
+                    );
+                }
+
                 return resultVM;
             }
             catch (Exception ex)
@@ -99,8 +128,7 @@ namespace ShampanPOS.Controllers
                 {
                     Status = "Fail",
                     Message = "Data not fetched.",
-                    ExMessage = ex.Message,
-                    DataVM = null
+                    ExMessage = ex.Message
                 };
             }
         }
