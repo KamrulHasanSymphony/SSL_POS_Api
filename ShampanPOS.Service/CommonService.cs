@@ -303,6 +303,55 @@ namespace ShampanPOS.Service
                 }
             }
         }
+
+        public async Task<ResultVM> MasterItemGroupList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
+        {
+            CommonRepository _repo = new CommonRepository();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            bool isNewConnection = false;
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+            try
+            {
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+
+                transaction = conn.BeginTransaction();
+
+                result = await _repo.MasterItemGroupList(conditionalFields, conditionalValues, vm, conn, transaction);
+
+                if (isNewConnection && result.Status == "Success")
+                {
+                    transaction.Commit();
+                }
+                else
+                {
+                    throw new Exception(result.Message);
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection)
+                {
+                    transaction.Rollback();
+                }
+                result.Message = ex.ToString();
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
         public async Task<ResultVM> UOMList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
         {
             CommonRepository _repo = new CommonRepository();
@@ -1295,5 +1344,105 @@ namespace ShampanPOS.Service
                 }
             }
         }
+
+        public async Task<ResultVM> GetItemList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
+        {
+            CommonRepository _repo = new CommonRepository();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            bool isNewConnection = false;
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+            try
+            {
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+
+                transaction = conn.BeginTransaction();
+
+                result = await _repo.GetItemList(conditionalFields, conditionalValues, vm, conn, transaction);
+
+                if (isNewConnection && result.Status == "Success")
+                {
+                    transaction.Commit();
+                }
+                else
+                {
+                    throw new Exception(result.Message);
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection)
+                {
+                    transaction.Rollback();
+                }
+                result.Message = ex.ToString();
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
+        //public async Task<ResultVM> IsMasterItemGroupMappedWithProductGroup(string masterItemGroupName)
+        //{
+        //    ResultVM result = new ResultVM
+        //    {
+        //        Status = "Fail",
+        //        Message = "Group not matched",
+        //        ExMessage = null,
+        //        DataVM = null
+        //    };
+
+        //    try
+        //    {
+        //        using (SqlConnection conn =new SqlConnection(DatabaseHelper.GetConnectionString()))
+        //        {
+        //        string sql = @"
+        //        SELECT COUNT(1)
+        //        FROM ProductGroups
+        //        WHERE Name = @Name
+        //    ";
+
+        //            using (SqlCommand cmd = new SqlCommand(sql, conn))
+        //            {
+        //                cmd.Parameters.AddWithValue("@Name", masterItemGroupName);
+
+        //                conn.Open();
+        //                int count = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+
+        //                if (count > 0)
+        //                {
+        //                    result.Status = "Success";
+        //                    result.Message = "Group matched";
+        //                }
+        //            }
+        //        }
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        result.Status = "Fail";
+        //        result.Message = "Error while checking group mapping";
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //}
+
+
+
+
+
+
     }
 }

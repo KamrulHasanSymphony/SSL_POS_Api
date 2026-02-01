@@ -160,6 +160,34 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
+
+        // POST: api/Common/MasterItemGroupList
+        [HttpPost("MasterItemGroupList")]
+        public async Task<ResultVM> MasterItemGroupList(CommonVM Vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                CommonService _commonService = new CommonService();
+                //resultVM = await _commonService.ProductGroupList(new[] { "H.Id" }, new[] { Vm.Value.ToString() == "0" ? null : Vm.Value.ToString() }, null);
+                resultVM = await _commonService.MasterItemGroupList(new[] { "" }, new[] { "" }, null);
+
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
+
+
+
         // POST: api/Common/UOMList
         [HttpPost("UOMList")]
         public async Task<ResultVM> UOMList(CommonVM Vm)
@@ -780,6 +808,69 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
+
+
+        [HttpPost("GetItemList")]
+        public async Task<ResultVM> GetItemList(CommonVM Vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                CommonService _commonService = new CommonService();
+                resultVM = await _commonService.GetItemList(new[] { "H.MasterItemGroupId" }, new[] { Vm.Value.ToString() }, null);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
+
+        // POST: api/Common/IsMasterItemGroupMappedWithProductGroup
+        //[HttpPost("IsMasterItemGroupMappedWithProductGroup")]
+        //public async Task<ResultVM> IsMasterItemGroupMappedWithProductGroup(CommonVM vm)
+        //{
+        //    ResultVM result = new ResultVM
+        //    {
+        //        Status = "Fail",
+        //        Message = "Group not matched"
+        //    };
+
+        //    try
+        //    {
+        //        if (vm.MasterItemGroupId <= 0)
+        //        {
+        //            result.Message = "Invalid Master Item Group";
+        //            return result;
+        //        }
+
+        //        CommonService service = new CommonService();
+
+        //        bool isMapped =
+        //            await service.IsMasterItemGroupMappedWithProductGroup(vm.MasterItemGroupId);
+
+        //        if (isMapped)
+        //        {
+        //            result.Status = "Success";
+        //            result.Message = "Group matched";
+        //        }
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        result.Status = "Fail";
+        //        result.Message = ex.Message;
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //}
 
 
 

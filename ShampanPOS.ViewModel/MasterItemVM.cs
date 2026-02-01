@@ -16,10 +16,11 @@ namespace ShampanPOS.ViewModel
         [Required]
 
         [Display(Name = "Name")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
-        [Display(Name = "Product Group"), Required]
-        public int? ProductGroupId { get; set; }
+        [Display(Name = "Product Group")]
+        public int? MasterItemGroupId { get; set; }
+        public string? MasterItemGroupName { get; set; }
 
         [Display(Name = "Bangla Name")]
         public string? BanglaName { get; set; }
@@ -63,5 +64,16 @@ namespace ShampanPOS.ViewModel
         public string? UOMName { get; set; }
         [Display(Name = "Image")]
         public string? ImagePath { get; set; }
+        public int? ProductId { get; set; }
+
+        public PeramModel PeramModel { get; set; }
+
+        public List<MasterItemVM> MasterItemList { get; set; }
+
+        public MasterItemVM()
+        {
+            PeramModel = new PeramModel();
+            MasterItemList = new List<MasterItemVM>();
+        }
     }
 }

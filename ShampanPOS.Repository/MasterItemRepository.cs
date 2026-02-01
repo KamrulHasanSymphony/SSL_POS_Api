@@ -39,11 +39,11 @@ namespace ShampanPOS.Repository
                 string query = @"
         INSERT INTO MasterItem
         (
-            Code, Name, ProductGroupId, BanglaName, Description, UOMId, HSCodeNo,VATRate,SDRate, IsArchive, IsActive, CreatedBy,CreatedFrom, CreatedOn,ImagePath
+            Code, Name, MasterItemGroupId, BanglaName, Description, UOMId, HSCodeNo,VATRate,SDRate, IsArchive, IsActive, CreatedBy,CreatedFrom, CreatedOn,ImagePath
         )
         VALUES
         (
-            @Code, @Name, @ProductGroupId, @BanglaName, @Description, @UOMId, @HSCodeNo,@VATRate,@SDRate,
+            @Code, @Name, @MasterItemGroupId, @BanglaName, @Description, @UOMId, @HSCodeNo,@VATRate,@SDRate,
             @IsArchive, @IsActive, @CreatedBy, @CreatedFrom,@CreatedOn,@ImagePath
         );
         SELECT SCOPE_IDENTITY();";
@@ -52,7 +52,7 @@ namespace ShampanPOS.Repository
                 {
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Name", vm.Name ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@ProductGroupId", vm.ProductGroupId);
+                    cmd.Parameters.AddWithValue("@MasterItemGroupId", vm.MasterItemGroupId);
                     cmd.Parameters.AddWithValue("@BanglaName", vm.BanglaName ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Description", vm.Description ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@UOMId", vm.UOMId ?? 1);
@@ -127,7 +127,7 @@ namespace ShampanPOS.Repository
                 string query = @"
         UPDATE MasterItem
         SET
-            Code = @Code, Name = @Name, ProductGroupId = @ProductGroupId, BanglaName = @BanglaName, VATRate= @VATRate,SDRate= @SDRate,
+            Code = @Code, Name = @Name, MasterItemGroupId = @MasterItemGroupId, BanglaName = @BanglaName, VATRate= @VATRate,SDRate= @SDRate,
             Description = @Description, UOMId = @UOMId, HSCodeNo = @HSCodeNo,
             IsArchive = @IsArchive, IsActive = @IsActive, LastModifiedBy = @LastModifiedBy, LastUpdateFrom=@LastUpdateFrom,
             LastModifiedOn = GETDATE(),ImagePath = @ImagePath
@@ -138,7 +138,7 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@Id", vm.Id);
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Name", vm.Name ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@ProductGroupId", vm.ProductGroupId);
+                    cmd.Parameters.AddWithValue("@MasterItemGroupId", vm.MasterItemGroupId);
                     cmd.Parameters.AddWithValue("@BanglaName", vm.BanglaName ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@VATRate", vm.VATRate ?? 0.0m);
                     cmd.Parameters.AddWithValue("@SDRate", vm.SDRate ?? 0.0m);
@@ -285,7 +285,7 @@ namespace ShampanPOS.Repository
     ISNULL(M.Id, 0) Id,
     ISNULL(M.Code, '') Code,
     ISNULL(M.Name, '') Name,
-    ISNULL(M.ProductGroupId, 0) ProductGroupId,
+    ISNULL(M.MasterItemGroupId, 0) MasterItemGroupId,
     ISNULL(M.BanglaName, '') BanglaName,
     ISNULL(M.Description, '') Description,
     ISNULL(M.UOMId, 0) UOMId,
@@ -331,7 +331,7 @@ WHERE 1 = 1
                     Id = row.Field<int>("Id"),
                     Code = row.Field<string>("Code"),
                     Name = row.Field<string>("Name"),
-                    ProductGroupId = row.Field<int>("ProductGroupId"),
+                    MasterItemGroupId = row.Field<int>("MasterItemGroupId"),
                     BanglaName = row.Field<string>("BanglaName"),
                     Description = row.Field<string>("Description"),
                     UOMId = row.Field<int?>("UOMId"), // Nullable field
@@ -386,7 +386,7 @@ WHERE 1 = 1
 
                 string query = @"
 SELECT
-    Id, Code, Name, ProductGroupId, BanglaName, Description, UOMId, HSCodeNo, 
+    Id, Code, Name, MasterItemGroupId, BanglaName, Description, UOMId, HSCodeNo, 
     IsArchive, IsActive, CreatedBy, CreatedOn, 
     LastModifiedBy, LastModifiedOn
 FROM MasterItem WHERE 1 = 1";
@@ -508,7 +508,7 @@ ORDER BY Name";
             -- Count query
             SELECT COUNT(DISTINCT H.Id) AS totalcount
             FROM MasterItem H
-            LEFT OUTER JOIN ProductGroups PG ON H.ProductGroupId = PG.Id
+            LEFT OUTER JOIN MasterItemGroup MG ON H.MasterItemGroupId = MG.Id
             LEFT OUTER JOIN UOMs uom ON H.UOMId = uom.Id
             WHERE H.IsArchive != 1
             -- Add the filter condition
@@ -529,13 +529,13 @@ ORDER BY Name";
                 ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
                 ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS CreatedOn,
                 ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS LastModifiedOn,
-                ISNULL(H.ProductGroupId, 0) AS ProductGroupId,
-                ISNULL(PG.Name, '') AS ProductGroupName,
+                ISNULL(MG.Id, 0) AS MasterItemGroupId,
+                ISNULL(MG.Name, '') AS ProductGroupName,
                 ISNULL(H.UOMId, 0) AS UOMId,
 				ISNULL(H.VATRate, 0) AS VATRate,
 				ISNULL(H.SDRate, 0) AS SDRate
             FROM MasterItem H
-            LEFT OUTER JOIN ProductGroups PG ON H.ProductGroupId = PG.Id
+            LEFT OUTER JOIN MasterItemGroup MG ON H.MasterItemGroupId = MG.Id
             LEFT OUTER JOIN UOMs uom ON H.UOMId = uom.Id
             WHERE H.IsArchive != 1
             -- Add the filter condition

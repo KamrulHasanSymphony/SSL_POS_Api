@@ -19,6 +19,8 @@ namespace ShampanPOS.Controllers
     {
         ProductService _productService = new ProductService();
         CommonService _common = new CommonService();
+
+
         // POST: api/Product/Insert
         [HttpPost("Insert")]
         public async Task<ResultVM> Insert(ProductVM product)
@@ -342,6 +344,68 @@ namespace ShampanPOS.Controllers
                 _ => "application/octet-stream"
             };
         }
+
+
+        // POST: api/Product/InsertFromMasterItem
+        [HttpPost("InsertFromMasterItem")]
+        public async Task<ResultVM> InsertFromMasterItem(ProductVM product)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            _productService = new ProductService();
+
+            try
+            {
+                resultVM = await _productService.InsertFromMasterItem(product);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = ex.Message,
+                    ExMessage = ex.Message,
+                    DataVM = product
+                };
+            }
+        }
+
+        //// POST: api/Product/InsertFromMasterItem
+        //[HttpPost("InsertFromMasterItem")]
+        //public async Task<ResultVM> InsertFromMasterItem(ProductVM model)
+        //{
+        //    ResultVM resultVM = new ResultVM
+        //    {
+        //        Status = "Fail",
+        //        Message = "Error"
+        //    };
+
+        //    try
+        //    {
+        //        _productService = new ProductService();
+
+        //        if (string.IsNullOrWhiteSpace(model.MasterItemGroupName))
+        //        {
+        //            resultVM.Message = "Master Item Group is required";
+        //            return resultVM;
+        //        }
+
+        //        // 🔥 service will handle name, group match, insert logic
+        //        resultVM = await _productService.InsertFromMasterItem(model);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = ex.Message,
+        //            ExMessage = ex.ToString()
+        //        };
+        //    }
+        //}
+
+
 
 
 

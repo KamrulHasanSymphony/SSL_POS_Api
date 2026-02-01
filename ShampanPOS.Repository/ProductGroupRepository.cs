@@ -354,6 +354,94 @@ FROM ProductGroups M WHERE 1=1 ";
             }
         }
 
+//        // List Method
+//        public async Task<ResultVM> GetByName(
+//     string name,
+//     SqlConnection conn = null,
+//     SqlTransaction transaction = null)
+//        {
+//            bool isNewConnection = false;
+//            DataTable dataTable = new DataTable();
+
+//            ResultVM result = new ResultVM
+//            {
+//                Status = "Fail",
+//                Message = "Error",
+//                ExMessage = null,
+//                Id = "0",
+//                DataVM = null
+//            };
+
+//            try
+//            {
+//                if (conn == null)
+//                {
+//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+//                    conn.Open();
+//                    isNewConnection = true;
+//                }
+
+//                string query = @"
+//SELECT
+// ISNULL(M.Id,0)            Id
+//,ISNULL(M.Code,'')         Code
+//,ISNULL(M.Name,'')         Name
+//,ISNULL(M.IsArchive,0)     IsArchive
+//,ISNULL(M.IsActive,0)      IsActive
+//FROM ProductGroups M
+//WHERE M.Name = @Name
+//";
+
+//                SqlDataAdapter adapter = new SqlDataAdapter(query, conn);
+//                if (transaction != null)
+//                {
+//                    adapter.SelectCommand.Transaction = transaction;
+//                }
+
+//                adapter.SelectCommand.Parameters.AddWithValue("@Name", name);
+
+//                adapter.Fill(dataTable);
+
+//                if (dataTable.Rows.Count == 0)
+//                {
+//                    result.Message = "No data found";
+//                    return result;
+//                }
+
+//                // 🔹 single row mapping (TOP 1 behaviour)
+//                DataRow row = dataTable.Rows[0];
+
+//                ProductGroupVM model = new ProductGroupVM
+//                {
+//                    Id = Convert.ToInt32(row["Id"]),
+//                    Code = row["Code"].ToString(),
+//                    Name = row["Name"].ToString(),
+//                    IsArchive = Convert.ToBoolean(row["IsArchive"]),
+//                    IsActive = Convert.ToBoolean(row["IsActive"])
+//                };
+
+//                result.Status = "Success";
+//                result.Message = "Data retrieved successfully";
+//                result.DataVM = model;
+
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                result.Message = ex.Message;
+//                result.ExMessage = ex.ToString();
+//                return result;
+//            }
+//            finally
+//            {
+//                if (isNewConnection && conn != null)
+//                {
+//                    conn.Close();
+//                }
+//            }
+//        }
+
+
         // ListAsDataTable Method
         public async Task<ResultVM> ListAsDataTable(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {
