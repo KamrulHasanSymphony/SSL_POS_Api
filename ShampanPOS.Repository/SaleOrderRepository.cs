@@ -228,14 +228,15 @@ namespace ShampanPOS.Repository
         ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS CreatedOn,
         ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
         ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
-	ISNULL(Br.Name,'') BranchName,
-    ISNULL(CP.CompanyName,'') CompanyName
-    FROM SaleOrders M
-    LEFT JOIN Customers C ON M.CustomerId = C.Id
-    LEFT OUTER JOIN BranchProfiles Br ON M.BranchId = Br.Id
-	LEFT OUTER JOIN CompanyProfiles CP ON M.CompanyId = CP.Id
-    WHERE 1 = 1
-";
+    	ISNULL(Br.Name,'') BranchName,
+        ISNULL(CP.CompanyName,'') CompanyName
+
+        FROM SaleOrders M
+        LEFT JOIN Customers C ON M.CustomerId = C.Id
+        LEFT OUTER JOIN BranchProfiles Br ON M.BranchId = Br.Id
+    	LEFT OUTER JOIN CompanyProfiles CP ON M.CompanyId = CP.Id
+        WHERE 1 = 1
+    ";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
                 {
@@ -264,6 +265,7 @@ namespace ShampanPOS.Repository
                         SaleOrderId = Convert.ToInt32(row["SaleOrderId"]),
                         Code = row["Code"].ToString(),
                         BranchId = Convert.ToInt32(row["BranchId"]),
+                        BranchName = row.Field<string>("BranchName"),
                         CompanyId = Convert.ToInt32(row["CompanyId"]),
                         CustomerId = Convert.ToInt32(row["CustomerId"]),
                         CustomerName = row.Field<string>("CustomerName"),
