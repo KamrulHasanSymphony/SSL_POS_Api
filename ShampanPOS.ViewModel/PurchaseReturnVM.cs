@@ -85,6 +85,7 @@ namespace ShampanPOS.ViewModel
         public string? BranchName { get; set; }
         public string? BranchAddress { get; set; }
         public string? CompanyName { get; set; }
+
         public List<PurchaseReturnDetailVM> purchaseReturnDetailList { get; set; }
 
         public PurchaseReturnVM()

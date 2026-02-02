@@ -350,6 +350,7 @@ WHERE  1 = 1
                         Id = Convert.ToInt32(row["Id"]),
                         Code = row["Code"].ToString(),
                         BranchId = Convert.ToInt32(row["BranchId"]),
+                        BranchName = row.Field<string>("BranchName"),
                         CompanyId = Convert.ToInt32(row["CompanyId"]),
                         SupplierId = Convert.ToInt32(row["SupplierId"]),
                         SupplierName = Convert.ToString(row["SupplierName"]),
