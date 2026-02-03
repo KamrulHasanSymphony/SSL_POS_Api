@@ -574,6 +574,7 @@ SELECT
     ISNULL(S.Name, '') AS SupplierName,
 	ISNULL(P.Code, '') AS PurchaseOrderCode,
 	ISNULL(Br.Name,'') BranchName,
+    ISNULL(Br.Address, '')  AS CompanyAddress,
     ISNULL(CP.CompanyName,'') CompanyName
 
 FROM 
@@ -620,7 +621,10 @@ WHERE 1 = 1
                         Code = row.Field<string>("Code"),
                         PurchaseOrderCode = row.Field<string>("PurchaseOrderCode"),
                         BranchId = row.Field<int>("BranchId"),
+                        BranchName = row.Field<string>("BranchName"),
                         CompanyId = row.Field<int>("CompanyId"),
+                        CompanyName = row.Field<string>("CompanyName"),
+                        CompanyAddress = row.Field<string>("CompanyAddress"),
                         SupplierId = row.Field<int>("SupplierId"),
                         PurchaseOrderId = row.Field<int>("PurchaseOrderId"),
                         SupplierName = row.Field<string>("SupplierName"),

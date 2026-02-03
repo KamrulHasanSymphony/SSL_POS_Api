@@ -74,6 +74,10 @@ namespace ShampanPOS.ViewModel
             public string? ToDate { get; set; }
             //public string?[] IDs { get; set; }
             public string? BranchName { get; set; }
+            public string? BranchAddress { get; set; }
+            public string? CompanyAddress { get; set; }
+            public string? CompanyName { get; set; }
+
             public string? Status { get; set; }
             public string? IsPosted { get; set; }
             public List<SaleReturnDetailVM> saleReturnDetailList { get; set; }

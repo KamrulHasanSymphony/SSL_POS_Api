@@ -366,6 +366,7 @@ namespace ShampanPOS.Repository
                         Code = row["Code"].ToString(),
                         SaleOrderCode = row["SaleOrderCode"].ToString(),
                         BranchId = Convert.ToInt32(row["BranchId"]),
+                        BranchName = row.Field<string>("BranchName"),
                         CompanyId = Convert.ToInt32(row["CompanyId"]),
                         CustomerId = Convert.ToInt32(row["CustomerId"]),
                         SaleOrderId = Convert.ToInt32(row["SaleOrderId"]),

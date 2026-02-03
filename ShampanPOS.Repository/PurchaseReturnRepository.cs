@@ -588,6 +588,7 @@ WHERE 1 = 1
                         Id = row.Field<int>("Id"),
                         Code = row.Field<string>("Code"),
                         BranchId = row.Field<int>("BranchId"),
+                        BranchName = row.Field<string>("BranchName"),
                         CompanyId = row.Field<int>("CompanyId"),
                         SupplierId = row.Field<int>("SupplierId"),
                         BENumber = row.Field<string>("BENumber"),

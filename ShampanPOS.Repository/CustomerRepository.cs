@@ -69,7 +69,7 @@ SELECT SCOPE_IDENTITY();";
                     cmd.Parameters.AddWithValue("@NIDNo", vm.NIDNo ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
-                    cmd.Parameters.AddWithValue("@IsActive", vm.IsActive);
+                    cmd.Parameters.AddWithValue("@IsActive", true);
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy);
                     cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
                     cmd.Parameters.AddWithValue("@ImagePath", string.IsNullOrEmpty(vm.ImagePath) ? (object)DBNull.Value : vm.ImagePath);
@@ -1181,6 +1181,7 @@ SELECT
     ISNULL(M.Name, '') AS Name,
     ISNULL(M.BanglaName, '') AS BanglaName,
     ISNULL(M.CustomerGroupId, 0) AS CustomerGroupId,
+    ISNULL(CG.Name, '') AS CustomerGroupName,
     ISNULL(M.Address, '') AS Address,
     ISNULL(M.BanglaAddress, '') AS BanglaAddress,
     ISNULL(M.TelephoneNo, '') AS TelephoneNo,
@@ -1199,8 +1200,9 @@ SELECT
     FORMAT(ISNULL(M.LastModifiedOn, '1900-01-01'), 'yyyy-MM-dd') AS LastModifiedOn,
     ISNULL(M.ImagePath,'') AS ImagePath
 FROM Customers M
+LEFT OUTER JOIN CustomerGroups CG ON M.CustomerGroupId = CG.Id
 WHERE 1 = 1
-and Code!='ALL'
+and M.Code!='ALL'
 
  ";
 
@@ -1237,6 +1239,7 @@ and Code!='ALL'
                         Name = row.Field<string>("Name"),
                         BanglaName = row.Field<string>("BanglaName"),
                         CustomerGroupId = row.Field<int>("CustomerGroupId"),
+                        CustomerGroupName = row.Field<string>("CustomerGroupName"),
                         Address = row.Field<string>("Address"),
                         BanglaAddress = row.Field<string>("BanglaAddress"),
                         TelephoneNo = row.Field<string>("TelephoneNo"),
