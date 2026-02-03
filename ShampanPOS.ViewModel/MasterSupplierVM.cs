@@ -18,7 +18,11 @@ namespace ShampanPOS.ViewModel
 
         [Display(Name = "Supplier Group ID")]
         public int? SupplierGroupId { get; set; }
+        public int? MasterSupplierGroupId { get; set; }
+
         public string? GroupName { get; set; }
+        public string? MasterSupplierGroupName { get; set; }
+
 
         [Display(Name = "Bangla Name")]
         public string? BanglaName { get; set; }
@@ -60,6 +64,16 @@ namespace ShampanPOS.ViewModel
         public string? Operation { get; set; }
         public string? Status { get; set; }
         public string? ImagePath { get; set; }
+
+        public PeramModel PeramModel { get; set; }
+
+        public List<MasterSupplierVM> MasterSupplierList { get; set; }
+
+        public MasterSupplierVM()
+        {
+            PeramModel = new PeramModel();
+            MasterSupplierList = new List<MasterSupplierVM>();
+        }
 
     }
 

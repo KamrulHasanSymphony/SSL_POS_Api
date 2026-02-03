@@ -307,6 +307,7 @@ namespace ShampanPOS.Controllers
                 };
             }
         } 
+
         [HttpPost("SupplierList")]
         public async Task<ResultVM> SupplierList(CommonVM Vm)
         {
@@ -872,6 +873,54 @@ namespace ShampanPOS.Controllers
         //    }
         //}
 
+
+
+        // POST: api/Common/MasterSupplierGroupList
+        [HttpPost("MasterSupplierGroupList")]
+        public async Task<ResultVM> MasterSupplierGroupList(CommonVM Vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                CommonService _commonService = new CommonService();
+                resultVM = await _commonService.MasterSupplierGroupList(new[] { "" }, new[] { "" }, null);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
+
+
+
+        [HttpPost("GetSupplierListByGroup")]
+        public async Task<ResultVM> GetSupplierListByGroup(CommonVM Vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                CommonService _commonService = new CommonService();
+                resultVM = await _commonService.GetSupplierListByGroup(new[] { "H.MasterSupplierGroupId" }, new[] { Vm.Value.ToString() }, null);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
 
 
     }

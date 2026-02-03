@@ -34,12 +34,12 @@ namespace ShampanPOS.Repository
                 string query = @"
 INSERT INTO MasterSupplier 
 (
- Code, Name, SupplierGroupId, BanglaName, Address, City, TelephoneNo, Email, 
+ Code, Name, MasterSupplierGroupId, BanglaName, Address, City, TelephoneNo, Email, 
  ContactPerson, IsArchive, IsActive, CreatedBy, CreatedOn,ImagePath
 )
 VALUES 
 (
- @Code, @Name, @SupplierGroupId, @BanglaName, @Address, @City, @TelephoneNo, 
+ @Code, @Name, @MasterSupplierGroupId, @BanglaName, @Address, @City, @TelephoneNo, 
  @Email, @ContactPerson, @IsArchive, @IsActive, @CreatedBy, GETDATE(),@ImagePath
 );
 SELECT SCOPE_IDENTITY();";
@@ -48,7 +48,7 @@ SELECT SCOPE_IDENTITY();";
                 {
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Name", vm.Name ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@SupplierGroupId", vm.SupplierGroupId);
+                    cmd.Parameters.AddWithValue("@MasterSupplierGroupId", vm.MasterSupplierGroupId);
                     cmd.Parameters.AddWithValue("@BanglaName", vm.BanglaName ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Address", vm.Address ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@City", vm.City ?? (object)DBNull.Value);
@@ -118,7 +118,7 @@ SELECT SCOPE_IDENTITY();";
                 string query = @"
 UPDATE MasterSupplier 
 SET 
-    Name = @Name, SupplierGroupId = @SupplierGroupId, BanglaName = @BanglaName, 
+    Name = @Name, MasterSupplierGroupId = @MasterSupplierGroupId, BanglaName = @BanglaName, 
     Address = @Address, City = @City, TelephoneNo = @TelephoneNo, Email = @Email, 
     ContactPerson = @ContactPerson, IsArchive = @IsArchive, 
     IsActive = @IsActive, LastModifiedBy = @LastModifiedBy, LastModifiedOn = GETDATE(),ImagePath = @ImagePath
@@ -129,7 +129,7 @@ WHERE Id = @Id";
                 {
                     cmd.Parameters.AddWithValue("@Id", vm.Id);
                     cmd.Parameters.AddWithValue("@Name", vm.Name ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@SupplierGroupId", vm.SupplierGroupId);
+                    cmd.Parameters.AddWithValue("@MasterSupplierGroupId", vm.MasterSupplierGroupId);
                     cmd.Parameters.AddWithValue("@BanglaName", vm.BanglaName ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Address", vm.Address ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@City", vm.City ?? (object)DBNull.Value);
@@ -273,7 +273,7 @@ SELECT
     ISNULL(M.Id, 0) Id,
     ISNULL(M.Code, '') Code,
     ISNULL(M.Name, '') Name,
-    ISNULL(M.SupplierGroupId, 0) SupplierGroupId,
+    ISNULL(M.MasterSupplierGroupId, 0) MasterSupplierGroupId,
     ISNULL(M.BanglaName, '') BanglaName,
     ISNULL(M.Address, '') Address,
     ISNULL(M.City, '') City,
@@ -315,7 +315,7 @@ WHERE 1 = 1";
                     Id = row.Field<int>("Id"),
                     Code = row.Field<string>("Code"),
                     Name = row.Field<string>("Name"),
-                    SupplierGroupId = row.Field<int>("SupplierGroupId"),
+                    MasterSupplierGroupId = row.Field<int>("MasterSupplierGroupId"),
                     BanglaName = row.Field<string>("BanglaName"),
                     Address = row.Field<string>("Address"),
                     City = row.Field<string>("City"),
@@ -371,7 +371,7 @@ SELECT
     Id,
     Code,
     Name,
-    SupplierGroupId,
+    MasterSupplierGroupId,
     BanglaName,
     Address,
     City,
@@ -505,7 +505,7 @@ ORDER BY Name";
                 ISNULL(H.Id, 0) AS Id,
                 ISNULL(H.Code, '') AS Code,
                 ISNULL(H.Name, '') AS Name,
-                ISNULL(H.SupplierGroupId, 0) SupplierGroupId,
+                ISNULL(H.MasterSupplierGroupId, 0) MasterSupplierGroupId,
                 ISNULL(H.BanglaName, '') BanglaName,
                 ISNULL(H.Address, '') Address,
                 ISNULL(H.City, '') City,
@@ -574,7 +574,7 @@ ORDER BY Name";
         ISNULL(H.Id, 0) AS Id,
                 ISNULL(H.Code, '') AS Code,
                 ISNULL(H.Name, '') AS Name,
-                ISNULL(H.SupplierGroupId, 0) SupplierGroupId,
+                ISNULL(H.MasterSupplierGroupId, 0) MasterSupplierGroupId,
                 ISNULL(H.BanglaName, '') BanglaName,
                 ISNULL(H.Address, '') Address,
                 ISNULL(H.City, '') City,
