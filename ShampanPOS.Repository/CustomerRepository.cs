@@ -38,13 +38,13 @@ namespace ShampanPOS.Repository
                 string query = @"
 INSERT INTO Customers
 (
-    Code, Name, CustomerGroupId, BanglaName, Address, BanglaAddress, 
+    Code, Name, CustomerGroupId,CompanyId, BanglaName, Address, BanglaAddress, 
      TelephoneNo, FaxNo, Email, TINNo, BINNo, NIDNo, 
     Comments, IsArchive, IsActive, CreatedBy, CreatedOn,ImagePath
 )
 VALUES
 (
-    @Code, @Name, @CustomerGroupId, @BanglaName, @Address, @BanglaAddress, 
+    @Code, @Name, @CustomerGroupId,@CompanyId, @BanglaName, @Address, @BanglaAddress, 
      @TelephoneNo, @FaxNo, @Email, @TINNo, @BINNo, @NIDNo,
     @Comments, @IsArchive, @IsActive, @CreatedBy, @CreatedOn, @ImagePath
 );
@@ -56,6 +56,7 @@ SELECT SCOPE_IDENTITY();";
                     cmd.Parameters.AddWithValue("@Name", vm.Name);
                     
                     cmd.Parameters.AddWithValue("@CustomerGroupId", vm.CustomerGroupId);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
                     
                     cmd.Parameters.AddWithValue("@BanglaName", vm.BanglaName ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Address", vm.Address ?? (object)DBNull.Value);
@@ -318,6 +319,7 @@ SELECT
     ISNULL(M.Name, '') AS Name,
     ISNULL(M.BanglaName, '') AS BanglaName,
     ISNULL(M.CustomerGroupId, 0) AS CustomerGroupId,
+    ISNULL(M.CompanyId, 0) AS CompanyId,
     ISNULL(M.Address, '') AS Address,
     ISNULL(M.BanglaAddress, '') AS BanglaAddress,
     ISNULL(M.TelephoneNo, '') AS TelephoneNo,
@@ -334,8 +336,11 @@ SELECT
     FORMAT(ISNULL(M.CreatedOn, '1900-01-01'), 'yyyy-MM-dd') AS CreatedOn,
     ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
     FORMAT(ISNULL(M.LastModifiedOn, '1900-01-01'), 'yyyy-MM-dd') AS LastModifiedOn,
-    ISNULL(M.ImagePath,'') AS ImagePath
+    ISNULL(M.ImagePath,'') AS ImagePath,
+	ISNULL(CP.CompanyName,'') CompanyName
+
 FROM Customers M
+LEFT OUTER JOIN CompanyProfiles CP ON M.CompanyId = CP.Id
 WHERE 1 = 1
  ";
 
@@ -372,6 +377,8 @@ WHERE 1 = 1
                         Name = row.Field<string>("Name"),
                         BanglaName = row.Field<string>("BanglaName"),
                         CustomerGroupId = row.Field<int>("CustomerGroupId"),
+                        CompanyId = row.Field<int>("CompanyId"),
+                        CompanyName = row.Field<string>("CompanyName"),
                         Address = row.Field<string>("Address"),
                         BanglaAddress = row.Field<string>("BanglaAddress"),
                         TelephoneNo = row.Field<string>("TelephoneNo"),
