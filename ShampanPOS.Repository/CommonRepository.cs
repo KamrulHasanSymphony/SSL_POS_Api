@@ -3611,6 +3611,145 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
                 return result;
             }
         }
+
+
+
+        public async Task<ResultVM> GetSupplierListByGroup(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    throw new Exception("Database connection fail!");
+                }
+                string sqlQuery = @"
+	         SELECT DISTINCT 
+
+             ISNULL(H.Id, 0) Id
+            ,ISNULL(H.Code, '') Code 
+            ,ISNULL(H.Name, '') Name 
+            ,ISNULL(H.IsActive, 0) IsActive
+            ,ISNULL(H.IsArchive, 0) IsArchive
+            ,CASE WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Active' ELSE 'Inactive'   END Status
+            FROM MasterSupplier H
+            Where 1=1
+            And H.IsActive = 1
+
+             ";
+
+
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+                SqlDataAdapter objComm = CreateAdapter(sqlQuery, conn, transaction);
+
+                // SET additional conditions param
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new MasterSupplierVM
+                {
+                    Id = Convert.ToInt32(row["Id"]),
+                    Code = row["Code"]?.ToString(),
+                    Name = row["Name"]?.ToString(),
+                    IsActive = Convert.ToBoolean(row["IsActive"]),
+                    IsArchive = Convert.ToBoolean(row["IsArchive"]),
+
+                }).ToList();
+
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+        }
+
+
+
+
+        public async Task<ResultVM> MasterSupplierGroupList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = @"
+						 Select
+                         ISNULL(H.Id,0)	Id,
+                         ISNULL(H.Name,'') Name,
+                         ISNULL(H.Code,'') Code,
+                         ISNULL(H.IsActive, 0) AS IsActive,
+                         CASE WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Active' ELSE 'Inactive' END AS Status
+
+                        FROM MasterSupplierGroup H
+                        WHERE H.IsActive = 1 And H.IsArchive != 1  ";
+
+
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                // SET additional conditions param
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new MasterSupplierGroupVM
+                {
+                    Id = Convert.ToInt32(row["Id"]),
+                    Name = row["Name"]?.ToString(),
+                    Code = row["Code"]?.ToString(),
+
+
+
+                }).ToList();
+
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
+
+
     }
 
 }

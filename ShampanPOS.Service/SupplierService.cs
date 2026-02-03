@@ -458,6 +458,529 @@ namespace ShampanPOS.Service
             }
         }
 
+
+        //public async Task<ResultVM> InsertFromMasterSupplier(SupplierVM supplier)
+        //{
+        //    SupplierRepository _repo = new SupplierRepository();
+        //    _commonRepo = new CommonRepository();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
+
+        //        transaction = conn.BeginTransaction();
+
+        //        SupplierGroupService supplierGroupService = new SupplierGroupService();
+        //        SupplierGroupVM pgvm = new SupplierGroupVM();
+
+        //        pgvm.Name = supplier.MasterSupplierGroupName;
+        //        pgvm.IsActive = supplier.IsActive;
+        //        pgvm.IsArchive = supplier.IsArchive;
+        //        pgvm.CreatedBy = supplier.CreatedBy;
+        //        pgvm.CreatedOn = supplier.CreatedOn;
+
+        //        var group = await supplierGroupService.Insert(pgvm);
+        //        if (group.Status.ToLower() == "success")
+        //        {
+
+        //            SupplierGroupVM supplierGroupVM = (SupplierGroupVM)group.DataVM;
+
+        //            SupplierVM pvm = new SupplierVM();
+        //            var details = pvm.MasterSupplierList;
+
+        //            pvm.Code = supplier.Code;
+        //            if (supplier.MasterSupplierList != null && supplier.MasterSupplierList.Any())
+        //            {
+        //                pvm.Name = supplier.MasterSupplierList.First().Name;
+        //            }
+        //            pvm.SupplierGroupId = supplierGroupVM.Id;
+        //            pvm.IsActive = supplier.IsActive;
+        //            pvm.IsArchive = supplier.IsArchive;
+        //            pvm.CreatedBy = supplier.CreatedBy;
+        //            pvm.CreatedOn = supplier.CreatedOn;
+
+
+        //            if (string.IsNullOrWhiteSpace(pvm.Code))
+        //            {
+        //                pvm.Code = _commonRepo.CodeGenerationNo(
+        //                    "Supplier",
+        //                    "Supplier",
+        //                    conn,
+        //                    transaction
+        //                );
+        //            }
+
+        //            result = await _repo.Insert(pvm, conn, transaction);
+        //        }
+        //        else
+        //        {
+        //            var name = supplier.MasterSupplierGroupName;
+
+        //            var retusls = supplierGroupService.grouplist(new[] { "M.Name" }, new[] { name }, null);
+
+        //            SupplierVM pvm = new SupplierVM();
+
+
+        //            pvm.Code = supplier.Code;
+        //            if (supplier.MasterSupplierList != null && supplier.MasterSupplierList.Any())
+        //            {
+        //                pvm.Name = supplier.MasterSupplierList.First().Name;
+        //            }
+        //            pvm.SupplierGroupId = retusls.Id;
+        //            pvm.IsActive = supplier.IsActive;
+        //            pvm.IsArchive = supplier.IsArchive;
+        //            pvm.CreatedBy = supplier.CreatedBy;
+        //            pvm.CreatedOn = supplier.CreatedOn;
+
+
+        //            if (string.IsNullOrWhiteSpace(pvm.Code))
+        //            {
+        //                pvm.Code = _commonRepo.CodeGenerationNo(
+        //                    "Supplier",
+        //                    "Supplier",
+        //                    conn,
+        //                    transaction
+        //                );
+        //            }
+
+        //            result = await _repo.Insert(pvm, conn, transaction);
+        //        }
+
+
+        //        if (isNewConnection && result.Status == "Success")
+        //        {
+        //            transaction.Commit();
+        //        }
+        //        else
+        //        {
+        //            throw new Exception(result.Message);
+        //        }
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+        //        result.Message = ex.Message.ToString();
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
+
+
+        public async Task<ResultVM> InsertFromMasterSupplier(SupplierVM supplier)
+        {
+            SupplierRepository _repo = new SupplierRepository();
+            _commonRepo = new CommonRepository();
+
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error" };
+
+            bool isNewConnection = false;
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+
+            try
+            {
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                await conn.OpenAsync();
+                isNewConnection = true;
+                transaction = conn.BeginTransaction();
+
+                SupplierGroupService supplierGroupService = new SupplierGroupService();
+
+                if (supplier.MasterSupplierList == null || !supplier.MasterSupplierList.Any())
+                    throw new Exception("No supplier found to save.");
+
+                // Group suppliers by their group name
+                var groupedSuppliers = supplier.MasterSupplierList
+                    .Where(x => !string.IsNullOrWhiteSpace(x.MasterSupplierGroupName))
+                    .GroupBy(x => x.MasterSupplierGroupName.Trim())
+                    .ToList();
+
+                foreach (var group in groupedSuppliers)
+                {
+                    string groupName = group.Key;
+                    if (string.IsNullOrWhiteSpace(groupName))
+                        throw new Exception("Supplier group name is required.");
+
+                    // Check if the group exists
+                    var groupResult = await supplierGroupService.grouplist(
+                        new[] { "M.Name" }, new[] { groupName }, null);
+
+                    SupplierGroupVM supplierGroupVM = groupResult?.Status == "Success" && groupResult.DataVM is List<SupplierGroupVM> list &&list.Any() ? list.First(): null;
+
+                    // Create group if it doesn't exist
+                    if (supplierGroupVM == null)
+                    {
+                        SupplierGroupVM newGroup = new SupplierGroupVM
+                        {
+                            Name = groupName,
+                            IsActive = supplier.IsActive,
+                            IsArchive = supplier.IsArchive,
+                            CreatedBy = supplier.CreatedBy,
+                            CreatedOn = supplier.CreatedOn
+                        };
+
+                        var insertResult = await supplierGroupService.Insert(newGroup);
+                        if (insertResult.Status != "Success") {
+                            //throw new Exception(insertResult.Message);
+
+                            var name = supplier.MasterSupplierGroupName;
+
+                            var retusls = supplierGroupService.grouplist(new[] { "M.Name" }, new[] { name }, null);
+
+                            // supplierGroupVM = (SupplierGroupVM)insertResult.DataVM;
+                            // Insert suppliers under this group
+                            foreach (var item in group)
+                            {
+                                string supplierName = item.Name.Trim();
+
+                                if (_repo.Exists(supplierName, conn, transaction))
+                                    continue;
+
+                                SupplierVM pvm = new SupplierVM
+                                {
+                                    Name = supplierName,
+                                    Code = string.IsNullOrWhiteSpace(item.Code)
+                                        ? _commonRepo.CodeGenerationNo("Supplier", "Supplier", conn, transaction)
+                                        : item.Code,
+                                    SupplierGroupId = retusls.Id,
+                                    IsActive = supplier.IsActive,
+                                    IsArchive = supplier.IsArchive,
+                                    CreatedBy = supplier.CreatedBy,
+                                    CreatedOn = supplier.CreatedOn
+                                };
+
+                                result = await _repo.Insert(pvm, conn, transaction);
+
+                                if (result.Status != "Success")
+                                    throw new Exception(result.Message);
+                            }
+
+                        }
+                        else {
+                            supplierGroupVM = (SupplierGroupVM)insertResult.DataVM;
+                            // Insert suppliers under this group
+                            foreach (var item in group)
+                            {
+                                string supplierName = item.Name.Trim();
+
+                                if (_repo.Exists(supplierName, conn, transaction))
+                                    continue;
+
+                                SupplierVM pvm = new SupplierVM
+                                {
+                                    Name = supplierName,
+                                    Code = string.IsNullOrWhiteSpace(item.Code)
+                                        ? _commonRepo.CodeGenerationNo("Supplier", "Supplier", conn, transaction)
+                                        : item.Code,
+                                    SupplierGroupId = supplierGroupVM.Id,
+                                    IsActive = supplier.IsActive,
+                                    IsArchive = supplier.IsArchive,
+                                    CreatedBy = supplier.CreatedBy,
+                                    CreatedOn = supplier.CreatedOn
+                                };
+
+                                result = await _repo.Insert(pvm, conn, transaction);
+
+                                if (result.Status != "Success")
+                                    throw new Exception(result.Message);
+                            }
+                        }
+
+                        
+                    }
+
+                   
+                }
+
+                transaction.Commit();
+
+                return new ResultVM
+                {
+                    Status = "Success",
+                    Message = "Suppliers saved successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                transaction?.Rollback();
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = ex.Message,
+                    ExMessage = ex.ToString()
+                };
+            }
+            finally
+            {
+                if (isNewConnection)
+                    conn?.Close();
+            }
+        }
+
+
+
+        //public async Task<ResultVM> InsertFromMasterSupplier(SupplierVM supplier)
+        //{
+        //    SupplierRepository _repo = new SupplierRepository();
+        //    _commonRepo = new CommonRepository();
+
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        await conn.OpenAsync();
+        //        isNewConnection = true;
+
+        //        transaction = conn.BeginTransaction();
+
+        //        SupplierGroupService supplierGroupService = new SupplierGroupService();
+
+        //        // =========================
+        //        // GROUP EXIST CHECK
+        //        // =========================
+
+        //        string groupName = supplier.MasterSupplierGroupName?.Trim();
+        //        if (string.IsNullOrWhiteSpace(groupName))
+        //            throw new Exception("Supplier group name is required.");
+
+        //        var groupResult = await supplierGroupService.grouplist(new[] { "M.Name" }, new[] { groupName }, null);
+
+        //        SupplierGroupVM supplierGroupVM = null;
+
+        //        if (groupResult?.Status == "Success" && groupResult.DataVM is List<SupplierGroupVM> groupList && groupList.Any())
+        //        {
+        //            supplierGroupVM = groupList.First();
+        //        }
+
+        //        // =========================
+        //        // CREATE GROUP IF NOT EXISTS
+        //        // =========================
+        //        if (supplierGroupVM == null)
+        //        {
+        //            SupplierGroupVM pgvm = new SupplierGroupVM
+        //            {
+        //                Name = groupName,
+        //                IsActive = supplier.IsActive,
+        //                IsArchive = supplier.IsArchive,
+        //                CreatedBy = supplier.CreatedBy,
+        //                CreatedOn = supplier.CreatedOn
+        //            };
+
+        //            var groupInsert = await supplierGroupService.Insert(pgvm);
+
+        //            if (groupInsert.Status != "Success")
+        //                throw new Exception(groupInsert.Message);
+
+        //            supplierGroupVM = (SupplierGroupVM)groupInsert.DataVM;
+        //        }
+
+        //        // =========================
+        //        // SUPPLIER INSERT (MULTIPLE)
+        //        // =========================
+
+        //        if (supplier.MasterSupplierList == null || !supplier.MasterSupplierList.Any())
+        //            throw new Exception("No supplier found to save.");
+
+        //        // 🔹 clean + distinct supplier list
+        //        var supplierList = supplier.MasterSupplierList.Where(x => !string.IsNullOrWhiteSpace(x.Name)).GroupBy(x => x.Name.Trim().ToLower()).Select(g => g.First()).ToList();
+
+        //        foreach (var item in supplierList)
+        //        {
+        //            string supplierName = item.Name.Trim();
+
+        //            bool supplierExists = _repo.Exists(supplierName, conn, transaction);
+
+        //            // 🔥 already exists → silently skip
+        //            if (supplierExists)
+        //                continue;
+
+        //            SupplierVM pvm = new SupplierVM
+        //            {
+        //                Name = supplierName,
+        //                Code = string.IsNullOrWhiteSpace(item.Code)? _commonRepo.CodeGenerationNo("Supplier", "Supplier", conn, transaction): item.Code,
+        //                SupplierGroupId = supplierGroupVM.Id,
+        //                IsActive = supplier.IsActive,
+        //                IsArchive = supplier.IsArchive,
+        //                CreatedBy = supplier.CreatedBy,
+        //                CreatedOn = supplier.CreatedOn
+        //            };
+
+        //            result = await _repo.Insert(pvm, conn, transaction);
+
+        //            if (result.Status != "Success")
+        //                throw new Exception(result.Message);
+        //        }
+
+        //        transaction.Commit();
+
+        //        return new ResultVM
+        //        {
+        //            Status = "Success",
+        //            Message = "Suppliers saved successfully."
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //            transaction.Rollback();
+
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = ex.Message,
+        //            ExMessage = ex.ToString()
+        //        };
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //            conn.Close();
+        //    }
+        //}
+
+
+
+
+
+
+
+
+
+
+
+        //public async Task<ResultVM> InsertFromMasterSupplier(SupplierVM supplier)
+        //{
+        //    SupplierRepository _repo = new SupplierRepository();
+        //    _commonRepo = new CommonRepository();
+
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
+        //        transaction = conn.BeginTransaction();
+
+        //        SupplierGroupService supplierGroupService = new SupplierGroupService();
+
+        //        // 🔹 Check group exists
+        //        var groupResult = supplierGroupService.grouplist(new[] { "M.Name" }, new[] { supplier.MasterSupplierGroupName }, null);
+
+        //        int supplierGroupId = 0;
+
+        //        if (groupResult != null && groupResult.Id != 0)
+        //        {
+        //            supplierGroupId = groupResult.Id;
+        //        }
+        //        else
+        //        {
+        //            SupplierGroupVM pgvm = new SupplierGroupVM
+        //            {
+        //                Name = supplier.MasterSupplierGroupName,
+        //                IsActive = supplier.IsActive,
+        //                IsArchive = supplier.IsArchive,
+        //                CreatedBy = supplier.CreatedBy,
+        //                CreatedOn = supplier.CreatedOn
+        //            };
+
+        //            var insertGroup = await supplierGroupService.Insert(pgvm);
+
+        //            if (insertGroup.Status.ToLower() != "success")
+        //                throw new Exception(insertGroup.Message);
+
+        //            supplierGroupId = ((SupplierGroupVM)insertGroup.DataVM).Id;
+        //        }
+
+        //        if (supplier.MasterSupplierList == null || !supplier.MasterSupplierList.Any())
+        //            throw new Exception("No supplier details found.");
+
+        //        foreach (var item in supplier.MasterSupplierList)
+        //        {
+
+        //            // 🔹 Supplier prepare
+        //            SupplierVM pvm = new SupplierVM
+
+        //            {
+        //                SupplierGroupId = supplierGroupId,
+        //                IsActive = supplier.IsActive,
+        //                IsArchive = supplier.IsArchive,
+        //                CreatedBy = supplier.CreatedBy,
+        //                CreatedOn = supplier.CreatedOn,
+        //                Code = item.Code
+        //            };
+
+        //            pvm.Name = item.Name;
+
+        //            if (string.IsNullOrWhiteSpace(pvm.Code))
+        //            {
+        //                pvm.Code = _commonRepo.CodeGenerationNo(
+        //                    "Supplier",
+        //                    "Supplier",
+        //                    conn,
+        //                    transaction
+        //                );
+        //            }
+
+        //            result = await _repo.Insert(pvm, conn, transaction);
+
+        //            if (result.Status != "Success")
+        //                throw new Exception(result.Message);
+        //        }
+
+        //        transaction.Commit();
+        //        result.Status = "Success";
+        //        result.Message = "All suppliers saved successfully";
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //            transaction.Rollback();
+
+        //        result.Message = ex.Message;
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //            conn.Close();
+        //    }
+        //}
+
+
+
+
+
         //public async Task<ResultVM> GetPurchaseBySupplier(string?[] IDs)
         //{
         //    SupplierRepository _repo = new SupplierRepository();
