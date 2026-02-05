@@ -74,6 +74,7 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
+
         [HttpPost("GetCustomerByCategory")]
         public async Task<ResultVM> GetCustomerByCategory(CustomerVM customer)
         {
@@ -319,6 +320,64 @@ namespace ShampanPOS.Controllers
             }
         }
 
+        [HttpPost("GetProductByCategory")]
+        public async Task<ResultVM> GetProductByCategory(ProductVM product)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+
+            try
+            {
+                List<string> conditionFields = new List<string>();
+                List<string> conditionValues = new List<string>();
+
+                // Customer Group
+                if (product.Id != null && product.Id != 0)
+                {
+                    conditionFields.Add("M.ProductGroupId");
+                    conditionValues.Add(product.Id.ToString());
+                }
+
+                // Customer Name
+                if (!string.IsNullOrEmpty(product.Name))
+                {
+                    conditionFields.Add("M.Name");
+                    conditionValues.Add(product.Name);
+                }
+
+                // Customer Code
+                if (!string.IsNullOrEmpty(product.Code))
+                {
+                    conditionFields.Add("M.Code");
+                    conditionValues.Add(product.Code);
+                }
+
+                ProductService _service = new ProductService();
+
+                if (conditionFields.Count == 0)
+                {
+                    resultVM = await _service.ReportList(null, null, null);
+                }
+                else
+                {
+                    resultVM = await _service.ReportList(
+                        conditionFields.ToArray(),
+                        conditionValues.ToArray(),
+                        null
+                    );
+                }
+
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message
+                };
+            }
+        }
 
     }
 }
