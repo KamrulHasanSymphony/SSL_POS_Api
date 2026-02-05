@@ -1410,6 +1410,116 @@ WHERE 1 = 1 ";
         //    }
         //}
 
+        // List Method
+        public async Task<ResultVM> ReportList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = @"
+     SELECT
+    ISNULL(M.Id, 0) Id,
+    ISNULL(M.Code, '') Code,
+    ISNULL(M.Name, '') Name,
+    ISNULL(M.ProductGroupId, 0) ProductGroupId,
+    ISNULL(M.BanglaName, '') BanglaName,
+    ISNULL(M.Description, '') Description,
+    ISNULL(M.UOMId, 0) UOMId,
+    ISNULL(M.HSCodeNo, '') HSCodeNo,
+    ISNULL(M.IsArchive, 0) IsArchive,
+    ISNULL(M.IsActive, 0) IsActive,
+    ISNULL(M.CreatedBy, '') CreatedBy,
+    ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') CreatedOn,
+    ISNULL(M.LastModifiedBy, '') LastModifiedBy,
+    ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') LastModifiedOn,
+    ISNULL(M.ImagePath,'') AS ImagePath,
+	ISNULL(M.VATRate, 0) AS VATRate,
+	ISNULL(M.SDRate, 0) AS SDRate,
+	ISNULL(M.PurchasePrice, 0) AS PurchasePrice,
+	ISNULL(M.SalePrice, 0) AS SalePrice
+
+FROM Products M
+WHERE 1 = 1
+";
+
+                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+                {
+                    query += " AND Id = @Id ";
+
+
+                }
+
+                // Apply additional conditions
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                // SET additional conditions param
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@Id", vm.Id);
+                }
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new ProductVM
+                {
+                    Id = row.Field<int>("Id"),
+                    Code = row.Field<string>("Code"),
+                    Name = row.Field<string>("Name"),
+                    ProductGroupId = row.Field<int>("ProductGroupId"),
+                    BanglaName = row.Field<string>("BanglaName"),
+                    Description = row.Field<string>("Description"),
+                    UOMId = row.Field<int?>("UOMId"), // Nullable field
+                    HSCodeNo = row.Field<string>("HSCodeNo"),
+                    IsArchive = row.Field<bool>("IsArchive"),
+                    IsActive = row.Field<bool>("IsActive"),
+                    CreatedBy = row.Field<string>("CreatedBy"),
+                    CreatedOn = row.Field<string>("CreatedOn"),
+                    LastModifiedBy = row.Field<string>("LastModifiedBy"),
+                    LastModifiedOn = row.Field<string?>("LastModifiedOn"),
+                    ImagePath = row.Field<string>("ImagePath"),
+                    VATRate = row.Field<decimal?>("VATRate") ?? 0.0m,
+                    SDRate = row.Field<decimal?>("SDRate") ?? 0.0m,
+                    PurchasePrice = row.Field<decimal?>("PurchasePrice") ?? 0.0m,
+                    SalePrice = row.Field<decimal?>("SalePrice") ?? 0.0m
+
+                }).ToList();
+
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Message = ex.Message;
+                result.ExMessage = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
+
 
 
 
