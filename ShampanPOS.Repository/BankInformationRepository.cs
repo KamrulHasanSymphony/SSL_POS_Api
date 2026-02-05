@@ -38,13 +38,13 @@ namespace ShampanPOS.Repository
                 string query = @"
 INSERT INTO BankInformations
 (
-    Code, Name, BanglaName, Address, BanglaAddress, 
+    Code, Name, UserId, BanglaName, Address, BanglaAddress, 
      TelephoneNo, FaxNo, Email,
     Comments, IsArchive, IsActive, CreatedBy, CreatedOn
 )
 VALUES
 (
-    @Code, @Name, @BanglaName, @Address, @BanglaAddress, 
+    @Code, @Name,@UserId, @BanglaName, @Address, @BanglaAddress, 
      @TelephoneNo, @FaxNo, @Email,
     @Comments, @IsArchive, @IsActive, @CreatedBy, @CreatedOn 
 );
@@ -54,8 +54,7 @@ SELECT SCOPE_IDENTITY();";
                 {
                     cmd.Parameters.AddWithValue("@Code", vm.Code);
                     cmd.Parameters.AddWithValue("@Name", vm.Name);
-
-                   
+                    cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
 
                     cmd.Parameters.AddWithValue("@BanglaName", vm.BanglaName ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Address", vm.Address ?? (object)DBNull.Value);

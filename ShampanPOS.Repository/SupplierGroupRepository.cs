@@ -43,23 +43,29 @@ INSERT INTO SupplierGroups
 (
  Code
 ,Name
+,UserId
 ,Description
+,CompanyId
 ,Comments
 ,IsArchive
 ,IsActive
 ,CreatedBy
 ,CreatedOn
+
 )
 VALUES 
 (
  @Code
 ,@Name
+,@UserId
 ,@Description
+,@CompanyId
 ,@Comments
 ,@IsArchive
 ,@IsActive
 ,@CreatedBy
 ,@CreatedOn
+
 );
 SELECT SCOPE_IDENTITY();";
 
@@ -67,10 +73,12 @@ SELECT SCOPE_IDENTITY();";
                 {
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Name", vm.Name ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Description", vm.Description ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
-                    cmd.Parameters.AddWithValue("@IsActive", vm.IsActive);
+                    cmd.Parameters.AddWithValue("@IsActive", true);
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now.ToString());
 
@@ -292,6 +300,7 @@ SELECT SCOPE_IDENTITY();";
 ,ISNULL(M.Code,'')	Code
 ,ISNULL(M.Name,'')	Name
 ,ISNULL(M.Description,'')	Description
+,ISNULL(M.UserId,0)	UserId
 ,ISNULL(M.Comments,'')	Comments
 ,ISNULL(M.IsArchive,0)	IsArchive
 ,ISNULL(M.IsActive,0)	IsActive
@@ -325,14 +334,15 @@ WHERE 1 = 1";
 
                 objComm.Fill(dataTable);
 
-                var model = new List<ProductGroupVM>();
+                var model = new List<SupplierGroupVM>();
                 foreach (DataRow row in dataTable.Rows)
                 {
-                    model.Add(new ProductGroupVM
+                    model.Add(new SupplierGroupVM
                     {
                         Id = Convert.ToInt32(row["Id"]),
                         Code = row["Code"].ToString(),
                         Name = row["Name"].ToString(),
+                        UserId = row["UserId"].ToString(),
                         Description = row["Description"].ToString(),
                         Comments = row["Comments"].ToString(),
                         CreatedBy = row["CreatedBy"].ToString(),

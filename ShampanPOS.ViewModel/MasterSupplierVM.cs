@@ -11,8 +11,13 @@ namespace ShampanPOS.ViewModel
     public class MasterSupplierVM
     {
         public int Id { get; set; }
+        public int? CompanyId { get; set; }
+
         [Display(Name = "Code")]
         public string? Code { get; set; }
+        public string? MasterSupplierGroupCode { get; set; }
+        public string? MasterSupplierGroupDescription { get; set; }
+
         [Display(Name = "Name")]
         public string Name { get; set; }
 
@@ -22,6 +27,7 @@ namespace ShampanPOS.ViewModel
 
         public string? GroupName { get; set; }
         public string? MasterSupplierGroupName { get; set; }
+        public string? Description { get; set; }
 
 
         [Display(Name = "Bangla Name")]

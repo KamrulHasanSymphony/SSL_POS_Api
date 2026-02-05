@@ -16,6 +16,9 @@ namespace ShampanPOS.ViewModel
 
         [Display(Name = "Name")]
         public string? Name { get; set; }
+        public int? CompanyId { get; set; }
+
+        public string? UserId { get; set; }
 
         [Display(Name = "Product Group")]
         public int? ProductGroupId { get; set; }

@@ -33,27 +33,31 @@ namespace ShampanPOS.Repository
 
 INSERT INTO ProductGroups 
 (
- Code
-,Name
-,Description
-,Comments
-,IsArchive
-,IsActive
-,CreatedBy
-,CreatedFrom
-,CreatedOn
+Code,
+Name,
+CompanyId,
+UserId,
+Description,
+Comments,
+IsArchive,
+IsActive,
+CreatedBy,
+CreatedFrom,
+CreatedOn
 )
 VALUES 
 (
- @Code
-,@Name
-,@Description
-,@Comments
-,@IsArchive
-,@IsActive
-,@CreatedBy
-,@CreatedFrom
-,@CreatedOn
+ @Code,
+@Name,
+@CompanyId,
+@UserId,
+@Description,
+@Comments,
+@IsArchive,
+@IsActive,
+@CreatedBy,
+@CreatedFrom,
+@CreatedOn
 );
  SELECT SCOPE_IDENTITY(); ";
 
@@ -61,10 +65,12 @@ VALUES
                 {
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Name", vm.Name ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Description", vm.Description ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
-                    cmd.Parameters.AddWithValue("@IsActive", vm.IsActive);
+                    cmd.Parameters.AddWithValue("@IsActive", true);
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now.ToString());
@@ -284,6 +290,7 @@ SELECT
 ,ISNULL(M.Code,'')	Code
 ,ISNULL(M.Name,'')	Name
 ,ISNULL(M.Description,'')	Description
+,ISNULL(M.UserId,0)	UserId
 ,ISNULL(M.Comments,'')	Comments
 ,ISNULL(M.IsArchive,0)	IsArchive
 ,ISNULL(M.IsActive,0)	IsActive
@@ -292,7 +299,7 @@ SELECT
 ,ISNULL(FORMAT(M.CreatedOn,'yyyy-MM-dd HH:mm'),'1900-01-01')	CreatedOn
 ,ISNULL(FORMAT(M.LastModifiedOn,'yyyy-MM-dd HH:mm'),'1900-01-01')	LastModifiedOn
 
-FROM ProductGroups M WHERE 1=1 ";
+FROM ProductGroups M WHERE 1=1 "; 
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
                 {
@@ -322,6 +329,7 @@ FROM ProductGroups M WHERE 1=1 ";
                         Id = Convert.ToInt32(row["Id"]),
                         Code = row["Code"].ToString(),
                         Name = row["Name"].ToString(),
+                        UserId = row["UserId"].ToString(),
                         Description = row["Description"].ToString(),
                         Comments = row["Comments"].ToString(),
                         CreatedBy = row["CreatedBy"].ToString(),

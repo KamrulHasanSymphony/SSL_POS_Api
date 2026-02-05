@@ -37,12 +37,12 @@ namespace ShampanPOS.Repository
                 string query = @"
 INSERT INTO BankAccounts
 (
-     AccountNo, AccountName,IsCash, BankId, BranchName, 
+     AccountNo, AccountName,UserId,IsCash, BankId, BranchName, 
     Comments, IsArchive, IsActive, CreatedBy, CreatedOn
 )
 VALUES
 (
-    @AccountNo, @AccountName, @IsCash,@BankId, @BranchName, 
+    @AccountNo, @AccountName,@UserId, @IsCash,@BankId, @BranchName, 
     @Comments, @IsArchive, @IsActive, @CreatedBy, @CreatedOn 
 );
 SELECT SCOPE_IDENTITY();";
@@ -52,6 +52,8 @@ SELECT SCOPE_IDENTITY();";
                     cmd.Parameters.AddWithValue("@AccountNo", vm.AccountNo ?? (object)DBNull.Value);
 
                     cmd.Parameters.AddWithValue("@AccountName", vm.AccountName);
+                    cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
+
                     cmd.Parameters.AddWithValue("@BankId", vm.BankId);
                     cmd.Parameters.AddWithValue("@BranchName", vm.BranchName ?? (object)DBNull.Value);
 
@@ -285,6 +287,7 @@ SELECT
     ISNULL(M.Id, 0) AS Id,
 	ISNULL(M.BankId, 0) AS BankId,
     ISNULL(M.AccountName, '') AS AccountName,
+	--ISNULL(M.UserId, 0) AS UserId,
     ISNULL(M.BranchName, '') AS BranchName,
     ISNULL(M.AccountNo, '') AS AccountNo,
     ISNULL(M.Comments, '') AS Comments,
@@ -331,6 +334,7 @@ WHERE 1 = 1
                         Id = row.Field<int>("Id"),
                         BankId = row.Field<int>("BankId"),
                         AccountName = row.Field<string>("AccountName"),
+                        //UserId = row.Field<string>("UserId"),
                         BranchName = row.Field<string>("BranchName"),
                         AccountNo = row.Field<string>("AccountNo"),
                         Comments = row.Field<string>("Comments"),

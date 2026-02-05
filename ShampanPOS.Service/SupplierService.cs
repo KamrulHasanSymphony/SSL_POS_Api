@@ -631,10 +631,14 @@ namespace ShampanPOS.Service
                         SupplierGroupVM newGroup = new SupplierGroupVM
                         {
                             Name = groupName,
+                            Description = supplier.Description,
                             IsActive = supplier.IsActive,
                             IsArchive = supplier.IsArchive,
                             CreatedBy = supplier.CreatedBy,
-                            CreatedOn = supplier.CreatedOn
+                            CreatedOn = supplier.CreatedOn,
+                            CompanyId = supplier.CompanyId,
+                            UserId = supplier.UserId
+
                         };
 
                         var insertResult = await supplierGroupService.Insert(newGroup);
@@ -656,15 +660,22 @@ namespace ShampanPOS.Service
 
                                 SupplierVM pvm = new SupplierVM
                                 {
+                                    CompanyId = supplier.CompanyId,  
+                                    UserId = supplier.UserId,
                                     Name = supplierName,
-                                    Code = string.IsNullOrWhiteSpace(item.Code)
-                                        ? _commonRepo.CodeGenerationNo("Supplier", "Supplier", conn, transaction)
-                                        : item.Code,
+                                    Code = string.IsNullOrWhiteSpace(item.Code)? _commonRepo.CodeGenerationNo("Supplier", "Supplier", conn, transaction): item.Code,
                                     SupplierGroupId = retusls.Id,
+                                    BanglaName = item.BanglaName,  
+                                    Address = item.Address,        
+                                    City = item.City,            
+                                    TelephoneNo = item.TelephoneNo, 
+                                    Email = item.Email,           
+                                    ContactPerson = item.ContactPerson,
                                     IsActive = supplier.IsActive,
                                     IsArchive = supplier.IsArchive,
                                     CreatedBy = supplier.CreatedBy,
-                                    CreatedOn = supplier.CreatedOn
+                                    CreatedOn = supplier.CreatedOn,
+                                    CreatedFrom = supplier.CreatedFrom,
                                 };
 
                                 result = await _repo.Insert(pvm, conn, transaction);
@@ -686,11 +697,19 @@ namespace ShampanPOS.Service
 
                                 SupplierVM pvm = new SupplierVM
                                 {
+                                    CompanyId = supplier.CompanyId,
+                                    UserId = supplier.UserId,
                                     Name = supplierName,
                                     Code = string.IsNullOrWhiteSpace(item.Code)
                                         ? _commonRepo.CodeGenerationNo("Supplier", "Supplier", conn, transaction)
                                         : item.Code,
                                     SupplierGroupId = supplierGroupVM.Id,
+                                    BanglaName = item.BanglaName,
+                                    Address = item.Address,
+                                    City = item.City,
+                                    TelephoneNo = item.TelephoneNo,
+                                    Email = item.Email,
+                                    ContactPerson = item.ContactPerson,
                                     IsActive = supplier.IsActive,
                                     IsArchive = supplier.IsArchive,
                                     CreatedBy = supplier.CreatedBy,
@@ -701,6 +720,8 @@ namespace ShampanPOS.Service
 
                                 if (result.Status != "Success")
                                     throw new Exception(result.Message);
+
+
                             }
                         }
 

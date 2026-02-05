@@ -15,8 +15,12 @@ namespace ShampanPOS.ViewModel
         public string? Code { get; set; }
         [Required]
 
+        public int? CompanyId { get; set; }
+
         [Display(Name = "Name")]
         public string? Name { get; set; }
+        public string? MasterItemGroupDescription { get; set; }
+        public string? MasterItemGroupCode { get; set; }
 
         [Display(Name = "Product Group")]
         public int? MasterItemGroupId { get; set; }
