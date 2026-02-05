@@ -112,145 +112,145 @@ namespace ShampanPOS.Service
             }
         }
 
-        public async Task<ResultVM> InsertFromMasterItem(ProductVM product)
-        {
-            ProductRepository _repo = new ProductRepository();
-            _commonRepo = new CommonRepository();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //public async Task<ResultVM> InsertFromMasterItem(ProductVM product)
+        //{
+        //    ProductRepository _repo = new ProductRepository();
+        //    _commonRepo = new CommonRepository();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
-            bool isNewConnection = false;
-            SqlConnection conn = null;
-            SqlTransaction transaction = null;
-            try
-            {
-                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                conn.Open();
-                isNewConnection = true;
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
 
-                transaction = conn.BeginTransaction();
+        //        transaction = conn.BeginTransaction();
 
-                ProductGroupService productGroupService = new ProductGroupService();
-                ProductGroupVM pgvm = new ProductGroupVM();
+        //        ProductGroupService productGroupService = new ProductGroupService();
+        //        ProductGroupVM pgvm = new ProductGroupVM();
 
-                pgvm.Name = product.MasterItemGroupName;
-                pgvm.IsActive = product.IsActive;
-                pgvm.IsArchive = product.IsArchive;
-                pgvm.CreatedBy = product.CreatedBy;
-                pgvm.CreatedOn = product.CreatedOn;
+        //        pgvm.Name = product.MasterItemGroupName;
+        //        pgvm.IsActive = product.IsActive;
+        //        pgvm.IsArchive = product.IsArchive;
+        //        pgvm.CreatedBy = product.CreatedBy;
+        //        pgvm.CreatedOn = product.CreatedOn;
 
-                var group = await productGroupService.Insert(pgvm);
-                if (group.Status.ToLower() == "success")
-                {
+        //        var group = await productGroupService.Insert(pgvm);
+        //        if (group.Status.ToLower() == "success")
+        //        {
 
-                    ProductGroupVM productGroupVM = (ProductGroupVM)group.DataVM;
+        //            ProductGroupVM productGroupVM = (ProductGroupVM)group.DataVM;
 
-                    ProductVM pvm = new ProductVM();
-                    var details = pvm.MasterItemList;
+        //            ProductVM pvm = new ProductVM();
+        //            var details = pvm.MasterItemList;
 
-                    pvm.Code = product.Code;
-                    if (product.MasterItemList != null && product.MasterItemList.Any())
-                    {
-                        pvm.Name = product.MasterItemList.First().Name;
-                    }
-                    pvm.ProductGroupId = productGroupVM.Id;
-                    pvm.IsActive = product.IsActive;
-                    pvm.IsArchive = product.IsArchive;
-                    pvm.CreatedBy = product.CreatedBy;
-                    pvm.CreatedOn = product.CreatedOn;
-
-
-                    if (string.IsNullOrWhiteSpace(pvm.Code))
-                    {
-                        pvm.Code = _commonRepo.CodeGenerationNo(
-                            "Product",
-                            "Product",
-                            conn,
-                            transaction
-                        );
-                    }
-
-                    result = await _repo.Insert(pvm, conn, transaction);
-                }
-                else {
-                    var name = product.MasterItemGroupName;
-
-                    var retusls = productGroupService.grouplist(new[] { "M.Name" }, new[] { name }, null);
-
-                    ProductVM pvm = new ProductVM();
+        //            pvm.Code = product.Code;
+        //            if (product.MasterItemList != null && product.MasterItemList.Any())
+        //            {
+        //                pvm.Name = product.MasterItemList.First().Name;
+        //            }
+        //            pvm.ProductGroupId = productGroupVM.Id;
+        //            pvm.IsActive = product.IsActive;
+        //            pvm.IsArchive = product.IsArchive;
+        //            pvm.CreatedBy = product.CreatedBy;
+        //            pvm.CreatedOn = product.CreatedOn;
 
 
-                    pvm.Code = product.Code;
-                    if (product.MasterItemList != null && product.MasterItemList.Any())
-                    {
-                        pvm.Name = product.MasterItemList.First().Name;
-                    }
-                    pvm.ProductGroupId = retusls.Id;
-                    pvm.IsActive = product.IsActive;
-                    pvm.IsArchive = product.IsArchive;
-                    pvm.CreatedBy = product.CreatedBy;
-                    pvm.CreatedOn = product.CreatedOn;
+        //            if (string.IsNullOrWhiteSpace(pvm.Code))
+        //            {
+        //                pvm.Code = _commonRepo.CodeGenerationNo(
+        //                    "Product",
+        //                    "Product",
+        //                    conn,
+        //                    transaction
+        //                );
+        //            }
+
+        //            result = await _repo.Insert(pvm, conn, transaction);
+        //        }
+        //        else {
+        //            var name = product.MasterItemGroupName;
+
+        //            var retusls = productGroupService.grouplist(new[] { "M.Name" }, new[] { name }, null);
+
+        //            ProductVM pvm = new ProductVM();
 
 
-                    if (string.IsNullOrWhiteSpace(pvm.Code))
-                    {
-                        pvm.Code = _commonRepo.CodeGenerationNo(
-                            "Product",
-                            "Product",
-                            conn,
-                            transaction
-                        );
-                    }
+        //            pvm.Code = product.Code;
+        //            if (product.MasterItemList != null && product.MasterItemList.Any())
+        //            {
+        //                pvm.Name = product.MasterItemList.First().Name;
+        //            }
+        //            pvm.ProductGroupId = retusls.Id;
+        //            pvm.IsActive = product.IsActive;
+        //            pvm.IsArchive = product.IsArchive;
+        //            pvm.CreatedBy = product.CreatedBy;
+        //            pvm.CreatedOn = product.CreatedOn;
 
-                    result = await _repo.Insert(pvm, conn, transaction);
-                }
 
-                if (result.Status.ToLower() == "success")
-                {
+        //            if (string.IsNullOrWhiteSpace(pvm.Code))
+        //            {
+        //                pvm.Code = _commonRepo.CodeGenerationNo(
+        //                    "Product",
+        //                    "Product",
+        //                    conn,
+        //                    transaction
+        //                );
+        //            }
 
-                    ProductVM productData = (ProductVM)result.DataVM;
-                    ProductUOMFactorsVM factors = new ProductUOMFactorsVM();
-                    factors.Name = "Pcs";
-                    factors.Packsize = "1x1";
-                    factors.ConversationFactor = 1;
-                    factors.ProductId = productData.Id;
-                    factors.IsArchive = false;
-                    factors.IsActive = true;
-                    factors.CreatedBy = product.CreatedBy;
-                    factors.CreatedOn = product.CreatedOn;
-                    factors.CreatedFrom = product.CreatedFrom;
+        //            result = await _repo.Insert(pvm, conn, transaction);
+        //        }
 
-                    var PorductUomFactors = await _repo.InsertProductUOMFactorss(factors, conn, transaction);
+        //        if (result.Status.ToLower() == "success")
+        //        {
 
-                }
-                if (isNewConnection && result.Status == "Success")
-                {
-                    transaction.Commit();
-                }
-                else
-                {
-                    throw new Exception(result.Message);
-                }
+        //            ProductVM productData = (ProductVM)result.DataVM;
+        //            ProductUOMFactorsVM factors = new ProductUOMFactorsVM();
+        //            factors.Name = "Pcs";
+        //            factors.Packsize = "1x1";
+        //            factors.ConversationFactor = 1;
+        //            factors.ProductId = productData.Id;
+        //            factors.IsArchive = false;
+        //            factors.IsActive = true;
+        //            factors.CreatedBy = product.CreatedBy;
+        //            factors.CreatedOn = product.CreatedOn;
+        //            factors.CreatedFrom = product.CreatedFrom;
 
-                return result;
-            }
-            catch (Exception ex)
-            {
-                if (transaction != null && isNewConnection)
-                {
-                    transaction.Rollback();
-                }
-                result.Message = ex.Message.ToString();
-                result.ExMessage = ex.ToString();
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
+        //            var PorductUomFactors = await _repo.InsertProductUOMFactorss(factors, conn, transaction);
+
+        //        }
+        //        if (isNewConnection && result.Status == "Success")
+        //        {
+        //            transaction.Commit();
+        //        }
+        //        else
+        //        {
+        //            throw new Exception(result.Message);
+        //        }
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+        //        result.Message = ex.Message.ToString();
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
 
 
         public async Task<ResultVM> Update(ProductVM product)
@@ -773,6 +773,177 @@ namespace ShampanPOS.Service
                 }
             }
         }
+
+
+
+        public async Task<ResultVM> InsertFromMasterItem(ProductVM product)
+        {
+            ProductRepository _repo = new ProductRepository();
+            _commonRepo = new CommonRepository();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            bool isNewConnection = false;
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+            try
+            {
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+
+                transaction = conn.BeginTransaction();
+
+                ProductGroupService productGroupService = new ProductGroupService();
+
+                if (product.MasterItemList == null || !product.MasterItemList.Any())
+                    throw new Exception("No supplier found to save.");
+
+                // Group suppliers by their group name
+                var groupedItems = product.MasterItemList
+                    .Where(x => !string.IsNullOrWhiteSpace(x.MasterItemGroupName))
+                    .GroupBy(x => x.MasterItemGroupName.Trim())
+                    .ToList();
+
+
+                foreach (var group in groupedItems)
+                {
+                    string groupName = group.Key;
+                    if (string.IsNullOrWhiteSpace(groupName))
+                        throw new Exception("Supplier group name is required.");
+
+                    // Check if the group exists
+                    var groupResult = await productGroupService.grouplist(
+                        new[] { "M.Name" }, new[] { groupName }, null);
+
+                    ProductGroupVM productGroupVM = groupResult?.Status == "Success" && groupResult.DataVM is List<ProductGroupVM> list && list.Any() ? list.First() : null;
+
+                    // Create group if it doesn't exist
+                    if (productGroupVM == null)
+                    {
+                        ProductGroupVM newGroup = new ProductGroupVM
+                        {
+                            Name = groupName,
+                            Description = product.Description,
+                            IsActive = product.IsActive,
+                            IsArchive = product.IsArchive,
+                            CreatedBy = product.CreatedBy,
+                            CreatedOn = product.CreatedOn,
+                            CompanyId = product.CompanyId,
+                            UserId = product.UserId
+                        };
+
+                        var insertResult = await productGroupService.Insert(newGroup);
+                        if (insertResult.Status != "Success")
+                        {
+                            //throw new Exception(insertResult.Message);
+
+                            var name = product.MasterItemGroupName;
+
+                            var retusls = productGroupService.grouplist(new[] { "M.Name" }, new[] { name }, null);
+
+                            foreach (var item in group)
+                            {
+                                string supplierName = item.Name.Trim();
+
+                                if (_repo.Exists(supplierName, conn, transaction))
+                                    continue;
+
+                                ProductVM pvm = new ProductVM
+                                {
+                                    CompanyId = product.CompanyId,
+                                    UserId = product.UserId,
+                                    Name = supplierName,
+                                    Code = string.IsNullOrWhiteSpace(item.Code) ? _commonRepo.CodeGenerationNo("Supplier", "Supplier", conn, transaction) : item.Code,
+                                    ProductGroupId = retusls.Id,
+                                    BanglaName = item.BanglaName,
+                                    UOMId = item.UOMId,
+                                    HSCodeNo = item.HSCodeNo,
+                                    VATRate = item.VATRate,
+                                    SDRate = item.SDRate,
+                                    IsActive = product.IsActive,
+                                    IsArchive = product.IsArchive,
+                                    CreatedBy = product.CreatedBy,
+                                    CreatedOn = product.CreatedOn
+                                };
+
+                                result = await _repo.Insert(pvm, conn, transaction);
+
+                                if (result.Status != "Success")
+                                    throw new Exception(result.Message);
+                            }
+
+                        }
+                        else
+                        {
+                            productGroupVM = (ProductGroupVM)insertResult.DataVM;
+                            // Insert suppliers under this group
+                            foreach (var item in group)
+                            {
+                                string supplierName = item.Name.Trim();
+
+                                if (_repo.Exists(supplierName, conn, transaction))
+                                    continue;
+
+                                ProductVM pvm = new ProductVM
+                                {
+                                    CompanyId = product.CompanyId,
+                                    UserId = product.UserId,
+
+                                    Name = supplierName,
+                                    Code = string.IsNullOrWhiteSpace(item.Code)
+                                        ? _commonRepo.CodeGenerationNo("Supplier", "Supplier", conn, transaction)
+                                        : item.Code,
+                                    ProductGroupId = productGroupVM.Id,
+                                    BanglaName = item.BanglaName,
+                                    UOMId = item.UOMId,
+                                    HSCodeNo = item.HSCodeNo,
+                                    VATRate = item.VATRate,
+                                    SDRate = item.SDRate,
+                                    IsActive = product.IsActive,
+                                    IsArchive = product.IsArchive,
+                                    CreatedBy = product.CreatedBy,
+                                    CreatedOn = product.CreatedOn
+                                };
+
+                                result = await _repo.Insert(pvm, conn, transaction);
+
+                                if (result.Status != "Success")
+                                    throw new Exception(result.Message);
+                            }
+                        }
+
+
+                    }
+
+
+                }
+
+                transaction.Commit();
+
+                return new ResultVM
+                {
+                    Status = "Success",
+                    Message = "Suppliers saved successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                transaction?.Rollback();
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = ex.Message,
+                    ExMessage = ex.ToString()
+                };
+            }
+            finally
+            {
+                if (isNewConnection)
+                    conn?.Close();
+            }
+        }
+
+ 
 
     }
 

@@ -1282,10 +1282,17 @@ WHERE
                 }
 
                 string query = @"
-						 SELECT 
+                     SELECT 
                         ISNULL(H.Id, 0) AS Id,
                         ISNULL(H.Code, '') AS Code,               
-                        ISNULL(H.Name, '') AS Name
+                        ISNULL(H.Name, '') AS Name,
+						ISNULL(H.Description,'')	Description,
+                        ISNULL(H.IsArchive,0)	IsArchive,
+                        ISNULL(H.IsActive,0)	IsActive,
+                        ISNULL(H.CreatedBy,'')	CreatedBy,
+                        ISNULL(H.LastModifiedBy,'')	LastModifiedBy,
+                        ISNULL(FORMAT(H.CreatedOn,'yyyy-MM-dd HH:mm'),'1900-01-01')	CreatedOn,
+                        ISNULL(FORMAT(H.LastModifiedOn,'yyyy-MM-dd HH:mm'),'1900-01-01')	LastModifiedOn
                         FROM MasterItemGroup H
                         WHERE IsArchive != 1 AND IsActive = 1 ";
 
@@ -1306,6 +1313,13 @@ WHERE
                     Id = Convert.ToInt32(row["Id"]),
                     Name = row["Name"]?.ToString(),
                     Code = row["Code"]?.ToString(),
+                    Description = row["Description"].ToString(),
+                    CreatedBy = row["CreatedBy"].ToString(),
+                    LastModifiedBy = row["LastModifiedBy"].ToString(),
+                    IsArchive = Convert.ToBoolean(row["IsArchive"]),
+                    IsActive = Convert.ToBoolean(row["IsActive"]),
+                    CreatedOn = row["CreatedOn"].ToString(),
+                    LastModifiedOn = row["LastModifiedOn"].ToString(),
 
 
 
@@ -3562,14 +3576,24 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
                     throw new Exception("Database connection fail!");
                 }
                 string sqlQuery = @"
-	         SELECT DISTINCT 
+             SELECT DISTINCT 
 
-             ISNULL(H.Id, 0) Id
-            ,ISNULL(H.Code, '') Code 
-            ,ISNULL(H.Name, '') Name 
-            ,ISNULL(H.IsActive, 0) IsActive
-            ,ISNULL(H.IsArchive, 0) IsArchive
-            ,CASE WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Active' ELSE 'Inactive'   END Status
+            ISNULL(H.Id, 0) Id,
+            ISNULL(H.Code, '') Code, 
+            ISNULL(H.Name, '') Name,
+			ISNULL(H.MasterItemGroupId, 0) MasterItemGroupId,
+			ISNULL(H.BanglaName, '') BanglaName,
+			ISNULL(H.Description, '') Description,
+			ISNULL(H.UOMId, 0) UOMId,
+			ISNULL(H.HSCodeNo, '') HSCodeNo,
+            ISNULL(H.IsActive, 0) IsActive,
+            ISNULL(H.IsArchive, 0) IsArchive,
+			ISNULL(H.CreatedBy, '') CreatedBy,
+			ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') CreatedOn,
+			ISNULL(H.LastModifiedBy, '') LastModifiedBy,
+			ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') LastModifiedOn,
+			ISNULL(H.VATRate, 0) AS VATRate,
+			ISNULL(H.SDRate, 0) AS SDRate
             FROM MasterItem H
             Where 1=1
             And H.IsActive = 1
@@ -3595,6 +3619,22 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
                     Name = row["Name"]?.ToString(),
                     IsActive = Convert.ToBoolean(row["IsActive"]),
                     IsArchive = Convert.ToBoolean(row["IsArchive"]),
+                    MasterItemGroupId = row.Field<int>("MasterItemGroupId"),
+                    BanglaName = row.Field<string>("BanglaName"),
+                    Description = row.Field<string>("Description"),
+                    UOMId = row.Field<int?>("UOMId"), 
+                    HSCodeNo = row.Field<string>("HSCodeNo"),
+                    //IsArchive = row.Field<bool>("IsArchive"),
+                    //IsActive = row.Field<bool>("IsActive"),
+                    CreatedBy = row.Field<string>("CreatedBy"),
+                    CreatedOn = row.Field<string>("CreatedOn"),
+                    LastModifiedBy = row.Field<string>("LastModifiedBy"),
+                    LastModifiedOn = row.Field<string?>("LastModifiedOn"),
+                    VATRate = row.Field<decimal?>("VATRate") ?? 0.0m,
+                    SDRate = row.Field<decimal?>("SDRate") ?? 0.0m
+
+
+
 
                 }).ToList();
 
@@ -3628,12 +3668,23 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
                 string sqlQuery = @"
 	         SELECT DISTINCT 
 
-             ISNULL(H.Id, 0) Id
-            ,ISNULL(H.Code, '') Code 
-            ,ISNULL(H.Name, '') Name 
-            ,ISNULL(H.IsActive, 0) IsActive
-            ,ISNULL(H.IsArchive, 0) IsArchive
-            ,CASE WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Active' ELSE 'Inactive'   END Status
+            ISNULL(H.Id, 0) Id,
+            ISNULL(H.Code, '') Code ,
+            ISNULL(H.Name, '') Name ,
+			ISNULL(H.MasterSupplierGroupId, 0) MasterSupplierGroupId,
+			ISNULL(H.BanglaName, '') BanglaName,
+			ISNULL(H.Address, '') Address,
+			ISNULL(H.City, '') City,
+			ISNULL(H.TelephoneNo, '') TelephoneNo,
+			ISNULL(H.Email, '')  Email,
+			ISNULL(H.ContactPerson, '') ContactPerson,
+            ISNULL(H.IsActive, 0) IsActive,
+            ISNULL(H.IsArchive, 0) IsArchive,
+            
+			ISNULL(H.CreatedBy, '') CreatedBy,
+            ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') CreatedOn,
+            ISNULL(H.LastModifiedBy, '') LastModifiedBy,
+            ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') LastModifiedOn
             FROM MasterSupplier H
             Where 1=1
             And H.IsActive = 1
@@ -3657,8 +3708,22 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
                     Id = Convert.ToInt32(row["Id"]),
                     Code = row["Code"]?.ToString(),
                     Name = row["Name"]?.ToString(),
+                    MasterSupplierGroupId = row.Field<int>("MasterSupplierGroupId"),
+                    BanglaName = row.Field<string>("BanglaName"),
+                    Address = row.Field<string>("Address"),
+                    City = row.Field<string>("City"),
+                    TelephoneNo = row.Field<string>("TelephoneNo"),
+                    Email = row.Field<string>("Email"),
+                    ContactPerson = row.Field<string>("ContactPerson"),
                     IsActive = Convert.ToBoolean(row["IsActive"]),
                     IsArchive = Convert.ToBoolean(row["IsArchive"]),
+                    CreatedBy = row.Field<string>("CreatedBy"),
+                    CreatedOn = row.Field<string>("CreatedOn"),
+                    LastModifiedBy = row.Field<string>("LastModifiedBy"),
+                    LastModifiedOn = row.Field<string?>("LastModifiedOn"),
+
+
+
 
                 }).ToList();
 
@@ -3695,10 +3760,16 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
                 }
 
                 string query = @"
-						 Select
+                         Select
                          ISNULL(H.Id,0)	Id,
                          ISNULL(H.Name,'') Name,
                          ISNULL(H.Code,'') Code,
+						 ISNULL(H.Description,'')	Description,
+						 ISNULL(H.IsArchive,0)	IsArchive,
+						 ISNULL(H.CreatedBy,'')	CreatedBy,
+						 ISNULL(H.LastModifiedBy,'')	LastModifiedBy,
+						 ISNULL(FORMAT(H.CreatedOn,'yyyy-MM-dd HH:mm'),'1900-01-01')	CreatedOn,
+						 ISNULL(FORMAT(H.LastModifiedOn,'yyyy-MM-dd HH:mm'),'')	LastModifiedOn,
                          ISNULL(H.IsActive, 0) AS IsActive,
                          CASE WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Active' ELSE 'Inactive' END AS Status
 
@@ -3722,7 +3793,13 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
                     Id = Convert.ToInt32(row["Id"]),
                     Name = row["Name"]?.ToString(),
                     Code = row["Code"]?.ToString(),
-
+                    Description = row["Description"].ToString(),
+                    CreatedBy = row["CreatedBy"].ToString(),
+                    LastModifiedBy = row["LastModifiedBy"].ToString(),
+                    IsArchive = Convert.ToBoolean(row["IsArchive"]),
+                    IsActive = Convert.ToBoolean(row["IsActive"]),
+                    CreatedOn = row["CreatedOn"].ToString(),
+                    LastModifiedOn = row["LastModifiedOn"].ToString(),
 
 
                 }).ToList();

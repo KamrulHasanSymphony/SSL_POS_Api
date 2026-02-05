@@ -123,16 +123,16 @@ SELECT
 ,U.PasswordHash
 ,U.NormalizedPassword
 ,ISNULL(U.IsHeadOffice,0) IsHeadOffice
-,ISNULL(U.IsSalePerson,0) IsSalePerson
+--,ISNULL(U.IsSalePerson,0) IsSalePerson
 
-,ISNULL(U.SalePersonId,0) SalePersonId
-,ISNULL(SP.Name,'') SalePersonName
-,ISNULL(SP.Code,'') SalePersonCode
+--,ISNULL(U.SalePersonId,0) SalePersonId
+--,ISNULL(SP.Name,'') SalePersonName
+--,ISNULL(SP.Code,'') SalePersonCode
 
 
 FROM 
 [{DatabaseHelper.AuthDbName()}].[dbo].AspNetUsers AS U
-LEFT OUTER JOIN [{DatabaseHelper.DBName()}].[dbo].SalesPersons SP ON ISNULL(U.SalePersonId,0) = ISNULL(SP.Id,0)
+--LEFT OUTER JOIN [{DatabaseHelper.DBName()}].[dbo].SalesPersons SP ON ISNULL(U.SalePersonId,0) = ISNULL(SP.Id,0)
 
 WHERE 1 = 1 ";
 
@@ -161,12 +161,12 @@ WHERE 1 = 1 ";
                     Id = row["Id"].ToString(),
                     UserName = row["UserName"].ToString(),
                     FullName = row["FullName"].ToString(),
-                    SalePersonCode = row["SalePersonCode"].ToString(),
-                    SalePersonName = row["SalePersonName"].ToString(),
+                    //SalePersonCode = row["SalePersonCode"].ToString(),
+                    //SalePersonName = row["SalePersonName"].ToString(),
                     ImagePath = row["ImagePath"].ToString(),
-                    SalePersonId = Convert.ToInt32(row["SalePersonId"]),
+                    //SalePersonId = Convert.ToInt32(row["SalePersonId"]),
                     IsHeadOffice = Convert.ToBoolean(row["IsHeadOffice"]),
-                    IsSalePerson = Convert.ToBoolean(row["IsSalePerson"]),
+                    //IsSalePerson = Convert.ToBoolean(row["IsSalePerson"]),
                     Email = row["Email"].ToString(),
                     PhoneNumber = row["PhoneNumber"].ToString(),
                     Password = row["NormalizedPassword"].ToString(),

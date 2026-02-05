@@ -39,12 +39,12 @@ namespace ShampanPOS.Repository
                 string query = @"
         INSERT INTO Products
         (
-            Code, Name, ProductGroupId, BanglaName, Description, UOMId, HSCodeNo,VATRate,SDRate,PurchasePrice,SalePrice, 
+            Code, Name,CompanyId,UserId, ProductGroupId, BanglaName, Description, UOMId, HSCodeNo,VATRate,SDRate,PurchasePrice,SalePrice, 
             IsArchive, IsActive, CreatedBy,CreatedFrom, CreatedOn,ImagePath
         )
         VALUES
         (
-            @Code, @Name, @ProductGroupId, @BanglaName, @Description, @UOMId, @HSCodeNo,@VATRate,@SDRate,@PurchasePrice,@SalePrice,
+            @Code, @Name,@CompanyId,@UserId, @ProductGroupId, @BanglaName, @Description, @UOMId, @HSCodeNo,@VATRate,@SDRate,@PurchasePrice,@SalePrice,
             @IsArchive, @IsActive, @CreatedBy, @CreatedFrom,@CreatedOn,@ImagePath
         );
         SELECT SCOPE_IDENTITY();";
@@ -53,6 +53,8 @@ namespace ShampanPOS.Repository
                 {
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Name", vm.Name ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@ProductGroupId", vm.ProductGroupId);
                     cmd.Parameters.AddWithValue("@BanglaName", vm.BanglaName ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Description", vm.Description ?? (object)DBNull.Value);
@@ -61,7 +63,7 @@ namespace ShampanPOS.Repository
                     //cmd.Parameters.AddWithValue("@CtnSize", vm.CtnSize ?? (object)DBNull.Value);
                     //cmd.Parameters.AddWithValue("@CtnSizeFactor", vm.CtnSizeFactor ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
-                    cmd.Parameters.AddWithValue("@IsActive", vm.IsActive);
+                    cmd.Parameters.AddWithValue("@IsActive", true);
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy);
                     cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
@@ -1407,6 +1409,25 @@ WHERE 1 = 1 ";
         //        }
         //    }
         //}
+
+
+
+
+        public bool Exists(string name, SqlConnection conn, SqlTransaction tran)
+        {
+            string sql = @"
+              SELECT COUNT(1)
+              FROM Products
+              WHERE LOWER(LTRIM(RTRIM(Name))) = LOWER(LTRIM(RTRIM(@Name)))
+              AND IsArchive = 0
+           ";
+
+            using (SqlCommand cmd = new SqlCommand(sql, conn, tran))
+            {
+                cmd.Parameters.AddWithValue("@Name", name.Trim());
+                return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+            }
+        }
 
     }
 

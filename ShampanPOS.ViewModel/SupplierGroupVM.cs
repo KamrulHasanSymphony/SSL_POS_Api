@@ -18,6 +18,7 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Name")]
         public string? Name { get; set; }
 
+        public string? UserId { get; set; }
         [Display(Name = "Description")]
         public string? Description { get; set; }
 
@@ -45,6 +46,7 @@ namespace ShampanPOS.ViewModel
         public string? LastUpdateFrom { get; set; }
         public string? Operation { get; set; }
         public string? Status { get; set; }
+        public int? CompanyId { get; set; }
     }
 
 }

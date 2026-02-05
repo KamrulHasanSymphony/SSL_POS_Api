@@ -34,12 +34,12 @@ namespace ShampanPOS.Repository
                 string query = @"
 INSERT INTO Suppliers 
 (
- Code, Name, SupplierGroupId, BanglaName, Address, City, TelephoneNo, Email, 
+ Code, Name,CompanyId,UserId, SupplierGroupId, BanglaName, Address, City, TelephoneNo, Email, 
  ContactPerson, Comments, IsArchive, IsActive, CreatedBy, CreatedOn,ImagePath
 )
 VALUES 
 (
- @Code, @Name, @SupplierGroupId, @BanglaName, @Address, @City, @TelephoneNo, 
+ @Code, @Name,@CompanyId,@UserId, @SupplierGroupId, @BanglaName, @Address, @City, @TelephoneNo, 
  @Email, @ContactPerson, @Comments, @IsArchive, @IsActive, @CreatedBy, GETDATE(),@ImagePath
 );
 SELECT SCOPE_IDENTITY();";
@@ -48,6 +48,9 @@ SELECT SCOPE_IDENTITY();";
                 {
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Name", vm.Name ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
+                    //cmd.Parameters.AddWithValue("@UserId", vm.UserId);
                     cmd.Parameters.AddWithValue("@SupplierGroupId", vm.SupplierGroupId);
                     cmd.Parameters.AddWithValue("@BanglaName", vm.BanglaName ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Address", vm.Address ?? (object)DBNull.Value);
@@ -57,7 +60,7 @@ SELECT SCOPE_IDENTITY();";
                     cmd.Parameters.AddWithValue("@ContactPerson", vm.ContactPerson ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
-                    cmd.Parameters.AddWithValue("@IsActive", vm.IsActive);
+                    cmd.Parameters.AddWithValue("@IsActive", true);
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@ImagePath", string.IsNullOrEmpty(vm.ImagePath) ? (object)DBNull.Value : vm.ImagePath);
 
@@ -533,8 +536,8 @@ WHERE ISNULL(H.IsArchive, 0) <> 1
                 CASE WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Active' ELSE 'Inactive' END AS Status,
                 ISNULL(H.CreatedBy, '') AS CreatedBy,
                 ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
-                ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS CreatedOn,
-                ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS LastModifiedOn
+                ISNULL(H.CreatedOn, '1900-01-01') AS CreatedOn,
+                ISNULL(H.LastModifiedOn, '1900-01-01') AS LastModifiedOn
 
 FROM Suppliers H
 LEFT OUTER JOIN SupplierGroups SG 

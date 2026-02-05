@@ -14,12 +14,14 @@ namespace ShampanPOS.ViewModel
 
         [Display(Name = "Code")]
         public string? Code { get; set; }
+        public string? UserId { get; set; }
 
         [Display(Name = "Name")]
         public string? Name { get; set; }
 
         [Display(Name = "Description")]
         public string? Description { get; set; }
+        public int? CompanyId { get; set; }
 
         [Display(Name = "Comments")]
         public string? Comments { get; set; }

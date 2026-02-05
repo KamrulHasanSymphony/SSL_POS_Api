@@ -8,17 +8,20 @@ using System.ComponentModel.DataAnnotations;
 namespace ShampanPOS.ViewModel
 {
 
-    public class SupplierVM
+    public class SupplierVM: Audit
     {
         public int Id { get; set; }
         [Display(Name = "Code")]
         public string? Code { get; set; }
         [Display(Name = "Name")]
         public string? Name { get; set; }
+        public int? CompanyId { get; set; }
+        public string? UserId { get; set; }
 
         public int? MasterSupplierId { get; set; }
         public int? MasterSupplierGroupId { get; set; }
         public string? MasterSupplierGroupName { get; set; }
+        public string? Description { get; set; }
 
         [Display(Name = "Supplier Group ID")]
         public int? SupplierGroupId { get; set; }
