@@ -98,6 +98,13 @@ namespace ShampanPOS.ViewModel
         public string? ImagePath { get; set; }
 
         public string? CustomerGroupName { get; set; }
+        public string? BranchAddress { get; set; }
+        public string? CompanyAddress { get; set; }
+        public string? CompanyName { get; set; }
+        public string? CompanyTelephoneNo { get; set; }
+        public string? CompanyEmail { get; set; }
+        public string? BranchName { get; set; }
+        public int CompanyId { get; set; }
 
 
     }
