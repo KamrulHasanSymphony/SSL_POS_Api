@@ -43,12 +43,12 @@ namespace ShampanPOS.Repository
                 string query = @"
         INSERT INTO Purchases
         (
-            Code, BranchId, PurchaseOrderId, CompanyId, SupplierId, BENumber, InvoiceDateTime, PurchaseDate, SubTotal, TotalSD, TotalVAT, GrandTotal, PaidAmount,
+            Code, BranchId,UserId, PurchaseOrderId, CompanyId, SupplierId, BENumber, InvoiceDateTime, PurchaseDate, SubTotal, TotalSD, TotalVAT, GrandTotal, PaidAmount,
             Comments, TransactionType, FiscalYear, PeriodId, IsPost, CreatedBy, CreatedOn, CreatedFrom
         )
         VALUES 
         (
-            @Code, @BranchId, @PurchaseOrderId, @CompanyId, @SupplierId, @BENumber, @InvoiceDateTime, @PurchaseDate, @SubTotal, @TotalSD, @TotalVAT, @GrandTotal, @PaidAmount,
+            @Code, @BranchId,@UserId, @PurchaseOrderId, @CompanyId, @SupplierId, @BENumber, @InvoiceDateTime, @PurchaseDate, @SubTotal, @TotalSD, @TotalVAT, @GrandTotal, @PaidAmount,
             @Comments, @TransactionType, @FiscalYear, @PeriodId, @IsPost, @CreatedBy, @CreatedOn, @CreatedFrom
         );
         SELECT SCOPE_IDENTITY();";
@@ -63,6 +63,7 @@ namespace ShampanPOS.Repository
 
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
+                    cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@SupplierId", vm.SupplierId);
                     cmd.Parameters.AddWithValue("@PurchaseOrderId", vm.PurchaseOrderId);
                     cmd.Parameters.AddWithValue("@BENumber", vm.BENumber ?? (object)DBNull.Value);

@@ -40,30 +40,38 @@ namespace ShampanPOS.Repository
 
                 string query = @"
                 INSERT INTO PurchaseOrders 
-                (Code, BranchId,CompanyId, SupplierId, OrderDate, DeliveryDateTime, Comments, TransactionType,
-                PeriodId,IsPost, CreatedBy,CreatedOn,CreatedFrom)
+                (
+                    Code, BranchId, CompanyId,UserId, SupplierId, OrderDate, DeliveryDateTime, Comments,
+                    TransactionType, PeriodId, IsPost, CreatedBy, CreatedOn, CreatedFrom
+                )
                 VALUES 
-                (@Code, @BranchId,@CompanyId, @SupplierId, @OrderDate, @DeliveryDateTime, @Comments, @TransactionType, 
-                 @PeriodId,@IsPost, @CreatedBy,@CreatedOn,@CreatedFrom);
+                (
+                    @Code, @BranchId, @CompanyId,@UserId, @SupplierId, @OrderDate, @DeliveryDateTime, @Comments,
+                    @TransactionType, @PeriodId, @IsPost, @CreatedBy, @CreatedOn, @CreatedFrom
+                );
                 SELECT SCOPE_IDENTITY();";
+
 
                 using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
                 {
-                    cmd.Parameters.AddWithValue("@Code", purchaseOrder.Code);
-                    cmd.Parameters.AddWithValue("@BranchId", purchaseOrder.BranchId);
+                    cmd.Parameters.AddWithValue("@Code", purchaseOrder.Code ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@BranchId", purchaseOrder.BranchId ?? (object)DBNull.Value);
+
+                    cmd.Parameters.Add("@CompanyId", SqlDbType.Int).Value = (object?)purchaseOrder.CompanyId ?? DBNull.Value;
+                    cmd.Parameters.AddWithValue("@UserId", purchaseOrder.UserId ?? (object)DBNull.Value);
+
                     cmd.Parameters.AddWithValue("@SupplierId", purchaseOrder.SupplierId);
                     cmd.Parameters.AddWithValue("@OrderDate", purchaseOrder.OrderDate);
                     cmd.Parameters.AddWithValue("@DeliveryDateTime", purchaseOrder.DeliveryDateTime);
                     cmd.Parameters.AddWithValue("@Comments", purchaseOrder.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@TransactionType", purchaseOrder.TransactionType);
-                    cmd.Parameters.AddWithValue("@PeriodId", purchaseOrder.PeriodId ?? "");
+                    cmd.Parameters.AddWithValue("@PeriodId", purchaseOrder.PeriodId ?? (object)DBNull.Value);
+                    //cmd.Parameters.AddWithValue("@PeriodId",purchaseOrder.PeriodId);
+                    //cmd.Parameters.AddWithValue("@PeriodId", purchaseOrder.PeriodId ?? "0");
                     cmd.Parameters.AddWithValue("@IsPost", purchaseOrder.IsPost);
                     cmd.Parameters.AddWithValue("@CreatedBy", purchaseOrder.CreatedBy);
-                    cmd.Parameters.AddWithValue("@CreatedFrom", purchaseOrder.CreatedFrom);
                     cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
-
-                    cmd.Parameters.Add("@CompanyId", SqlDbType.Int)
-                                 .Value = (object?)purchaseOrder.CompanyId ?? DBNull.Value;
+                    cmd.Parameters.AddWithValue("@CreatedFrom", purchaseOrder.CreatedFrom);
 
                     object newId = cmd.ExecuteScalar();
                     purchaseOrder.Id = Convert.ToInt32(newId);
@@ -73,6 +81,7 @@ namespace ShampanPOS.Repository
                     result.Id = purchaseOrder.Id.ToString();
                     result.DataVM = purchaseOrder;
                 }
+
 
                 if (isNewConnection)
                 {

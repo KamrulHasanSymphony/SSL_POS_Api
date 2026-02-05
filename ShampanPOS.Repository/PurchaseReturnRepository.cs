@@ -42,12 +42,12 @@ namespace ShampanPOS.Repository
                 string query = @"
                     INSERT INTO PurchasesReturn
                     (
-                        Code, BranchId,CompanyId, SupplierId, BENumber, PurchaseDate, InvoiceDateTime,Comments, 
+                        Code, BranchId,CompanyId,UserId, SupplierId, BENumber, PurchaseDate, InvoiceDateTime,Comments, 
                         TransactionType, IsPost, FiscalYear, PeriodId, CreatedBy, CreatedOn,CreatedFrom
                     )
                     VALUES 
                     (
-                        @Code, @BranchId,@CompanyId, @SupplierId, @BENumber, @PurchaseDate,@InvoiceDateTime,@Comments, 
+                        @Code, @BranchId,@CompanyId,@UserId, @SupplierId, @BENumber, @PurchaseDate,@InvoiceDateTime,@Comments, 
                         @TransactionType, @IsPost,@FiscalYear, @PeriodId, @CreatedBy, @CreatedOn,@CreatedFrom
                     );
                     SELECT SCOPE_IDENTITY();";
@@ -56,6 +56,9 @@ namespace ShampanPOS.Repository
                 {
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
+                    cmd.Parameters.Add("@CompanyId", SqlDbType.Int)
+                                 .Value = (object?)vm.CompanyId ?? DBNull.Value;
+                    cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@SupplierId", vm.SupplierId);
                     cmd.Parameters.AddWithValue("@BENumber", vm.BENumber ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@PurchaseDate", vm.PurchaseDate);
@@ -68,8 +71,7 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
                     cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom ?? (object)DBNull.Value);
-                    cmd.Parameters.Add("@CompanyId", SqlDbType.Int)
-                                 .Value = (object?)vm.CompanyId ?? DBNull.Value;
+                    
 
                     object newId = cmd.ExecuteScalar();
                     vm.Id = Convert.ToInt32(newId);

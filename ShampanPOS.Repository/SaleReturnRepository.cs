@@ -35,12 +35,12 @@ namespace ShampanPOS.Repository
                 string query = @"
 INSERT INTO SaleReturns
 (
-    Code, BranchId,CompanyId, CustomerId, DeliveryAddress, InvoiceDateTime,
+    Code, BranchId,CompanyId,UserId, CustomerId, DeliveryAddress, InvoiceDateTime,
     Comments, TransactionType, PeriodId, IsPost, CreatedBy, CreatedOn, CreatedFrom
 )
 VALUES
 (
-    @Code, @BranchId,@CompanyId, @CustomerId, @DeliveryAddress, @InvoiceDateTime,
+    @Code, @BranchId,@CompanyId,@UserId, @CustomerId, @DeliveryAddress, @InvoiceDateTime,
     @Comments, @TransactionType, @PeriodId, @IsPost, @CreatedBy, GETDATE(), @CreatedFrom
 );
                 SELECT SCOPE_IDENTITY();";
@@ -51,6 +51,9 @@ VALUES
                     //cmd.Parameters.AddWithValue("@Id", saleReturn.Id);
                     cmd.Parameters.AddWithValue("@Code", saleReturn.Code);
                     cmd.Parameters.AddWithValue("@BranchId", saleReturn.BranchId);
+                    cmd.Parameters.Add("@CompanyId", SqlDbType.Int).Value = (object?)saleReturn.CompanyId ?? DBNull.Value;
+                    cmd.Parameters.AddWithValue("@UserId", saleReturn.UserId ?? (object)DBNull.Value);
+
                     //cmd.Parameters.AddWithValue("@CompanyId", saleReturn.CompanyId);
 
                     cmd.Parameters.AddWithValue("@CustomerId", saleReturn.CustomerId);
@@ -65,8 +68,7 @@ VALUES
                     cmd.Parameters.AddWithValue("@PeriodId", saleReturn.PeriodId ?? (object)DBNull.Value); // Optional field
                     cmd.Parameters.AddWithValue("@CreatedBy", saleReturn.CreatedBy ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CreatedFrom", saleReturn.CreatedFrom ?? (object)DBNull.Value);
-                    cmd.Parameters.Add("@CompanyId", SqlDbType.Int)
-                      .Value = (object?)saleReturn.CompanyId ?? DBNull.Value;
+              
 
 
                     object newId = cmd.ExecuteScalar();

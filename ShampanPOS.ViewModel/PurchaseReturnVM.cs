@@ -19,6 +19,7 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Branch")]
         public int? BranchId { get; set; }
         public int? CompanyId { get; set; }
+        public string? UserId { get; set; }
 
         [Required]
         [Display(Name = "Supplier")]

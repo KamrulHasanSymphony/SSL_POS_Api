@@ -36,13 +36,13 @@ namespace ShampanPOS.Repository
                 string query = @"
                 INSERT INTO SaleOrders 
                 (
-                    Code, BranchId, CompanyId, CustomerId, DeliveryAddress, OrderDate, 
+                    Code, BranchId, CompanyId,UserId, CustomerId, DeliveryAddress, OrderDate, 
                     DeliveryDate, Comments, 
                     TransactionType,CreatedBy, CreatedOn
                 )
                 VALUES 
                 (
-                    @Code, @BranchId, @CompanyId,@CustomerId, @DeliveryAddress, @OrderDate, 
+                    @Code, @BranchId, @CompanyId, @UserId, @CustomerId, @DeliveryAddress, @OrderDate, 
                     @DeliveryDate, @Comments, 
                     @TransactionType,@CreatedBy, @CreatedOn
                 );
@@ -52,7 +52,8 @@ namespace ShampanPOS.Repository
                 {
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
-                    //cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
+                    cmd.Parameters.Add("@CompanyId", SqlDbType.Int).Value = (object?)vm.CompanyId ?? DBNull.Value;
+                    cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CustomerId", vm.CustomerId);
                     cmd.Parameters.AddWithValue("@DeliveryAddress", vm.DeliveryAddress ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@OrderDate", vm.OrderDate);
@@ -61,17 +62,17 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@TransactionType", vm.TransactionType ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy ?? "ERP");
                     cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
-                    cmd.Parameters.Add("@CompanyId", SqlDbType.Int)
-                                  .Value = (object?)vm.CompanyId ?? DBNull.Value;
+
+                    // ✅ Execute AFTER all parameters are declared
                     object newId = cmd.ExecuteScalar();
                     vm.Id = Convert.ToInt32(newId);
-
 
                     result.Status = "Success";
                     result.Message = "Data inserted successfully.";
                     result.Id = vm.Id.ToString();
                     result.DataVM = vm;
                 }
+
 
                 if (isNewConnection)
                 {

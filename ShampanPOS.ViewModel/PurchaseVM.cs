@@ -14,6 +14,7 @@ namespace ShampanPOS.ViewModel
 
         [Display(Name = "Code (Auto Generate)")]
         public string? Code { get; set; }
+        public string? UserId { get; set; }
 
         [Display(Name = "Purchase Order Code")]
 

@@ -33,11 +33,11 @@ namespace ShampanPOS.Repository
 
                 string query = @"
         INSERT INTO Sales 
-        (Code, BranchId,CompanyId, CustomerId, SaleOrderId, DeliveryAddress,
+        (Code, BranchId,CompanyId,UserId, CustomerId, SaleOrderId, DeliveryAddress,
          InvoiceDateTime, Comments,SubTotal, TotalSD, TotalVAT, GrandTotal, PaidAmount, 
         TransactionType, IsPost, PeriodId, CreatedBy, CreatedOn, CreatedFrom)
         VALUES 
-        (@Code, @BranchId,@CompanyId, @CustomerId, @SaleOrderId,@DeliveryAddress, 
+        (@Code, @BranchId,@CompanyId,@UserId, @CustomerId, @SaleOrderId,@DeliveryAddress, 
          @InvoiceDateTime, @Comments,@SubTotal, @TotalSD, @TotalVAT, @GrandTotal, @PaidAmount, @TransactionType, @IsPost, @PeriodId, 
          @CreatedBy, GETDATE(), @CreatedFrom);
         SELECT SCOPE_IDENTITY();";
@@ -48,6 +48,7 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@Code", sale.Code);
                     cmd.Parameters.AddWithValue("@BranchId", sale.BranchId);
                     cmd.Parameters.AddWithValue("@CompanyId", sale.CompanyId);
+                    cmd.Parameters.AddWithValue("@UserId", sale.UserId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CustomerId", sale.CustomerId);
 
                     // Ensure that SaleOrderId is provided and not null
