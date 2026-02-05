@@ -337,7 +337,7 @@ SELECT
     ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
     FORMAT(ISNULL(M.LastModifiedOn, '1900-01-01'), 'yyyy-MM-dd') AS LastModifiedOn,
     ISNULL(M.ImagePath,'') AS ImagePath,
-	ISNULL(CP.CompanyName,'') CompanyName
+	ISNULL(CP.CompanyLegalName,'') CompanyName
 
 FROM Customers M
 LEFT OUTER JOIN CompanyProfiles CP ON M.CompanyId = CP.Id
@@ -1205,9 +1205,15 @@ SELECT
     FORMAT(ISNULL(M.CreatedOn, '1900-01-01'), 'yyyy-MM-dd') AS CreatedOn,
     ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
     FORMAT(ISNULL(M.LastModifiedOn, '1900-01-01'), 'yyyy-MM-dd') AS LastModifiedOn,
-    ISNULL(M.ImagePath,'') AS ImagePath
+    ISNULL(M.ImagePath,'') AS ImagePath,
+	ISNULL(CP.CompanyLegalName,'') CompanyName,
+	ISNULL(CP.Address,'') CompanyAddress,
+	ISNULL(CP.TelephoneNo,'') CompanyTelephoneNo,
+	ISNULL(CP.Email,'') CompanyEmail
+
 FROM Customers M
 LEFT OUTER JOIN CustomerGroups CG ON M.CustomerGroupId = CG.Id
+LEFT OUTER JOIN CompanyProfiles CP ON M.CompanyId = CP.Id
 WHERE 1 = 1
 and M.Code!='ALL'
 
@@ -1248,6 +1254,10 @@ and M.Code!='ALL'
                         CustomerGroupId = row.Field<int>("CustomerGroupId"),
                         CustomerGroupName = row.Field<string>("CustomerGroupName"),
                         Address = row.Field<string>("Address"),
+                        CompanyName = row.Field<string>("CompanyName"),
+                        CompanyAddress = row.Field<string>("CompanyAddress"),
+                        CompanyTelephoneNo = row.Field<string>("CompanyTelephoneNo"),
+                        CompanyEmail = row.Field<string>("CompanyEmail"),
                         BanglaAddress = row.Field<string>("BanglaAddress"),
                         TelephoneNo = row.Field<string>("TelephoneNo"),
                         FaxNo = row.Field<string>("FaxNo"),
