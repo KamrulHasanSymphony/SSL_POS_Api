@@ -379,5 +379,64 @@ namespace ShampanPOS.Controllers
             }
         }
 
+        [HttpPost("GetSupplierByCategory")]
+        public async Task<ResultVM> GetSupplierByCategory(SupplierVM supplier)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+
+            try
+            {
+                List<string> conditionFields = new List<string>();
+                List<string> conditionValues = new List<string>();
+
+                // Customer Group
+                if (supplier.Id != null && supplier.Id != 0)
+                {
+                    conditionFields.Add("M.SupplierGroupId");
+                    conditionValues.Add(supplier.Id.ToString());
+                }
+
+                // Customer Name
+                if (!string.IsNullOrEmpty(supplier.Name))
+                {
+                    conditionFields.Add("M.Name");
+                    conditionValues.Add(supplier.Name);
+                }
+
+                // Customer Code
+                if (!string.IsNullOrEmpty(supplier.Code))
+                {
+                    conditionFields.Add("M.Code");
+                    conditionValues.Add(supplier.Code);
+                }
+
+                SupplierService _service = new SupplierService();
+
+                if (conditionFields.Count == 0)
+                {
+                    resultVM = await _service.ReportList(null, null, null);
+                }
+                else
+                {
+                    resultVM = await _service.ReportList(
+                        conditionFields.ToArray(),
+                        conditionValues.ToArray(),
+                        null
+                    );
+                }
+
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message
+                };
+            }
+        }
+
     }
 }
