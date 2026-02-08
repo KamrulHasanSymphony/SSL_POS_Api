@@ -1431,7 +1431,8 @@ WHERE 1 = 1 ";
     ISNULL(M.Id, 0) Id,
     ISNULL(M.Code, '') Code,
     ISNULL(M.Name, '') Name,
-    ISNULL(M.ProductGroupId, 0) ProductGroupId,
+    ISNULL(M.ProductGroupId, 0) ProductGroupId,   
+    ISNULL(PG.Name, 0) ProductGroupName ,
     ISNULL(M.BanglaName, '') BanglaName,
     ISNULL(M.Description, '') Description,
     ISNULL(M.UOMId, 0) UOMId,
@@ -1449,6 +1450,7 @@ WHERE 1 = 1 ";
 	ISNULL(M.SalePrice, 0) AS SalePrice
 
 FROM Products M
+LEFT OUTER JOIN ProductGroups PG ON M.ProductGroupId = PG.Id
 WHERE 1 = 1
 ";
 
@@ -1480,6 +1482,7 @@ WHERE 1 = 1
                     Code = row.Field<string>("Code"),
                     Name = row.Field<string>("Name"),
                     ProductGroupId = row.Field<int>("ProductGroupId"),
+                    ProductGroupName = row.Field<string>("ProductGroupName"),
                     BanglaName = row.Field<string>("BanglaName"),
                     Description = row.Field<string>("Description"),
                     UOMId = row.Field<int?>("UOMId"), // Nullable field
