@@ -42,12 +42,12 @@ namespace ShampanPOS.Repository
                 string query = @"
             INSERT INTO Payments
             (
-                Code, TransactionDate, SupplierId, BankAccountId, IsCash, TotalPaymentAmount, Reference,
+                Code, TransactionDate,UserId, SupplierId, BankAccountId, IsCash, TotalPaymentAmount, Reference,
                 Comments, IsArchive, IsActive, CreatedBy, CreatedOn, CreatedFrom
             )
             VALUES 
             (
-                @Code, @TransactionDate, @SupplierId, @BankAccountId, @IsCash, @TotalPaymentAmount, @Reference, 
+                @Code, @TransactionDate,@UserId, @SupplierId, @BankAccountId, @IsCash, @TotalPaymentAmount, @Reference, 
                 @Comments, @IsArchive, @IsActive, @CreatedBy, @CreatedOn, @CreatedFrom
             );
             SELECT SCOPE_IDENTITY();";
@@ -55,7 +55,8 @@ namespace ShampanPOS.Repository
                 using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
                 {
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@BankAccountId", vm.BankAccountId); // Fixed: use @BankAccountId here
+                    cmd.Parameters.AddWithValue("@BankAccountId", vm.BankAccountId);
+                    cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@SupplierId", vm.SupplierId);
                     cmd.Parameters.AddWithValue("@TransactionDate", vm.TransactionDate);
                     cmd.Parameters.AddWithValue("@TotalPaymentAmount", vm.TotalPaymentAmount);
@@ -64,7 +65,7 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@Reference", vm.Reference ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsCash", vm.IsCash);
                     cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
-                    cmd.Parameters.AddWithValue("@IsActive", vm.IsActive);
+                    cmd.Parameters.AddWithValue("@IsActive", true);
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
                     cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom ?? (object)DBNull.Value);

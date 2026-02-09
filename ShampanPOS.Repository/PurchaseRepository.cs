@@ -64,8 +64,9 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
                     cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@PurchaseOrderId", vm.PurchaseOrderId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@SupplierId", vm.SupplierId);
-                    cmd.Parameters.AddWithValue("@PurchaseOrderId", vm.PurchaseOrderId);
+                   
                     cmd.Parameters.AddWithValue("@BENumber", vm.BENumber ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@InvoiceDateTime", vm.InvoiceDateTime);
                     cmd.Parameters.AddWithValue("@PurchaseDate", vm.PurchaseDate);

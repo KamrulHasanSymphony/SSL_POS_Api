@@ -7,40 +7,22 @@ using System.Threading.Tasks;
 
 namespace ShampanPOS.ViewModel
 {
-    public class PaymentVM
+    public class SupplierProductVM
     {
         public int Id { get; set; }
-
-        [Display(Name = "Code")]
-        public string? Code { get; set; }
-        public string? PaymentCode { get; set; }
 
         [Display(Name = "Supplier")]
         public int SupplierId { get; set; }
         public string? UserId { get; set; }
 
         public string? SupplierName { get; set; }
-        public string? AccountNo { get; set; }
-        public string? AccountName { get; set; }
 
-        [Display(Name = "Transaction Date")]
-        public string TransactionDate { get; set; }
+        [Display(Name = "Product")]
+        public int ProductId { get; set; }
 
-        [Display(Name = "Bank Account")]
-        public int BankAccountId { get; set; }
+        public string? ProductName { get; set; }
+        public int? CompanyId { get; set; }
 
-        [Display(Name = "Is Cash")]
-        public bool IsCash { get; set; }
-
-        [Display(Name = "Comments")]
-        public string? Comments { get; set; }
-
-        [Display(Name = "Reference")]
-        public string? Reference { get; set; }
-
-        [Display(Name = "Total Payment Amount")]
-
-        public decimal TotalPaymentAmount { get; set; }
 
         [Display(Name = "Archived")]
         public bool IsArchive { get; set; }
@@ -69,14 +51,7 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Last Update From")]
         public string? LastUpdateFrom { get; set; }
         public string? Status { get; set; }
-        public decimal? GrandTotal { get; set; }
 
-        public List<PaymentDetailVM> paymentDetailList { get; set; }
-
-        public PaymentVM()
-        {
-            paymentDetailList = new List<PaymentDetailVM>();
-
-        }
     }
 }
+

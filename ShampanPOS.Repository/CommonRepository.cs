@@ -1177,6 +1177,7 @@ WHERE
                     Id = Convert.ToInt32(row["Id"]),
                     Name = row["Name"]?.ToString(),
                     Code = row["Code"]?.ToString(),
+                    Description = row["Description"]?.ToString(),
                 }).ToList();
 
 
@@ -1199,6 +1200,75 @@ WHERE
                 }
             }
         }
+
+
+        public async Task<ResultVM> MasterProductList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = @"
+                         SELECT 
+                         ISNULL(H.Id, 0) AS Id,
+                         ISNULL(H.Code, '') AS Code,               
+                         ISNULL(H.Name, '') AS Name,
+                         ISNULL(H.Description, '') AS Description
+                         FROM MasterItem H
+                         WHERE IsArchive != 1 AND IsActive = 1 ";
+
+
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                // SET additional conditions param
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new MasterItemVM
+                {
+                    Id = Convert.ToInt32(row["Id"]),
+                    Name = row["Name"]?.ToString(),
+                    Code = row["Code"]?.ToString(),
+                    Description = row["Description"]?.ToString(),
+                }).ToList();
+
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
+
+
+
+
         public async Task<ResultVM> ProductGroupList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
@@ -1671,6 +1741,62 @@ WHERE
                 }
             }
         }
+
+
+
+        public async Task<ResultVM> MasterSupplierList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+                string sqlQuery = @"
+                 Select
+                 ISNULL(H.Id,0)	Id,
+                 ISNULL(H.Name,'') Name,              
+                 ISNULL(H.Code,'') Code
+                 FROM MasterSupplier H
+                 WHERE H.IsActive =1 ";
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+                SqlDataAdapter objComm = CreateAdapter(sqlQuery, conn, transaction);
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+                objComm.Fill(dataTable);
+                var modelList = dataTable.AsEnumerable().Select(row => new MasterSupplierVM
+                {
+                    Id = Convert.ToInt32(row["Id"]),
+                    Name = row["Name"]?.ToString(),
+                    Code = row["Code"]?.ToString()
+                }).ToList();
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
+
+
         public async Task<ResultVM> SupplierGroupList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
@@ -3324,12 +3450,7 @@ WHERE 1 = 1
 
 
 
-        public async Task<ResultVM> GetPurchaseDatabysupplier(
-            string[] conditionalFields,
-            string[] conditionalValues,
-            PeramModel vm,
-            SqlConnection conn,
-            SqlTransaction transaction)
+        public async Task<ResultVM> GetPurchaseDatabysupplier(string[] conditionalFields,string[] conditionalValues,PeramModel vm,SqlConnection conn,SqlTransaction transaction)
         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();

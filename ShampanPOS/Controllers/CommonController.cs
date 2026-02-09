@@ -256,6 +256,32 @@ namespace ShampanPOS.Controllers
             }
         }
 
+
+        // POST: api/Common/MasterProductList
+        [HttpPost("MasterProductList")]
+        public async Task<ResultVM> MasterProductList(CommonVM Vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                CommonService _commonService = new CommonService();
+                resultVM = await _commonService.MasterProductList(new[] { "" }, new[] { "" }, null);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
+
+
+
         // POST: api/Common/CustomerList
         [HttpPost("CustomerList")]
         public async Task<ResultVM> CustomerList(CommonVM Vm)
@@ -329,6 +355,32 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
+
+
+        [HttpPost("MasterSupplierList")]
+        public async Task<ResultVM> MasterSupplierList(CommonVM Vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                CommonService _commonService = new CommonService();
+                resultVM = await _commonService.MasterSupplierList(new[] { "" }, new[] { "" }, null);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
+
+
+
         // POST: api/Common/SupplierGroupList
         [HttpPost("SupplierGroupList")]
         public async Task<ResultVM> SupplierGroupList(CommonVM Vm)
