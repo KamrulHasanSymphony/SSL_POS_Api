@@ -671,6 +671,111 @@ WHERE ISNULL(H.IsArchive, 0) <> 1
             }
         }
 
+        public async Task<ResultVM> ReportList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = @"
+SELECT
+    ISNULL(M.Id, 0) Id,
+    ISNULL(M.Code, '') Code,
+    ISNULL(M.Name, '') Name,
+    ISNULL(M.SupplierGroupId, 0) SupplierGroupId,
+	ISNULL(SG.Name, '') AS SupplierGroupName,
+    ISNULL(M.BanglaName, '') BanglaName,
+    ISNULL(M.Address, '') Address,
+    ISNULL(M.City, '') City,
+    ISNULL(M.TelephoneNo, '') TelephoneNo,
+    ISNULL(M.Email, '')  Email,
+    ISNULL(M.ContactPerson, '') ContactPerson,
+    ISNULL(M.Comments, '') Comments,
+    ISNULL(M.IsArchive, 0) IsArchive,
+    ISNULL(M.IsActive, 0) IsActive,
+    ISNULL(M.CreatedBy, '') CreatedBy,
+    ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') CreatedOn,
+    ISNULL(M.LastModifiedBy, '') LastModifiedBy,
+    ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') LastModifiedOn,
+    ISNULL(M.ImagePath,'') AS ImagePath
+   
+FROM Suppliers M
+
+LEFT OUTER JOIN SupplierGroups SG ON M.SupplierGroupId = SG.Id
+
+WHERE 1 = 1
+";
+
+                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+                {
+                    query += " AND Id = @Id ";
+                }
+
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                // SET additional conditions param
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@Id", vm.Id);
+                }
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new SupplierVM
+                {
+                    Id = row.Field<int>("Id"),
+                    Code = row.Field<string>("Code"),
+                    Name = row.Field<string>("Name"),
+                    SupplierGroupId = row.Field<int>("SupplierGroupId"),
+                    SupplierGroupName = row.Field<string>("SupplierGroupName"),
+                    BanglaName = row.Field<string>("BanglaName"),
+                    Address = row.Field<string>("Address"),
+                    City = row.Field<string>("City"),
+                    TelephoneNo = row.Field<string>("TelephoneNo"),
+                    Email = row.Field<string>("Email"),
+                    ContactPerson = row.Field<string>("ContactPerson"),
+                    Comments = row.Field<string>("Comments"),
+                    IsArchive = row.Field<bool>("IsArchive"),
+                    IsActive = row.Field<bool>("IsActive"),
+                    CreatedBy = row.Field<string>("CreatedBy"),
+                    CreatedOn = row.Field<string>("CreatedOn"),
+                    LastModifiedBy = row.Field<string>("LastModifiedBy"),
+                    LastModifiedOn = row.Field<string?>("LastModifiedOn"),
+                    ImagePath = row.Field<string?>("ImagePath")
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Message = ex.Message;
+                result.ExMessage = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
 
 
 

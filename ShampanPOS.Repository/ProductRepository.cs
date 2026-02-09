@@ -342,30 +342,34 @@ namespace ShampanPOS.Repository
                 }
 
                 string query = @"
-     SELECT
-    ISNULL(M.Id, 0) Id,
-    ISNULL(M.Code, '') Code,
-    ISNULL(M.Name, '') Name,
-    ISNULL(M.ProductGroupId, 0) ProductGroupId,
-    ISNULL(M.BanglaName, '') BanglaName,
-    ISNULL(M.Description, '') Description,
-    ISNULL(M.UOMId, 0) UOMId,
-    ISNULL(M.HSCodeNo, '') HSCodeNo,
-    ISNULL(M.IsArchive, 0) IsArchive,
-    ISNULL(M.IsActive, 0) IsActive,
-    ISNULL(M.CreatedBy, '') CreatedBy,
-    ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') CreatedOn,
-    ISNULL(M.LastModifiedBy, '') LastModifiedBy,
-    ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') LastModifiedOn,
-    ISNULL(M.ImagePath,'') AS ImagePath,
-	ISNULL(M.VATRate, 0) AS VATRate,
-	ISNULL(M.SDRate, 0) AS SDRate,
-	ISNULL(M.PurchasePrice, 0) AS PurchasePrice,
-	ISNULL(M.SalePrice, 0) AS SalePrice
-
-FROM Products M
-WHERE 1 = 1
-";
+                SELECT
+                ISNULL(M.Id, 0) Id,
+                ISNULL(M.Code, '') Code,
+                ISNULL(M.Name, '') Name,
+                ISNULL(M.ProductGroupId, 0) ProductGroupId,
+                ISNULL(PG.Name, 0) ProductGroupName ,
+                ISNULL(M.BanglaName, '') BanglaName,
+                ISNULL(M.Description, '') Description,
+                ISNULL(M.UOMId, 0) UOMId,
+                ISNULL(UM.Name, '') UOMName,
+                ISNULL(M.HSCodeNo, '') HSCodeNo,
+                ISNULL(M.IsArchive, 0) IsArchive,
+                ISNULL(M.IsActive, 0) IsActive,
+                ISNULL(M.CreatedBy, '') CreatedBy,
+                ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') CreatedOn,
+                ISNULL(M.LastModifiedBy, '') LastModifiedBy,
+                ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') LastModifiedOn,
+                ISNULL(M.ImagePath,'') AS ImagePath,
+            	ISNULL(M.VATRate, 0) AS VATRate,
+            	ISNULL(M.SDRate, 0) AS SDRate,
+            	ISNULL(M.PurchasePrice, 0) AS PurchasePrice,
+            	ISNULL(M.SalePrice, 0) AS SalePrice
+            
+            FROM Products M
+            LEFT OUTER JOIN ProductGroups PG ON M.ProductGroupId = PG.Id
+            LEFT OUTER JOIN UOMs UM ON M.UOMId = UM.Id
+            WHERE 1 = 1
+            ";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
                 {
@@ -395,9 +399,11 @@ WHERE 1 = 1
                     Code = row.Field<string>("Code"),
                     Name = row.Field<string>("Name"),
                     ProductGroupId = row.Field<int>("ProductGroupId"),
+                    ProductGroupName = row.Field<string>("ProductGroupName"),
                     BanglaName = row.Field<string>("BanglaName"),
                     Description = row.Field<string>("Description"),
                     UOMId = row.Field<int?>("UOMId"), // Nullable field
+                    UOMName = row.Field<string>("UOMName"),
                     HSCodeNo = row.Field<string>("HSCodeNo"),
                     IsArchive = row.Field<bool>("IsArchive"),
                     IsActive = row.Field<bool>("IsActive"),
@@ -1427,30 +1433,33 @@ WHERE 1 = 1 ";
                 }
 
                 string query = @"
-     SELECT
-    ISNULL(M.Id, 0) Id,
-    ISNULL(M.Code, '') Code,
-    ISNULL(M.Name, '') Name,
-    ISNULL(M.ProductGroupId, 0) ProductGroupId,
-    ISNULL(M.BanglaName, '') BanglaName,
-    ISNULL(M.Description, '') Description,
-    ISNULL(M.UOMId, 0) UOMId,
-    ISNULL(M.HSCodeNo, '') HSCodeNo,
-    ISNULL(M.IsArchive, 0) IsArchive,
-    ISNULL(M.IsActive, 0) IsActive,
-    ISNULL(M.CreatedBy, '') CreatedBy,
-    ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') CreatedOn,
-    ISNULL(M.LastModifiedBy, '') LastModifiedBy,
-    ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') LastModifiedOn,
-    ISNULL(M.ImagePath,'') AS ImagePath,
-	ISNULL(M.VATRate, 0) AS VATRate,
-	ISNULL(M.SDRate, 0) AS SDRate,
-	ISNULL(M.PurchasePrice, 0) AS PurchasePrice,
-	ISNULL(M.SalePrice, 0) AS SalePrice
-
-FROM Products M
-WHERE 1 = 1
-";
+                SELECT
+                ISNULL(M.Id, 0) Id,
+                ISNULL(M.Code, '') Code,
+                ISNULL(M.Name, '') Name,
+                ISNULL(M.ProductGroupId, 0) ProductGroupId,
+                ISNULL(PG.Name, 0) ProductGroupName ,
+                ISNULL(M.BanglaName, '') BanglaName,
+                ISNULL(M.Description, '') Description,
+                ISNULL(M.UOMId, 0) UOMId,
+                ISNULL(UM.Name, '') UOMName,
+                ISNULL(M.HSCodeNo, '') HSCodeNo,
+                ISNULL(M.IsArchive, 0) IsArchive,
+                ISNULL(M.IsActive, 0) IsActive,
+                ISNULL(M.CreatedBy, '') CreatedBy,
+                ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') CreatedOn,
+                ISNULL(M.LastModifiedBy, '') LastModifiedBy,
+                ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') LastModifiedOn,
+                ISNULL(M.ImagePath,'') AS ImagePath,
+            	ISNULL(M.VATRate, 0) AS VATRate,
+            	ISNULL(M.SDRate, 0) AS SDRate,
+            	ISNULL(M.PurchasePrice, 0) AS PurchasePrice,
+            	ISNULL(M.SalePrice, 0) AS SalePrice
+            
+            FROM Products M
+            LEFT OUTER JOIN ProductGroups PG ON M.ProductGroupId = PG.Id
+            LEFT OUTER JOIN UOMs UM ON M.UOMId = UM.Id
+            WHERE 1 = 1";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
                 {
@@ -1480,9 +1489,11 @@ WHERE 1 = 1
                     Code = row.Field<string>("Code"),
                     Name = row.Field<string>("Name"),
                     ProductGroupId = row.Field<int>("ProductGroupId"),
+                    ProductGroupName = row.Field<string>("ProductGroupName"),
                     BanglaName = row.Field<string>("BanglaName"),
                     Description = row.Field<string>("Description"),
                     UOMId = row.Field<int?>("UOMId"), // Nullable field
+                    UOMName = row.Field<string>("UOMName"),
                     HSCodeNo = row.Field<string>("HSCodeNo"),
                     IsArchive = row.Field<bool>("IsArchive"),
                     IsActive = row.Field<bool>("IsActive"),
