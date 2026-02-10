@@ -13,7 +13,6 @@ namespace ShampanPOS.ViewModel
 
         [Display(Name = "Code(Auto Generate)")]
         public string? Code { get; set; }
-        [Required]
 
         public int? CompanyId { get; set; }
 
@@ -24,6 +23,8 @@ namespace ShampanPOS.ViewModel
 
         [Display(Name = "Product Group")]
         public int? MasterItemGroupId { get; set; }
+        public int? MasterSupplierId { get; set; }
+        public int? SupplierId { get; set; }
         public string? MasterItemGroupName { get; set; }
 
         [Display(Name = "Bangla Name")]

@@ -15,9 +15,91 @@ namespace ShampanPOS.Repository
     public class SupplierProductRepository : CommonRepository
     {
         // Insert Method
-        public async Task<ResultVM> Insert(SupplierProductVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
+        //public async Task<ResultVM> Insert(SupplierProductVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
+        //{
+        //    bool isNewConnection = false;
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+        //    try
+        //    {
+        //        if (conn == null)
+        //        {
+        //            conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //            conn.Open();
+        //            isNewConnection = true;
+        //        }
+
+        //        if (transaction == null)
+        //        {
+        //            transaction = conn.BeginTransaction();
+        //        }
+
+        //        string query = @"
+        //        INSERT INTO SupplierProduct
+        //        (
+        //             SupplierId,ProductId,UserId,CompanyId,
+        //             IsArchive, IsActive, CreatedBy, CreatedOn
+        //        )
+        //        VALUES
+        //        (
+        //            @SupplierId,@ProductId,@UserId,@CompanyId,
+        //             @IsArchive, @IsActive, @CreatedBy, @CreatedOn 
+        //        );
+        //        SELECT SCOPE_IDENTITY();";
+
+        //        using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
+        //        {
+        //            cmd.Parameters.AddWithValue("@SupplierId", vm.SupplierId);
+        //            cmd.Parameters.AddWithValue("@ProductId", vm.ProductId);
+
+        //            cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
+        //            cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId ?? (object)DBNull.Value);
+        //            cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
+        //            cmd.Parameters.AddWithValue("@IsActive", true);
+        //            cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy);
+        //            cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
+
+        //            vm.Id = Convert.ToInt32(cmd.ExecuteScalar());
+
+        //            result.Status = "Success";
+        //            result.Message = "Data inserted successfully.";
+        //            result.Id = vm.Id.ToString();
+        //            result.DataVM = vm;
+
+
+        //            if (isNewConnection)
+        //            {
+        //                transaction.Commit();
+        //            }
+
+        //            return result;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+
+        //        result.ExMessage = ex.Message;
+        //        result.Message = "Error in Insert.";
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
+
+
+        public async Task<ResultVM> Insert(MasterItemVM details = null, SqlConnection conn = null, SqlTransaction transaction = null, SupplierProductVM supplierproduct = null)
         {
             bool isNewConnection = false;
+
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
             try
@@ -25,7 +107,7 @@ namespace ShampanPOS.Repository
                 if (conn == null)
                 {
                     conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    conn.Open();
+                    await conn.OpenAsync();
                     isNewConnection = true;
                 }
 
@@ -35,7 +117,7 @@ namespace ShampanPOS.Repository
                 }
 
                 string query = @"
-                INSERT INTO SupplierProduct
+                    INSERT INTO SupplierProduct
                 (
                      SupplierId,ProductId,UserId,CompanyId,
                      IsArchive, IsActive, CreatedBy, CreatedOn
@@ -45,35 +127,33 @@ namespace ShampanPOS.Repository
                     @SupplierId,@ProductId,@UserId,@CompanyId,
                      @IsArchive, @IsActive, @CreatedBy, @CreatedOn 
                 );
-                SELECT SCOPE_IDENTITY();";
+                    SELECT SCOPE_IDENTITY();";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
                 {
-                    cmd.Parameters.AddWithValue("@SupplierId", vm.SupplierId);
-                    cmd.Parameters.AddWithValue("@ProductId", vm.ProductId);
+                    cmd.Parameters.AddWithValue("@SupplierId", details.SupplierId);
+                    cmd.Parameters.AddWithValue("@ProductId", details.ProductId);
 
-                    cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
+                    cmd.Parameters.AddWithValue("@UserId", supplierproduct.UserId ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@CompanyId", supplierproduct.CompanyId ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@IsArchive", details.IsArchive);
                     cmd.Parameters.AddWithValue("@IsActive", true);
-                    cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy);
+                    cmd.Parameters.AddWithValue("@CreatedBy", supplierproduct.CreatedBy);
                     cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
 
-                    vm.Id = Convert.ToInt32(cmd.ExecuteScalar());
-
-                    result.Status = "Success";
-                    result.Message = "Data inserted successfully.";
-                    result.Id = vm.Id.ToString();
-                    result.DataVM = vm;
-
-
-                    if (isNewConnection)
-                    {
-                        transaction.Commit();
-                    }
-
-                    return result;
+                    details.Id = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                 }
+
+                if (isNewConnection)
+                {
+                    transaction.Commit();
+                }
+
+                result.Status = "Success";
+                result.Message = "Data inserted successfully.";
+                result.DataVM = details;
+
+                return result;
             }
             catch (Exception ex)
             {
@@ -82,7 +162,7 @@ namespace ShampanPOS.Repository
                     transaction.Rollback();
                 }
 
-                result.ExMessage = ex.Message;
+                result.ExMessage = ex.ToString();
                 result.Message = "Error in Insert.";
                 return result;
             }
@@ -94,6 +174,7 @@ namespace ShampanPOS.Repository
                 }
             }
         }
+
         // Update Method
         public async Task<ResultVM> Update(SupplierProductVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
         {

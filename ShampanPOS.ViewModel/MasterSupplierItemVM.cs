@@ -12,17 +12,27 @@ namespace ShampanPOS.ViewModel
         public int Id { get; set; }
 
         [Display(Name = "Supplier")]
-        public int MasterSupplierId { get; set; }
+        public int? MasterSupplierId { get; set; }
         public string? UserId { get; set; }
 
         public string? MasterSupplierName { get; set; }
+        public int? CompanyId { get; set; }
 
         [Display(Name = "Product")]
-        public int MasterProductId { get; set; }
-        public int MasterItemId { get; set; }
+        public int? MasterProductId { get; set; }
+        public int? MasterItemId { get; set; }
 
         public string? MasterProductName { get; set; }
-        public int? CompanyId { get; set; }
+
+
+        public int MasterItemGroupId { get; set; }
+
+        public string? MasterItemGroupDescription { get; set; }
+        public string? MasterItemGroupCode { get; set; }
+
+        public string? MasterItemGroupName { get; set; }
+
+
 
 
         [Display(Name = "Archived")]
@@ -52,6 +62,19 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Last Update From")]
         public string? LastUpdateFrom { get; set; }
         public string? Status { get; set; }
+        public string[]? IDs { get; set; }
+
+        public PeramModel PeramModel { get; set; }
+
+
+        public List<MasterItemVM> MasterItemList { get; set; }
+
+
+        public MasterSupplierItemVM()
+        {
+            PeramModel = new PeramModel();
+            MasterItemList = new List<MasterItemVM>();
+        }
 
 
 

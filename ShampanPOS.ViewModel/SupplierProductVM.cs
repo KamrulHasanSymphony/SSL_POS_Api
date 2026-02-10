@@ -52,6 +52,16 @@ namespace ShampanPOS.ViewModel
         public string? LastUpdateFrom { get; set; }
         public string? Status { get; set; }
 
+         public PeramModel PeramModel { get; set; }
+        public List<MasterItemVM> MasterItemList { get; set; }
+
+
+        public SupplierProductVM()
+        {
+            PeramModel = new PeramModel();
+            MasterItemList = new List<MasterItemVM>();
+        }
+
     }
 }
 

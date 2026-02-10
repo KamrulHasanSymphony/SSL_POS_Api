@@ -107,6 +107,44 @@ namespace ShampanPOS.Controllers
             }
         }
 
+        // POST: api/MasterSupplierItem/GetSupplierProducts
+        [HttpPost("GetSupplierProducts")]
+        public async Task<ResultVM> GetSupplierProducts(CommonVM vm)
+        {
+            ResultVM resultVM = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                DataVM = null
+            };
+
+            try
+            {
+                _service = new MasterSupplierItemService();
+
+                // 🔥 SupplierId দিয়ে filter
+                resultVM = await _service.List(
+                    new[] { "M.MasterSupplierId" },
+                    new[] { vm.Id },
+                    null
+                );
+
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = ex.Message,
+                    ExMessage = ex.Message,
+                    DataVM = vm
+                };
+            }
+        }
+
+
 
         //GET: api/MasterSupplierItem/Dropdown
         [HttpGet("Dropdown")]

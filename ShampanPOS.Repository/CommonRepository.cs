@@ -1154,13 +1154,26 @@ WHERE
                 }
 
                 string query = @"
-                         SELECT 
-                         ISNULL(H.Id, 0) AS Id,
-                         ISNULL(H.Code, '') AS Code,               
-                         ISNULL(H.Name, '') AS Name,
-                         ISNULL(H.Description, '') AS Description
-                         FROM Products H
-                         WHERE IsArchive != 1 AND IsActive = 1 ";
+         SELECT 
+		    ISNULL(H.Id, 0) AS Id,
+		    ISNULL(H.Code, '') AS Code,               
+		    ISNULL(H.Name, '') AS Name,
+		    ISNULL(H.ProductGroupId, 0) ProductGroupId,
+			ISNULL(H.BanglaName, '') BanglaName,
+			ISNULL(H.Description, '') Description,
+			ISNULL(H.UOMId, 0) UOMId,
+			ISNULL(H.HSCodeNo, '') HSCodeNo,
+            ISNULL(H.IsActive, 0) IsActive,
+            ISNULL(H.IsArchive, 0) IsArchive,
+			ISNULL(H.CreatedBy, '') CreatedBy,
+			ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') CreatedOn,
+			ISNULL(H.LastModifiedBy, '') LastModifiedBy,
+			ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') LastModifiedOn,
+			ISNULL(H.VATRate, 0) AS VATRate,
+			ISNULL(H.SDRate, 0) AS SDRate
+      FROM Products H
+	  Where 1=1
+      And H.IsActive = 1 ";
 
 
                 query = ApplyConditions(query, conditionalFields, conditionalValues, false);
@@ -1178,6 +1191,22 @@ WHERE
                     Name = row["Name"]?.ToString(),
                     Code = row["Code"]?.ToString(),
                     Description = row["Description"]?.ToString(),
+                    IsActive = Convert.ToBoolean(row["IsActive"]),
+                    IsArchive = Convert.ToBoolean(row["IsArchive"]),
+                    ProductGroupId = row.Field<int>("ProductGroupId"),
+                    BanglaName = row.Field<string>("BanglaName"),
+                    UOMId = row.Field<int?>("UOMId"),
+                    HSCodeNo = row.Field<string>("HSCodeNo"),
+                    //IsArchive = row.Field<bool>("IsArchive"),
+                    //IsActive = row.Field<bool>("IsActive"),
+                    CreatedBy = row.Field<string>("CreatedBy"),
+                    CreatedOn = row.Field<string>("CreatedOn"),
+                    LastModifiedBy = row.Field<string>("LastModifiedBy"),
+                    LastModifiedOn = row.Field<string?>("LastModifiedOn"),
+                    VATRate = row.Field<decimal?>("VATRate") ?? 0.0m,
+                    SDRate = row.Field<decimal?>("SDRate") ?? 0.0m
+
+
                 }).ToList();
 
 

@@ -19,66 +19,138 @@ namespace ShampanPOS.Service
 
         public async Task<ResultVM> Insert(MasterSupplierItemVM mastersupplieritem)
         {
-            string CodeGroup = "MasterSupplierItem";
-            string CodeName = "MasterSupplierItem";
-            CommonRepository _commonRepo = new CommonRepository();
             MasterSupplierItemRepository _repo = new MasterSupplierItemRepository();
 
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            ResultVM result = new ResultVM{Status = "Fail",Message = "Error",ExMessage = null,Id = "0", DataVM = null };
 
-            bool isNewConnection = false;
             SqlConnection conn = null;
             SqlTransaction transaction = null;
+
             try
             {
                 conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                conn.Open();
-                isNewConnection = true;
+                await conn.OpenAsync();
 
                 transaction = conn.BeginTransaction();
 
-                #region Check Exist Data
-                string[] conditionField = { "MasterSupplierId", "IsActive" };
-                string[] conditionValue = { mastersupplieritem.MasterSupplierId.ToString(), "1" };
+                int insertedCount = 0;
+                int skippedCount = 0;
 
-                bool exist = _commonRepo.CheckExists("MasterSupplierItem", conditionField, conditionValue, conn, transaction);
-
-                if (exist)
+                foreach (var item in mastersupplieritem.MasterItemList)
                 {
-                    result.Message = "Data Already Exist!";
-                    throw new Exception("Data Already Exist!");
-                }
-                #endregion
-                result = await _repo.Insert(mastersupplieritem, conn, transaction);
+                    #region Check Exist Data (Supplier + Product)
+                    string[] conditionField =
+                    {
+                        "MasterSupplierId",
+                        "MasterProductId",
+                        "IsActive"
+                    };
 
-                if (isNewConnection)
+                    string[] conditionValue =
+                    {
+                        item.MasterSupplierId.ToString(),
+                        item.ProductId.ToString(),
+                        "1"
+                    };
+
+                    bool exist = _commonRepo.CheckExists(
+                        "MasterSupplierItem",
+                        conditionField,
+                        conditionValue,
+                        conn,
+                        transaction
+                    );
+                    #endregion
+
+                    if (exist)
+                    {
+                        skippedCount++;
+                        continue;
+                    }
+
+                    await _repo.Insert(item, conn, transaction, mastersupplieritem);
+                    insertedCount++;
+                }
+
+                if (insertedCount == 0 && skippedCount > 0)
                 {
-                    transaction.Commit();
+                    transaction.Rollback();
+                    return new ResultVM
+                    {
+                        Status = "Fail",
+                        Message = "All selected products already exist for this supplier."
+                    };
                 }
 
-                return result;
+                transaction.Commit();
 
-
-
+                // 🟢 Partial / Full success
+                return new ResultVM
+                {
+                    Status = "Success",
+                    Message = $"{insertedCount} added, {skippedCount} skipped.",
+                    DataVM = new
+                    {
+                        Inserted = insertedCount,
+                        Skipped = skippedCount
+                    }
+                };
             }
             catch (Exception ex)
             {
-                if (transaction != null && isNewConnection)
-                {
+                if (transaction != null)
                     transaction.Rollback();
-                }
 
-                result.ExMessage = ex.ToString();
-                return result;
+                return new ResultVM
+                {
+                    Status = "Error",
+                    Message = "Something went wrong",
+                    ExMessage = ex.ToString()
+                };
             }
             finally
             {
-                if (isNewConnection && conn != null)
-                {
+                if (conn != null)
                     conn.Close();
-                }
             }
         }
+
+
+        //public async Task<ResultVM> Insert(MasterSupplierItemVM mastersupplieritem)
+        //{
+        //    MasterSupplierItemRepository _repo = new MasterSupplierItemRepository();
+
+        //    ResultVM result = new ResultVM{Status = "Fail",Message = "Error",ExMessage = null,Id = "0",DataVM = null};
+
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        await conn.OpenAsync();
+
+        //        transaction = conn.BeginTransaction();
+
+        //        var detailsList = mastersupplieritem.MasterItemList;
+
+        //        result = await _repo.Insert(detailsList, conn, transaction, mastersupplieritem);
+
+        //        transaction.Commit();
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null) transaction.Rollback();
+
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (conn != null) conn.Close();
+        //    }
+        //}
 
         public async Task<ResultVM> Update(MasterSupplierItemVM mastersupplieritem)
         {
