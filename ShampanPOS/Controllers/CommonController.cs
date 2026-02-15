@@ -241,7 +241,8 @@ namespace ShampanPOS.Controllers
             try
             {
                 CommonService _commonService = new CommonService();
-                resultVM = await _commonService.ProductList(new[] { "" }, new[] { "" }, null);
+                resultVM = await _commonService.ProductList( new[] { "H.ProductGroupId" }, new[] { Vm.Value }, null);
+                //resultVM = await _commonService.ProductList(new[] { "H.Id" }, Vm.Value, null);
                 return resultVM;
             }
             catch (Exception ex)

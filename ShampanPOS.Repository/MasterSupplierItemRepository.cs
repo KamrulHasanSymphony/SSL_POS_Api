@@ -47,7 +47,8 @@ namespace ShampanPOS.Repository
                         IsArchive,
                         IsActive,
                         CreatedBy,
-                        CreatedOn
+                        CreatedOn,
+                        CreatedFrom
                     )
                     VALUES
                     (
@@ -58,7 +59,8 @@ namespace ShampanPOS.Repository
                         @IsArchive,
                         @IsActive,
                         @CreatedBy,
-                        @CreatedOn
+                        @CreatedOn,
+                        @CreatedFrom
                     );
                     SELECT SCOPE_IDENTITY();";
 
@@ -72,19 +74,24 @@ namespace ShampanPOS.Repository
                         cmd.Parameters.AddWithValue("@IsActive", true);
                         cmd.Parameters.AddWithValue("@CreatedBy", mastersupplieritem.CreatedBy);
                         cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
+                        cmd.Parameters.AddWithValue("@CreatedFrom", mastersupplieritem.CreatedFrom ?? (object)DBNull.Value);
 
-                        details.Id = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+                    details.Id = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                     }
 
-                if (isNewConnection)
-                {
-                    transaction.Commit();
-                }
+                //if (isNewConnection)
+                //{
+                //    transaction.Commit();
+                //}
 
                 result.Status = "Success";
                 result.Message = "Data inserted successfully.";
                 result.DataVM = details;
 
+                if (isNewConnection)
+                {
+                    transaction.Commit();
+                }
                 return result;
             }
             catch (Exception ex)
@@ -272,11 +279,15 @@ WHERE Id = @Id";
 
 
         /// List Method
-        public async Task<ResultVM> List(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+
+
+
+
+        public async Task<ResultVM> List(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
             try
             {
@@ -287,7 +298,6 @@ WHERE Id = @Id";
                     isNewConnection = true;
                 }
 
-                // Base query
                 string query = @"
         SELECT
             ISNULL(M.Id, 0) AS Id,
@@ -303,35 +313,28 @@ WHERE Id = @Id";
             ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
             FORMAT(ISNULL(M.LastModifiedOn, '1900-01-01'), 'yyyy-MM-dd') AS LastModifiedOn,
             ISNULL(pg.Name, '') AS ProductGroupName  
+	        --ISNULL(pg.Id,0) MasterItemGroupId
 
         FROM MasterSupplierItem M
         LEFT OUTER JOIN MasterSupplier s ON M.MasterSupplierId = s.Id
         LEFT OUTER JOIN MasterItem p ON M.MasterProductId = p.Id
         LEFT OUTER JOIN MasterItemGroup pg ON p.MasterItemGroupId = pg.Id  
 
-        WHERE 1 = 1
-        AND M.MasterSupplierId = @MasterSupplierId";  // Ensure this condition is included
+        WHERE 1 = 1 ";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
                 {
-                    query += " AND Id = @Id ";  // Add additional conditions if vm.Id is provided
+                    query += " AND M.Id = @Id ";
                 }
 
-                // Apply additional dynamic conditions
-                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
+                // Apply additional conditions
+                query = ApplyConditions(query, conditionalFields, conditionalValue, false);
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
-                // Set additional conditions for parameters
-                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+                // SET additional conditions param
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValue);
 
-                // Ensure the @MasterSupplierId parameter is added
-                if (conditionalValues != null && conditionalValues.Length > 0)
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@MasterSupplierId", conditionalValues[0]); // Assuming conditionalValues[0] is the MasterSupplierId
-                }
-
-                // Add other parameters
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
                 {
                     objComm.SelectCommand.Parameters.AddWithValue("@Id", vm.Id);
@@ -339,14 +342,16 @@ WHERE Id = @Id";
 
                 objComm.Fill(dataTable);
 
-                var model = new List<MasterSupplierItemVM>();
+                var lst = new List<MasterSupplierItemVM>();
+
                 foreach (DataRow row in dataTable.Rows)
                 {
-                    model.Add(new MasterSupplierItemVM
+                    lst.Add(new MasterSupplierItemVM
                     {
                         Id = row.Field<int>("Id"),
                         MasterSupplierId = row.Field<int>("MasterSupplierId"),
                         MasterProductId = row.Field<int>("MasterProductId"),
+                        //MasterItemGroupId = row.Field<int>("MasterItemGroupId"),
                         MasterSupplierName = row.Field<string>("MasterSupplierName"),
                         MasterProductName = row.Field<string>("MasterProductName"),
                         UserId = row.Field<string>("UserId"),
@@ -358,16 +363,33 @@ WHERE Id = @Id";
                         LastModifiedOn = row.Field<string>("LastModifiedOn")
                     });
                 }
+                foreach (var parent in lst)
+                {
+                    // pass single department id as conditional value
+                    var detailsResult = DetailsList(new[] { "M.MasterSupplierId" }, new[] { parent.MasterSupplierId.ToString() }, vm, conn, transaction);
 
+                    if (detailsResult.Status == "Success" && detailsResult.DataVM is DataTable dts)
+                    {
+                        string json = JsonConvert.SerializeObject(dts);
+                        var details = JsonConvert.DeserializeObject<List<MasterItemVM>>(json);
+
+                        parent.MasterItemList = details ?? new List<MasterItemVM>();
+                    }
+                    else
+                    {
+                        parent.MasterItemList = new List<MasterItemVM>();
+                    }
+                }
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";
-                result.DataVM = model;
+                result.DataVM = lst;
+
                 return result;
             }
             catch (Exception ex)
             {
                 result.ExMessage = ex.Message;
-                result.Message = "Error in List.";
+                result.Message = ex.Message;
                 return result;
             }
             finally
@@ -381,108 +403,62 @@ WHERE Id = @Id";
 
 
 
+        public ResultVM DetailsList(string[] conditionalFields, string[] conditionalValues, PeramModel vm, SqlConnection conn, SqlTransaction transaction)
+        {
+            ResultVM result = new ResultVM { Status = "Fail" };
+            DataTable dataTable = new DataTable();
+            try
+            {
+                string query = @"
+        SELECT
+        ISNULL(M.MasterSupplierId, 0) AS MasterSupplierId,
+        ISNULL(M.MasterProductId, 0) AS MasterProductId,
+        ISNULL(s.Name, '') AS MasterSupplierName,
+        ISNULL(M.UserId, 0) AS UserId,
+    
+        ISNULL(M.IsArchive, 0) AS IsArchive,
+        ISNULL(M.IsActive, 0) AS IsActive,   
+        ISNULL(M.CreatedBy, '') AS CreatedBy,
+        FORMAT(ISNULL(M.CreatedOn, '1900-01-01'), 'yyyy-MM-dd') AS CreatedOn,
+        ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
+        FORMAT(ISNULL(M.LastModifiedOn, '1900-01-01'), 'yyyy-MM-dd') AS LastModifiedOn,
+    
+        --ISNULL(pg.Id,0) MasterItemGroupId,
+        ISNULL(p.Code,'') Code,
+	    ISNULL(p.Name, '') AS Name,
+	    ISNULL(pg.Name, '') AS MasterItemGroupName,
+        ISNULL(P.Id,0) AS Id
+
+    FROM MasterSupplierItem M
+    LEFT OUTER JOIN MasterSupplier s ON M.MasterSupplierId = s.Id
+    LEFT OUTER JOIN MasterItem p ON M.MasterProductId = p.Id
+    LEFT OUTER JOIN MasterItemGroup pg ON p.MasterItemGroupId = pg.Id  
+
+    WHERE 1 = 1";
+
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
+
+                SqlDataAdapter da = CreateAdapter(query, conn, transaction);
+                da.SelectCommand = ApplyParameters(da.SelectCommand, conditionalFields, conditionalValues);
+                da.Fill(dataTable);
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = dataTable;
+            }
+            catch (Exception ex)
+            {
+                result.Message = MessageModel.DetailInsertFailed;
+                result.ExMessage = ex.ToString();
+            }
+            return result;
+        }
 
 
-        //public async Task<ResultVM> List(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null,
-        // SqlConnection conn = null, SqlTransaction transaction = null)
-        //     {
-        //         DataTable dt = new DataTable();
-        //         ResultVM result = new ResultVM { Status = "Fail", Message = "Error" };
-
-        //         try
-        //         {
-        //             if (conn == null) throw new Exception("Database connection failed!");
-
-        //             string query = @"
-        //         SELECT
-        //             ISNULL(M.Id, 0) AS Id,
-        //             ISNULL(M.MasterSupplierId, 0) AS MasterSupplierId,
-        //             ISNULL(M.MasterProductId, 0) AS MasterProductId,
-        //             ISNULL(s.Name, '') AS MasterSupplierName,
-        //             ISNULL(M.UserId, '') AS UserId,
-        //             ISNULL(p.Name, '') AS MasterProductName,
-        //             ISNULL(p.MasterItemGroupId, 0) AS MasterItemGroupId, -- Added this field
-        //             ISNULL(M.IsArchive, 0) AS IsArchive,
-        //             ISNULL(M.IsActive, 0) AS IsActive,
-        //             ISNULL(M.CreatedBy, '') AS CreatedBy,
-        //             FORMAT(ISNULL(M.CreatedOn, '1900-01-01'), 'yyyy-MM-dd') AS CreatedOn,
-        //             ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
-        //             FORMAT(ISNULL(M.LastModifiedOn, '1900-01-01'), 'yyyy-MM-dd') AS LastModifiedOn
-        //         FROM MasterSupplierItem M
-        //         LEFT OUTER JOIN MasterSupplier s ON M.MasterSupplierId = s.Id
-        //         LEFT OUTER JOIN MasterItem p ON M.MasterProductId = p.Id
-        //         WHERE 1=1
-        //     ";
-
-        //             if (vm != null && !string.IsNullOrEmpty(vm.Id))
-        //                 query += " AND M.Id = @Id ";
-
-        //             query = ApplyConditions(query, conditionalFields, conditionalValues, false);
-
-        //             SqlDataAdapter adapter = CreateAdapter(query, conn, transaction);
-        //             adapter.SelectCommand = ApplyParameters(adapter.SelectCommand, conditionalFields, conditionalValues);
-
-        //             if (vm != null && !string.IsNullOrEmpty(vm.Id))
-        //                 adapter.SelectCommand.Parameters.AddWithValue("@Id", vm.Id);
-
-        //             adapter.Fill(dt);
-
-        //             var list = dt.AsEnumerable().Select(row => new MasterSupplierItemVM
-        //             {
-        //                 Id = row.Field<int>("Id"),
-        //                 MasterSupplierId = row.Field<int>("MasterSupplierId"),
-        //                 MasterProductId = row.Field<int>("MasterProductId"),
-        //                 MasterSupplierName = row.Field<string>("MasterSupplierName"),
-        //                 MasterProductName = row.Field<string>("MasterProductName"),
-        //                 UserId = row.Field<string>("UserId"),
-        //                 MasterItemGroupId = row.Field<int>("MasterItemGroupId"),  // Map it here
-        //                 IsArchive = row.Field<bool>("IsArchive"),
-        //                 IsActive = row.Field<bool>("IsActive"),
-        //                 CreatedBy = row.Field<string>("CreatedBy"),
-        //                 CreatedOn = row.Field<string>("CreatedOn"),
-        //                 LastModifiedBy = row.Field<string>("LastModifiedBy"),
-        //                 LastModifiedOn = row.Field<string>("LastModifiedOn"),
-        //                 SabreList = new List<MasterSupplierItemVM>()
-        //             }).ToList();
-
-        //             // ─────────── per-parent details call ───────────
-        //             foreach (var parent in list)
-        //             {
-        //                 // Pass MasterSupplierId and MasterItemGroupId instead of DepartmentId
-        //                 var detailsResult = DetailsList(
-        //                     new[] { "M.MasterSupplierId", "p.MasterItemGroupId" },
-        //                     new[] { parent.MasterSupplierId.ToString(), parent.MasterItemGroupId.ToString() },
-        //                     vm, conn, transaction);
-
-        //                 if (detailsResult.Status == "Success" && detailsResult.DataVM is DataTable dts)
-        //                 {
-        //                     string json = JsonConvert.SerializeObject(dts);
-        //                     var details = JsonConvert.DeserializeObject<List<MasterSupplierItemVM>>(json);
-
-        //                     parent.SabreList = details ?? new List<MasterSupplierItemVM>();
-        //                 }
-        //                 else
-        //                 {
-        //                     parent.SabreList = new List<MasterSupplierItemVM>();
-        //                 }
-        //             }
-
-        //             result.Status = "Success";
-        //             result.Message = "Data retrieved successfully.";
-        //             result.DataVM = list;
-
-        //             return result;
-        //         }
-        //         catch (Exception ex)
-        //         {
-        //             result.Message = ex.Message;
-        //             result.ExMessage = ex.ToString();
-        //             return result;
-        //         }
-        //     }
 
 
-        // Dropdown Method
+
+
         public async Task<ResultVM> Dropdown(SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
@@ -551,58 +527,71 @@ ORDER BY Name";
                 var data = new GridEntity<MasterSupplierItemVM>();
 
                 string sqlQuery = @"
-    -- Count query
-    SELECT COUNT(DISTINCT M.Id) AS totalcount
-FROM MasterSupplierItem M
-LEFT OUTER JOIN MasterSupplier s on M.MasterSupplierId = s.Id
-LEFT OUTER JOIN MasterItem p on M.MasterProductId = p.Id
-WHERE 1 = 1 ";
-
-                sqlQuery = sqlQuery + (options.filter.Filters.Count > 0 ?
-                    " AND (" + GridQueryBuilder<MasterSupplierItemVM>.FilterCondition(options.filter) + ")" : "");
-
-                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
-
-                sqlQuery += @"
-
-    -- Data query with pagination and sorting
-    SELECT * 
-    FROM (
-        SELECT 
-        ROW_NUMBER() OVER(ORDER BY " +
-                                        (options.sort.Count > 0 ?
-                                            options.sort[0].field + " " + options.sort[0].dir :
-                                            "M.Id DESC ") + @") AS rowindex,
-        
-    ISNULL(M.Id, 0) AS Id,
-	ISNULL(M.MasterSupplierId, 0) AS MasterSupplierId,
-	ISNULL(M.MasterProductId, 0) AS MasterItemId,
-    ISNULL(s.Name, '') AS MasterSupplierName,
-	ISNULL(M.UserId, 0) AS UserId,
-    ISNULL(p.Name, '') AS MasterProductName,
-    ISNULL(M.IsArchive, 0) AS IsArchive,
-	ISNULL(M.IsActive, 0) AS IsActive,   
-
-    ISNULL(M.CreatedBy, '') AS CreatedBy,
-    FORMAT(ISNULL(M.CreatedOn, '1900-01-01'), 'yyyy-MM-dd') AS CreatedOn,
-    ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
-    FORMAT(ISNULL(M.LastModifiedOn, '1900-01-01'), 'yyyy-MM-dd') AS LastModifiedOn
-
-FROM MasterSupplierItem M
-LEFT OUTER JOIN MasterSupplier s on M.MasterSupplierId = s.Id
-LEFT OUTER JOIN MasterItem p on M.MasterProductId = p.Id
-WHERE 1 = 1
-       ";
-
-                sqlQuery = sqlQuery + (options.filter.Filters.Count > 0 ?
-                    " AND (" + GridQueryBuilder<MasterSupplierItemVM>.FilterCondition(options.filter) + ")" : "");
-
-                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
-
-                sqlQuery += @"
-    ) AS a
-    WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
+-- Count query
+SELECT COUNT(*) AS totalcount
+FROM (
+    SELECT DISTINCT
+        M.MasterSupplierId,
+        s.Name,
+        M.UserId,
+        M.IsArchive,
+        M.IsActive,
+        M.CreatedBy,
+        --M.CreatedOn,
+        M.LastModifiedBy,
+        M.LastModifiedOn
+    FROM MasterSupplierItem M
+    LEFT OUTER JOIN MasterSupplier s on M.MasterSupplierId = s.Id
+    WHERE 1 = 1
 ";
+
+                sqlQuery += (options.filter.Filters.Count > 0 ?
+                        " AND (" + GridQueryBuilder<MasterSupplierItemVM>.FilterCondition(options.filter) + ")" : "");
+
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+                sqlQuery += @"
+) t
+
+-- Data query
+SELECT *
+FROM (
+    SELECT 
+        ROW_NUMBER() OVER(ORDER BY " +
+                        (options.sort.Count > 0 ?
+                            options.sort[0].field + " " + options.sort[0].dir :
+                            "MasterSupplierId DESC") + @") AS rowindex,
+
+        *
+    FROM (
+        SELECT DISTINCT
+            ISNULL(M.MasterSupplierId, 0) AS MasterSupplierId,
+            ISNULL(s.Name, '') AS MasterSupplierName,
+            ISNULL(M.UserId, 0) AS UserId,
+            ISNULL(M.IsArchive, 0) AS IsArchive,
+            ISNULL(M.IsActive, 0) AS IsActive,   
+
+            ISNULL(M.CreatedBy, '') AS CreatedBy,
+            FORMAT(ISNULL(M.CreatedOn, '1900-01-01'), 'yyyy-MM-dd') AS CreatedOn,
+            ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
+            FORMAT(ISNULL(M.LastModifiedOn, '1900-01-01'), 'yyyy-MM-dd') AS LastModifiedOn
+
+        FROM MasterSupplierItem M
+        LEFT OUTER JOIN MasterSupplier s on M.MasterSupplierId = s.Id
+        WHERE 1 = 1
+";
+
+                sqlQuery += (options.filter.Filters.Count > 0 ?
+                        " AND (" + GridQueryBuilder<MasterSupplierItemVM>.FilterCondition(options.filter) + ")" : "");
+
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+                sqlQuery += @"
+    ) d
+) a
+WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
+";
+
 
 
 

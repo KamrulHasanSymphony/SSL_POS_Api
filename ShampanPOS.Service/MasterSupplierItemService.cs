@@ -21,15 +21,17 @@ namespace ShampanPOS.Service
         {
             MasterSupplierItemRepository _repo = new MasterSupplierItemRepository();
 
-            ResultVM result = new ResultVM{Status = "Fail",Message = "Error",ExMessage = null,Id = "0", DataVM = null };
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
+            bool isNewConnection = false;
             SqlConnection conn = null;
             SqlTransaction transaction = null;
 
             try
             {
                 conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                await conn.OpenAsync();
+                conn.Open();
+                isNewConnection = true;
 
                 transaction = conn.BeginTransaction();
 
@@ -39,27 +41,11 @@ namespace ShampanPOS.Service
                 foreach (var item in mastersupplieritem.MasterItemList)
                 {
                     #region Check Exist Data (Supplier + Product)
-                    string[] conditionField =
-                    {
-                        "MasterSupplierId",
-                        "MasterProductId",
-                        "IsActive"
-                    };
+                    string[] conditionField ={"MasterSupplierId","MasterProductId","IsActive"};
 
-                    string[] conditionValue =
-                    {
-                        item.MasterSupplierId.ToString(),
-                        item.ProductId.ToString(),
-                        "1"
-                    };
+                    string[] conditionValue ={item.MasterSupplierId.ToString(),item.ProductId.ToString(),"1"};
 
-                    bool exist = _commonRepo.CheckExists(
-                        "MasterSupplierItem",
-                        conditionField,
-                        conditionValue,
-                        conn,
-                        transaction
-                    );
+                    bool exist = _commonRepo.CheckExists("MasterSupplierItem",conditionField,conditionValue,conn,transaction);
                     #endregion
 
                     if (exist)
@@ -82,7 +68,14 @@ namespace ShampanPOS.Service
                     };
                 }
 
-                transaction.Commit();
+                if (isNewConnection && result.Status == "Success")
+                {
+                    transaction.Commit();
+                }
+                else
+                {
+                    throw new Exception(result.Message);
+                }
 
                 // 🟢 Partial / Full success
                 return new ResultVM
@@ -152,6 +145,8 @@ namespace ShampanPOS.Service
         //    }
         //}
 
+
+
         public async Task<ResultVM> Update(MasterSupplierItemVM mastersupplieritem)
         {
             MasterSupplierItemRepository _repo = new MasterSupplierItemRepository();
@@ -167,7 +162,8 @@ namespace ShampanPOS.Service
                 isNewConnection = true;
 
                 transaction = conn.BeginTransaction();
-
+                int insertedCount = 0;
+                int skippedCount = 0;
                 //#region Check Exist Data
                 //string[] conditionField = { "Id not", "TelephoneNo", "IsActive" };
                 //string[] conditionValue = { supplierproduct.Id.ToString(), supplierproduct.TelephoneNo.Trim(), "1" };
@@ -181,14 +177,59 @@ namespace ShampanPOS.Service
                 //}
                 //#endregion
 
-                result = await _repo.Update(mastersupplieritem, conn, transaction);
+                //result = await _repo.Update(mastersupplieritem, conn, transaction);
 
-                if (isNewConnection)
+
+                var record = _commonRepo.DetailsDelete("MasterSupplierItem", new[] { "MasterSupplierId" }, new[] { mastersupplieritem.MasterSupplierId.ToString() }, conn, transaction);
+
+                if (record.Status == "Fail")
                 {
-                    transaction.Commit();
+                    throw new Exception("Error in Delete for Details Data.");
                 }
 
-                return result;
+                // 🔥 STEP 2: Insert New Details
+                foreach (var item in mastersupplieritem.MasterItemList)
+                {
+                    #region Check Exist Data (Supplier + Product)
+                    string[] conditionField ={"MasterSupplierId","MasterProductId","IsActive"};
+
+                    string[] conditionValue ={item.MasterSupplierId.ToString(),item.ProductId.ToString(),"1"};
+
+                    bool exist = _commonRepo.CheckExists("MasterSupplierItem",conditionField,conditionValue,conn,transaction);
+                    #endregion
+
+                    if (exist)
+                    {
+                        skippedCount++;
+                        continue;
+                    }
+                    //item.SupplierId = mastersupplieritem.MasterSupplierId;
+
+                    await _repo.Insert(item, conn, transaction, mastersupplieritem);
+                    insertedCount++;
+                }
+                if (insertedCount == 0 && skippedCount > 0)
+                {
+                    transaction.Rollback();
+                    return new ResultVM
+                    {
+                        Status = "Fail",
+                        Message = "All selected products already exist for this supplier."
+                    };
+                }
+
+                transaction.Commit();
+
+                return new ResultVM
+                {
+                    Status = "Success",
+                    Message = $"{insertedCount} added, {skippedCount} skipped.",
+                    DataVM = new
+                    {
+                        Inserted = insertedCount,
+                        Skipped = skippedCount
+                    }
+                };
             }
             catch (Exception ex)
             {

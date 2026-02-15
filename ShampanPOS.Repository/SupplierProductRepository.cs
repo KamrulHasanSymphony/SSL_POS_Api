@@ -1,4 +1,5 @@
-﻿using ShampanPOS.ViewModel;
+﻿using Newtonsoft.Json;
+using ShampanPOS.ViewModel;
 using ShampanPOS.ViewModel.CommonVMs;
 using ShampanPOS.ViewModel.KendoCommon;
 using ShampanPOS.ViewModel.Utility;
@@ -120,19 +121,19 @@ namespace ShampanPOS.Repository
                     INSERT INTO SupplierProduct
                 (
                      SupplierId,ProductId,UserId,CompanyId,
-                     IsArchive, IsActive, CreatedBy, CreatedOn
+                     IsArchive, IsActive, CreatedBy, CreatedOn, CreatedFrom
                 )
                 VALUES
                 (
                     @SupplierId,@ProductId,@UserId,@CompanyId,
-                     @IsArchive, @IsActive, @CreatedBy, @CreatedOn 
+                     @IsArchive, @IsActive, @CreatedBy, @CreatedOn ,@CreatedFrom
                 );
                     SELECT SCOPE_IDENTITY();";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
                 {
-                    cmd.Parameters.AddWithValue("@SupplierId", details.SupplierId);
-                    cmd.Parameters.AddWithValue("@ProductId", details.ProductId);
+                    cmd.Parameters.AddWithValue("@SupplierId", supplierproduct.SupplierId);
+                    cmd.Parameters.AddWithValue("@ProductId", details.Id);
 
                     cmd.Parameters.AddWithValue("@UserId", supplierproduct.UserId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CompanyId", supplierproduct.CompanyId ?? (object)DBNull.Value);
@@ -140,6 +141,7 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@IsActive", true);
                     cmd.Parameters.AddWithValue("@CreatedBy", supplierproduct.CreatedBy);
                     cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@CreatedFrom", supplierproduct.CreatedFrom ?? (object)DBNull.Value);
 
                     details.Id = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                 }
@@ -355,8 +357,8 @@ WHERE Id = @Id";
                 }
 
                 string query = @"
-SELECT
-    ISNULL(M.Id, 0) AS Id,
+	SELECT
+    ISNULL(p.Id, 0) AS Id,
 	ISNULL(M.SupplierId, 0) AS SupplierId,
 	ISNULL(M.ProductId, 0) AS ProductId,
     ISNULL(s.Name, '') AS SupplierName,
@@ -368,11 +370,15 @@ SELECT
     ISNULL(M.CreatedBy, '') AS CreatedBy,
     FORMAT(ISNULL(M.CreatedOn, '1900-01-01'), 'yyyy-MM-dd') AS CreatedOn,
     ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
-    FORMAT(ISNULL(M.LastModifiedOn, '1900-01-01'), 'yyyy-MM-dd') AS LastModifiedOn
+    FORMAT(ISNULL(M.LastModifiedOn, '1900-01-01'), 'yyyy-MM-dd') AS LastModifiedOn,
+	ISNULL(pg.Name, '') AS ProductGroupName
+	--ISNULL(pg.Id,0) ProductGroupId
 
 FROM SupplierProduct M
 LEFT OUTER JOIN Suppliers s on M.SupplierId = s.Id
 LEFT OUTER JOIN Products p on M.ProductId = p.Id
+LEFT OUTER JOIN ProductGroups pg ON p.ProductGroupId = pg.Id  
+
 WHERE 1 = 1
  ";
 
@@ -406,6 +412,7 @@ WHERE 1 = 1
                     {
                         Id = row.Field<int>("Id"),
                         SupplierId = row.Field<int>("SupplierId"),
+                        //ProductGroupId = row.Field<int>("ProductGroupId"),
                         ProductId = row.Field<int>("ProductId"),
                         SupplierName = row.Field<string>("SupplierName"),
                         ProductName = row.Field<string>("ProductName"),
@@ -419,10 +426,27 @@ WHERE 1 = 1
                     });
                 }
 
+                foreach (var parent in model)
+                {
+                    // pass single department id as conditional value
+                    var detailsResult = DetailsList(new[] { "M.SupplierId" }, new[] { parent.SupplierId.ToString() }, vm, conn, transaction);
 
+                    if (detailsResult.Status == "Success" && detailsResult.DataVM is DataTable dts)
+                    {
+                        string json = JsonConvert.SerializeObject(dts);
+                        var details = JsonConvert.DeserializeObject<List<MasterItemVM>>(json);
+
+                        parent.MasterItemList = details ?? new List<MasterItemVM>();
+                    }
+                    else
+                    {
+                        parent.MasterItemList = new List<MasterItemVM>();
+                    }
+                }
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";
                 result.DataVM = model;
+
                 return result;
             }
             catch (Exception ex)
@@ -439,6 +463,58 @@ WHERE 1 = 1
                 }
             }
         }
+
+
+        public ResultVM DetailsList(string[] conditionalFields, string[] conditionalValues, PeramModel vm, SqlConnection conn, SqlTransaction transaction)
+        {
+            ResultVM result = new ResultVM { Status = "Fail" };
+            DataTable dataTable = new DataTable();
+            try
+            {
+                string query = @"
+	SELECT
+	ISNULL(M.SupplierId, 0) AS SupplierId,
+	ISNULL(M.ProductId, 0) AS ProductId,
+    ISNULL(s.Name, '') AS SupplierName,
+	ISNULL(M.UserId, 0) AS UserId,
+    ISNULL(p.Name, '') AS Name,
+    ISNULL(M.IsArchive, 0) AS IsArchive,
+	ISNULL(M.IsActive, 0) AS IsActive,   
+
+    ISNULL(M.CreatedBy, '') AS CreatedBy,
+    FORMAT(ISNULL(M.CreatedOn, '1900-01-01'), 'yyyy-MM-dd') AS CreatedOn,
+    ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
+    FORMAT(ISNULL(M.LastModifiedOn, '1900-01-01'), 'yyyy-MM-dd') AS LastModifiedOn,
+	--ISNULL(pg.Id,0) ProductGroupId,
+    ISNULL(p.Code,'') Code,
+	ISNULL(pg.Name, '') AS ProductGroupName,
+	ISNULL(p.Id,0) Id
+
+FROM SupplierProduct M
+LEFT OUTER JOIN Suppliers s on M.SupplierId = s.Id
+LEFT OUTER JOIN Products p on M.ProductId = p.Id
+LEFT OUTER JOIN ProductGroups pg ON p.ProductGroupId = pg.Id  
+
+WHERE 1 = 1";
+
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
+
+                SqlDataAdapter da = CreateAdapter(query, conn, transaction);
+                da.SelectCommand = ApplyParameters(da.SelectCommand, conditionalFields, conditionalValues);
+                da.Fill(dataTable);
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = dataTable;
+            }
+            catch (Exception ex)
+            {
+                result.Message = MessageModel.DetailInsertFailed;
+                result.ExMessage = ex.ToString();
+            }
+            return result;
+        }
+
 
         // Dropdown Method
         public async Task<ResultVM> Dropdown(SqlConnection conn = null, SqlTransaction transaction = null)
@@ -509,58 +585,71 @@ ORDER BY Name";
                 var data = new GridEntity<SupplierProductVM>();
 
                 string sqlQuery = @"
-    -- Count query
-    SELECT COUNT(DISTINCT M.Id) AS totalcount
-FROM SupplierProduct M
-LEFT OUTER JOIN Suppliers s on M.SupplierId = s.Id
-LEFT OUTER JOIN Products p on M.ProductId = p.Id
-WHERE 1 = 1 ";
-
-                sqlQuery = sqlQuery + (options.filter.Filters.Count > 0 ?
-                    " AND (" + GridQueryBuilder<SupplierProductVM>.FilterCondition(options.filter) + ")" : "");
-
-                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
-
-                sqlQuery += @"
-
-    -- Data query with pagination and sorting
-    SELECT * 
-    FROM (
-        SELECT 
-        ROW_NUMBER() OVER(ORDER BY " +
-                                        (options.sort.Count > 0 ?
-                                            options.sort[0].field + " " + options.sort[0].dir :
-                                            "M.Id DESC ") + @") AS rowindex,
-        
-    ISNULL(M.Id, 0) AS Id,
-	ISNULL(M.SupplierId, 0) AS SupplierId,
-	ISNULL(M.ProductId, 0) AS ProductId,
-    ISNULL(s.Name, '') AS SupplierName,
-	ISNULL(M.UserId, 0) AS UserId,
-    ISNULL(p.Name, '') AS ProductName,
-    ISNULL(M.IsArchive, 0) AS IsArchive,
-	ISNULL(M.IsActive, 0) AS IsActive,   
-
-    ISNULL(M.CreatedBy, '') AS CreatedBy,
-    FORMAT(ISNULL(M.CreatedOn, '1900-01-01'), 'yyyy-MM-dd') AS CreatedOn,
-    ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
-    FORMAT(ISNULL(M.LastModifiedOn, '1900-01-01'), 'yyyy-MM-dd') AS LastModifiedOn
-
-FROM SupplierProduct M
-LEFT OUTER JOIN Suppliers s on M.SupplierId = s.Id
-LEFT OUTER JOIN Products p on M.ProductId = p.Id
-WHERE 1 = 1
-       ";
-
-                sqlQuery = sqlQuery + (options.filter.Filters.Count > 0 ?
-                    " AND (" + GridQueryBuilder<SupplierProductVM>.FilterCondition(options.filter) + ")" : "");
-
-                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
-
-                sqlQuery += @"
-    ) AS a
-    WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
+-- Count query
+SELECT COUNT(*) AS totalcount
+FROM (
+    SELECT DISTINCT
+        M.SupplierId,
+        s.Name,
+        M.UserId,
+        M.IsArchive,
+        M.IsActive,
+        M.CreatedBy,
+        --M.CreatedOn,
+        M.LastModifiedBy,
+        M.LastModifiedOn
+    FROM SupplierProduct M
+    LEFT OUTER JOIN Suppliers s on M.SupplierId = s.Id
+    WHERE 1 = 1
 ";
+
+                sqlQuery += (options.filter.Filters.Count > 0 ?
+                        " AND (" + GridQueryBuilder<SupplierProductVM>.FilterCondition(options.filter) + ")" : "");
+
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+                sqlQuery += @"
+) t
+
+-- Data query
+SELECT *
+FROM (
+    SELECT 
+        ROW_NUMBER() OVER(ORDER BY " +
+                        (options.sort.Count > 0 ?
+                            options.sort[0].field + " " + options.sort[0].dir :
+                            "SupplierId DESC") + @") AS rowindex,
+
+        *
+    FROM (
+        SELECT DISTINCT
+            ISNULL(M.SupplierId, 0) AS SupplierId,
+            ISNULL(s.Name, '') AS SupplierName,
+            ISNULL(M.UserId, 0) AS UserId,
+            ISNULL(M.IsArchive, 0) AS IsArchive,
+            ISNULL(M.IsActive, 0) AS IsActive,   
+
+            ISNULL(M.CreatedBy, '') AS CreatedBy,
+            FORMAT(ISNULL(M.CreatedOn, '1900-01-01'), 'yyyy-MM-dd') AS CreatedOn,
+            ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
+            FORMAT(ISNULL(M.LastModifiedOn, '1900-01-01'), 'yyyy-MM-dd') AS LastModifiedOn
+
+        FROM SupplierProduct M
+        LEFT OUTER JOIN Suppliers s on M.SupplierId = s.Id
+        WHERE 1 = 1
+";
+
+                sqlQuery += (options.filter.Filters.Count > 0 ?
+                        " AND (" + GridQueryBuilder<SupplierProductVM>.FilterCondition(options.filter) + ")" : "");
+
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+                sqlQuery += @"
+    ) d
+) a
+WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
+";
+
 
 
 

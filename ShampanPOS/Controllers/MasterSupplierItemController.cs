@@ -92,7 +92,7 @@ namespace ShampanPOS.Controllers
             try
             {
                 _service = new MasterSupplierItemService();
-                resultVM = await _service.List(new[] { "M.Id" }, new[] { vm.Id }, null);
+                resultVM = await _service.List(new[] { "M.MasterSupplierId" }, new[] { vm.Id }, null);
                 return resultVM;
             }
             catch (Exception ex)

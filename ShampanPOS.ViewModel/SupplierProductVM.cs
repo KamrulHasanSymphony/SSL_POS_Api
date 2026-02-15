@@ -24,6 +24,15 @@ namespace ShampanPOS.ViewModel
         public int? CompanyId { get; set; }
 
 
+        public int ProductGroupId { get; set; }
+
+        public string? ProductGroupDescription { get; set; }
+
+        public string? ProductGroupCode { get; set; }
+
+        public string? ProductGroupName { get; set; }
+
+
         [Display(Name = "Archived")]
         public bool IsArchive { get; set; }
 
