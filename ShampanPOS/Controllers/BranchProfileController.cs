@@ -113,6 +113,34 @@ namespace ShampanPOS.Controllers
             }
         }
 
+
+
+        [HttpPost("UserWiseBranchList")]
+        public async Task<ResultVM> UserWiseBranchList(CommonVM vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                _branchProfileService = new BranchProfileService();
+                resultVM = await _branchProfileService.UserWiseBranchList(new[] { "b.UserId" }, new[] { vm.UserId }, new PeramModel() { UserLogInId = vm.UserId });
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = ex.Message,
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
+
+
+
+
+
         // GET: api/BranchProfile/ListAsDataTable
         [HttpGet("ListAsDataTable")]
         public async Task<ResultVM> ListAsDataTable(BranchProfileVM branchProfile)

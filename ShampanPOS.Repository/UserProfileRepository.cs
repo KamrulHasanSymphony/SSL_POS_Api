@@ -335,7 +335,7 @@ WHERE 1 = 1 ";
                     SELECT COUNT(DISTINCT U.Id) AS totalcount
                     FROM 
                     [{DatabaseHelper.AuthDbName()}].[dbo].AspNetUsers AS U
-                    LEFT OUTER JOIN [{DatabaseHelper.DBName()}].[dbo].SalesPersons SP ON ISNULL(U.SalePersonId,0) = ISNULL(SP.Id,0)
+                    --LEFT OUTER JOIN [{DatabaseHelper.DBName()}].[dbo].SalesPersons SP ON ISNULL(U.SalePersonId,0) = ISNULL(SP.Id,0)
                     WHERE 1 = 1
                     " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<UserProfileVM>.FilterCondition(options.filter) + ")" : "") + @"
 
@@ -353,12 +353,12 @@ WHERE 1 = 1 ";
                         ,ISNULL(U.IsHeadOffice,0) IsHeadOffice                        
                         ,ISNULL(U.IsSalePerson,0) IsSalePerson
                         ,ISNULL(U.SalePersonId,0) SalePersonId
-                        ,ISNULL(SP.Name,'') SalePersonName
-                        ,ISNULL(SP.Code,'') SalePersonCode
+                        --,ISNULL(SP.Name,'') SalePersonName
+                        --,ISNULL(SP.Code,'') SalePersonCode
 
                         FROM 
                         [{DatabaseHelper.AuthDbName()}].[dbo].AspNetUsers AS U
-                        LEFT OUTER JOIN [{DatabaseHelper.DBName()}].[dbo].SalesPersons SP ON ISNULL(U.SalePersonId,0) = ISNULL(SP.Id,0)
+                        --LEFT OUTER JOIN [{DatabaseHelper.DBName()}].[dbo].SalesPersons SP ON ISNULL(U.SalePersonId,0) = ISNULL(SP.Id,0)
 
                     WHERE 1 = 1
                   

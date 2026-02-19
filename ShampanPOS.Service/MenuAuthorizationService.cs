@@ -582,7 +582,7 @@ namespace ShampanPOS.Service
                         item.RoleId = vm.RoleId;
                         item.UserId = vm.UserId;
 
-                        result = await _repo.UserMenuInsert(item);
+                        result = await _repo.UserMenuInsert(item, conn, transaction);
                     }
                 }
 
