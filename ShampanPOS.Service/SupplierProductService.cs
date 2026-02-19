@@ -24,13 +24,15 @@ namespace ShampanPOS.Service
 
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
+            bool isNewConnection = false;
             SqlConnection conn = null;
             SqlTransaction transaction = null;
 
             try
             {
                 conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                await conn.OpenAsync();
+                conn.Open();
+                isNewConnection = true;
 
                 transaction = conn.BeginTransaction();
 
@@ -83,7 +85,14 @@ namespace ShampanPOS.Service
                     };
                 }
 
-                transaction.Commit();
+                //if (isNewConnection && result.Status == "Success")
+                //{
+                    transaction.Commit();
+                //}
+                //else
+                //{
+                //    throw new Exception(result.Message);
+                //}
 
                 // 🟢 Partial / Full success
                 return new ResultVM

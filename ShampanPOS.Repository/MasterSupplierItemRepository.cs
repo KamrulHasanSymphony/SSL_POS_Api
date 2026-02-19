@@ -28,7 +28,7 @@ namespace ShampanPOS.Repository
                 if (conn == null)
                 {
                     conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    await conn.OpenAsync();
+                    conn.Open();
                     isNewConnection = true;
                 }
 

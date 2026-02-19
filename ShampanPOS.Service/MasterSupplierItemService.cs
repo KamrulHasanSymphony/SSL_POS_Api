@@ -53,6 +53,7 @@ namespace ShampanPOS.Service
                         skippedCount++;
                         continue;
                     }
+                    item.MasterSupplierId = mastersupplieritem.MasterSupplierId;
 
                     await _repo.Insert(item, conn, transaction, mastersupplieritem);
                     insertedCount++;
@@ -68,14 +69,14 @@ namespace ShampanPOS.Service
                     };
                 }
 
-                if (isNewConnection && result.Status == "Success")
-                {
+                //if (isNewConnection && result.Status == "Success")
+                //{
                     transaction.Commit();
-                }
-                else
-                {
-                    throw new Exception(result.Message);
-                }
+                //}
+                //else
+                //{
+                //    throw new Exception(result.Message);
+                //}
 
                 // 🟢 Partial / Full success
                 return new ResultVM

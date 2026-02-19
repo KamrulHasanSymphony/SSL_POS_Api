@@ -108,7 +108,7 @@ namespace ShampanPOS.Repository
                 if (conn == null)
                 {
                     conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    await conn.OpenAsync();
+                    conn.Open();
                     isNewConnection = true;
                 }
 
@@ -146,14 +146,19 @@ namespace ShampanPOS.Repository
                     details.Id = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                 }
 
-                if (isNewConnection)
-                {
-                    transaction.Commit();
-                }
+                //if (isNewConnection)
+                //{
+                //    transaction.Commit();
+                //}
 
                 result.Status = "Success";
                 result.Message = "Data inserted successfully.";
                 result.DataVM = details;
+
+                if (isNewConnection)
+                {
+                    transaction.Commit();
+                }
 
                 return result;
             }
