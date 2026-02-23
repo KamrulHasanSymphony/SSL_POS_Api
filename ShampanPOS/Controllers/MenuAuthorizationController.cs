@@ -193,7 +193,8 @@ namespace ShampanPOS.Controllers
 
                 var peram = new PeramModel
                 {
-                    Id = vm.Id // map only the needed property
+                    Id = vm.Id,
+                    UserLogInId = vm.UserId// map only the needed property
                 };
 
                 resultVM = await _menuAuthorization.GetUserMenuAccessData(null, null, peram);

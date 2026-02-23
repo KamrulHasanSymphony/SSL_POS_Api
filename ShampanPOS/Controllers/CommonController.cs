@@ -382,6 +382,32 @@ namespace ShampanPOS.Controllers
 
 
 
+
+        [HttpPost("GetSupplierProductList")]
+        public async Task<ResultVM> GetSupplierProductList(CommonVM Vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                CommonService _commonService = new CommonService();
+                resultVM = await _commonService.GetSupplierProductList(new[] { "S.Id" }, new[] { Vm.Value }, null);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
+
+
+
+
         // POST: api/Common/SupplierGroupList
         [HttpPost("SupplierGroupList")]
         public async Task<ResultVM> SupplierGroupList(CommonVM Vm)

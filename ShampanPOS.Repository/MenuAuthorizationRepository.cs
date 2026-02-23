@@ -765,7 +765,7 @@ WHERE
 
                 string query = $@"
             DECLARE @Id INT = @RoleId;
-DECLARE @UserId NVARCHAR(50) = 'ERP'; -- Example UserId
+--DECLARE @UserId NVARCHAR(50) = 'ERP'; -- Example UserId
 
 WITH MenuHierarchy AS (
     SELECT 
@@ -886,6 +886,7 @@ ORDER BY
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
                 {
                     objComm.SelectCommand.Parameters.AddWithValue("@RoleId", vm.Id);
+                    objComm.SelectCommand.Parameters.AddWithValue("@UserId", vm.UserLogInId);
                 }
 
                 objComm.Fill(dataTable);

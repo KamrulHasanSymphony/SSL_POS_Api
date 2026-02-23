@@ -15,6 +15,7 @@ namespace ShampanPOS.ViewModel
 
         [Display(Name = "Code")]
         public string? Code { get; set; }
+        public string? MasterItemCode { get; set; }
         public string? MasterSupplierGroupCode { get; set; }
         public string? MasterSupplierGroupDescription { get; set; }
 
@@ -23,10 +24,15 @@ namespace ShampanPOS.ViewModel
 
         [Display(Name = "Supplier Group ID")]
         public int? SupplierGroupId { get; set; }
+        public int? MasterItemId { get; set; }
+        public string? MasterItemName { get; set; }
+        public int? MasterProductId { get; set; }
         public int? MasterSupplierGroupId { get; set; }
+        public int? MasterItemGroupId { get; set; }
 
         public string? GroupName { get; set; }
         public string? MasterSupplierGroupName { get; set; }
+        public string? MasterItemGroupName { get; set; }
         public string? Description { get; set; }
 
 

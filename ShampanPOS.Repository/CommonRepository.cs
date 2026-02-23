@@ -1826,6 +1826,81 @@ WHERE
 
 
 
+        public async Task<ResultVM> GetSupplierProductList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+                string sqlQuery = @"
+SELECT DISTINCT
+    ISNULL(S.Id,0)  AS MasterSupplierId,
+
+    ISNULL(SI.MasterProductId,0) AS MasterProductId,
+    ISNULL(P.Code,'') AS MasterItemCode,
+    ISNULL(P.Name,'') AS MasterItemName,
+
+    ISNULL(G.Id,0) AS MasterItemGroupId,
+    ISNULL(G.Name,'') AS MasterItemGroupName,
+
+    ISNULL(S.Name,'') AS SupplierName
+
+FROM MasterSupplier S
+
+LEFT JOIN MasterSupplierItem SI 
+    ON SI.MasterSupplierId = S.Id
+
+LEFT JOIN MasterItem P
+    ON P.Id = SI.MasterProductId
+
+LEFT JOIN MasterItemGroup G
+    ON G.Id = P.MasterItemGroupId
+
+WHERE S.IsActive = 1 ";
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+                SqlDataAdapter objComm = CreateAdapter(sqlQuery, conn, transaction);
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+                objComm.Fill(dataTable);
+                var modelList = dataTable.AsEnumerable().Select(row => new MasterSupplierVM
+                {
+                    Id = Convert.ToInt32(row["MasterSupplierId"]),
+                    MasterProductId = Convert.ToInt32(row["MasterProductId"]),
+                    MasterItemName = row["MasterItemName"]?.ToString(),
+                    MasterItemCode = row["MasterItemCode"]?.ToString(),
+                    MasterItemGroupId = Convert.ToInt32(row["MasterItemGroupId"]),
+                    MasterItemGroupName = row["MasterItemGroupName"]?.ToString()
+                }).ToList();
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+             {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
+
+
+
         public async Task<ResultVM> SupplierGroupList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
