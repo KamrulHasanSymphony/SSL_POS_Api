@@ -1788,12 +1788,17 @@ WHERE
                     isNewConnection = true;
                 }
                 string sqlQuery = @"
-                 Select
-                 ISNULL(H.Id,0)	Id,
-                 ISNULL(H.Name,'') Name,              
-                 ISNULL(H.Code,'') Code
-                 FROM MasterSupplier H
-                 WHERE H.IsActive =1 ";
+     Select DISTINCT
+     ISNULL(H.Id,0)	Id,
+     ISNULL(H.Name,'') Name,              
+     ISNULL(H.Code,'') Code
+     FROM MasterSupplier H
+
+     LEFT JOIN MasterSupplierItem SI
+         ON SI.MasterSupplierId = H.Id
+
+     WHERE H.IsActive = 1
+     AND SI.MasterProductId IS NOT NULL";
                 sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
                 SqlDataAdapter objComm = CreateAdapter(sqlQuery, conn, transaction);
                 objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
@@ -1847,7 +1852,9 @@ SELECT DISTINCT
     ISNULL(SI.MasterProductId,0) AS MasterProductId,
     ISNULL(P.Code,'') AS MasterItemCode,
     ISNULL(P.Name,'') AS MasterItemName,
-
+    ISNULL(P.BanglaName,'') AS BanglaName,
+    ISNULL(P.UOMId,0) AS UOMId,
+    ISNULL(P.HSCodeNo,'') AS HSCodeNo,
     ISNULL(G.Id,0) AS MasterItemGroupId,
     ISNULL(G.Name,'') AS MasterItemGroupName,
 
@@ -1864,7 +1871,8 @@ LEFT JOIN MasterItem P
 LEFT JOIN MasterItemGroup G
     ON G.Id = P.MasterItemGroupId
 
-WHERE S.IsActive = 1 ";
+WHERE S.IsActive = 1
+AND SI.MasterProductId IS NOT NULL ";
                 sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
                 SqlDataAdapter objComm = CreateAdapter(sqlQuery, conn, transaction);
                 objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
@@ -1876,7 +1884,14 @@ WHERE S.IsActive = 1 ";
                     MasterItemName = row["MasterItemName"]?.ToString(),
                     MasterItemCode = row["MasterItemCode"]?.ToString(),
                     MasterItemGroupId = Convert.ToInt32(row["MasterItemGroupId"]),
-                    MasterItemGroupName = row["MasterItemGroupName"]?.ToString()
+                    MasterItemGroupName = row["MasterItemGroupName"]?.ToString(),
+                    BanglaName = row["BanglaName"]?.ToString(),
+                    //UOMId = Convert.ToInt32(row["UOMId"]),
+                    //HSCodeNo = row["HSCodeNo"]?.ToString(),
+                    UOMId = row.Field<int?>("UOMId"),
+                    HSCodeNo = row.Field<string>("HSCodeNo")
+
+
                 }).ToList();
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";

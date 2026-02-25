@@ -134,9 +134,9 @@ namespace ShampanPOS.Repository
                 {
                     cmd.Parameters.AddWithValue("@SupplierId", supplierproduct.SupplierId);
                     cmd.Parameters.AddWithValue("@ProductId", details.Id);
-
                     cmd.Parameters.AddWithValue("@UserId", supplierproduct.UserId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CompanyId", supplierproduct.CompanyId ?? (object)DBNull.Value);
+                    //cmd.Parameters.AddWithValue("@SourceType", supplierproduct.SourceType ?? "SP");
                     cmd.Parameters.AddWithValue("@IsArchive", details.IsArchive);
                     cmd.Parameters.AddWithValue("@IsActive", true);
                     cmd.Parameters.AddWithValue("@CreatedBy", supplierproduct.CreatedBy);
@@ -226,6 +226,7 @@ WHERE Id = @Id";
                     cmd.Parameters.AddWithValue("@ProductId", vm.ProductId);
                     cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId ?? (object)DBNull.Value);
+                    //cmd.Parameters.AddWithValue("@SourceType", vm.SourceType ?? "SP");
                     cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
                     cmd.Parameters.AddWithValue("@IsActive", vm.IsActive);
                     cmd.Parameters.AddWithValue("@LastModifiedBy", vm.LastModifiedBy ?? (object)DBNull.Value);
@@ -363,7 +364,7 @@ WHERE Id = @Id";
 
                 string query = @"
 	SELECT
-    ISNULL(p.Id, 0) AS Id,
+    ISNULL(M.Id, 0) AS Id,
 	ISNULL(M.SupplierId, 0) AS SupplierId,
 	ISNULL(M.ProductId, 0) AS ProductId,
     ISNULL(s.Name, '') AS SupplierName,
@@ -371,7 +372,6 @@ WHERE Id = @Id";
     ISNULL(p.Name, '') AS ProductName,
     ISNULL(M.IsArchive, 0) AS IsArchive,
 	ISNULL(M.IsActive, 0) AS IsActive,   
-
     ISNULL(M.CreatedBy, '') AS CreatedBy,
     FORMAT(ISNULL(M.CreatedOn, '1900-01-01'), 'yyyy-MM-dd') AS CreatedOn,
     ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
@@ -424,6 +424,7 @@ WHERE 1 = 1
                         UserId = row.Field<string>("UserId"),
                         IsArchive = row.Field<bool>("IsArchive"),
                         IsActive = row.Field<bool>("IsActive"),
+                        //SourceType = row.Field<string>("SourceType"),
                         CreatedBy = row.Field<string>("CreatedBy"),
                         CreatedOn = row.Field<string>("CreatedOn"),
                         LastModifiedBy = row.Field<string>("LastModifiedBy"),
@@ -594,18 +595,12 @@ ORDER BY Name";
 SELECT COUNT(*) AS totalcount
 FROM (
     SELECT DISTINCT
-        M.SupplierId,
-        s.Name,
-        M.UserId,
-        M.IsArchive,
-        M.IsActive,
-        M.CreatedBy,
-        --M.CreatedOn,
-        M.LastModifiedBy,
-        M.LastModifiedOn
+        M.SupplierId
     FROM SupplierProduct M
-    LEFT OUTER JOIN Suppliers s on M.SupplierId = s.Id
+    LEFT JOIN Suppliers s ON M.SupplierId = s.Id
+    LEFT JOIN MasterSupplier ms ON M.SupplierId = ms.Id
     WHERE 1 = 1
+
 ";
 
                 sqlQuery += (options.filter.Filters.Count > 0 ?
@@ -629,18 +624,22 @@ FROM (
     FROM (
         SELECT DISTINCT
             ISNULL(M.SupplierId, 0) AS SupplierId,
-            ISNULL(s.Name, '') AS SupplierName,
+
+            ISNULL(s.Name, ms.Name) AS SupplierName,
+
             ISNULL(M.UserId, 0) AS UserId,
             ISNULL(M.IsArchive, 0) AS IsArchive,
-            ISNULL(M.IsActive, 0) AS IsActive,   
+            ISNULL(M.IsActive, 0) AS IsActive,
 
             ISNULL(M.CreatedBy, '') AS CreatedBy,
             FORMAT(ISNULL(M.CreatedOn, '1900-01-01'), 'yyyy-MM-dd') AS CreatedOn,
+
             ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
             FORMAT(ISNULL(M.LastModifiedOn, '1900-01-01'), 'yyyy-MM-dd') AS LastModifiedOn
 
         FROM SupplierProduct M
-        LEFT OUTER JOIN Suppliers s on M.SupplierId = s.Id
+        LEFT JOIN Suppliers s ON M.SupplierId = s.Id
+        LEFT JOIN MasterSupplier ms ON M.SupplierId = ms.Id
         WHERE 1 = 1
 ";
 

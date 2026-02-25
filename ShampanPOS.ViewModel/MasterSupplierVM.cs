@@ -76,7 +76,9 @@ namespace ShampanPOS.ViewModel
         public string? Operation { get; set; }
         public string? Status { get; set; }
         public string? ImagePath { get; set; }
+        public int? UOMId { get; set; }
 
+        public string? HSCodeNo { get; set; }
         public PeramModel PeramModel { get; set; }
 
         public List<MasterSupplierVM> MasterSupplierList { get; set; }

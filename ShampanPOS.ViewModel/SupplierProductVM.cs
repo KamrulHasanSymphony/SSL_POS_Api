@@ -14,7 +14,6 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Supplier")]
         public int SupplierId { get; set; }
         public string? UserId { get; set; }
-
         public int? MasterSupplierId { get; set; }
 
         public string? SupplierName { get; set; }

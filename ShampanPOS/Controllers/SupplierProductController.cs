@@ -49,7 +49,7 @@ namespace ShampanPOS.Controllers
 
             try
             {
-                resultVM = await _service.InsertSupplierProduct(model);
+                resultVM = await _service.Insert(model);
                 return resultVM;
             }
             catch (Exception ex)
@@ -63,6 +63,33 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
+
+
+
+        // POST: api/SupplierProduct/UpdateSupplierProduct
+        [HttpPost("UpdateSupplierProduct")]
+        public async Task<ResultVM> UpdateSupplierProduct(SupplierProductVM model)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            _service = new SupplierProductService();
+
+            try
+            {
+                resultVM = await _service.Insert(model);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = ex.Message,
+                    ExMessage = ex.Message,
+                    DataVM = model
+                };
+            }
+        }
+
 
 
 
