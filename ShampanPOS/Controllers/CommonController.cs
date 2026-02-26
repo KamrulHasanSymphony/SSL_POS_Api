@@ -390,7 +390,7 @@ namespace ShampanPOS.Controllers
             try
             {
                 CommonService _commonService = new CommonService();
-                resultVM = await _commonService.GetSupplierProductList(new[] { "S.Id" }, new[] { Vm.Value }, null);
+                resultVM = await _commonService.GetSupplierProductList(new[] { "SI.MasterSupplierId" }, new[] { Vm.Value }, null);
                 return resultVM;
             }
             catch (Exception ex)

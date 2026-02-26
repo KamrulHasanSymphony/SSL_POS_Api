@@ -1845,9 +1845,37 @@ WHERE
                     conn.Open();
                     isNewConnection = true;
                 }
+//                string sqlQuery = @"
+//SELECT DISTINCT
+//    ISNULL(S.Id,0)  AS MasterSupplierId,
+
+//    ISNULL(SI.MasterProductId,0) AS MasterProductId,
+//    ISNULL(P.Code,'') AS MasterItemCode,
+//    ISNULL(P.Name,'') AS MasterItemName,
+//    ISNULL(P.BanglaName,'') AS BanglaName,
+//    ISNULL(P.UOMId,0) AS UOMId,
+//    ISNULL(P.HSCodeNo,'') AS HSCodeNo,
+//    ISNULL(G.Id,0) AS MasterItemGroupId,
+//    ISNULL(G.Name,'') AS MasterItemGroupName,
+
+//    ISNULL(S.Name,'') AS SupplierName
+
+//FROM MasterSupplier S
+
+//LEFT JOIN MasterSupplierItem SI 
+//    ON SI.MasterSupplierId = S.Id
+
+//LEFT JOIN MasterItem P
+//    ON P.Id = SI.MasterProductId
+
+//LEFT JOIN MasterItemGroup G
+//    ON G.Id = P.MasterItemGroupId
+
+//WHERE S.IsActive = 1
+//AND SI.MasterProductId IS NOT NULL ";
                 string sqlQuery = @"
-SELECT DISTINCT
-    ISNULL(S.Id,0)  AS MasterSupplierId,
+Select DISTINCT
+	ISNULL(SI.MasterSupplierId,0)  AS MasterSupplierId,
 
     ISNULL(SI.MasterProductId,0) AS MasterProductId,
     ISNULL(P.Code,'') AS MasterItemCode,
@@ -1856,23 +1884,15 @@ SELECT DISTINCT
     ISNULL(P.UOMId,0) AS UOMId,
     ISNULL(P.HSCodeNo,'') AS HSCodeNo,
     ISNULL(G.Id,0) AS MasterItemGroupId,
-    ISNULL(G.Name,'') AS MasterItemGroupName,
+    ISNULL(G.Name,'') AS MasterItemGroupName
 
-    ISNULL(S.Name,'') AS SupplierName
+   -- ISNULL(S.Name,'') AS SupplierName
+from MasterSupplierItem SI
+--LEFT OUTER JOIN MasterSupplier S ON SI.MasterSupplierId = S.Id
+LEFT OUTER JOIN MasterItem P ON SI.MasterProductId = P.Id
+LEFT OUTER JOIN MasterItemGroup G ON P.MasterItemGroupId = G.Id
 
-FROM MasterSupplier S
-
-LEFT JOIN MasterSupplierItem SI 
-    ON SI.MasterSupplierId = S.Id
-
-LEFT JOIN MasterItem P
-    ON P.Id = SI.MasterProductId
-
-LEFT JOIN MasterItemGroup G
-    ON G.Id = P.MasterItemGroupId
-
-WHERE S.IsActive = 1
-AND SI.MasterProductId IS NOT NULL ";
+Where  SI.MasterProductId IS NOT NULL ";
                 sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
                 SqlDataAdapter objComm = CreateAdapter(sqlQuery, conn, transaction);
                 objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
