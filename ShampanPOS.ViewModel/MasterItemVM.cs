@@ -71,6 +71,17 @@ namespace ShampanPOS.ViewModel
         public string? ImagePath { get; set; }
         public int? ProductId { get; set; }
 
+
+        public int? MasterSupplierGroupId { get; set; }
+        public string? MasterSupplierGroupName { get; set; }
+        public string? MasterSupplierGroupCode { get; set; }
+        public string? SupplierCode { get; set; }
+        public string? SupplierName { get; set; }
+        public string? MasterItemCode { get; set; }
+        public string? MasterItemName { get; set; }
+
+
+
         public PeramModel PeramModel { get; set; }
 
         public List<MasterItemVM> MasterItemList { get; set; }

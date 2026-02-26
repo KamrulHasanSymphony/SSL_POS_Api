@@ -33,6 +33,7 @@ namespace ShampanPOS.ViewModel
         public string? GroupName { get; set; }
         public string? MasterSupplierGroupName { get; set; }
         public string? MasterItemGroupName { get; set; }
+        public string? MasterItemGroupCode { get; set; }
         public string? Description { get; set; }
 
 

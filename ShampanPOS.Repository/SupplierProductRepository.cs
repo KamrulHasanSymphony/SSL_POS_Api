@@ -96,7 +96,112 @@ namespace ShampanPOS.Repository
         //    }
         //}
 
+        public async Task<ResultVM> InsertOrUpdateSupplierProduct(MasterItemVM details = null,SqlConnection conn = null, SqlTransaction transaction = null, SupplierProductVM supplierproduct = null)
+        {
+            bool isNewConnection = false;
 
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                Id = "0",
+                DataVM = null
+            };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    await conn.OpenAsync();
+                    isNewConnection = true;
+                }
+
+                if (transaction == null)
+                {
+                    transaction = conn.BeginTransaction();
+                }
+
+                // 1️⃣ Check if the Supplier-Product mapping already exists
+                string checkQuery = @"
+            SELECT Id
+            FROM SupplierProduct
+            WHERE SupplierId = @SupplierId
+            AND ProductId = @ProductId";
+
+                using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn, transaction))
+                {
+                    checkCmd.Parameters.AddWithValue("@SupplierId", supplierproduct.SupplierId);
+                    checkCmd.Parameters.AddWithValue("@ProductId", details.Id);
+
+                    var obj = await checkCmd.ExecuteScalarAsync();
+
+                    if (obj != null)
+                    {
+                        // 2️⃣ Exists → skip insert
+                        result.Status = "Success";
+                        result.Message = "SupplierProduct already exists. Skipped.";
+                        result.Id = obj.ToString();
+                        result.DataVM = details;
+                        return result;
+                    }
+                }
+
+                // 3️⃣ Insert new record if not exists
+                string insertQuery = @"
+            INSERT INTO SupplierProduct
+            (
+                SupplierId, ProductId, UserId, CompanyId,
+                IsArchive, IsActive, CreatedBy, CreatedOn, CreatedFrom
+            )
+            VALUES
+            (
+                @SupplierId, @ProductId, @UserId, @CompanyId,
+                @IsArchive, @IsActive, @CreatedBy, @CreatedOn, @CreatedFrom
+            );
+            SELECT SCOPE_IDENTITY();";
+
+                using (SqlCommand insertCmd = new SqlCommand(insertQuery, conn, transaction))
+                {
+                    insertCmd.Parameters.AddWithValue("@SupplierId", supplierproduct.SupplierId);
+                    insertCmd.Parameters.AddWithValue("@ProductId", details.Id);
+                    insertCmd.Parameters.AddWithValue("@UserId", supplierproduct.UserId ?? (object)DBNull.Value);
+                    insertCmd.Parameters.AddWithValue("@CompanyId", supplierproduct.CompanyId ?? (object)DBNull.Value);
+                    insertCmd.Parameters.AddWithValue("@IsArchive", details.IsArchive);
+                    insertCmd.Parameters.AddWithValue("@IsActive", true);
+                    insertCmd.Parameters.AddWithValue("@CreatedBy", supplierproduct.CreatedBy);
+                    insertCmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
+                    insertCmd.Parameters.AddWithValue("@CreatedFrom", supplierproduct.CreatedFrom ?? (object)DBNull.Value);
+
+                    var newId = await insertCmd.ExecuteScalarAsync();
+                    result.Id = Convert.ToInt32(newId).ToString();
+                }
+
+                result.Status = "Success";
+                result.Message = "SupplierProduct inserted successfully.";
+                result.DataVM = details;
+
+                if (isNewConnection)
+                    transaction.Commit();
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection)
+                    transaction.Rollback();
+
+                result.ExMessage = ex.ToString();
+                result.Message = "Error in InsertOrUpdate.";
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                    conn.Close();
+            }
+        }
         public async Task<ResultVM> Insert(MasterItemVM details = null, SqlConnection conn = null, SqlTransaction transaction = null, SupplierProductVM supplierproduct = null)
         {
             bool isNewConnection = false;
@@ -118,17 +223,17 @@ namespace ShampanPOS.Repository
                 }
 
                 string query = @"
-                    INSERT INTO SupplierProduct
-                (
-                     SupplierId,ProductId,UserId,CompanyId,
-                     IsArchive, IsActive, CreatedBy, CreatedOn, CreatedFrom
-                )
-                VALUES
-                (
-                    @SupplierId,@ProductId,@UserId,@CompanyId,
-                     @IsArchive, @IsActive, @CreatedBy, @CreatedOn ,@CreatedFrom
-                );
-                    SELECT SCOPE_IDENTITY();";
+             INSERT INTO SupplierProduct
+         (
+              SupplierId,ProductId,UserId,CompanyId,
+              IsArchive, IsActive, CreatedBy, CreatedOn, CreatedFrom
+         )
+         VALUES
+         (
+             @SupplierId,@ProductId,@UserId,@CompanyId,
+              @IsArchive, @IsActive, @CreatedBy, @CreatedOn ,@CreatedFrom
+         );
+             SELECT SCOPE_IDENTITY();";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
                 {
@@ -182,7 +287,7 @@ namespace ShampanPOS.Repository
             }
         }
 
-        // Update Method
+        //Update Method
         public async Task<ResultVM> Update(SupplierProductVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;

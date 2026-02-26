@@ -37,18 +37,18 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                #region Check Exist Data
-                string[] conditionField = { "Code" };
-                string[] conditionValue = { overhead.Code };
+                //#region Check Exist Data
+                //string[] conditionField = { "Code" };
+                //string[] conditionValue = { overhead.Code };
 
-                bool exist = _commonRepo.CheckExists("OverHeads", conditionField, conditionValue, conn, transaction);
+                //bool exist = _commonRepo.CheckExists("OverHeads", conditionField, conditionValue, conn, transaction);
 
-                if (exist)
-                {
-                    result.Message = "Data Already Exist!";
-                    throw new Exception("Data Already Exist!");
-                }
-                #endregion
+                //if (exist)
+                //{
+                //    result.Message = "Data Already Exist!";
+                //    throw new Exception("Data Already Exist!");
+                //}
+                //#endregion
 
                 string code = _commonRepo.CodeGenerationNo(CodeGroup, CodeName, conn, transaction);
 

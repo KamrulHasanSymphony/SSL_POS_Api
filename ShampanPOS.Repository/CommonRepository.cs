@@ -1845,9 +1845,39 @@ WHERE
                     conn.Open();
                     isNewConnection = true;
                 }
+//                string sqlQuery = @"
+//SELECT DISTINCT
+//    ISNULL(S.Id,0)  AS MasterSupplierId,
+
+//    ISNULL(SI.MasterProductId,0) AS MasterProductId,
+//    ISNULL(P.Code,'') AS MasterItemCode,
+//    ISNULL(P.Name,'') AS MasterItemName,
+//    ISNULL(P.BanglaName,'') AS BanglaName,
+//    ISNULL(P.UOMId,0) AS UOMId,
+//    ISNULL(P.HSCodeNo,'') AS HSCodeNo,
+//    ISNULL(G.Id,0) AS MasterItemGroupId,
+//    ISNULL(G.Name,'') AS MasterItemGroupName,
+
+//    ISNULL(S.Name,'') AS SupplierName
+
+//FROM MasterSupplier S
+
+//LEFT JOIN MasterSupplierItem SI 
+//    ON SI.MasterSupplierId = S.Id
+
+//LEFT JOIN MasterItem P
+//    ON P.Id = SI.MasterProductId
+
+//LEFT JOIN MasterItemGroup G
+//    ON G.Id = P.MasterItemGroupId
+
+//WHERE S.IsActive = 1
+//AND SI.MasterProductId IS NOT NULL ";
                 string sqlQuery = @"
-SELECT DISTINCT
-    ISNULL(S.Id,0)  AS MasterSupplierId,
+Select DISTINCT
+	ISNULL(SI.MasterSupplierId,0)  AS MasterSupplierId,
+	ISNULL(S.Name,'') AS SupplierName,
+   ISNULL(S.Code,'') AS SupplierCode,
 
     ISNULL(SI.MasterProductId,0) AS MasterProductId,
     ISNULL(P.Code,'') AS MasterItemCode,
@@ -1857,22 +1887,19 @@ SELECT DISTINCT
     ISNULL(P.HSCodeNo,'') AS HSCodeNo,
     ISNULL(G.Id,0) AS MasterItemGroupId,
     ISNULL(G.Name,'') AS MasterItemGroupName,
+    ISNULL(G.Code,'') AS GroupCode,
 
-    ISNULL(S.Name,'') AS SupplierName
+	isnull(S.MasterSupplierGroupId,0) as MasterSupplierGroupId,
+    ISNULL(SG.Name,'') AS SupplierGroupName,
+    ISNULL(SG.Code,'') AS SupplierGroupCode   
 
-FROM MasterSupplier S
+from MasterSupplierItem SI
+LEFT OUTER JOIN MasterSupplier S ON SI.MasterSupplierId = S.Id
+LEFT OUTER JOIN MasterSupplierGroup SG ON S.MasterSupplierGroupId = SG.Id
+LEFT OUTER JOIN MasterItem P ON SI.MasterProductId = P.Id
+LEFT OUTER JOIN MasterItemGroup G ON P.MasterItemGroupId = G.Id
 
-LEFT JOIN MasterSupplierItem SI 
-    ON SI.MasterSupplierId = S.Id
-
-LEFT JOIN MasterItem P
-    ON P.Id = SI.MasterProductId
-
-LEFT JOIN MasterItemGroup G
-    ON G.Id = P.MasterItemGroupId
-
-WHERE S.IsActive = 1
-AND SI.MasterProductId IS NOT NULL ";
+Where  SI.MasterProductId IS NOT NULL";
                 sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
                 SqlDataAdapter objComm = CreateAdapter(sqlQuery, conn, transaction);
                 objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
@@ -1880,16 +1907,25 @@ AND SI.MasterProductId IS NOT NULL ";
                 var modelList = dataTable.AsEnumerable().Select(row => new MasterSupplierVM
                 {
                     Id = Convert.ToInt32(row["MasterSupplierId"]),
+                    Name = row["SupplierName"]?.ToString(),
+                    Code = row["SupplierCode"]?.ToString(),
+
                     MasterProductId = Convert.ToInt32(row["MasterProductId"]),
                     MasterItemName = row["MasterItemName"]?.ToString(),
                     MasterItemCode = row["MasterItemCode"]?.ToString(),
+
                     MasterItemGroupId = Convert.ToInt32(row["MasterItemGroupId"]),
                     MasterItemGroupName = row["MasterItemGroupName"]?.ToString(),
+                    MasterItemGroupCode = row["GroupCode"]?.ToString(),
                     BanglaName = row["BanglaName"]?.ToString(),
                     //UOMId = Convert.ToInt32(row["UOMId"]),
                     //HSCodeNo = row["HSCodeNo"]?.ToString(),
                     UOMId = row.Field<int?>("UOMId"),
-                    HSCodeNo = row.Field<string>("HSCodeNo")
+                    HSCodeNo = row.Field<string>("HSCodeNo"),
+                    MasterSupplierGroupId = row.Field<int?>("MasterSupplierGroupId"),
+                    MasterSupplierGroupName = row.Field<string>("SupplierGroupName"),
+                    MasterSupplierGroupCode = row.Field<string>("SupplierGroupCode")
+
 
 
                 }).ToList();

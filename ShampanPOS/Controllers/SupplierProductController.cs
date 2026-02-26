@@ -64,6 +64,30 @@ namespace ShampanPOS.Controllers
             }
         }
 
+        // POST: api/SupplierProduct/InsertSupplierProduct
+        [HttpPost("IntegrationInsert")]
+        public async Task<ResultVM> IntegrationInsert(SupplierProductVM model)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            _service = new SupplierProductService();
+
+            try
+            {
+                resultVM = await _service.IntegrationInsert(model);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = ex.Message,
+                    ExMessage = ex.Message,
+                    DataVM = model
+                };
+            }
+        }
+
 
 
         // POST: api/SupplierProduct/UpdateSupplierProduct
