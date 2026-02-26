@@ -15,11 +15,11 @@ namespace ShampanPOS.ViewModel
         public string? Code { get; set; }
 
         [Display(Name = "From Bank Account")]
-        public int FromBankAccountId { get; set; }
+        public int? FromBankAccountId { get; set; }
 
         [Display(Name = "To Bank Account")]
 
-        public int ToBankAccountId { get; set; }
+        public int? ToBankAccountId { get; set; }
 
         [Display(Name = "Cheque No")]
         public string? ChequeNo { get; set; }
