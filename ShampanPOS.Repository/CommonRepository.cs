@@ -1892,19 +1892,15 @@ Select DISTINCT
 	isnull(S.MasterSupplierGroupId,0) as MasterSupplierGroupId,
     ISNULL(SG.Name,'') AS SupplierGroupName,
     ISNULL(SG.Code,'') AS SupplierGroupCode   
-LEFT JOIN MasterSupplierItem SI 
+
 from MasterSupplierItem SI
 LEFT OUTER JOIN MasterSupplier S ON SI.MasterSupplierId = S.Id
 LEFT OUTER JOIN MasterSupplierGroup SG ON S.MasterSupplierGroupId = SG.Id
 LEFT OUTER JOIN MasterItem P ON SI.MasterProductId = P.Id
 LEFT OUTER JOIN MasterItemGroup G ON P.MasterItemGroupId = G.Id
-LEFT JOIN MasterItem P
-Where  SI.MasterProductId IS NOT NULL";
-LEFT JOIN MasterItemGroup G
-    ON G.Id = P.MasterItemGroupId
 
-WHERE S.IsActive = 1
-AND SI.MasterProductId IS NOT NULL ";
+Where  SI.MasterProductId IS NOT NULL
+ ";
                 sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
                 SqlDataAdapter objComm = CreateAdapter(sqlQuery, conn, transaction);
                 objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
