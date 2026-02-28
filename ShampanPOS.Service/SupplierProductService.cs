@@ -250,7 +250,7 @@ namespace ShampanPOS.Service
                     else
                     {
                         var listResult = await _supplierGroupRepo.List(
-                            new[] { "Code" },
+                            new[] { "M.Code" },
                             new[] { firstItem.MasterSupplierGroupCode },
                             null,
                             conn,

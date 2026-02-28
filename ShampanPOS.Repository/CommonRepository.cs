@@ -1899,8 +1899,7 @@ LEFT OUTER JOIN MasterSupplierGroup SG ON S.MasterSupplierGroupId = SG.Id
 LEFT OUTER JOIN MasterItem P ON SI.MasterProductId = P.Id
 LEFT OUTER JOIN MasterItemGroup G ON P.MasterItemGroupId = G.Id
 
-Where  SI.MasterProductId IS NOT NULL
- ";
+Where  SI.MasterProductId IS NOT NULL";
                 sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
                 SqlDataAdapter objComm = CreateAdapter(sqlQuery, conn, transaction);
                 objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
