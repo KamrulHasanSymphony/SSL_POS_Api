@@ -728,24 +728,28 @@ FROM (
         *
     FROM (
         SELECT DISTINCT
-            ISNULL(M.SupplierId, 0) AS SupplierId,
+    ISNULL(M.SupplierId, 0) AS SupplierId,
 
-            ISNULL(s.Name, ms.Name) AS SupplierName,
+    ISNULL(s.Name, ms.Name) AS SupplierName,
+    ISNULL(s.Code,'') AS SupplierCode,
+    ISNULL(s.City,'-') AS SupplierCity,
+    ISNULL(s.Email,'-') AS SupplierEmail,
+    ISNULL(s.TelephoneNo,'-') AS SupplierTelephoneNo,
 
-            ISNULL(M.UserId, 0) AS UserId,
-            ISNULL(M.IsArchive, 0) AS IsArchive,
-            ISNULL(M.IsActive, 0) AS IsActive,
+    ISNULL(M.UserId, 0) AS UserId,
+    ISNULL(M.IsArchive, 0) AS IsArchive,
+    ISNULL(M.IsActive, 0) AS IsActive,
 
-            ISNULL(M.CreatedBy, '') AS CreatedBy,
-            FORMAT(ISNULL(M.CreatedOn, '1900-01-01'), 'yyyy-MM-dd') AS CreatedOn,
+    ISNULL(M.CreatedBy, '') AS CreatedBy,
+    FORMAT(ISNULL(M.CreatedOn, '1900-01-01'), 'yyyy-MM-dd') AS CreatedOn,
 
-            ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
-            FORMAT(ISNULL(M.LastModifiedOn, '1900-01-01'), 'yyyy-MM-dd') AS LastModifiedOn
+    ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
+    FORMAT(ISNULL(M.LastModifiedOn, '1900-01-01'), 'yyyy-MM-dd') AS LastModifiedOn
 
-        FROM SupplierProduct M
-        LEFT JOIN Suppliers s ON M.SupplierId = s.Id
-        LEFT JOIN MasterSupplier ms ON M.SupplierId = ms.Id
-        WHERE 1 = 1
+FROM SupplierProduct M
+LEFT JOIN Suppliers s ON M.SupplierId = s.Id
+LEFT JOIN MasterSupplier ms ON M.SupplierId = ms.Id
+WHERE 1 = 1
 ";
 
                 sqlQuery += (options.filter.Filters.Count > 0 ?
