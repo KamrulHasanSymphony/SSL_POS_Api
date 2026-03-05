@@ -1,11 +1,12 @@
-﻿using ShampanPOS.ViewModel;
+﻿using Newtonsoft.Json;
+using ShampanPOS.ViewModel;
+using ShampanPOS.ViewModel.CommonVMs;
+using ShampanPOS.ViewModel.KendoCommon;
+using ShampanPOS.ViewModel.Utility;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Text.Json;
-using ShampanPOS.ViewModel.CommonVMs;
-using ShampanPOS.ViewModel.Utility;
-using Newtonsoft.Json;
-using ShampanPOS.ViewModel.KendoCommon;
 
 namespace ShampanPOS.Repository
 {
@@ -389,15 +390,42 @@ namespace ShampanPOS.Repository
 
                 //conditionalValue = new string[] { model.FirstOrDefault().Code.ToString() };
 
+                //var detailsDataList = DetailsList(new[] { "sd.SaleId" }, conditionalValue, vm, conn, transaction);
+
+                //if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
+                //{
+                //    string json = JsonConvert.SerializeObject(dt);
+                //    var details = JsonConvert.DeserializeObject<List<SaleDetailVM>>(json);
+
+                //    model.FirstOrDefault().saleDetailsList = details;
+                //}
+
+
+                // ✅ Load details list
                 var detailsDataList = DetailsList(new[] { "sd.SaleId" }, conditionalValue, vm, conn, transaction);
 
-                if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
+                if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dts)
                 {
-                    string json = JsonConvert.SerializeObject(dt);
+                    string json = JsonConvert.SerializeObject(dts);
                     var details = JsonConvert.DeserializeObject<List<SaleDetailVM>>(json);
 
-                    model.FirstOrDefault().saleDetailsList = details;
+                    if (model.Any())
+                        model.FirstOrDefault().saleDetailsList = details;
                 }
+
+                // ✅ Load SaleCreditCardList
+                SaleCreditCardRepository cardRepository = new SaleCreditCardRepository();
+                var cardDataList = cardRepository.DDetailsList(new[] { "M.SaleId" }, conditionalValue, vm, conn, transaction);
+
+                if (cardDataList.Status == "Success" && cardDataList.DataVM is DataTable cardDts)
+                {
+                    string cardJson = JsonConvert.SerializeObject(cardDts);
+                    var cardDetails = JsonConvert.DeserializeObject<List<SaleCreditCardVM>>(cardJson);
+
+                    if (model.Any())
+                        model.FirstOrDefault().SaleCreditCardList = cardDetails;
+                }
+
 
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";
@@ -492,7 +520,7 @@ WHERE 1 = 1
 
                 if (vm != null && int.TryParse(vm.Id, out int id))
                 {
-                    query += " AND D.Id = @Id ";
+                    query += " AND sd.Id = @Id ";
                     objComm.SelectCommand.Parameters.Add("@Id", SqlDbType.Int).Value = id;
                 }
 

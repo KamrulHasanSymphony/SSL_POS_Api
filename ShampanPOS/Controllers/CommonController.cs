@@ -581,6 +581,31 @@ namespace ShampanPOS.Controllers
 
 
 
+        [HttpPost("GetProductModal")]
+        public async Task<ResultVM> GetProductModal(CommonVM Vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                CommonService _commonService = new CommonService();
+                resultVM = await _commonService.GetProductModal(new[] { "" }, new[] { "" }, null);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
+
+
+
+
 
         // POST: api/Common/SaleOrderList
         [HttpPost("SaleOrderList")]
@@ -1000,6 +1025,32 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
+
+
+
+
+        [HttpPost("GetPaymentTypeList")]
+        public async Task<ResultVM> GetPaymentTypeList(CommonVM Vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                CommonService _commonService = new CommonService();
+                resultVM = await _commonService.GetPaymentTypeList(new[] { "" }, new[] { "" }, null);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
+
 
 
     }

@@ -96,18 +96,11 @@ namespace ShampanPOS.Repository
         //    }
         //}
 
-        public async Task<ResultVM> InsertOrUpdateSupplierProduct(MasterItemVM details = null,SqlConnection conn = null, SqlTransaction transaction = null, SupplierProductVM supplierproduct = null)
+        public async Task<ResultVM> InsertOrUpdateSupplierProduct(MasterItemVM details = null,SqlConnection conn = null, SqlTransaction transaction = null,SupplierProductVM supplierproduct = null)
         {
             bool isNewConnection = false;
 
-            ResultVM result = new ResultVM
-            {
-                Status = "Fail",
-                Message = "Error",
-                ExMessage = null,
-                Id = "0",
-                DataVM = null
-            };
+            ResultVM result = new ResultVM {Status = "Fail",Message = "Error",ExMessage = null,Id = "0",DataVM = null };
 
             try
             {

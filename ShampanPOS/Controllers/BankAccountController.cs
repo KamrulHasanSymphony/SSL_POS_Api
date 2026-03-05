@@ -174,6 +174,31 @@ namespace ShampanPOS.Controllers
             }
         }
 
+        //// POST: api/BankInformation/GetGridData
+        //[HttpPost("GetGridData")]
+        //public async Task<ResultVM> GetGridData(GridOptions options)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        _BankAccountService = new BankAccountService();
+        //        resultVM = await _BankAccountService.GetGridData(options, null, null);
+        //        //resultVM = await _CustomerService.GetGridData(options);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = ex.Message,
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
+
+
         // POST: api/BankInformation/GetGridData
         [HttpPost("GetGridData")]
         public async Task<ResultVM> GetGridData(GridOptions options)
@@ -182,8 +207,7 @@ namespace ShampanPOS.Controllers
             try
             {
                 _BankAccountService = new BankAccountService();
-                resultVM = await _BankAccountService.GetGridData(options, null, null);
-                //resultVM = await _CustomerService.GetGridData(options);
+                resultVM = await _BankAccountService.GetGridData(options, new[] { "" }, new[] { "" });
                 return resultVM;
             }
             catch (Exception ex)

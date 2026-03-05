@@ -511,7 +511,7 @@ ORDER BY Name";
                     isNewConnection = true;
                 }
 
-                var data = new GridEntity<BankInformationVM>();
+                var data = new GridEntity<BankAccountVM>();
 
                 string sqlQuery = @"
     -- Count query
@@ -520,7 +520,7 @@ ORDER BY Name";
         WHERE H.IsArchive != 1 ";
 
                 sqlQuery = sqlQuery + (options.filter.Filters.Count > 0 ?
-                    " AND (" + GridQueryBuilder<BankInformationVM>.FilterCondition(options.filter) + ")" : "");
+                    " AND (" + GridQueryBuilder<BankAccountVM>.FilterCondition(options.filter) + ")" : "");
 
                 sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
 
@@ -556,7 +556,7 @@ ORDER BY Name";
         WHERE H.IsArchive != 1";
 
                 sqlQuery = sqlQuery + (options.filter.Filters.Count > 0 ?
-                    " AND (" + GridQueryBuilder<BankInformationVM>.FilterCondition(options.filter) + ")" : "");
+                    " AND (" + GridQueryBuilder<BankAccountVM>.FilterCondition(options.filter) + ")" : "");
 
                 sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
 
@@ -567,7 +567,7 @@ ORDER BY Name";
 
 
 
-                data = KendoGrid<BankInformationVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+                data = KendoGrid<BankAccountVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
                 //data = KendoGrid<CustomerVM>.GetTransactionalGridData_CMD(options, sqlQuery, "H.Id", conditionalFields, conditionalValues);
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";

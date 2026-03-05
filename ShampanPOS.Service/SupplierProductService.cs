@@ -221,13 +221,7 @@ namespace ShampanPOS.Service
 
                     #region Supplier
 
-                    bool exist = _commonRepo.CheckExists(
-                    "SupplierGroups",
-                        new[] { "Code" },
-                        new[] { firstItem.MasterSupplierGroupCode },
-                        conn,
-                        transaction
-                    );
+                    bool exist = _commonRepo.CheckExists("SupplierGroups",new[] { "Code" },new[] { firstItem.MasterSupplierGroupCode },conn,transaction);
 
                     if (!exist)
                     {
@@ -249,13 +243,7 @@ namespace ShampanPOS.Service
                     }
                     else
                     {
-                        var listResult = await _supplierGroupRepo.List(
-                            new[] { "M.Code" },
-                            new[] { firstItem.MasterSupplierGroupCode },
-                            null,
-                            conn,
-                            transaction
-                        );
+                        var listResult = await _supplierGroupRepo.List(new[] { "M.Code" },new[] { firstItem.MasterSupplierGroupCode },null,conn,transaction);
 
                         var list = listResult.DataVM as List<SupplierGroupVM>;
 
@@ -265,13 +253,7 @@ namespace ShampanPOS.Service
                         }
                     }
 
-                    bool supplierexist = _commonRepo.CheckExists(
-                            "Suppliers",
-                            new[] { "Code" },
-                            new[] { firstItem.SupplierCode },
-                            conn,
-                            transaction
-                        );
+                    bool supplierexist = _commonRepo.CheckExists( "Suppliers", new[] { "Code" },new[] { firstItem.SupplierCode },conn, transaction);
                     if (!supplierexist)
                     {
                         SupplierVM supplierVM = new SupplierVM
@@ -292,13 +274,7 @@ namespace ShampanPOS.Service
                     }
                     else
                     {
-                        var listResult = await _supplierRepo.List(
-                            new[] { "M.Code" },
-                            new[] { firstItem.SupplierCode },
-                            null,
-                            conn,
-                            transaction
-                        );
+                        var listResult = await _supplierRepo.List(new[] { "M.Code" },new[] { firstItem.SupplierCode },null, conn,transaction);
 
                         var slist = listResult.DataVM as List<SupplierVM>;
 
@@ -315,13 +291,7 @@ namespace ShampanPOS.Service
                     foreach (var item in supplierproduct.MasterItemList)
                     {
                         // ---------- Product Group Check ----------
-                        bool pgexist = _commonRepo.CheckExists(
-                            "ProductGroups",
-                            new[] { "Code" },
-                            new[] { item.MasterItemGroupCode },
-                            conn,
-                            transaction
-                        );
+                        bool pgexist = _commonRepo.CheckExists("ProductGroups",new[] { "Code" },new[] { item.MasterItemGroupCode }, conn,transaction);
 
                         int productGroupId = 0;
 
@@ -345,13 +315,7 @@ namespace ShampanPOS.Service
                         }
                         else
                         {
-                            var pglistResult = await _productGroupRepo.List(
-                                new[] { "M.Code" },
-                                new[] { item.MasterItemGroupCode },
-                                null,
-                                conn,
-                                transaction
-                            );
+                            var pglistResult = await _productGroupRepo.List(new[] { "M.Code" },new[] { item.MasterItemGroupCode },null, conn, transaction);
 
                             var pglist = pglistResult.DataVM as List<ProductGroupVM>;
 
@@ -362,13 +326,7 @@ namespace ShampanPOS.Service
                         }
 
                         // ---------- Product Check ----------
-                        bool productexist = _commonRepo.CheckExists(
-                            "Products",
-                            new[] { "Code" },
-                            new[] { item.MasterItemCode },
-                            conn,
-                            transaction
-                        );
+                        bool productexist = _commonRepo.CheckExists("Products",new[] { "Code" },new[] { item.MasterItemCode },conn,transaction);
 
                         if (!productexist)
                         {
@@ -398,13 +356,7 @@ namespace ShampanPOS.Service
                         }
                         else
                         {
-                            var plistResult = await _productRepo.List(
-                                new[] { "M.Code" },
-                                new[] { item.MasterItemCode },
-                                null,
-                                conn,
-                                transaction
-                            );
+                            var plistResult = await _productRepo.List(new[] { "M.Code" },new[] { item.MasterItemCode },null, conn,transaction );
 
                             var plist = plistResult.DataVM as List<ProductVM>;
 
