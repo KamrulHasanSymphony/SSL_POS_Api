@@ -279,16 +279,18 @@ namespace ShampanPOS.Service
 
                         }
 
-                        if (sale.SaleCreditCardList != null && sale.SaleCreditCardList.Any())
+                        
+                    }
+
+                    if (sale.SaleCreditCardList != null && sale.SaleCreditCardList.Any())
+                    {
+                        foreach (var card in sale.SaleCreditCardList)
                         {
-                            foreach (var card in sale.SaleCreditCardList)
+                            card.SaleId = sale.Id;
+                            var cardResult = await _crepo.Insert(card, conn, transaction);
+                            if (cardResult.Status.ToLower() != "success")
                             {
-                                card.SaleId = sale.Id;
-                                var cardResult = await _crepo.Insert(card, conn, transaction);
-                                if (cardResult.Status.ToLower() != "success")
-                                {
-                                    throw new Exception(cardResult.Message);
-                                }
+                                throw new Exception(cardResult.Message);
                             }
                         }
                     }

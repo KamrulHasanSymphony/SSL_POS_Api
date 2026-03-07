@@ -818,6 +818,7 @@ namespace ShampanPOS.Service
             }
         }
 
+
         //public async Task<ResultVM> InsertFromMasterItem(ProductVM product)
         //{
         //    ProductRepository _repo = new ProductRepository();
@@ -827,6 +828,10 @@ namespace ShampanPOS.Service
         //    bool isNewConnection = false;
         //    SqlConnection conn = null;
         //    SqlTransaction transaction = null;
+
+        //    int insertedCount = 0;
+        //    int skippedCount = 0;
+
         //    try
         //    {
         //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
@@ -877,26 +882,37 @@ namespace ShampanPOS.Service
         //                var insertResult = await productGroupService.Insert(newGroup);
         //                if (insertResult.Status != "Success")
         //                {
-        //                    //throw new Exception(insertResult.Message);
 
         //                    var name = product.MasterItemGroupName;
 
-        //                    var retusls = productGroupService.grouplist(new[] { "M.Name" }, new[] { name }, null);
+        //                    var retusls = await productGroupService.grouplist(new[] { "M.Name" }, new[] { name }, null);
+
+        //                    var pgList = retusls.DataVM as List<ProductGroupVM>;
+        //                    var pg = pgList?.FirstOrDefault();
+
+        //                    if (pg == null)
+        //                        throw new Exception("Product group not found after insert.");
 
         //                    foreach (var item in group)
         //                    {
         //                        string supplierName = item.Name.Trim();
 
+
         //                        if (_repo.Exists(supplierName, conn, transaction))
+        //                        {
+        //                            skippedCount++;
         //                            continue;
+        //                        }
 
         //                        ProductVM pvm = new ProductVM
         //                        {
         //                            CompanyId = product.CompanyId,
         //                            UserId = product.UserId,
         //                            Name = supplierName,
-        //                            Code = string.IsNullOrWhiteSpace(item.Code) ? _commonRepo.CodeGenerationNo("Supplier", "Supplier", conn, transaction) : item.Code,
-        //                            ProductGroupId = retusls.Id,
+        //                            Code = string.IsNullOrWhiteSpace(item.Code)
+        //                                    ? _commonRepo.CodeGenerationNo("Supplier", "Supplier", conn, transaction)
+        //                                    : item.Code,
+        //                            ProductGroupId = pg.Id,   // ✅ correct
         //                            BanglaName = item.BanglaName,
         //                            UOMId = item.UOMId,
         //                            HSCodeNo = item.HSCodeNo,
@@ -912,6 +928,8 @@ namespace ShampanPOS.Service
 
         //                        if (result.Status != "Success")
         //                            throw new Exception(result.Message);
+
+        //                        insertedCount++;
         //                    }
 
         //                }
@@ -924,7 +942,9 @@ namespace ShampanPOS.Service
         //                        string supplierName = item.Name.Trim();
 
         //                        if (_repo.Exists(supplierName, conn, transaction))
-        //                            continue;
+        //                        {
+        //                            skippedCount++; continue;
+        //                        }
 
         //                        ProductVM pvm = new ProductVM
         //                        {
@@ -947,26 +967,44 @@ namespace ShampanPOS.Service
         //                            CreatedOn = product.CreatedOn
         //                        };
 
+
         //                        result = await _repo.Insert(pvm, conn, transaction);
 
         //                        if (result.Status != "Success")
         //                            throw new Exception(result.Message);
+
+        //                        insertedCount++;
+
         //                    }
         //                }
 
-
         //            }
-
 
         //        }
 
         //        transaction.Commit();
 
+
+        //        if (insertedCount == 0 && skippedCount > 0)
+        //        {
+        //            return new ResultVM
+        //            {
+        //                Status = "Fail",
+        //                Message = "All selected items already exist."
+        //            };
+        //        }
+
         //        return new ResultVM
         //        {
-        //            Status = "Success",
-        //            Message = "Suppliers saved successfully."
+        //            Status = "Success",   // API success
+        //            Message = $"{insertedCount} added, {skippedCount} skipped.",
+        //            DataVM = new
+        //            {
+        //                Inserted = insertedCount,
+        //                Skipped = skippedCount
+        //            }
         //        };
+
         //    }
         //    catch (Exception ex)
         //    {
@@ -985,11 +1023,21 @@ namespace ShampanPOS.Service
         //    }
         //}
 
+
+
         public async Task<ResultVM> InsertFromMasterItem(ProductVM product)
         {
             ProductRepository _repo = new ProductRepository();
             _commonRepo = new CommonRepository();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                Id = "0",
+                DataVM = null
+            };
 
             bool isNewConnection = false;
             SqlConnection conn = null;
@@ -1009,28 +1057,31 @@ namespace ShampanPOS.Service
                 ProductGroupService productGroupService = new ProductGroupService();
 
                 if (product.MasterItemList == null || !product.MasterItemList.Any())
-                    throw new Exception("No supplier found to save.");
+                    throw new Exception("No product found to save.");
 
-                // Group suppliers by their group name
+                // Group products by group name
                 var groupedItems = product.MasterItemList
                     .Where(x => !string.IsNullOrWhiteSpace(x.MasterItemGroupName))
                     .GroupBy(x => x.MasterItemGroupName.Trim())
                     .ToList();
 
-
                 foreach (var group in groupedItems)
                 {
                     string groupName = group.Key;
+
                     if (string.IsNullOrWhiteSpace(groupName))
-                        throw new Exception("Supplier group name is required.");
+                        throw new Exception("Product group name is required.");
 
-                    // Check if the group exists
+                    // Check if group exists
                     var groupResult = await productGroupService.grouplist(
-                        new[] { "M.Name" }, new[] { groupName }, null);
+                        new[] { "M.Name" },
+                        new[] { groupName },
+                        null);
 
-                    ProductGroupVM productGroupVM = groupResult?.Status == "Success" && groupResult.DataVM is List<ProductGroupVM> list && list.Any() ? list.First() : null;
+                    ProductGroupVM productGroupVM =
+                        groupResult?.Status == "Success" && groupResult.DataVM is List<ProductGroupVM> list && list.Any()? list.First() : null;
 
-                    // Create group if it doesn't exist
+                    // Create group if not exists
                     if (productGroupVM == null)
                     {
                         ProductGroupVM newGroup = new ProductGroupVM
@@ -1045,111 +1096,65 @@ namespace ShampanPOS.Service
                             UserId = product.UserId
                         };
 
-                        var insertResult = await productGroupService.Insert(newGroup);
-                        if (insertResult.Status != "Success")
-                        {
+                        var insertGroupResult = await productGroupService.Insert(newGroup);
 
-                            var name = product.MasterItemGroupName;
+                        if (insertGroupResult.Status != "Success")
+                            throw new Exception(insertGroupResult.Message);
 
-                            var retusls = await productGroupService.grouplist(new[] { "M.Name" }, new[] { name }, null);
-
-                            var pgList = retusls.DataVM as List<ProductGroupVM>;
-                            var pg = pgList?.FirstOrDefault();
-
-                            if (pg == null)
-                                throw new Exception("Product group not found after insert.");
-
-                            foreach (var item in group)
-                            {
-                                string supplierName = item.Name.Trim();
-
-
-                                if (_repo.Exists(supplierName, conn, transaction))
-                                {
-                                    skippedCount++;
-                                    continue;
-                                }
-
-                                ProductVM pvm = new ProductVM
-                                {
-                                    CompanyId = product.CompanyId,
-                                    UserId = product.UserId,
-                                    Name = supplierName,
-                                    Code = string.IsNullOrWhiteSpace(item.Code)
-                                            ? _commonRepo.CodeGenerationNo("Supplier", "Supplier", conn, transaction)
-                                            : item.Code,
-                                    ProductGroupId = pg.Id,   // ✅ correct
-                                    BanglaName = item.BanglaName,
-                                    UOMId = item.UOMId,
-                                    HSCodeNo = item.HSCodeNo,
-                                    VATRate = item.VATRate,
-                                    SDRate = item.SDRate,
-                                    IsActive = product.IsActive,
-                                    IsArchive = product.IsArchive,
-                                    CreatedBy = product.CreatedBy,
-                                    CreatedOn = product.CreatedOn
-                                };
-
-                                result = await _repo.Insert(pvm, conn, transaction);
-
-                                if (result.Status != "Success")
-                                    throw new Exception(result.Message);
-
-                                insertedCount++;
-                            }
-
-                        }
-                        else
-                        {
-                            productGroupVM = (ProductGroupVM)insertResult.DataVM;
-                            // Insert suppliers under this group
-                            foreach (var item in group)
-                            {
-                                string supplierName = item.Name.Trim();
-
-                                if (_repo.Exists(supplierName, conn, transaction))
-                                {
-                                    skippedCount++; continue;
-                                }
-
-                                ProductVM pvm = new ProductVM
-                                {
-                                    CompanyId = product.CompanyId,
-                                    UserId = product.UserId,
-
-                                    Name = supplierName,
-                                    Code = string.IsNullOrWhiteSpace(item.Code)
-                                        ? _commonRepo.CodeGenerationNo("Supplier", "Supplier", conn, transaction)
-                                        : item.Code,
-                                    ProductGroupId = productGroupVM.Id,
-                                    BanglaName = item.BanglaName,
-                                    UOMId = item.UOMId,
-                                    HSCodeNo = item.HSCodeNo,
-                                    VATRate = item.VATRate,
-                                    SDRate = item.SDRate,
-                                    IsActive = product.IsActive,
-                                    IsArchive = product.IsArchive,
-                                    CreatedBy = product.CreatedBy,
-                                    CreatedOn = product.CreatedOn
-                                };
-
-
-                                result = await _repo.Insert(pvm, conn, transaction);
-
-                                if (result.Status != "Success")
-                                    throw new Exception(result.Message);
-
-                                insertedCount++;
-
-                            }
-                        }
-
+                        productGroupVM = (ProductGroupVM)insertGroupResult.DataVM;
                     }
 
+                    // Insert products under this group
+                    foreach (var item in group)
+                    {
+                        string productName = item.Name?.Trim();
+
+                        if (string.IsNullOrWhiteSpace(productName))
+                            continue;
+
+                        // Check duplicate
+                        if (_repo.Exists(productName, conn, transaction))
+                        {
+                            skippedCount++;
+                            continue;
+                        }
+
+                        ProductVM pvm = new ProductVM
+                        {
+                            CompanyId = product.CompanyId,
+                            UserId = product.UserId,
+
+                            Name = productName,
+
+                            Code = string.IsNullOrWhiteSpace(item.Code)
+                                ? _commonRepo.CodeGenerationNo("Product", "Product", conn, transaction)
+                                : item.Code,
+
+                            ProductGroupId = productGroupVM.Id,
+
+                            BanglaName = item.BanglaName,
+                            UOMId = item.UOMId,
+                            HSCodeNo = item.HSCodeNo,
+                            VATRate = item.VATRate,
+                            SDRate = item.SDRate,
+
+                            IsActive = product.IsActive,
+                            IsArchive = product.IsArchive,
+
+                            CreatedBy = product.CreatedBy,
+                            CreatedOn = product.CreatedOn
+                        };
+
+                        result = await _repo.Insert(pvm, conn, transaction);
+
+                        if (result.Status != "Success")
+                            throw new Exception(result.Message);
+
+                        insertedCount++;
+                    }
                 }
 
                 transaction.Commit();
-
 
                 if (insertedCount == 0 && skippedCount > 0)
                 {
@@ -1162,7 +1167,7 @@ namespace ShampanPOS.Service
 
                 return new ResultVM
                 {
-                    Status = "Success",   // API success
+                    Status = "Success",
                     Message = $"{insertedCount} added, {skippedCount} skipped.",
                     DataVM = new
                     {
@@ -1170,11 +1175,11 @@ namespace ShampanPOS.Service
                         Skipped = skippedCount
                     }
                 };
-
             }
             catch (Exception ex)
             {
                 transaction?.Rollback();
+
                 return new ResultVM
                 {
                     Status = "Fail",
@@ -1188,10 +1193,6 @@ namespace ShampanPOS.Service
                     conn?.Close();
             }
         }
-
-
-
-
 
 
     }
