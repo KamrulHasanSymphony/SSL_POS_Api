@@ -402,7 +402,7 @@ namespace ShampanPOS.Repository
 
 
                 // ✅ Load details list
-                var detailsDataList = DetailsList(new[] { "sd.SaleId" }, conditionalValue, vm, conn, transaction);
+                var detailsDataList = UpdateDetailsList(new[] { "sd.SaleId" }, conditionalValue, vm, conn, transaction);
 
                 if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dts)
                 {
@@ -546,6 +546,114 @@ WHERE 1 = 1
                 }
             }
         }
+
+
+
+
+
+        public ResultVM UpdateDetailsList(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = @"
+
+SELECT 
+ISNULL(sd.Id, 0) AS Id,
+ISNULL(sd.SaleId, 0) AS SaleId,
+ISNULL(sd.SaleOrderId, 0) AS SaleOrderId,
+ISNULL(sd.CompanyId, 0) AS CompanyId,
+ISNULL(sd.SaleOrderDetailId, 0) AS SaleOrderDetailId,
+ISNULL(sd.Line, 0) AS Line,
+ISNULL(sd.ProductId, 0) AS ProductId,
+
+ISNULL(sod.Quantity, 0.00) AS OrderQuantity,
+ISNULL(FORMAT(sod.CompletedQty, 'N2'), '0.00') AS CompletedQty,
+ISNULL(FORMAT(sod.RemainQty, 'N2'), '0.00') AS RemainQty,
+
+ISNULL(sd.Quantity, 0.00) AS Quantity,
+
+ISNULL(FORMAT(sd.UnitRate, 'N2'), '0.00') AS UnitRate,
+ISNULL(FORMAT(sd.SubTotal, 'N2'), '0.00') AS SubTotal,
+ISNULL(FORMAT(sd.SD, 'N2'), '0.00') AS SD,
+ISNULL(FORMAT(sd.SDAmount, 'N2'), '0.00') AS SDAmount,
+ISNULL(FORMAT(sd.VATRate, 'N2'), '0.00') AS VATRate,
+ISNULL(FORMAT(sd.VATAmount, 'N2'), '0.00') AS VATAmount,
+ISNULL(FORMAT(sd.LineTotal, 'N2'), '0.00') AS LineTotal,
+
+ISNULL(P.Name,'') ProductName,
+ISNULL(P.BanglaName,'') BanglaName, 
+ISNULL(P.Code,'') ProductCode, 
+ISNULL(P.HSCodeNo,'') HSCodeNo,
+ISNULL(P.ProductGroupId,0) ProductGroupId,
+ISNULL(PG.Name,'') ProductGroupName,
+ISNULL(CP.CompanyName,'') CompanyName
+
+FROM SaleDetails sd
+LEFT JOIN Sales S ON sd.SaleId = S.Id  
+LEFT JOIN SaleOrderDetails sod ON sd.SaleOrderId = sod.SaleOrderId and sd.ProductId=sod.ProductId 
+LEFT JOIN Products P ON sd.ProductId = P.Id
+LEFT JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+LEFT JOIN CompanyProfiles CP ON sd.CompanyId = CP.Id
+WHERE 1 = 1
+";
+
+                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+                {
+                    query += " AND sd.Id = @Id ";
+                }
+
+                // Apply additional conditions
+                query = ApplyConditions(query, conditionalFields, conditionalValue, false);
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                // SET additional conditions param
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValue);
+
+                if (vm != null && int.TryParse(vm.Id, out int id))
+                {
+                    query += " AND sd.Id = @Id ";
+                    objComm.SelectCommand.Parameters.Add("@Id", SqlDbType.Int).Value = id;
+                }
+
+                objComm.Fill(dataTable);
+
+                result.Status = "Success";
+                result.Message = "Details Data retrieved successfully.";
+                result.DataVM = dataTable;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
+
+
+
+
 
 
         // ListAsDataTable Method
@@ -982,186 +1090,7 @@ WHERE 1 = 1
                 }
             }
         }
-        //public async Task<ResultVM> InsertDetail(SaleVM saleDetails, SqlConnection conn, SqlTransaction transaction)
-        //{
-        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
-        //    try
-        //    {
-        //        // SQL Insert query
-        //        string query = @"
-        //INSERT INTO SaleDetails
-        //(SaleId, SaleDeliveryId, SaleDeliveryDetailId, SaleOrderId, SaleOrderDetailId, BranchId, Line, ProductId, 
-        //Quantity, UnitRate, SubTotal, SD, SDAmount, VATRate, VATAmount, LineTotal, UOMId, UOMFromId, 
-        //UOMconversion, Comments, VATType, TransactionType, IsPost)
-        //VALUES 
-        //(@SaleId, @SaleDeliveryId, @SaleDeliveryDetailId, @SaleOrderId, @SaleOrderDetailId, @BranchId, @Line, @ProductId, 
-        //@Quantity, @UnitRate, @SubTotal, @SD, @SDAmount, @VATRate, @VATAmount, @LineTotal, @UOMId, @UOMFromId, 
-        //@UOMconversion, @Comments, @VATType, @TransactionType, @IsPost);
-        //SELECT SCOPE_IDENTITY();";
-
-        //        using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
-        //        {
-        //            // Loop through the sale details list and insert each detail
-        //            foreach (var detail in saleDetails.saleDetailsList)
-        //            {
-        //                // Clear parameters to avoid conflicts
-        //                cmd.Parameters.Clear();
-
-        //                // Adding parameters to the SQL command
-        //                cmd.Parameters.AddWithValue("@SaleId", saleDetails.Id);
-        //                cmd.Parameters.AddWithValue("@SaleDeliveryId", detail.SaleDeliveryId ?? 0);
-        //                cmd.Parameters.AddWithValue("@SaleDeliveryDetailId", detail.SaleDeliveryDetailId ?? 0);
-        //                cmd.Parameters.AddWithValue("@SaleOrderId", detail.SaleOrderId ?? 0);
-        //                cmd.Parameters.AddWithValue("@SaleOrderDetailId", detail.SaleOrderDetailId ?? 0);
-        //                cmd.Parameters.AddWithValue("@BranchId", saleDetails.BranchId);
-        //                cmd.Parameters.AddWithValue("@Line", detail.Line ?? 0);
-        //                cmd.Parameters.AddWithValue("@ProductId", detail.ProductId ?? 0);
-        //                cmd.Parameters.AddWithValue("@Quantity", detail.Quantity ?? 0);
-        //                cmd.Parameters.AddWithValue("@UnitRate", detail.UnitRate ?? 0);
-        //                cmd.Parameters.AddWithValue("@SubTotal", detail.SubTotal ?? 0);
-        //                cmd.Parameters.AddWithValue("@SD", detail.SD ?? 0);
-        //                cmd.Parameters.AddWithValue("@SDAmount", detail.SDAmount ?? 0);
-        //                cmd.Parameters.AddWithValue("@VATRate", detail.VATRate ?? 0);
-        //                cmd.Parameters.AddWithValue("@VATAmount", detail.VATAmount ?? 0);
-        //                cmd.Parameters.AddWithValue("@LineTotal", detail.LineTotal ?? 0);
-        //                cmd.Parameters.AddWithValue("@UOMId", detail.UOMId ?? 0);
-        //                cmd.Parameters.AddWithValue("@UOMFromId", detail.UOMFromId ?? 0);
-        //                cmd.Parameters.AddWithValue("@UOMConversion", detail.UOMConversion ?? 0);
-        //                cmd.Parameters.AddWithValue("@VATType", "VAT"); // Assuming VAT is constant
-        //                cmd.Parameters.AddWithValue("@TransactionType", saleDetails.TransactionType ?? "");
-        //                cmd.Parameters.AddWithValue("@IsPost", saleDetails.IsPost);
-        //                cmd.Parameters.AddWithValue("@Comments", detail.Comments ?? "");
-
-        //                // Execute the query and get the new ID (primary key)
-        //                object newId = await cmd.ExecuteScalarAsync();
-        //                detail.Id = Convert.ToInt32(newId);
-        //            }
-
-        //            // Commit the transaction if everything goes well
-        //            result.Status = "Success";
-        //            result.Message = "Details Data inserted successfully.";
-        //            result.Id = saleDetails.Id.ToString();
-        //            result.DataVM = saleDetails;
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // In case of error, rollback the transaction (if needed) and set result messages
-        //        result.ExMessage = ex.Message;
-        //        result.Message = ex.Message;
-        //    }
-
-        //    return result;
-        //}
-
-        //public async Task<ResultVM> ProductWiseSale(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
-        //{
-        //    bool isNewConnection = false;
-        //    DataTable dataTable = new DataTable();
-        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-
-        //    try
-        //    {
-        //        if (conn == null)
-        //        {
-        //            conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-        //            conn.Open();
-        //            isNewConnection = true;
-        //        }
-
-        //        string query = @"
-        //                   SELECT     
-        //                    -- Details Data
-        //                    ISNULL(D.ProductId, 0) AS ProductId,
-        //                    ISNULL(PG.Name, '') AS ProductGroupName,
-        //                    ISNULL(P.Code, '') AS ProductCode,
-        //                    ISNULL(P.Name, '') AS ProductName,
-        //                    ISNULL(P.HSCodeNo, '') AS HSCodeNo,
-        //                    ISNULL(uom.Name, '') AS UOMName,
-        //                    ISNULL(SUM(D.Quantity), 0) AS Quantity
-
-        //                    FROM Sales M
-        //                    LEFT OUTER JOIN SaleDetails D ON ISNULL(M.Id,0) = D.SaleId
-        //                    LEFT OUTER JOIN Products P ON D.ProductId = P.Id
-        //                    LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
-        //                    LEFT OUTER JOIN UOMs uom ON P.UOMId = uom.Id
-        //                    LEFT OUTER JOIN UOMConversations uomCon ON D.UOMFromId = uomCon.Id
-        //              WHERE 1 = 1 
-        //            ";
-
-        //        if (vm != null && !string.IsNullOrEmpty(vm.Id))
-        //        {
-        //            query += " AND M.Id = @Id ";
-        //        }
-        //        if (vm != null && !string.IsNullOrEmpty(vm.FromDate) && !string.IsNullOrEmpty(vm.ToDate))
-        //        {
-        //            query += " AND CAST(M.DeliveryDate AS DATE) BETWEEN @FromDate AND @ToDate ";
-        //        }
-
-        //        // Apply additional conditions
-        //        query = ApplyConditions(query, conditionalFields, conditionalValue, false);
-        //        query += @" GROUP BY    
-        //                            D.ProductId,
-        //                            P.HSCodeNo,
-        //                            P.Code,
-        //                            P.Name,
-        //                            PG.Name,
-        //                            uom.Name ";
-        //        SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
-
-        //        // SET additional conditions param
-        //        objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValue);
-
-        //        if (vm != null && !string.IsNullOrEmpty(vm.Id))
-        //        {
-        //            objComm.SelectCommand.Parameters.AddWithValue("@Id", vm.Id);
-        //        }
-        //        if (vm != null && !string.IsNullOrEmpty(vm.FromDate) && !string.IsNullOrEmpty(vm.ToDate))
-        //        {
-        //            objComm.SelectCommand.Parameters.AddWithValue("@FromDate", vm.FromDate);
-        //            objComm.SelectCommand.Parameters.AddWithValue("@ToDate", vm.ToDate);
-        //        }
-
-        //        objComm.Fill(dataTable);
-
-        //        var lst = new List<SaleReportVM>();
-        //        int serialNumber = 1;
-        //        foreach (DataRow row in dataTable.Rows)
-        //        {
-        //            lst.Add(new SaleReportVM
-        //            {
-        //                SL = serialNumber,
-        //                ProductId = Convert.ToInt32(row["ProductId"]),
-        //                ProductGroupName = row["ProductGroupName"].ToString(),
-        //                ProductCode = row["ProductCode"].ToString(),
-        //                ProductName = row["ProductName"].ToString(),
-        //                HSCodeNo = row["HSCodeNo"].ToString(),
-        //                UOMName = row["UOMName"].ToString(),
-        //                Quantity = Convert.ToInt32(row["Quantity"])
-        //            });
-        //            serialNumber++;
-        //        }
-
-        //        result.Status = "Success";
-        //        result.Message = "Data retrieved successfully.";
-        //        result.DataVM = lst;
-        //        return result;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        result.ExMessage = ex.Message;
-        //        result.Message = ex.Message;
-        //        return result;
-        //    }
-        //    finally
-        //    {
-        //        if (isNewConnection && conn != null)
-        //        {
-        //            conn.Close();
-        //        }
-        //    }
-        //}
 
 
         public async Task<ResultVM> ReportPreview(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)

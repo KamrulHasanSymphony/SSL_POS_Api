@@ -1030,14 +1030,7 @@ namespace ShampanPOS.Service
             ProductRepository _repo = new ProductRepository();
             _commonRepo = new CommonRepository();
 
-            ResultVM result = new ResultVM
-            {
-                Status = "Fail",
-                Message = "Error",
-                ExMessage = null,
-                Id = "0",
-                DataVM = null
-            };
+            ResultVM result = new ResultVM{ Status = "Fail",Message = "Error",ExMessage = null,Id = "0",DataVM = null};
 
             bool isNewConnection = false;
             SqlConnection conn = null;
@@ -1073,10 +1066,7 @@ namespace ShampanPOS.Service
                         throw new Exception("Product group name is required.");
 
                     // Check if group exists
-                    var groupResult = await productGroupService.grouplist(
-                        new[] { "M.Name" },
-                        new[] { groupName },
-                        null);
+                    var groupResult = await productGroupService.grouplist(new[] { "M.Name" },new[] { groupName }, null);
 
                     ProductGroupVM productGroupVM =
                         groupResult?.Status == "Success" && groupResult.DataVM is List<ProductGroupVM> list && list.Any()? list.First() : null;

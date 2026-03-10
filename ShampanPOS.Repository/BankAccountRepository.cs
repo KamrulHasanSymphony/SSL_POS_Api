@@ -517,6 +517,7 @@ ORDER BY Name";
     -- Count query
     SELECT COUNT(DISTINCT H.Id) AS totalcount
         FROM BankAccounts H 
+		LEFT OUTER JOIN BankInformations b on H.BankId = b.Id
         WHERE H.IsArchive != 1 ";
 
                 sqlQuery = sqlQuery + (options.filter.Filters.Count > 0 ?
@@ -535,8 +536,10 @@ ORDER BY Name";
                                             options.sort[0].field + " " + options.sort[0].dir :
                                             "H.Id DESC ") + @") AS rowindex,
         
+
         ISNULL(H.Id, 0) AS Id,
 		ISNULL(H.BankId, 0) AS BankId,
+		ISNULL(b.Name, '' ) AS BankName,
 		ISNULL(H.AccountName, '') AS AccountName,
 		ISNULL(H.BranchName, '') AS BranchName,
 		ISNULL(H.AccountNo, '') AS AccountNo,
@@ -553,6 +556,7 @@ ORDER BY Name";
         ISNULL(H.LastUpdateFrom, '') AS LastUpdateFrom
 
         FROM BankAccounts H 
+		LEFT OUTER JOIN BankInformations b on H.BankId = b.Id
         WHERE H.IsArchive != 1";
 
                 sqlQuery = sqlQuery + (options.filter.Filters.Count > 0 ?

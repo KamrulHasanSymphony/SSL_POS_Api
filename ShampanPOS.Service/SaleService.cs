@@ -334,6 +334,182 @@ namespace ShampanPOS.Service
 
 
 
+        //public async Task<ResultVM> Update(SaleVM sale)
+        //{
+        //    SaleRepository _repo = new SaleRepository();
+        //    SaleCreditCardRepository _crepo = new SaleCreditCardRepository();
+
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    _commonRepo = new CommonRepository();
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
+
+        //        transaction = conn.BeginTransaction();
+
+        //        // Update Sale details
+        //        result = await _repo.Update(sale, conn, transaction);
+
+        //        if (result.Status.ToLower() == "success")
+        //        {
+        //            int LineNo = 1;
+
+        //            foreach (var details in sale.saleDetailsList)
+        //            {
+        //                details.SaleId = sale.Id;
+        //                details.SDAmount = 0;
+        //                details.VATAmount = 0;
+        //                details.BranchId = sale.BranchId;
+        //                details.Line = LineNo;
+
+        //                // Line Total Summation
+        //                if (details.SD > 0)
+        //                {
+        //                    details.SDAmount = (details.SubTotal * details.SD) / 100;
+        //                }
+        //                if (details.VATRate > 0)
+        //                {
+        //                    details.VATAmount = ((details.SubTotal + details.SDAmount) * details.VATRate) / 100;
+        //                }
+
+        //                details.LineTotal = details.SubTotal + details.SDAmount + details.VATAmount;
+
+        //                // RemainQty Check
+        //                if (details.SaleOrderDetailId.HasValue)
+        //                {
+        //                    var rrr = await _repo.CheckRemaingQuantity(details.SaleOrderDetailId, details.ProductId, details.Id, conn, transaction);
+
+        //                    decimal CompleteQty = 0;
+        //                    if (rrr.Status.ToLower() == "success" && rrr.DataVM != null)
+        //                    {
+        //                        CompleteQty = Convert.ToDecimal(rrr.DataVM);
+        //                    }
+
+        //                    decimal orderQty = details.OrderQuantity ?? 0;
+        //                    decimal sellQty = details.Quantity ?? 0;
+        //                    decimal remainQty = orderQty - CompleteQty;
+
+        //                    if (sellQty > remainQty)
+        //                    {
+        //                        result.Status = "Fail";
+        //                        result.Message = $"Posting quantity ({sellQty}) cannot be greater than remaining quantity ({remainQty}).";
+
+        //                        if (transaction != null)
+        //                            transaction.Rollback();
+
+        //                        return result;
+        //                    }
+        //                    else
+        //                    {
+        //                        var record = _commonRepo.DetailsDelete("SaleDetails", new[] { "SaleId" }, new[] { sale.Id.ToString() }, conn, transaction);
+
+        //                        if (record.Status == "Fail")
+        //                        {
+        //                            throw new Exception("Error in Delete for Details Data.");
+        //                        }
+        //                        else
+        //                        {
+        //                            var resultDetail = await _repo.InsertDetails(details, conn, transaction);
+
+        //                            if (resultDetail.Status.ToLower() == "success")
+        //                            {
+        //                                if (details.SaleOrderDetailId.HasValue && details.ProductId.HasValue)
+        //                                {
+        //                                    var updateResult = await _repo.UpdateSaleOrderDetails(
+        //                                        details.SaleOrderDetailId.Value,
+        //                                        details.ProductId.Value,
+        //                                        conn,
+        //                                        transaction
+        //                                    );
+
+        //                                    if (updateResult.Status.ToLower() != "success")
+        //                                    {
+        //                                        throw new Exception(updateResult.Message);
+        //                                    }
+        //                                }
+
+        //                                LineNo++;
+        //                            }
+        //                            else
+        //                            {
+        //                                result.Message = resultDetail.Message;
+        //                                throw new Exception(result.Message);
+        //                            }
+        //                        }
+        //                    }
+        //                }
+        //            }
+
+        //            // SaleCreditCardList handling
+        //            if (sale.SaleCreditCardList != null && sale.SaleCreditCardList.Any())
+        //            {
+        //                var deleteCardResult = _commonRepo.DetailsDelete("SaleCreditCards",
+        //                    new[] { "SaleId" }, new[] { sale.Id.ToString() }, conn, transaction);
+
+        //                foreach (var card in sale.SaleCreditCardList)
+        //                {
+        //                    card.SaleId = sale.Id;
+        //                    var cardResult = await _crepo.Insert(card, conn, transaction);
+        //                    if (cardResult.Status.ToLower() != "success")
+        //                    {
+        //                        throw new Exception(cardResult.Message);
+        //                    }
+        //                }
+        //            }
+        //            else
+        //            {
+        //                // If SaleCreditCardList is empty or null, throw an exception
+        //                throw new Exception("SaleCreditCardList is either empty or null.");
+        //            }
+
+        //            // Commit transaction if everything is successful
+        //            if (isNewConnection && result.Status == "Success")
+        //            {
+        //                transaction.Commit();
+        //            }
+        //            else
+        //            {
+        //                throw new Exception(result.Message);
+        //            }
+
+        //            return result; // Ensure result is returned here
+        //        }
+        //        else
+        //        {
+        //            throw new Exception(result.Message);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // Rollback transaction in case of error
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+        //        result.Status = "Fail";
+        //        result.Message = ex.Message.ToString();
+        //        result.ExMessage = ex.ToString();
+        //        return result; // Ensure result is returned in case of error
+        //    }
+        //    finally
+        //    {
+        //        // Close connection
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
+
+
+
+
+
         public async Task<ResultVM> Update(SaleVM sale)
         {
             SaleRepository _repo = new SaleRepository();
@@ -358,6 +534,14 @@ namespace ShampanPOS.Service
                 if (result.Status.ToLower() == "success")
                 {
                     int LineNo = 1;
+
+                    // DELETE SaleDetails ONLY ONCE
+                    var record = _commonRepo.DetailsDelete("SaleDetails", new[] { "SaleId" }, new[] { sale.Id.ToString() }, conn, transaction);
+
+                    if (record.Status == "Fail")
+                    {
+                        throw new Exception("Error in Delete for Details Data.");
+                    }
 
                     foreach (var details in sale.saleDetailsList)
                     {
@@ -404,44 +588,33 @@ namespace ShampanPOS.Service
 
                                 return result;
                             }
-                            else
+                        }
+
+                        var resultDetail = await _repo.InsertDetails(details, conn, transaction);
+
+                        if (resultDetail.Status.ToLower() == "success")
+                        {
+                            if (details.SaleOrderDetailId.HasValue && details.ProductId.HasValue)
                             {
-                                var record = _commonRepo.DetailsDelete("SaleDetails", new[] { "SaleId" }, new[] { sale.Id.ToString() }, conn, transaction);
+                                var updateResult = await _repo.UpdateSaleOrderDetails(
+                                    details.SaleOrderDetailId.Value,
+                                    details.ProductId.Value,
+                                    conn,
+                                    transaction
+                                );
 
-                                if (record.Status == "Fail")
+                                if (updateResult.Status.ToLower() != "success")
                                 {
-                                    throw new Exception("Error in Delete for Details Data.");
-                                }
-                                else
-                                {
-                                    var resultDetail = await _repo.InsertDetails(details, conn, transaction);
-
-                                    if (resultDetail.Status.ToLower() == "success")
-                                    {
-                                        if (details.SaleOrderDetailId.HasValue && details.ProductId.HasValue)
-                                        {
-                                            var updateResult = await _repo.UpdateSaleOrderDetails(
-                                                details.SaleOrderDetailId.Value,
-                                                details.ProductId.Value,
-                                                conn,
-                                                transaction
-                                            );
-
-                                            if (updateResult.Status.ToLower() != "success")
-                                            {
-                                                throw new Exception(updateResult.Message);
-                                            }
-                                        }
-
-                                        LineNo++;
-                                    }
-                                    else
-                                    {
-                                        result.Message = resultDetail.Message;
-                                        throw new Exception(result.Message);
-                                    }
+                                    throw new Exception(updateResult.Message);
                                 }
                             }
+
+                            LineNo++;
+                        }
+                        else
+                        {
+                            result.Message = resultDetail.Message;
+                            throw new Exception(result.Message);
                         }
                     }
 
@@ -463,7 +636,6 @@ namespace ShampanPOS.Service
                     }
                     else
                     {
-                        // If SaleCreditCardList is empty or null, throw an exception
                         throw new Exception("SaleCreditCardList is either empty or null.");
                     }
 
@@ -477,7 +649,7 @@ namespace ShampanPOS.Service
                         throw new Exception(result.Message);
                     }
 
-                    return result; // Ensure result is returned here
+                    return result;
                 }
                 else
                 {
@@ -486,7 +658,6 @@ namespace ShampanPOS.Service
             }
             catch (Exception ex)
             {
-                // Rollback transaction in case of error
                 if (transaction != null && isNewConnection)
                 {
                     transaction.Rollback();
@@ -494,17 +665,20 @@ namespace ShampanPOS.Service
                 result.Status = "Fail";
                 result.Message = ex.Message.ToString();
                 result.ExMessage = ex.ToString();
-                return result; // Ensure result is returned in case of error
+                return result;
             }
             finally
             {
-                // Close connection
                 if (isNewConnection && conn != null)
                 {
                     conn.Close();
                 }
             }
         }
+
+
+
+
 
 
 

@@ -917,7 +917,6 @@ namespace ShampanPOS.Service
         }
 
 
-
         //public async Task<ResultVM> InsertFromMasterSupplier(SupplierVM supplier)
         //{
         //    SupplierRepository _repo = new SupplierRepository();
@@ -928,6 +927,9 @@ namespace ShampanPOS.Service
         //    bool isNewConnection = false;
         //    SqlConnection conn = null;
         //    SqlTransaction transaction = null;
+
+        //    int insertedCount = 0;
+        //    int skippedCount = 0;
 
         //    try
         //    {
@@ -957,7 +959,7 @@ namespace ShampanPOS.Service
         //            var groupResult = await supplierGroupService.grouplist(
         //                new[] { "M.Name" }, new[] { groupName }, null);
 
-        //            SupplierGroupVM supplierGroupVM = groupResult?.Status == "Success" && groupResult.DataVM is List<SupplierGroupVM> list &&list.Any() ? list.First(): null;
+        //            SupplierGroupVM supplierGroupVM = groupResult?.Status == "Success" && groupResult.DataVM is List<SupplierGroupVM> list && list.Any() ? list.First() : null;
 
         //            // Create group if it doesn't exist
         //            if (supplierGroupVM == null)
@@ -976,7 +978,8 @@ namespace ShampanPOS.Service
         //                };
 
         //                var insertResult = await supplierGroupService.Insert(newGroup);
-        //                if (insertResult.Status != "Success") {
+        //                if (insertResult.Status != "Success")
+        //                {
         //                    //throw new Exception(insertResult.Message);
 
         //                    var name = supplier.MasterSupplierGroupName;
@@ -990,20 +993,23 @@ namespace ShampanPOS.Service
         //                        string supplierName = item.Name.Trim();
 
         //                        if (_repo.Exists(supplierName, conn, transaction))
+        //                        {
+        //                            skippedCount++;
         //                            continue;
+        //                        }
 
         //                        SupplierVM pvm = new SupplierVM
         //                        {
-        //                            CompanyId = supplier.CompanyId,  
+        //                            CompanyId = supplier.CompanyId,
         //                            UserId = supplier.UserId,
         //                            Name = supplierName,
-        //                            Code = string.IsNullOrWhiteSpace(item.Code)? _commonRepo.CodeGenerationNo("Supplier", "Supplier", conn, transaction): item.Code,
+        //                            Code = string.IsNullOrWhiteSpace(item.Code) ? _commonRepo.CodeGenerationNo("Supplier", "Supplier", conn, transaction) : item.Code,
         //                            SupplierGroupId = retusls.Id,
-        //                            BanglaName = item.BanglaName,  
-        //                            Address = item.Address,        
-        //                            City = item.City,            
-        //                            TelephoneNo = item.TelephoneNo, 
-        //                            Email = item.Email,           
+        //                            BanglaName = item.BanglaName,
+        //                            Address = item.Address,
+        //                            City = item.City,
+        //                            TelephoneNo = item.TelephoneNo,
+        //                            Email = item.Email,
         //                            ContactPerson = item.ContactPerson,
         //                            IsActive = supplier.IsActive,
         //                            IsArchive = supplier.IsArchive,
@@ -1016,10 +1022,13 @@ namespace ShampanPOS.Service
 
         //                        if (result.Status != "Success")
         //                            throw new Exception(result.Message);
+
+        //                        insertedCount++;
         //                    }
 
         //                }
-        //                else {
+        //                else
+        //                {
         //                    supplierGroupVM = (SupplierGroupVM)insertResult.DataVM;
         //                    // Insert suppliers under this group
         //                    foreach (var item in group)
@@ -1027,7 +1036,9 @@ namespace ShampanPOS.Service
         //                        string supplierName = item.Name.Trim();
 
         //                        if (_repo.Exists(supplierName, conn, transaction))
-        //                            continue;
+        //                        {
+        //                            skippedCount++; continue;
+        //                        }
 
         //                        SupplierVM pvm = new SupplierVM
         //                        {
@@ -1054,7 +1065,7 @@ namespace ShampanPOS.Service
 
         //                        if (result.Status != "Success")
         //                            throw new Exception(result.Message);
-
+        //                        insertedCount++;
 
         //                    }
         //                }
@@ -1067,11 +1078,26 @@ namespace ShampanPOS.Service
 
         //        transaction.Commit();
 
+        //        if (insertedCount == 0 && skippedCount > 0)
+        //        {
+        //            return new ResultVM
+        //            {
+        //                Status = "Fail",
+        //                Message = "All selected items already exist."
+        //            };
+        //        }
+
         //        return new ResultVM
         //        {
-        //            Status = "Success",
-        //            Message = "Suppliers saved successfully."
+        //            Status = "Success",   // API success
+        //            Message = $"{insertedCount} added, {skippedCount} skipped.",
+        //            DataVM = new
+        //            {
+        //                Inserted = insertedCount,
+        //                Skipped = skippedCount
+        //            }
         //        };
+
         //    }
         //    catch (Exception ex)
         //    {
@@ -1109,8 +1135,9 @@ namespace ShampanPOS.Service
             try
             {
                 conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                await conn.OpenAsync();
+                conn.Open();
                 isNewConnection = true;
+
                 transaction = conn.BeginTransaction();
 
                 SupplierGroupService supplierGroupService = new SupplierGroupService();
@@ -1153,21 +1180,23 @@ namespace ShampanPOS.Service
                         };
 
                         var insertResult = await supplierGroupService.Insert(newGroup);
+
                         if (insertResult.Status != "Success")
-                        {
-                            //throw new Exception(insertResult.Message);
+                        
+                            throw new Exception(insertResult.Message);
 
-                            var name = supplier.MasterSupplierGroupName;
+                            supplierGroupVM = (SupplierGroupVM)insertResult.DataVM;
 
-                            var retusls = supplierGroupService.grouplist(new[] { "M.Name" }, new[] { name }, null);
-
-                            // supplierGroupVM = (SupplierGroupVM)insertResult.DataVM;
+                        }
                             // Insert suppliers under this group
                             foreach (var item in group)
                             {
                                 string supplierName = item.Name.Trim();
 
-                                if (_repo.Exists(supplierName, conn, transaction))
+                            if (string.IsNullOrWhiteSpace(supplierName))
+                                continue;
+
+                            if (_repo.Exists(supplierName, conn, transaction))
                                 {
                                     skippedCount++;
                                     continue;
@@ -1179,7 +1208,7 @@ namespace ShampanPOS.Service
                                     UserId = supplier.UserId,
                                     Name = supplierName,
                                     Code = string.IsNullOrWhiteSpace(item.Code) ? _commonRepo.CodeGenerationNo("Supplier", "Supplier", conn, transaction) : item.Code,
-                                    SupplierGroupId = retusls.Id,
+                                    SupplierGroupId = supplierGroupVM.Id,
                                     BanglaName = item.BanglaName,
                                     Address = item.Address,
                                     City = item.City,
@@ -1202,55 +1231,7 @@ namespace ShampanPOS.Service
                             }
 
                         }
-                        else
-                        {
-                            supplierGroupVM = (SupplierGroupVM)insertResult.DataVM;
-                            // Insert suppliers under this group
-                            foreach (var item in group)
-                            {
-                                string supplierName = item.Name.Trim();
-
-                                if (_repo.Exists(supplierName, conn, transaction))
-                                {
-                                    skippedCount++; continue;
-                                }
-
-                                SupplierVM pvm = new SupplierVM
-                                {
-                                    CompanyId = supplier.CompanyId,
-                                    UserId = supplier.UserId,
-                                    Name = supplierName,
-                                    Code = string.IsNullOrWhiteSpace(item.Code)
-                                        ? _commonRepo.CodeGenerationNo("Supplier", "Supplier", conn, transaction)
-                                        : item.Code,
-                                    SupplierGroupId = supplierGroupVM.Id,
-                                    BanglaName = item.BanglaName,
-                                    Address = item.Address,
-                                    City = item.City,
-                                    TelephoneNo = item.TelephoneNo,
-                                    Email = item.Email,
-                                    ContactPerson = item.ContactPerson,
-                                    IsActive = supplier.IsActive,
-                                    IsArchive = supplier.IsArchive,
-                                    CreatedBy = supplier.CreatedBy,
-                                    CreatedOn = supplier.CreatedOn
-                                };
-
-                                result = await _repo.Insert(pvm, conn, transaction);
-
-                                if (result.Status != "Success")
-                                    throw new Exception(result.Message);
-                                insertedCount++;
-
-                            }
-                        }
-
-
-                    }
-
-
-                }
-
+                       
                 transaction.Commit();
 
                 if (insertedCount == 0 && skippedCount > 0)
@@ -1274,6 +1255,8 @@ namespace ShampanPOS.Service
                 };
 
             }
+
+
             catch (Exception ex)
             {
                 transaction?.Rollback();
@@ -1290,6 +1273,8 @@ namespace ShampanPOS.Service
                     conn?.Close();
             }
         }
+
+
 
         public async Task<ResultVM> ReportList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
         {
