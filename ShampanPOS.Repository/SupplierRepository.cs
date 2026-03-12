@@ -1,10 +1,12 @@
-﻿using ShampanPOS.ViewModel;
+﻿using Newtonsoft.Json;
+using ShampanPOS.ViewModel;
+using ShampanPOS.ViewModel.CommonVMs;
+using ShampanPOS.ViewModel.KendoCommon;
+using ShampanPOS.ViewModel.Utility;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Text.Json;
-using ShampanPOS.ViewModel.CommonVMs;
-using ShampanPOS.ViewModel.Utility;
-using ShampanPOS.ViewModel.KendoCommon;
 
 namespace ShampanPOS.Repository
 {
@@ -345,6 +347,20 @@ WHERE 1 = 1
                     ImagePath = row.Field<string?>("ImagePath")
                 }).ToList();
 
+                if (modelList.Any())
+                {
+                    var detailsDataList = DetailsList(new[] { "M.SupplierId" }, conditionalValues, vm, conn, transaction);
+
+                    if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt2)
+                    {
+                        string json = JsonConvert.SerializeObject(dt2);
+                        var details = JsonConvert.DeserializeObject<List<MasterItemVM>>(json);
+
+                        // Assign the list to the first ChargeVM's detail list
+                        modelList.First().MasterItemList = details ?? new List<MasterItemVM>();
+                    }
+                }
+
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";
                 result.DataVM = modelList;
@@ -354,6 +370,88 @@ WHERE 1 = 1
             {
                 result.Message = ex.Message;
                 result.ExMessage = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
+        public ResultVM DetailsList(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = @"
+	SELECT
+    ISNULL(M.Id, 0) AS Id,
+	ISNULL(M.SupplierId, 0) AS SupplierId,
+	ISNULL(M.ProductId, 0) AS ProductId,
+    ISNULL(s.Name, '') AS SupplierName,
+	ISNULL(M.UserId, 0) AS UserId,
+    ISNULL(p.Name, '') AS ProductName,
+    ISNULL(M.IsArchive, 0) AS IsArchive,
+	ISNULL(M.IsActive, 0) AS IsActive,   
+    ISNULL(M.CreatedBy, '') AS CreatedBy,
+    FORMAT(ISNULL(M.CreatedOn, '1900-01-01'), 'yyyy-MM-dd') AS CreatedOn,
+    ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
+    FORMAT(ISNULL(M.LastModifiedOn, '1900-01-01'), 'yyyy-MM-dd') AS LastModifiedOn,
+	ISNULL(pg.Name, '') AS ProductGroupName
+	--ISNULL(pg.Id,0) ProductGroupId
+
+FROM SupplierProduct M
+LEFT OUTER JOIN Suppliers s on M.SupplierId = s.Id
+LEFT OUTER JOIN Products p on M.ProductId = p.Id
+LEFT OUTER JOIN ProductGroups pg ON p.ProductGroupId = pg.Id  
+
+WHERE 1 = 1
+";
+
+                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+                {
+                    query += " AND M.Id = @Id ";
+                }
+
+                // Apply additional conditions
+                query = ApplyConditions(query, conditionalFields, conditionalValue, false);
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                // SET additional conditions param
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValue);
+
+                if (vm != null && int.TryParse(vm.Id, out int id))
+                {
+                    query += " AND M.Id = @Id ";
+                    objComm.SelectCommand.Parameters.Add("@Id", SqlDbType.Int).Value = id;
+                }
+
+                objComm.Fill(dataTable);
+
+                result.Status = "Success";
+                result.Message = "Details Data retrieved successfully.";
+                result.DataVM = dataTable;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
                 return result;
             }
             finally

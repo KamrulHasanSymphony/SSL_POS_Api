@@ -1159,6 +1159,7 @@ WHERE
 		    ISNULL(H.Code, '') AS Code,               
 		    ISNULL(H.Name, '') AS Name,
 		    ISNULL(H.ProductGroupId, 0) ProductGroupId,
+			ISNULL(G.Name, '') ProductGroupName,
 			ISNULL(H.BanglaName, '') BanglaName,
 			ISNULL(H.Description, '') Description,
 			ISNULL(H.UOMId, 0) UOMId,
@@ -1172,6 +1173,7 @@ WHERE
 			ISNULL(H.VATRate, 0) AS VATRate,
 			ISNULL(H.SDRate, 0) AS SDRate
       FROM Products H
+	  LEFT JOIN ProductGroups G ON H.ProductGroupId = G.Id
 	  Where 1=1
       And H.IsActive = 1 ";
 
@@ -1194,6 +1196,7 @@ WHERE
                     IsActive = Convert.ToBoolean(row["IsActive"]),
                     IsArchive = Convert.ToBoolean(row["IsArchive"]),
                     ProductGroupId = row.Field<int>("ProductGroupId"),
+                    ProductGroupName = row.Field<string>("ProductGroupName"),
                     BanglaName = row.Field<string>("BanglaName"),
                     UOMId = row.Field<int?>("UOMId"),
                     HSCodeNo = row.Field<string>("HSCodeNo"),
@@ -2774,6 +2777,75 @@ LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
 
 
 
+        public async Task<ResultVM> SaleModal(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+        {
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    throw new Exception("Database connection fail!");
+                }
+
+                string query = @"
+                SELECT
+                    ISNULL(M.Id, 0) AS Id,
+                    ISNULL(M.Code, '') AS Code,
+                    ISNULL(M.CustomerId, 0) AS CustomerId,
+                    ISNULL(M.SaleOrderId, 0) AS SaleOrderId,
+                    ISNULL(C.Code, '') AS SaleOrderCode,
+                    ISNULL(S.Name, '') AS CustomerName,
+                    ISNULL(M.Comments, '') AS Comments,
+
+                    ISNULL(M.GrandTotal, 0) AS GrandTotal,
+                    ISNULL(M.PaidAmount, 0) AS PaymentAmount,
+                    ISNULL(M.GrandTotal,0) - ISNULL(M.PaidAmount,0) AS DueAmount
+
+                FROM 
+                    Sales M
+                LEFT OUTER JOIN Customers S 
+                    ON ISNULL(M.CustomerId, 0) = S.Id
+                LEFT OUTER JOIN SaleOrders C 
+                    ON ISNULL(M.SaleOrderId, 0) = C.Id
+                WHERE 
+                    1 = 1
+";
+
+                //sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                //objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new SaleDataVM
+                {
+                    Id = row.Field<int>("Id"),
+                    CustomerId = row.Field<int>("CustomerId"),
+                    SaleOrderId = row.Field<int>("SaleOrderId"),
+                    Code = row.Field<string>("Code"),
+                    SaleOrderCode = row.Field<string>("SaleOrderCode"),
+                    CustomerName = row.Field<string>("CustomerName"),
+                    GrandTotal = row.Field<decimal>("GrandTotal"),
+                    PaymentAmount = row.Field<decimal>("PaymentAmount"),
+                    DueAmount = row.Field<decimal>("DueAmount"),
+                    Comments = row.Field<string>("Comments")
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+        }
 
 
 
@@ -3492,23 +3564,29 @@ WHERE 1 = 1
                 }
 
                 string query = @"
-SELECT
-    ISNULL(M.Id, 0) AS Id,
-    ISNULL(M.Code, '') AS Code,
-    ISNULL(M.CustomerId, 0) AS CustomerId,
-    ISNULL(M.SaleOrderId, 0) AS SaleOrderId,
-    ISNULL(C.Code, '') AS SaleOrderCode,
-    ISNULL(S.Name, '') AS CustomerName,
-    ISNULL(M.Comments, '') AS Comments,
-    ISNULL(M.GrandTotal, 0) AS GrandTotal  
-FROM 
-    Sales M
-LEFT OUTER JOIN Customers S ON ISNULL(M.CustomerId, 0) = S.Id
-LEFT OUTER JOIN SaleOrders C ON ISNULL(M.SaleOrderId, 0) = C.Id
-WHERE 1 = 1
+                SELECT
+                    ISNULL(M.Id, 0) AS Id,
+                    ISNULL(M.Code, '') AS Code,
+                    ISNULL(M.CustomerId, 0) AS CustomerId,
+                    ISNULL(M.SaleOrderId, 0) AS SaleOrderId,
+                    ISNULL(C.Code, '') AS SaleOrderCode,
+                    ISNULL(S.Name, '') AS CustomerName,
+                    ISNULL(M.Comments, '') AS Comments,
 
+                    ISNULL(M.GrandTotal, 0) AS GrandTotal,
+                    ISNULL(M.PaidAmount, 0) AS PaymentAmount,
+                    ISNULL(M.GrandTotal,0) - ISNULL(M.PaidAmount,0) AS DueAmount
 
-";
+                FROM 
+                    Sales M
+                LEFT OUTER JOIN Customers S 
+                    ON ISNULL(M.CustomerId, 0) = S.Id
+                LEFT OUTER JOIN SaleOrders C 
+                    ON ISNULL(M.SaleOrderId, 0) = C.Id
+                WHERE 
+                    1 = 1
+
+                ";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.FromDate))
                 {
@@ -3549,6 +3627,8 @@ WHERE 1 = 1
                     SaleOrderCode = row.Field<string>("SaleOrderCode"),
                     CustomerName = row.Field<string>("CustomerName"),
                     GrandTotal = row.Field<decimal>("GrandTotal"),
+                    PaymentAmount = row.Field<decimal>("PaymentAmount"),
+                    DueAmount = row.Field<decimal>("DueAmount"),
                     Comments = row.Field<string>("Comments")
 
                 }).ToList();
@@ -3594,16 +3674,16 @@ WHERE 1 = 1
                     transaction = conn.BeginTransaction();
                 }
                 string query = @"
-SELECT
+                SELECT
 
-COALESCE(COUNT(M.Id), 0) AS FilteredCount
+                COALESCE(COUNT(M.Id), 0) AS FilteredCount
 
-FROM 
-    Sales M
-LEFT OUTER JOIN Customers S ON ISNULL(M.CustomerId, 0) = S.Id
-LEFT OUTER JOIN SaleOrders C ON ISNULL(M.SaleOrderId, 0) = C.Id
-WHERE 1 = 1
-";
+                FROM 
+                    Sales M
+                LEFT OUTER JOIN Customers S ON ISNULL(M.CustomerId, 0) = S.Id
+                LEFT OUTER JOIN SaleOrders C ON ISNULL(M.SaleOrderId, 0) = C.Id
+                WHERE 1 = 1
+                ";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.FromDate))
                 {
@@ -3910,6 +3990,8 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
             ISNULL(H.Code, '') Code, 
             ISNULL(H.Name, '') Name,
 			ISNULL(H.MasterItemGroupId, 0) MasterItemGroupId,
+			ISNULL(G.Name, '') MasterItemGroupName,
+			ISNULL(G.Code, '') MasterItemGroupCode,
 			ISNULL(H.BanglaName, '') BanglaName,
 			ISNULL(H.Description, '') Description,
 			ISNULL(H.UOMId, 0) UOMId,
@@ -3921,8 +4003,16 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
 			ISNULL(H.LastModifiedBy, '') LastModifiedBy,
 			ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') LastModifiedOn,
 			ISNULL(H.VATRate, 0) AS VATRate,
-			ISNULL(H.SDRate, 0) AS SDRate
+			ISNULL(H.SDRate, 0) AS SDRate,
+
+			CASE 
+				WHEN P.Id IS NULL THEN 0
+				ELSE 1
+			END AS IsAlreadyAdded
+
             FROM MasterItem H
+			LEFT JOIN MasterItemGroup G ON H.MasterItemGroupId = G.Id
+		    LEFT JOIN Products P ON P.Name = H.Name
             Where 1=1
             And H.IsActive = 1
 
@@ -3948,18 +4038,20 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
                     IsActive = Convert.ToBoolean(row["IsActive"]),
                     IsArchive = Convert.ToBoolean(row["IsArchive"]),
                     MasterItemGroupId = row.Field<int>("MasterItemGroupId"),
+                    MasterItemGroupName = row.Field<string>("MasterItemGroupName"),
+                    MasterItemGroupCode = row.Field<string>("MasterItemGroupCode"),
                     BanglaName = row.Field<string>("BanglaName"),
                     Description = row.Field<string>("Description"),
                     UOMId = row.Field<int?>("UOMId"), 
                     HSCodeNo = row.Field<string>("HSCodeNo"),
-                    //IsArchive = row.Field<bool>("IsArchive"),
-                    //IsActive = row.Field<bool>("IsActive"),
                     CreatedBy = row.Field<string>("CreatedBy"),
                     CreatedOn = row.Field<string>("CreatedOn"),
                     LastModifiedBy = row.Field<string>("LastModifiedBy"),
                     LastModifiedOn = row.Field<string?>("LastModifiedOn"),
                     VATRate = row.Field<decimal?>("VATRate") ?? 0.0m,
-                    SDRate = row.Field<decimal?>("SDRate") ?? 0.0m
+                    SDRate = row.Field<decimal?>("SDRate") ?? 0.0m,
+                    IsAlreadyAdded = row.Field<int>("IsAlreadyAdded") == 1
+
 
 
 
@@ -4000,6 +4092,8 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
             ISNULL(H.Code, '') Code ,
             ISNULL(H.Name, '') Name ,
 			ISNULL(H.MasterSupplierGroupId, 0) MasterSupplierGroupId,
+			ISNULL(G.Name, '') MasterSupplierGroupName,
+			ISNULL(G.Code, '') MasterSupplierGroupCode,
 			ISNULL(H.BanglaName, '') BanglaName,
 			ISNULL(H.Address, '') Address,
 			ISNULL(H.City, '') City,
@@ -4012,8 +4106,14 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
 			ISNULL(H.CreatedBy, '') CreatedBy,
             ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') CreatedOn,
             ISNULL(H.LastModifiedBy, '') LastModifiedBy,
-            ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') LastModifiedOn
+            ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') LastModifiedOn,
+			CASE 
+				WHEN P.Id IS NULL THEN 0
+				ELSE 1
+			END AS IsAlreadyAdded
             FROM MasterSupplier H
+		    LEFT JOIN MasterSupplierGroup G ON H.MasterSupplierGroupId = G.Id
+			LEFT JOIN Suppliers P ON P.Name = H.Name
             Where 1=1
             And H.IsActive = 1
 
@@ -4037,6 +4137,8 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
                     Code = row["Code"]?.ToString(),
                     Name = row["Name"]?.ToString(),
                     MasterSupplierGroupId = row.Field<int>("MasterSupplierGroupId"),
+                    MasterSupplierGroupName = row.Field<string>("MasterSupplierGroupName"),
+                    MasterSupplierGroupCode = row.Field<string>("MasterSupplierGroupCode"),
                     BanglaName = row.Field<string>("BanglaName"),
                     Address = row.Field<string>("Address"),
                     City = row.Field<string>("City"),
@@ -4049,6 +4151,8 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
                     CreatedOn = row.Field<string>("CreatedOn"),
                     LastModifiedBy = row.Field<string>("LastModifiedBy"),
                     LastModifiedOn = row.Field<string?>("LastModifiedOn"),
+                    IsAlreadyAdded = row.Field<int>("IsAlreadyAdded") == 1
+
 
 
 

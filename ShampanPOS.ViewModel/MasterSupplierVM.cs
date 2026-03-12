@@ -80,6 +80,9 @@ namespace ShampanPOS.ViewModel
         public int? UOMId { get; set; }
 
         public string? HSCodeNo { get; set; }
+
+        public bool IsAlreadyAdded { get; set; }
+
         public PeramModel PeramModel { get; set; }
 
         public List<MasterSupplierVM> MasterSupplierList { get; set; }

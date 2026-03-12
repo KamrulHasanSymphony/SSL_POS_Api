@@ -40,12 +40,6 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                //#region Date Check
-                //if (Convert.ToDateTime(model.DeliveryDateTime) < Convert.ToDateTime(model.TransactionDate))
-                //{
-                //    throw new Exception("Delivery Date cannot be smaller then Order Date!");
-                //}
-                //#endregion                
 
                 string code = _commonRepo.CodeGenerationNo(CodeGroup, CodeName, conn, transaction);
 

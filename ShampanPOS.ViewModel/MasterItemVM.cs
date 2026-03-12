@@ -80,7 +80,7 @@ namespace ShampanPOS.ViewModel
         public string? MasterItemCode { get; set; }
         public string? MasterItemName { get; set; }
 
-
+        public bool IsAlreadyAdded { get; set; }
 
         public PeramModel PeramModel { get; set; }
 
