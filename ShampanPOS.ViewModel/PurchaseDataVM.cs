@@ -16,7 +16,9 @@ namespace ShampanPOS.ViewModel
         public string? SupplierName { get; set; }
         public string? Comments { get; set; }
         public decimal GrandTotal { get; set; }
-
+        public decimal PaymentAmount { get; set; }
+        public decimal PaidAmount { get; set; }
+        public decimal DueAmount { get; set; }
         public PeramModel PeramModel { get; set; }
         public PurchaseDataVM()
         {

@@ -18,6 +18,102 @@ namespace ShampanPOS.Service
     {
         CommonRepository _commonRepo = new CommonRepository();
 
+        //public async Task<ResultVM> Insert(PaymentVM model)
+        //{
+        //    string CodeGroup = "Payment";
+        //    string CodeName = "Payment";
+
+        //    PaymentRepository _repo = new PaymentRepository();
+        //    _commonRepo = new CommonRepository();
+
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
+
+        //        transaction = conn.BeginTransaction();
+
+
+
+        //        string code = _commonRepo.CodeGenerationNo(CodeGroup, CodeName, conn, transaction);
+
+        //        if (!string.IsNullOrEmpty(code))
+        //        {
+        //            model.Code = code;
+
+        //            result = await _repo.Insert(model, conn, transaction);
+        //            model.Id = Convert.ToInt32(result.Id);
+
+        //            if (result.Status.ToLower() == "success")
+        //            {
+        //                int LineNo = 1;
+        //                foreach (var details in model.paymentDetailList)
+        //                {
+        //                    details.PaymentId = model.Id;
+        //                    details.SupplierId = model.SupplierId;
+
+        //                    var resultDetail = await _repo.InsertDetails(details, conn, transaction);
+
+        //                    if (resultDetail.Status.ToLower() == "success")
+        //                    {
+        //                        LineNo++;
+        //                    }
+        //                    else
+        //                    {
+        //                        throw new Exception(resultDetail.Message);
+        //                    }
+        //                }
+
+        //            }
+        //            else
+        //            {
+        //                throw new Exception(result.Message);
+        //            }
+
+        //            if (isNewConnection && result.Status == "Success")
+        //            {
+        //                transaction.Commit();
+        //            }
+        //            else
+        //            {
+        //                throw new Exception(result.Message);
+        //            }
+
+        //            return result;
+        //        }
+        //        else
+        //        {
+        //            throw new Exception("Code Generation Failed!");
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+        //        result.Status = "Fail";
+        //        result.Message = ex.Message.ToString();
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
+
+
+
         public async Task<ResultVM> Insert(PaymentVM model)
         {
             string CodeGroup = "Payment";
@@ -31,6 +127,7 @@ namespace ShampanPOS.Service
             bool isNewConnection = false;
             SqlConnection conn = null;
             SqlTransaction transaction = null;
+
             try
             {
                 conn = new SqlConnection(DatabaseHelper.GetConnectionString());
@@ -38,13 +135,6 @@ namespace ShampanPOS.Service
                 isNewConnection = true;
 
                 transaction = conn.BeginTransaction();
-
-                //#region Date Check
-                //if (Convert.ToDateTime(model.DeliveryDateTime) < Convert.ToDateTime(model.TransactionDate))
-                //{
-                //    throw new Exception("Delivery Date cannot be smaller then Order Date!");
-                //}
-                //#endregion                
 
                 string code = _commonRepo.CodeGenerationNo(CodeGroup, CodeName, conn, transaction);
 
@@ -58,26 +148,36 @@ namespace ShampanPOS.Service
                     if (result.Status.ToLower() == "success")
                     {
                         int LineNo = 1;
+
                         foreach (var details in model.paymentDetailList)
                         {
                             details.PaymentId = model.Id;
                             details.SupplierId = model.SupplierId;
-                            //details.BranchId = model.BranchId;
-                            //details.Line = LineNo;
-                            //details.CompanyId = model.CompanyId;
+
+                            decimal paid = details.PaidAmount ?? 0;
+                            decimal due = details.DueAmount ?? 0;
+                            decimal payment = details.PaymentAmount ?? 0;
+
+                            if (payment > due)
+                                throw new Exception("Payment amount cannot be greater than due.");
+
+                            // JS logic replicate
+                            details.PaidAmount = paid ;
+                            details.DueAfter = due - payment;
 
                             var resultDetail = await _repo.InsertDetails(details, conn, transaction);
 
-                            if (resultDetail.Status.ToLower() == "success")
-                            {
-                                LineNo++;
-                            }
-                            else
-                            {
+                            if (!resultDetail.Status.Equals("Success", StringComparison.OrdinalIgnoreCase))
                                 throw new Exception(resultDetail.Message);
-                            }
-                        }
 
+                            // 🔴 Update Purchase PaidAmount
+                            var purchaseUpdate = await _repo.UpdatePurchase(details, conn, transaction);
+
+                            if (!purchaseUpdate.Status.Equals("Success", StringComparison.OrdinalIgnoreCase))
+                                throw new Exception(purchaseUpdate.Message);
+
+                            LineNo++;
+                        }
                     }
                     else
                     {
@@ -106,6 +206,7 @@ namespace ShampanPOS.Service
                 {
                     transaction.Rollback();
                 }
+
                 result.Status = "Fail";
                 result.Message = ex.Message.ToString();
                 result.ExMessage = ex.ToString();
@@ -119,7 +220,6 @@ namespace ShampanPOS.Service
                 }
             }
         }
-
 
         public async Task<ResultVM> Update(PaymentVM model)
         {

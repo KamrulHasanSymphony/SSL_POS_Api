@@ -18,7 +18,6 @@ namespace ShampanPOS.Service
     {
 
         CommonRepository _commonRepo = new CommonRepository();
-
         public async Task<ResultVM> Insert(CollectionVM model)
         {
             string CodeGroup = "Collection";
@@ -26,74 +25,95 @@ namespace ShampanPOS.Service
 
             CollectionRepository _repo = new CollectionRepository();
             _commonRepo = new CommonRepository();
+            SaleCreditCardRepository _saleCreditCardRepo = new SaleCreditCardRepository();
 
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                Id = "0",
+                DataVM = null
+            };
 
             bool isNewConnection = false;
+            bool isSuccess = false;
+
             SqlConnection conn = null;
             SqlTransaction transaction = null;
+
             try
             {
                 conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                conn.Open();
+                await conn.OpenAsync();
                 isNewConnection = true;
 
                 transaction = conn.BeginTransaction();
 
-
                 string code = _commonRepo.CodeGenerationNo(CodeGroup, CodeName, conn, transaction);
 
-                if (!string.IsNullOrEmpty(code))
-                {
-                    model.Code = code;
-
-                    result = await _repo.Insert(model, conn, transaction);
-                    model.Id = Convert.ToInt32(result.Id);
-
-                    if (result.Status.ToLower() == "success")
-                    {
-                        int LineNo = 1;
-                        foreach (var details in model.collectionDetailList)
-                        {
-                            details.CollectionId = model.Id;
-                            details.CustomerId = model.CustomerId;
-                            //details.BranchId = model.BranchId;
-                            //details.Line = LineNo;
-                            //details.CompanyId = model.CompanyId;
-
-                            var resultDetail = await _repo.InsertDetails(details, conn, transaction);
-
-                            if (resultDetail.Status.ToLower() == "success")
-                            {
-                                LineNo++;
-                            }
-                            else
-                            {
-                                throw new Exception(resultDetail.Message);
-                            }
-                        }
-
-                    }
-                    else
-                    {
-                        throw new Exception(result.Message);
-                    }
-
-                    if (isNewConnection && result.Status == "Success")
-                    {
-                        transaction.Commit();
-                    }
-                    else
-                    {
-                        throw new Exception(result.Message);
-                    }
-
-                    return result;
-                }
-                else
-                {
+                if (string.IsNullOrEmpty(code))
                     throw new Exception("Code Generation Failed!");
+
+                model.Code = code;
+
+                result = await _repo.Insert(model, conn, transaction);
+                model.Id = Convert.ToInt32(result.Id);
+
+                if (!result.Status.Equals("Success", StringComparison.OrdinalIgnoreCase))
+                    throw new Exception(result.Message);
+
+                int lineNo = 1;
+
+                foreach (var details in model.collectionDetailList)
+                {
+                    details.CollectionId = model.Id;
+                    details.CustomerId = model.CustomerId;
+
+                    decimal paid = details.PaidAmount ?? 0;
+                    decimal due = details.DueAmount ?? 0;
+                    decimal collection = details.CollectionAmount ?? 0;
+
+                    if (collection > due)
+                        throw new Exception("Collection amount cannot be greater than due.");
+
+                    details.PaidAmount = paid;
+                    details.DueAfter = due - collection;
+
+                    var resultDetail = await _repo.InsertDetails(details, conn, transaction);
+
+                    if (!resultDetail.Status.Equals("Success", StringComparison.OrdinalIgnoreCase))
+                        throw new Exception(resultDetail.Message);
+
+                    var saleUpdate = await _repo.UpdateSale(details, conn, transaction);
+
+                    if (!saleUpdate.Status.Equals("Success", StringComparison.OrdinalIgnoreCase))
+                        throw new Exception(saleUpdate.Message);
+
+                    SaleCreditCardVM card = new SaleCreditCardVM
+                    {
+                        SaleId = details.SaleId,
+                        CreditCardId = model.BankAccountId,
+                        CardTotal = collection,
+                        Remarks = "Collection Payment"
+                    };
+
+                    var cardInsert = await _saleCreditCardRepo.Insert(card, conn, transaction);
+
+                    if (!cardInsert.Status.Equals("Success", StringComparison.OrdinalIgnoreCase))
+                        throw new Exception(cardInsert.Message);
+
+                    lineNo++;
                 }
+
+                isSuccess = true;
+
+                if (isNewConnection && isSuccess)
+                {
+                    transaction.Commit();
+                }
+
+                return result;
             }
             catch (Exception ex)
             {
@@ -101,9 +121,11 @@ namespace ShampanPOS.Service
                 {
                     transaction.Rollback();
                 }
+
                 result.Status = "Fail";
-                result.Message = ex.Message.ToString();
+                result.Message = ex.Message;
                 result.ExMessage = ex.ToString();
+
                 return result;
             }
             finally
@@ -114,6 +136,108 @@ namespace ShampanPOS.Service
                 }
             }
         }
+        //public async Task<ResultVM> Insert(CollectionVM model)
+        //{
+        //    string CodeGroup = "Collection";
+        //    string CodeName = "Collection";
+
+        //    CollectionRepository _repo = new CollectionRepository();
+        //    _commonRepo = new CommonRepository();
+
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
+
+        //        transaction = conn.BeginTransaction();
+
+
+        //        string code = _commonRepo.CodeGenerationNo(CodeGroup, CodeName, conn, transaction);
+
+        //        if (!string.IsNullOrEmpty(code))
+        //        {
+        //            model.Code = code;
+
+        //            result = await _repo.Insert(model, conn, transaction);
+        //            model.Id = Convert.ToInt32(result.Id);
+
+        //            if (result.Status.ToLower() == "success")
+        //            {
+        //                int LineNo = 1;
+        //                foreach (var details in model.collectionDetailList)
+        //                {
+        //                    details.CollectionId = model.Id;
+        //                    details.CustomerId = model.CustomerId;
+
+
+        //                    decimal paid = details.PaidAmount ?? 0;
+        //                    decimal due = details.DueAmount ?? 0;
+        //                    decimal collection = details.CollectionAmount ?? 0;
+
+        //                    details.PaidAmount = paid + collection;
+        //                    details.DueAfter = due - collection;
+
+        //                    var resultDetail = await _repo.InsertDetails(details, conn, transaction);
+
+        //                    if (resultDetail.Status.ToLower() == "success")
+        //                    {
+        //                        var collectionPaid = await _repo.UpdateSale(details, conn, transaction);
+
+        //                        LineNo++;
+        //                    }
+        //                    else
+        //                    {
+        //                        throw new Exception(resultDetail.Message);
+        //                    }
+        //                }
+
+        //            }
+        //            else
+        //            {
+        //                throw new Exception(result.Message);
+        //            }
+
+        //            if (isNewConnection && result.Status == "Success")
+        //            {
+        //                transaction.Commit();
+        //            }
+        //            else
+        //            {
+        //                throw new Exception(result.Message);
+        //            }
+
+        //            return result;
+        //        }
+        //        else
+        //        {
+        //            throw new Exception("Code Generation Failed!");
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+        //        result.Status = "Fail";
+        //        result.Message = ex.Message.ToString();
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
 
         public async Task<ResultVM> Update(CollectionVM model)
         {
@@ -131,13 +255,7 @@ namespace ShampanPOS.Service
                 isNewConnection = true;
                 transaction = conn.BeginTransaction();
 
-                //#region Date Check
-                //if (Convert.ToDateTime(model.DeliveryDateTime) < Convert.ToDateTime(model.OrderDate))
-                //{
-                //    throw new Exception("Delivery Date cannot be smaller then Order Date!");
-                //}
-                //#endregion
-
+            
 
                 var record = _commonRepo.DetailsDelete("CollectionDetails", new[] { "CollectionId" }, new[] { model.Id.ToString() }, conn, transaction);
 
@@ -154,8 +272,15 @@ namespace ShampanPOS.Service
                     foreach (var details in model.collectionDetailList)
                     {
                         details.CollectionId = model.Id;
-                        //details.BranchId = model.BranchId;
-                        //details.Line = LineNo;
+                        details.CustomerId = model.CustomerId;
+
+                        // 🔥 Server Side Calculation
+                        decimal paid = details.PaidAmount ?? 0;
+                        decimal due = details.DueAmount ?? 0;
+                        decimal collection = details.CollectionAmount ?? 0;
+
+                        details.PaidAmount = paid + collection;
+                        details.DueAfter = due - collection;
 
                         var resultDetail = await _repo.InsertDetails(details, conn, transaction);
 

@@ -2849,6 +2849,68 @@ LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
 
 
 
+        public async Task<ResultVM> PurchaseModal(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+        {
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    throw new Exception("Database connection fail!");
+                }
+
+                string query = @"
+SELECT
+    ISNULL(M.Id, 0) AS Id,
+    ISNULL(M.Code, '') AS Code,
+    ISNULL(M.SupplierId, 0) AS SupplierId,
+    ISNULL(M.PurchaseOrderId, 0) AS PurchaseOrderId,
+    ISNULL(E.Code, '') AS PurchaseOrderCode,
+    ISNULL(S.Name, '') AS SupplierName,
+    ISNULL(M.Comments, '') AS Comments,
+    ISNULL(M.GrandTotal, 0) AS GrandTotal,
+	ISNULL(M.PaidAmount, 0) AS PaymentAmount,
+    ISNULL(M.GrandTotal,0) - ISNULL(M.PaidAmount,0) AS DueAmount
+FROM Purchases M
+LEFT JOIN Suppliers S ON M.SupplierId = S.Id
+LEFT JOIN PurchaseOrders E ON M.PurchaseOrderId = E.Id
+WHERE 1 = 1";
+
+                //sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                //objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new PurchaseDataVM
+                {
+                    Id = row.Field<int>("Id"),
+                    SupplierId = row.Field<int>("SupplierId"),
+                    PurchaseOrderId = row.Field<int>("PurchaseOrderId"),
+                    Code = row.Field<string>("Code"),
+                    PurchaseOrderCode = row.Field<string>("PurchaseOrderCode"),
+                    SupplierName = row.Field<string>("SupplierName"),
+                    GrandTotal = row.Field<decimal>("GrandTotal"),
+                    PaymentAmount = row.Field<decimal>("PaymentAmount"),
+                    DueAmount = row.Field<decimal>("DueAmount"),
+                    Comments = row.Field<string>("Comments")
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+        }
 
 
 

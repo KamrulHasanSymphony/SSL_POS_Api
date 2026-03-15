@@ -10,9 +10,11 @@ namespace ShampanPOS.ViewModel
     public class PaymentVM
     {
         public int Id { get; set; }
+        public int? PurchaseId { get; set; }
 
         [Display(Name = "Code")]
         public string? Code { get; set; }
+        public string? PurchaseCode { get; set; }
         public string? PaymentCode { get; set; }
 
         [Display(Name = "Supplier")]
@@ -71,6 +73,15 @@ namespace ShampanPOS.ViewModel
         public string? Status { get; set; }
         public decimal? GrandTotal { get; set; }
 
+        public decimal? PaidAmount { get; set; }
+
+        public decimal? DueAmount { get; set; }
+
+        public decimal? PaymentAmount { get; set; }
+
+        public decimal? PaymentAfter { get; set; }
+
+        public decimal? DueAfter { get; set; }
         public List<PaymentDetailVM> paymentDetailList { get; set; }
 
         public PaymentVM()

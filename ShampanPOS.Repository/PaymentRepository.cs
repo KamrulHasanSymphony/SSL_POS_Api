@@ -64,8 +64,10 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Reference", vm.Reference ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsCash", vm.IsCash);
-                    cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
-                    cmd.Parameters.AddWithValue("@IsActive", true);
+
+                    cmd.Parameters.AddWithValue("@IsArchive", 0);   // FIX
+                    cmd.Parameters.AddWithValue("@IsActive", false);
+
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
                     cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom ?? (object)DBNull.Value);
@@ -252,7 +254,45 @@ namespace ShampanPOS.Repository
 
 
 
+        public async Task<ResultVM> UpdatePurchase(PaymentDetailVM vm, SqlConnection conn, SqlTransaction transaction)
+        {
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", Id = vm.Id.ToString(), DataVM = vm };
 
+            try
+            {
+                string query = @"
+        UPDATE Purchases
+        SET PaidAmount = ISNULL(PaidAmount,0) + @PaymentAmount
+        WHERE Id = @PurchaseId";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
+                {
+                    cmd.Parameters.AddWithValue("@PurchaseId", vm.PurchaseId);
+                    cmd.Parameters.AddWithValue("@PaymentAmount", vm.PaymentAmount ?? 0);
+
+                    int rowsAffected = await cmd.ExecuteNonQueryAsync();
+
+                    if (rowsAffected > 0)
+                    {
+                        result.Status = "Success";
+                        result.Message = "Purchase updated successfully.";
+                    }
+                    else
+                    {
+                        throw new Exception("No rows were updated.");
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Status = "Fail";
+                result.Message = ex.Message;
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+        }
 
 
         // List Method
@@ -272,34 +312,48 @@ namespace ShampanPOS.Repository
                 }
 
                 string query = @"
-SELECT 
-    ISNULL(M.Id, 0) AS Id,
-    ISNULL(M.Code, '') AS Code,
-	ISNULL(M.BankAccountId, 0) AS BankAccountId,
-	ISNULL(e.AccountNo, 0) AS AccountNo,
-    ISNULL(M.SupplierId, 0) AS SupplierId,
-	ISNULL(M.TotalPaymentAmount, 0) AS TotalPaymentAmount,
-    ISNULL(FORMAT(M.TransactionDate, 'yyyy-MM-dd'), '1900-01-01') AS TransactionDate,
-    ISNULL(M.Comments, '') AS Comments,
-	ISNULL(M.Reference, '') AS Reference,
-    ISNULL(M.IsArchive, 0) AS IsArchive,
-    ISNULL(M.IsCash, 0) AS IsCash,   
-	ISNULL(M.IsActive, 0) AS IsActive, 
-    ISNULL(M.CreatedBy, '') AS CreatedBy,
-    ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS CreatedOn,
-    ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
-    ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
-    ISNULL(M.CreatedFrom, '') AS CreatedFrom,
-    ISNULL(M.LastUpdateFrom, '') AS LastUpdateFrom ,   
-    ISNULL(S.Name, '') AS SupplierName
 
-FROM 
-Payments M
-LEFT OUTER JOIN Suppliers S ON ISNULL(M.SupplierId,0) = S.Id
-LEFT OUTER JOIN BankAccounts e on M.BankAccountId= e.AccountNo
+
+SELECT 
+ISNULL(M.Id,0) AS Id,
+ISNULL(M.Code,'') AS Code,
+ISNULL(M.BankAccountId,0) AS BankAccountId,
+ISNULL(e.AccountNo,'') AS AccountNo,
+ISNULL(M.SupplierId,0) AS SupplierId,
+ISNULL(M.TotalPaymentAmount,0) AS TotalPaymentAmount,
+ISNULL(FORMAT(M.TransactionDate,'yyyy-MM-dd'),'1900-01-01') AS TransactionDate,
+ISNULL(M.Comments,'') AS Comments,
+ISNULL(M.Reference,'') AS Reference,
+ISNULL(M.IsArchive,0) AS IsArchive,
+ISNULL(M.IsCash,0) AS IsCash,
+ISNULL(M.IsActive,0) AS IsActive,
+ISNULL(M.CreatedBy,'') AS CreatedBy,
+ISNULL(FORMAT(M.CreatedOn,'yyyy-MM-dd HH:mm:ss'),'1900-01-01 00:00:00') AS CreatedOn,
+ISNULL(M.LastModifiedBy,'') AS LastModifiedBy,
+ISNULL(FORMAT(M.LastModifiedOn,'yyyy-MM-dd HH:mm:ss'),'1900-01-01 00:00:00') AS LastModifiedOn,
+ISNULL(M.CreatedFrom,'') AS CreatedFrom,
+ISNULL(M.LastUpdateFrom,'') AS LastUpdateFrom,
+ISNULL(S.Name,'') AS SupplierName,
+
+ISNULL(PD.PurchaseId,0) AS PurchaseId,
+ISNULL(P.Code,'') AS PurchaseCode
+
+FROM Payments M
+
+LEFT JOIN Suppliers S 
+ON M.SupplierId = S.Id
+
+LEFT JOIN BankAccounts e 
+ON M.BankAccountId = e.Id
+
+LEFT JOIN PaymentDetails PD 
+ON PD.PaymentId = M.Id
+
+LEFT JOIN Purchases P 
+ON PD.PurchaseId = P.Id
 
 WHERE 1 = 1
- ";
+                 ";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
                 {
@@ -328,12 +382,14 @@ WHERE 1 = 1
                     lst.Add(new PaymentVM
                     {
                         Id = row.Field<int>("Id"),
+                        PurchaseId = row.Field<int>("PurchaseId"),
                         Code = row.Field<string>("Code"),
                         TotalPaymentAmount = row.Field<decimal>("TotalPaymentAmount"),
                         BankAccountId = row.Field<int>("BankAccountId"),
                         SupplierId = row.Field<int>("SupplierId"),
                         SupplierName = row.Field<string>("SupplierName"),
                         AccountNo = row.Field<string>("AccountNo"),
+                        PurchaseCode = row.Field<string>("PurchaseCode"),
                         TransactionDate = row.Field<string>("TransactionDate"),
                         Comments = row.Field<string>("Comments"),
                         Reference = row.Field<string>("Reference"),
@@ -385,21 +441,23 @@ WHERE 1 = 1
                 }
 
                 string query = @"
-SELECT 
+                SELECT 
 
-ISNULL(D.Id, 0) AS Id,
-ISNULL(D.PaymentId, 0) AS PaymentId,
-ISNULL(D.SupplierId, 0) AS SupplierId,
-ISNULL(D.PurchaseId, 0) AS PurchaseId,
-ISNULL(D.Comments, 0) AS Comments,
-ISNULL(D.PurchaseAmount,0) AS PurchaseAmount,
-ISNULL(D.PaymentAmount,0) AS PaymentAmount
+                ISNULL(D.Id, 0) AS Id,
+                ISNULL(D.PaymentId, 0) AS PaymentId,
+                ISNULL(D.SupplierId, 0) AS SupplierId,
+                ISNULL(D.PurchaseId, 0) AS PurchaseId,
+                ISNULL(D.Comments, 0) AS Comments,
+                ISNULL(D.PurchaseAmount,0) AS PurchaseAmount,
+                ISNULL(D.PaymentAmount,0) AS PaymentAmount,
+                ISNULL(P.Code,0) AS PurchaseCode
 
 
-FROM 
-PaymentDetails D
+                FROM 
+                PaymentDetails D
+                LEFT OUTER JOIN Purchases P ON D.PurchaseId = P.Id
 
-WHERE 1 = 1 ";
+                WHERE 1 = 1 ";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
                 {

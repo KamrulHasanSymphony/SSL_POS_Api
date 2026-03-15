@@ -23,7 +23,7 @@ namespace ShampanPOS.ViewModel.CommonVMs
         public string? FromDate { get; set; }
         public string? ToDate { get; set; }
         public string? IsPost { get; set; }
-
+        public int SupplierId { get; set; }
         public int? MasterItemGroupId { get; set; }
         public string? Status { get; set; }
         public string? Type { get; set; }
