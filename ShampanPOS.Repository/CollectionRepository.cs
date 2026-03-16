@@ -276,7 +276,7 @@ SELECT
     ISNULL(M.Id, 0) AS Id,
     ISNULL(M.Code, '') AS Code,
 	ISNULL(M.BankAccountId, 0) AS BankAccountId,
-	ISNULL(e.AccountNo, 0) AS AccountNo,
+	ISNULL(e.AccountNo, '') AS AccountNo,
 	ISNULL(M.ChequeNo, '') AS ChequeNo,
     ISNULL(M.ChequeBankName, '') AS ChequeBankName,
     ISNULL(M.CustomerId, 0) AS CustomerId,
@@ -299,8 +299,7 @@ SELECT
 FROM 
 Collections M
 LEFT OUTER JOIN Customers S ON ISNULL(M.CustomerId,0) = S.Id
-LEFT OUTER JOIN BankAccounts e on M.BankAccountId= e.AccountNo
-
+LEFT OUTER JOIN BankAccounts e on M.BankAccountId = e.Id
 WHERE 1 = 1
 ";
 

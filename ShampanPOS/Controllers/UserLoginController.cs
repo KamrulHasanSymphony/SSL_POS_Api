@@ -18,6 +18,7 @@ namespace ShampanPOS.Controllers
     [ApiController]
     public class UserLoginController : ControllerBase
     {
+        UserInfoService _UserInfoService = new UserInfoService();
 
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
@@ -339,6 +340,27 @@ namespace ShampanPOS.Controllers
         }
 
 
+        [HttpPost("UserInfoInsert")]
+        public async Task<ResultVM> UserInfoInsert(UserInfoVM userinfo)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            UserInfoService _UserInfoService = new UserInfoService();
 
+            try
+            {
+                resultVM = await _UserInfoService.Insert(userinfo);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not created.",
+                    ExMessage = ex.Message,
+                    DataVM = userinfo
+                };
+            }
+        }
     }
 }
