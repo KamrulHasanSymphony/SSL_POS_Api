@@ -273,5 +273,32 @@ namespace ShampanPOS.Controllers
         }
 
 
+        [HttpPost("BranchInsert")]
+        public async Task<ResultVM> BranchInsert(BranchProfileVM branchProfile)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            _branchProfileService = new BranchProfileService();
+            //  BranchProfileService _branchProfileService = new BranchProfileService();
+
+            try
+            {
+                resultVM = await _branchProfileService.BranchInsert(branchProfile);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = ex.Message,
+                    ExMessage = ex.Message,
+                    DataVM = branchProfile
+                };
+            }
+        }
+
+
+
+
     }
 }

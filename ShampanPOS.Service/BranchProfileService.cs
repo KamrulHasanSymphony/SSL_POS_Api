@@ -574,6 +574,79 @@ namespace ShampanPOS.Service
         }
 
 
+        public async Task<ResultVM> BranchInsert(BranchProfileVM branchAdvance)
+        {
+            string CodeGroup = "BranchProfile";
+            string CodeName = "BranchProfile";
+            CommonRepository _commonRepo = new CommonRepository();
+            BranchProfileRepository _repo = new BranchProfileRepository();
+
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            bool isNewConnection = false;
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+            try
+            {
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+
+                transaction = conn.BeginTransaction();
+
+                #region Check Exist Data
+                string[] conditionField = { "Name" };
+                string[] conditionValue = { branchAdvance.Name.Trim() };
+
+                bool exist = _commonRepo.CheckExists("BranchProfiles", conditionField, conditionValue, conn, transaction);
+
+                if (exist)
+                {
+                    result.Message = "Data Already Exist!";
+                    throw new Exception("Data Already Exist!");
+                }
+                #endregion
+
+                string code = _commonRepo.CodeGenerationNo(CodeGroup, CodeName, conn, transaction);
+
+                if (!string.IsNullOrEmpty(code))
+                {
+                    branchAdvance.Code = code;
+
+                    result = await _repo.Insert(branchAdvance, conn, transaction);
+
+                    if (isNewConnection)
+                    {
+                        transaction.Commit();
+                    }
+
+                    return result;
+                }
+                else
+                {
+                    throw new Exception("Code Generation Failed!");
+                }
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection)
+                {
+                    transaction.Rollback();
+                }
+
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
+
     }
 
 

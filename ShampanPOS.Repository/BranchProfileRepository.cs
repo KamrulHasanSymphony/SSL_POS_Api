@@ -35,10 +35,10 @@ namespace ShampanPOS.Repository
 
                 string query = @"
                 INSERT INTO BranchProfiles 
-                (Code, DistributorCode, Name,BanglaName,  TelephoneNo, Email, VATRegistrationNo, BIN, TINNO, Comments, 
+                (Code, DistributorCode, Name,BanglaName,  TelephoneNo, Email, VATRegistrationNo, BIN, TINNO, Comments,UserId,CompanyId, 
                  IsArchive, IsActive, CreatedBy, CreatedOn,Address)
                 VALUES 
-                (@Code, @DistributorCode, @Name,@BanglaName,  @TelephoneNo, @Email, @VATRegistrationNo, @BIN, @TINNO, @Comments, 
+                (@Code, @DistributorCode, @Name,@BanglaName,  @TelephoneNo, @Email, @VATRegistrationNo, @BIN, @TINNO, @Comments, @UserId,@CompanyId,
                  @IsArchive, @IsActive, @CreatedBy, GETDATE(), @Address);
                 SELECT SCOPE_IDENTITY();";
 
@@ -55,6 +55,9 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@TINNO", vm.TINNO ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Address", vm.Address ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
+                    //cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
                     cmd.Parameters.AddWithValue("@IsActive", vm.IsActive);
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy);
@@ -942,6 +945,8 @@ AND EffectDate = (
 
             return dataTable;
         }
+
+
     }
 
 

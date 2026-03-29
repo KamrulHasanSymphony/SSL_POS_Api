@@ -33,12 +33,12 @@ namespace ShampanPOS.Repository
                 string query = @"
     INSERT INTO CompanyProfiles 
         (
-            Code, CompanyName, CompanyBanglaName, CompanyLegalName, Address, City, ZipCode, 
+            Code, CompanyName, CompanyBanglaName, CompanyLegalName, Address, City, ZipCode,UserId, 
             TelephoneNo, FaxNo, Email, ContactPerson, ContactPersonDesignation, ContactPersonTelephone, ContactPersonEmail, Comments, IsArchive, IsActive, CreatedBy, CreatedOn, CreatedFrom, BusinessNature, BIN, TIN, FYearStart, FYearEnd
         )
     VALUES 
         (
-            @Code, @CompanyName, @CompanyBanglaName, @CompanyLegalName, @Address, @City, @ZipCode,
+            @Code, @CompanyName, @CompanyBanglaName, @CompanyLegalName, @Address, @City, @ZipCode,@UserId,
             @TelephoneNo, @FaxNo, @Email, @ContactPerson, @ContactPersonDesignation, @ContactPersonTelephone, @ContactPersonEmail, @Comments, 
             @IsArchive, @IsActive, @CreatedBy, GETDATE(), @CreatedFrom, @BusinessNature, @BIN, @TIN, @FYearStart, @FYearEnd
         );
@@ -53,6 +53,7 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@Address", vm.Address ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@City", vm.City ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@ZipCode", vm.ZipCode ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@TelephoneNo", vm.TelephoneNo ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@FaxNo", vm.FaxNo ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Email", vm.Email ?? (object)DBNull.Value);
@@ -63,7 +64,7 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
                     cmd.Parameters.AddWithValue("@IsActive", vm.IsActive);
-                    cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy ?? "");
                     cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@BusinessNature", vm.BusinessNature ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@BIN", vm.BIN ?? (object)DBNull.Value);
@@ -135,6 +136,7 @@ SET
     Address = @Address,
     City = @City,
     ZipCode = @ZipCode,
+    UserId = @UserId,
     TelephoneNo = @TelephoneNo,
     FaxNo = @FaxNo,
     Email = @Email,
@@ -163,6 +165,7 @@ WHERE Id = @Id";
                     cmd.Parameters.AddWithValue("@Address", vm.Address ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@City", vm.City ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@ZipCode", vm.ZipCode ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@TelephoneNo", vm.TelephoneNo ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@FaxNo", vm.FaxNo ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Email", vm.Email ?? (object)DBNull.Value);
