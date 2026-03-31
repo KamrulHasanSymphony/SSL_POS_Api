@@ -4320,6 +4320,337 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
         }
 
 
+        public async Task<ResultVM> GetTopProductsLast3MonthsTotalSale(string[] conditionalFields, string[] conditionalValues, PeramModel vm, SqlConnection conn, SqlTransaction transaction)
+        {
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    throw new Exception("Database connection fail!");
+                }
+
+                string sql = @"
+        SELECT 
+            DATENAME(MONTH, s.InvoiceDateTime) + ' ' + CAST(YEAR(s.InvoiceDateTime) AS VARCHAR) AS MonthYear,
+            SUM(sd.LineTotal) AS TotalSaleValue
+        FROM 
+            SaleDetails sd
+        INNER JOIN 
+            Sales s ON s.Id = sd.SaleId
+        WHERE 
+            s.InvoiceDateTime >= DATEADD(MONTH, -3, GETDATE())  -- Get sales from the last 3 months
+            AND sd.LineTotal > 0
+        GROUP BY 
+            DATENAME(MONTH, s.InvoiceDateTime) + ' ' + CAST(YEAR(s.InvoiceDateTime) AS VARCHAR), 
+            YEAR(s.InvoiceDateTime), MONTH(s.InvoiceDateTime)
+        ORDER BY 
+            YEAR(s.InvoiceDateTime) DESC, MONTH(s.InvoiceDateTime) DESC
+        ";
+
+                SqlDataAdapter objComm = new SqlDataAdapter(sql, conn);
+                objComm.SelectCommand.Transaction = transaction;
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new SalesByMonthModelVM
+                {
+                    MonthYear = row["MonthYear"].ToString(),
+                    TotalSaleValue = row["TotalSaleValue"] != DBNull.Value ? Convert.ToDecimal(row["TotalSaleValue"]) : 0
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Status = "Fail";
+                result.Message = ex.Message;
+                result.ExMessage = ex.Message;
+                return result;
+            }
+        }
+
+
+
+        public async Task<ResultVM> GetTop10ProductsCurrentMonthQty(string[] conditionalFields,string[] conditionalValues,PeramModel vm,SqlConnection conn,SqlTransaction transaction)
+        {
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error" };
+
+            try
+            {
+                if (conn == null)
+                {
+                    throw new Exception("Database connection fail!");
+                }
+
+                int top = 10;
+                string branchId = "0";
+
+                if (conditionalValues != null && conditionalValues.Length > 0)
+                    branchId = conditionalValues[0] ?? "0";
+
+                if (conditionalValues != null && conditionalValues.Length > 1)
+                    int.TryParse(conditionalValues[1], out top);
+
+                string sql = @"
+        SELECT TOP (@Top)
+            ISNULL(p.Name, 'Product ' + CAST(sd.ProductId AS VARCHAR)) AS ProductName,
+            SUM(sd.Quantity) AS TotalQuantity
+        FROM SaleDetails sd
+        INNER JOIN Sales s ON s.Id = sd.SaleId
+        LEFT JOIN Products p ON p.Id = sd.ProductId
+        WHERE 
+            MONTH(s.InvoiceDateTime) = MONTH(GETDATE())
+            AND YEAR(s.InvoiceDateTime) = YEAR(GETDATE())
+            AND sd.Quantity > 0
+            AND (@BranchId = '0' OR s.BranchId = @BranchId)
+        GROUP BY p.Name, sd.ProductId
+        ORDER BY TotalQuantity DESC
+        ";
+
+                SqlDataAdapter objComm = new SqlDataAdapter(sql, conn);
+                objComm.SelectCommand.Transaction = transaction;
+
+                objComm.SelectCommand.Parameters.AddWithValue("@Top", top);
+                objComm.SelectCommand.Parameters.AddWithValue("@BranchId", branchId);
+
+                objComm.Fill(dataTable);
+
+                // ✅ Correct mapping
+                var modelList = dataTable.AsEnumerable().Select(row => new ProductSaleModelVM
+                {
+                    ProductName = row["ProductName"].ToString(),
+                    TotalQuantity = row["TotalQuantity"] != DBNull.Value
+                        ? Convert.ToDecimal(row["TotalQuantity"])
+                        : 0
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+
+                await Task.CompletedTask;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Status = "Fail";
+                result.Message = ex.Message;
+                result.ExMessage = ex.Message;
+                return result;
+            }
+        }
+
+
+
+
+
+        public async Task<ResultVM> GetLowSellingProductsCurrentMonthQty(string[] conditionalFields, string[] conditionalValues, PeramModel vm, SqlConnection conn, SqlTransaction transaction)
+        {
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error" };
+
+            try
+            {
+                if (conn == null)
+                {
+                    throw new Exception("Database connection fail!");
+                }
+
+                int top = 10;
+                string branchId = "0";
+
+                if (conditionalValues != null && conditionalValues.Length > 0)
+                    branchId = conditionalValues[0] ?? "0";
+
+                if (conditionalValues != null && conditionalValues.Length > 1)
+                    int.TryParse(conditionalValues[1], out top);
+
+                string sql = @"
+                SELECT TOP 10
+                    ISNULL(p.Name, 'Product ' + CAST(sd.ProductId AS VARCHAR)) AS ProductName,
+                    SUM(sd.Quantity) AS TotalQuantity
+                FROM SaleDetails sd
+                INNER JOIN Sales s ON s.Id = sd.SaleId
+                LEFT JOIN Products p ON p.Id = sd.ProductId
+                WHERE 
+                    MONTH(s.InvoiceDateTime) = MONTH(GETDATE())
+                    AND YEAR(s.InvoiceDateTime) = YEAR(GETDATE())
+                    AND sd.Quantity > 0
+                    AND (@BranchId = '0' OR s.BranchId = @BranchId)
+                GROUP BY p.Name, sd.ProductId
+                ORDER BY TotalQuantity ASC
+                        ";
+
+                SqlDataAdapter objComm = new SqlDataAdapter(sql, conn);
+                objComm.SelectCommand.Transaction = transaction;
+
+                objComm.SelectCommand.Parameters.AddWithValue("@Top", top);
+                objComm.SelectCommand.Parameters.AddWithValue("@BranchId", branchId);
+
+                objComm.Fill(dataTable);
+
+                // ✅ Correct mapping
+                var modelList = dataTable.AsEnumerable().Select(row => new ProductSaleModelVM
+                {
+                    ProductName = row["ProductName"].ToString(),
+                    TotalQuantity = row["TotalQuantity"] != DBNull.Value
+                        ? Convert.ToDecimal(row["TotalQuantity"])
+                        : 0
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+
+                await Task.CompletedTask;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Status = "Fail";
+                result.Message = ex.Message;
+                result.ExMessage = ex.Message;
+                return result;
+            }
+        }
+
+
+
+        public async Task<ResultVM> GetTotalPurchasesLast3Months(string[] conditionalFields, string[] conditionalValues, PeramModel vm, SqlConnection conn, SqlTransaction transaction)
+        {
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    throw new Exception("Database connection fail!");
+                }
+
+                // SQL query to fetch total purchases for the last 3 months filtered by CompanyId
+                string sql = @"SELECT 
+            DATENAME(MONTH, p.PurchaseDate) + ' ' + CAST(YEAR(p.PurchaseDate) AS VARCHAR) AS MonthYear,
+            SUM(p.GrandTotal) AS TotalPurchaseValue
+        FROM 
+            Purchases p
+        WHERE 
+            p.PurchaseDate >= DATEADD(MONTH, -3, GETDATE())  -- Get purchases from the last 3 months
+            AND p.CompanyId = @CompanyId  -- Filter by CompanyId
+        GROUP BY 
+            DATENAME(MONTH, p.PurchaseDate) + ' ' + CAST(YEAR(p.PurchaseDate) AS VARCHAR), 
+            YEAR(p.PurchaseDate), MONTH(p.PurchaseDate)
+        ORDER BY 
+            YEAR(p.PurchaseDate) DESC, MONTH(p.PurchaseDate) DESC
+        
+        ";
+
+                // Create and execute the SqlDataAdapter to fetch data from the database
+                SqlDataAdapter objComm = new SqlDataAdapter(sql, conn);
+                objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", conditionalValues[1]); // Use the CompanyId passed in conditionalValues
+
+                objComm.SelectCommand.Transaction = transaction;
+
+                // Fill the dataTable with the query result
+                objComm.Fill(dataTable);
+
+                // Map the result into a list of PurchaseByMonthModelVM
+                var modelList = dataTable.AsEnumerable().Select(row => new PurchaseByMonthModelVM
+                {
+                    MonthYear = row["MonthYear"].ToString(),
+                    TotalPurchaseValue = row["TotalPurchaseValue"] != DBNull.Value ? Convert.ToDecimal(row["TotalPurchaseValue"]) : 0,
+                    //CompanyId = Convert.ToInt32(row["CompanyId"])
+                }).ToList();
+
+                // Return the result
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                // Handle the error and return a failure result
+                result.Status = "Fail";
+                result.Message = "Data retrieval failed.";
+                result.ExMessage = ex.Message;
+                return result;
+            }
+        }
+
+
+
+
+
+        public async Task<ResultVM> GetSaleOrderStatusStats(string[] conditionalFields, string[] conditionalValues, PeramModel vm, SqlConnection conn, SqlTransaction transaction)
+        {
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    throw new Exception("Database connection fail!");
+                }
+
+                // SQL query to fetch total purchases for the last 3 months filtered by CompanyId
+                    string sql = @"        
+                    SELECT 
+                        COUNT(CASE WHEN sod.RemainQty <= 0 THEN so.Code END) AS Completed,
+                        COUNT(CASE WHEN sod.RemainQty > 0 THEN so.Code END) AS Pending
+                    FROM SaleOrderDetails sod
+                    JOIN SaleOrders so ON sod.SaleOrderId = so.Id
+                    WHERE so.CompanyId = 1
+        
+                ";
+
+                // Create and execute the SqlDataAdapter to fetch data from the database
+                SqlDataAdapter objComm = new SqlDataAdapter(sql, conn);
+                objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", conditionalValues[1]); // Use the CompanyId passed in conditionalValues
+
+                objComm.SelectCommand.Transaction = transaction;
+
+                // Fill the dataTable with the query result
+                objComm.Fill(dataTable);
+
+                // Map the result into a list of PurchaseByMonthModelVM
+                var modelList = dataTable.AsEnumerable().Select(row => new SaleOrderStatusModelVM
+                {
+                    //SaleOrderId = row["SaleOrderId"].ToString(),
+                    CompletedQty = row["Completed"] != DBNull.Value ? Convert.ToDecimal(row["Completed"]) : 0,
+                    PendingQty = row["Pending"] != DBNull.Value ? Convert.ToDecimal(row["Pending"]) : 0
+                }).ToList();
+
+
+                // Return the result
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                // Handle the error and return a failure result
+                result.Status = "Fail";
+                result.Message = "Data retrieval failed.";
+                result.ExMessage = ex.Message;
+                return result;
+            }
+        }
+
+
+
 
     }
 

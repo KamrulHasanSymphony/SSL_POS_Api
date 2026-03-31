@@ -1096,6 +1096,145 @@ namespace ShampanPOS.Controllers
         }
 
 
+        [HttpPost("GetTopProductsLast3MonthsTotalSale")]
+        public async Task<ResultVM> GetTopProductsLast3MonthsTotalSale(CommonVM Vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            try
+            {
+                CommonService _commonService = new CommonService();
+
+                resultVM = await _commonService.GetTopProductsLast3MonthsTotalSale(new[] { "CompanyId", "Top" }, new[] { Vm.CompanyId ?? "0", Vm.Value ?? "10" }, null);
+
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
+
+
+        [HttpPost("GetTop10ProductsCurrentMonthQty")]
+        public async Task<ResultVM> GetTop10ProductsCurrentMonthQty(CommonVM Vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            try
+            {
+                CommonService _commonService = new CommonService();
+
+                resultVM = await _commonService.GetTop10ProductsCurrentMonthQty(new[] { "CompanyId", "Top" }, new[] { Vm.CompanyId ?? "0", Vm.Value ?? "10" }, null);
+
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
+
+
+
+
+
+        [HttpPost("GetLowSellingProductsCurrentMonthQty")]
+        public async Task<ResultVM> GetLowSellingProductsCurrentMonthQty(CommonVM Vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            try
+            {
+                CommonService _commonService = new CommonService();
+
+                resultVM = await _commonService.GetLowSellingProductsCurrentMonthQty(new[] { "CompanyId", "Top" }, new[] { Vm.CompanyId ?? "0", Vm.Value ?? "10" }, null);
+
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
+
+
+
+        [HttpPost("GetTotalPurchasesLast3Months")]
+        public async Task<ResultVM> GetTotalPurchasesLast3Months(CommonVM Vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            try
+            {
+                // Initialize the common service to fetch purchase data
+                CommonService _commonService = new CommonService();
+
+                // Call the service to fetch total purchases for the last 3 months
+                resultVM = await _commonService.GetTotalPurchasesLast3Months(new[] { "Top", "CompanyId" },
+                    new[] { Vm.Value ?? "10", Vm.CompanyId ?? "0" }, null);
+
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
+
+
+
+        [HttpPost("GetSaleOrderStatusStats")]
+        public async Task<ResultVM> GetSaleOrderStatusStats(CommonVM Vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            try
+            {
+                // Initialize the common service to fetch purchase data
+                CommonService _commonService = new CommonService();
+
+                // Call the service to fetch total purchases for the last 3 months
+                resultVM = await _commonService.GetSaleOrderStatusStats(new[] { "Top", "CompanyId" },
+                    new[] { Vm.Value ?? "10", Vm.CompanyId ?? "0" }, null);
+
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
 
     }
 }
