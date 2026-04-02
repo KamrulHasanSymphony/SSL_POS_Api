@@ -76,7 +76,7 @@ namespace ShampanPOS.Service
                 if (!string.IsNullOrEmpty(code))
                 {
                     model.Code = code;
-                    model.TransactionType = "Purchase";
+                    //model.TransactionType = "Purchase";
 
                     result = await _repo.Insert(model, conn, transaction);
                     model.Id = Convert.ToInt32(result.Id);

@@ -38,13 +38,13 @@ namespace ShampanPOS.Repository
                 (
                     Code, BranchId, CompanyId,UserId, CustomerId, DeliveryAddress, OrderDate, 
                     DeliveryDate, Comments, 
-                    TransactionType,CreatedBy, CreatedOn
+                    TransactionType,CreatedBy, CreatedOn,CreatedFrom
                 )
                 VALUES 
                 (
                     @Code, @BranchId, @CompanyId, @UserId, @CustomerId, @DeliveryAddress, @OrderDate, 
                     @DeliveryDate, @Comments, 
-                    @TransactionType,@CreatedBy, @CreatedOn
+                    @TransactionType,@CreatedBy, @CreatedOn,@CreatedFrom
                 );
                 SELECT SCOPE_IDENTITY();";
 
@@ -62,6 +62,8 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@TransactionType", vm.TransactionType ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy ?? "ERP");
                     cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom ?? (object)DBNull.Value);
+
 
                     // ✅ Execute AFTER all parameters are declared
                     object newId = cmd.ExecuteScalar();
@@ -127,7 +129,7 @@ namespace ShampanPOS.Repository
                 SET 
                     BranchId = @BranchId,  CompanyId = @CompanyId, CustomerId = @CustomerId, DeliveryAddress = @DeliveryAddress, OrderDate = @OrderDate, 
                     DeliveryDate = @DeliveryDate, Comments = @Comments, TransactionType = @TransactionType, 
-                    LastModifiedBy = @LastModifiedBy, LastModifiedOn = GETDATE()
+                    LastModifiedBy = @LastModifiedBy,LastUpdateFrom = @LastUpdateFrom, LastModifiedOn = GETDATE()
 
                 WHERE Id = @Id";
 
@@ -143,7 +145,9 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@TransactionType", vm.TransactionType ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@LastModifiedBy", vm.LastModifiedBy ?? (object)DBNull.Value);
-                   
+                    cmd.Parameters.AddWithValue("@LastUpdateFrom", vm.LastUpdateFrom ?? (object)DBNull.Value);
+
+
                     int rowsAffected = cmd.ExecuteNonQuery();
 
                     if (rowsAffected > 0)

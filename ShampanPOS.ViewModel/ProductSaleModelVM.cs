@@ -11,5 +11,6 @@ namespace ShampanPOS.ViewModel
         public string ProductName { get; set; }
         public decimal TotalSaleValue { get; set; }
         public decimal TotalQuantity { get; set; }
+        public int CompanyId { get; set; }
     }
 }

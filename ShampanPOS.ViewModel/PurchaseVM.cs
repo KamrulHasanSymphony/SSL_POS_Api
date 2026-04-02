@@ -113,6 +113,7 @@ namespace ShampanPOS.ViewModel
         public int? CompanyId { get; set; }
         public string? CompanyName { get; set; }
         public string? CompanyAddress { get; set; }
+        public bool IsManualPurchase { get; set; }
 
         public PeramModel PeramModel { get; set; }
         public List<PurchaseDetailVM> purchaseDetailList { get; set; }

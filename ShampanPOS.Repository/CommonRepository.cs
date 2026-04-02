@@ -2,6 +2,7 @@
 using ShampanPOS.ViewModel.CommonVMs;
 using ShampanPOS.ViewModel.Utility;
 using System;
+using System.ComponentModel.Design;
 using System.Data;
 using System.Data.SqlClient;
 using System.Text.RegularExpressions;
@@ -4391,11 +4392,13 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
                 }
 
                 int top = 10;
-                string branchId = "0";
+                string companyId = "0";
 
+                // ✅ FIX: Get CompanyId properly
                 if (conditionalValues != null && conditionalValues.Length > 0)
-                    branchId = conditionalValues[0] ?? "0";
+                    companyId = conditionalValues[0] ?? "0";
 
+                // ✅ FIX: Get Top value
                 if (conditionalValues != null && conditionalValues.Length > 1)
                     int.TryParse(conditionalValues[1], out top);
 
@@ -4407,10 +4410,10 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
         INNER JOIN Sales s ON s.Id = sd.SaleId
         LEFT JOIN Products p ON p.Id = sd.ProductId
         WHERE 
-            MONTH(s.InvoiceDateTime) = MONTH(GETDATE())
-            AND YEAR(s.InvoiceDateTime) = YEAR(GETDATE())
+            MONTH(s.InvoiceDateTime) = MONTH(DATEADD(MONTH, -1, GETDATE()))
+            AND YEAR(s.InvoiceDateTime) = YEAR(DATEADD(MONTH, -1, GETDATE()))
             AND sd.Quantity > 0
-            AND (@BranchId = '0' OR s.BranchId = @BranchId)
+            AND (@CompanyId = '0' OR s.CompanyId = @CompanyId)
         GROUP BY p.Name, sd.ProductId
         ORDER BY TotalQuantity DESC
         ";
@@ -4419,11 +4422,10 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
                 objComm.SelectCommand.Transaction = transaction;
 
                 objComm.SelectCommand.Parameters.AddWithValue("@Top", top);
-                objComm.SelectCommand.Parameters.AddWithValue("@BranchId", branchId);
+                objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", companyId);
 
                 objComm.Fill(dataTable);
 
-                // ✅ Correct mapping
                 var modelList = dataTable.AsEnumerable().Select(row => new ProductSaleModelVM
                 {
                     ProductName = row["ProductName"].ToString(),
@@ -4436,8 +4438,7 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
                 result.Message = "Data retrieved successfully.";
                 result.DataVM = modelList;
 
-                await Task.CompletedTask;
-                return result;
+                return await Task.FromResult(result);
             }
             catch (Exception ex)
             {
@@ -4451,8 +4452,7 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
 
 
 
-
-        public async Task<ResultVM> GetLowSellingProductsCurrentMonthQty(string[] conditionalFields, string[] conditionalValues, PeramModel vm, SqlConnection conn, SqlTransaction transaction)
+        public async Task<ResultVM> GetLowSellingProductsCurrentMonthQty(string[] conditionalFields,string[] conditionalValues,PeramModel vm,SqlConnection conn,SqlTransaction transaction)
         {
             DataTable dataTable = new DataTable();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error" };
@@ -4465,39 +4465,40 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
                 }
 
                 int top = 10;
-                string branchId = "0";
+                string companyId = "0";
 
+                // ✅ Get CompanyId
                 if (conditionalValues != null && conditionalValues.Length > 0)
-                    branchId = conditionalValues[0] ?? "0";
+                    companyId = conditionalValues[0] ?? "0";
 
+                // ✅ Get Top value
                 if (conditionalValues != null && conditionalValues.Length > 1)
                     int.TryParse(conditionalValues[1], out top);
 
                 string sql = @"
-                SELECT TOP 10
-                    ISNULL(p.Name, 'Product ' + CAST(sd.ProductId AS VARCHAR)) AS ProductName,
-                    SUM(sd.Quantity) AS TotalQuantity
-                FROM SaleDetails sd
-                INNER JOIN Sales s ON s.Id = sd.SaleId
-                LEFT JOIN Products p ON p.Id = sd.ProductId
-                WHERE 
-                    MONTH(s.InvoiceDateTime) = MONTH(GETDATE())
-                    AND YEAR(s.InvoiceDateTime) = YEAR(GETDATE())
-                    AND sd.Quantity > 0
-                    AND (@BranchId = '0' OR s.BranchId = @BranchId)
-                GROUP BY p.Name, sd.ProductId
-                ORDER BY TotalQuantity ASC
-                        ";
+        SELECT TOP (@Top)
+            ISNULL(p.Name, 'Product ' + CAST(sd.ProductId AS VARCHAR)) AS ProductName,
+            SUM(sd.Quantity) AS TotalQuantity
+        FROM SaleDetails sd
+        INNER JOIN Sales s ON s.Id = sd.SaleId
+        LEFT JOIN Products p ON p.Id = sd.ProductId
+        WHERE 
+            MONTH(s.InvoiceDateTime) = MONTH(DATEADD(MONTH, -1, GETDATE()))  -- ✅ Last month
+            AND YEAR(s.InvoiceDateTime) = YEAR(DATEADD(MONTH, -1, GETDATE())) -- ✅ Year safe
+            AND sd.Quantity > 0
+            AND (@CompanyId = '0' OR s.CompanyId = @CompanyId)  -- ✅ Company filter
+        GROUP BY p.Name, sd.ProductId
+        ORDER BY TotalQuantity ASC  -- ✅ Low selling
+        ";
 
                 SqlDataAdapter objComm = new SqlDataAdapter(sql, conn);
                 objComm.SelectCommand.Transaction = transaction;
 
                 objComm.SelectCommand.Parameters.AddWithValue("@Top", top);
-                objComm.SelectCommand.Parameters.AddWithValue("@BranchId", branchId);
+                objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", companyId);
 
                 objComm.Fill(dataTable);
 
-                // ✅ Correct mapping
                 var modelList = dataTable.AsEnumerable().Select(row => new ProductSaleModelVM
                 {
                     ProductName = row["ProductName"].ToString(),
@@ -4510,8 +4511,7 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
                 result.Message = "Data retrieved successfully.";
                 result.DataVM = modelList;
 
-                await Task.CompletedTask;
-                return result;
+                return await Task.FromResult(result);
             }
             catch (Exception ex)
             {

@@ -195,7 +195,6 @@ namespace ShampanPOS.Repository
             IsActive = @IsActive,
             LastModifiedBy = @LastModifiedBy,
             LastModifiedOn = GETDATE(),
-            CreatedFrom = @CreatedFrom,
             LastUpdateFrom = @LastUpdateFrom
         WHERE Id = @Id";  // Make sure @Id is in the WHERE clause to specify which record to update
 
@@ -213,7 +212,6 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
                     cmd.Parameters.AddWithValue("@IsActive", vm.IsActive);
                     cmd.Parameters.AddWithValue("@LastModifiedBy", vm.LastModifiedBy ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom ?? "Unknown"); // Set a default value if CreatedFrom is null
                     cmd.Parameters.AddWithValue("@LastUpdateFrom", vm.LastUpdateFrom ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Id", vm.Id); // This is crucial for updating the correct record
 

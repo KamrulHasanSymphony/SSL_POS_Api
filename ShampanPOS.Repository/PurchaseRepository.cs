@@ -122,7 +122,7 @@ namespace ShampanPOS.Repository
         }
 
 
-        // InsertDetails Method
+        // InsertDetails Method 
         public async Task<ResultVM> InsertDetails(PurchaseDetailVM details, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
