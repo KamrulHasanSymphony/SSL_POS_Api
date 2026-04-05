@@ -80,13 +80,6 @@ namespace ShampanPOS.Service
                 result.ExMessage = ex.ToString();
                 return result;
             }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
         }
 
         public async Task<ResultVM> Update(BankInformationVM bankinfo)
