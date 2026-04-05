@@ -70,7 +70,7 @@ namespace ShampanPOS.ViewModel
         public string? ProductGroupName { get; set; }
         public string? UOMName { get; set; }
         public string? ImagePath { get; set; }
-     
+        public int? BranchId { get; set; }
         public List<BranchProfileVM> BranchProfileList { get; set; }
         public PeramModel PeramModel { get; set; }
 

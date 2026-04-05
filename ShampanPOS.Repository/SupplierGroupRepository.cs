@@ -1,4 +1,4 @@
-﻿using ShampanPOS.ViewModel;
+﻿ using ShampanPOS.ViewModel;
 using System.Data;
 using System.Data.SqlClient;
 using System.Text.Json;
@@ -46,11 +46,13 @@ INSERT INTO SupplierGroups
 ,UserId
 ,Description
 ,CompanyId
+,BranchId
 ,Comments
 ,IsArchive
 ,IsActive
 ,CreatedBy
 ,CreatedOn
+,CreatedFrom
 
 )
 VALUES 
@@ -60,11 +62,13 @@ VALUES
 ,@UserId
 ,@Description
 ,@CompanyId
+,@BranchId
 ,@Comments
 ,@IsArchive
 ,@IsActive
 ,@CreatedBy
 ,@CreatedOn
+,@CreatedFrom
 
 );
 SELECT SCOPE_IDENTITY();";
@@ -76,11 +80,13 @@ SELECT SCOPE_IDENTITY();";
                     cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Description", vm.Description ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
                     cmd.Parameters.AddWithValue("@IsActive", true);
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now.ToString());
+                    cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom ?? (object)DBNull.Value);
 
                     vm.Id = Convert.ToInt32(cmd.ExecuteScalar());
 
@@ -145,10 +151,13 @@ SELECT SCOPE_IDENTITY();";
  SET 
  Name=@Name
 ,Description=@Description
+,BranchId=@BranchId
+,CompanyId=@CompanyId
 ,Comments=@Comments
 ,IsArchive=@IsArchive
 ,IsActive=@IsActive
 ,LastModifiedBy=@LastModifiedBy
+,LastUpdateFrom=@LastUpdateFrom
 ,LastModifiedOn=GETDATE()
  WHERE Id = @Id";
 
@@ -158,10 +167,13 @@ SELECT SCOPE_IDENTITY();";
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Name", vm.Name ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Description", vm.Description ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
                     cmd.Parameters.AddWithValue("@IsActive", vm.IsActive);
                     cmd.Parameters.AddWithValue("@LastModifiedBy", vm.LastModifiedBy ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@LastUpdateFrom", vm.LastUpdateFrom ?? (object)DBNull.Value);
 
                     int rowsAffected = cmd.ExecuteNonQuery();
                     if (rowsAffected > 0)

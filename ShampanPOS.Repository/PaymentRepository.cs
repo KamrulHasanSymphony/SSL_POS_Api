@@ -42,12 +42,12 @@ namespace ShampanPOS.Repository
                 string query = @"
             INSERT INTO Payments
             (
-                Code, TransactionDate,UserId, SupplierId, BankAccountId, IsCash, TotalPaymentAmount, Reference,
+                Code, TransactionDate,UserId,BranchId,CompanyId, SupplierId, BankAccountId, IsCash, TotalPaymentAmount, Reference,
                 Comments, IsArchive, IsActive, CreatedBy, CreatedOn, CreatedFrom
             )
             VALUES 
             (
-                @Code, @TransactionDate,@UserId, @SupplierId, @BankAccountId, @IsCash, @TotalPaymentAmount, @Reference, 
+                @Code, @TransactionDate,@UserId,@BranchId,@CompanyId, @SupplierId, @BankAccountId, @IsCash, @TotalPaymentAmount, @Reference, 
                 @Comments, @IsArchive, @IsActive, @CreatedBy, @CreatedOn, @CreatedFrom
             );
             SELECT SCOPE_IDENTITY();";
@@ -57,6 +57,8 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@BankAccountId", vm.BankAccountId);
                     cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
                     cmd.Parameters.AddWithValue("@SupplierId", vm.SupplierId);
                     cmd.Parameters.AddWithValue("@TransactionDate", vm.TransactionDate);
                     cmd.Parameters.AddWithValue("@TotalPaymentAmount", vm.TotalPaymentAmount);
@@ -184,6 +186,8 @@ namespace ShampanPOS.Repository
         SET 
             SupplierId = @SupplierId, 
             TransactionDate = @TransactionDate, 
+            BranchId = @BranchId,
+            CompanyId = @CompanyId,
             BankAccountId = @BankAccountId, 
             IsCash = @IsCash, 
             TotalPaymentAmount = @TotalPaymentAmount, 
@@ -201,6 +205,8 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@BankAccountId", vm.BankAccountId);
                     cmd.Parameters.AddWithValue("@SupplierId", vm.SupplierId);
                     cmd.Parameters.AddWithValue("@TransactionDate", vm.TransactionDate);
+                    cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
                     cmd.Parameters.AddWithValue("@TotalPaymentAmount", vm.TotalPaymentAmount);
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Reference", vm.Reference ?? (object)DBNull.Value);

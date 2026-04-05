@@ -76,6 +76,7 @@ namespace ShampanPOS.ViewModel
         public string? ProductGroupDescription { get; set; }
         public string? ImagePath { get; set; }
         public string? ByGroup { get; set; }
+        public int? BranchId { get; set; }
         public PeramModel PeramModel { get; set; }
 
         public List<MasterItemVM> MasterItemList { get; set; }

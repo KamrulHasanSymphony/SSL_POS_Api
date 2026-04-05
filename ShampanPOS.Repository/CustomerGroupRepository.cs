@@ -34,11 +34,11 @@ namespace ShampanPOS.Repository
                 string query = @"
 INSERT INTO CustomerGroups 
 (
- Code, Name, Description, Comments, IsArchive, IsActive, CreatedBy, CreatedOn
+ Code, Name,CompanyId,BranchId, Description, Comments, IsArchive, IsActive, CreatedBy, CreatedOn,CreatedFrom
 )
 VALUES 
 (
- @Code, @Name, @Description, @Comments, @IsArchive, @IsActive, @CreatedBy, @CreatedOn
+ @Code, @Name,@CompanyId,@BranchId, @Description, @Comments, @IsArchive, @IsActive, @CreatedBy, @CreatedOn,@CreatedFrom
 );
 SELECT SCOPE_IDENTITY();";
 
@@ -46,12 +46,15 @@ SELECT SCOPE_IDENTITY();";
                 {
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Name", vm.Name ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
+                    cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
                     cmd.Parameters.AddWithValue("@Description", vm.Description ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
                     cmd.Parameters.AddWithValue("@IsActive", vm.IsActive);
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy);
                     cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom ?? (object)DBNull.Value);
 
                     vm.Id = Convert.ToInt32(cmd.ExecuteScalar());
 
@@ -114,10 +117,13 @@ UPDATE CustomerGroups
 SET 
     Name=@Name, 
     Description=@Description, 
+    BranchId=@BranchId, 
+    CompanyId=@CompanyId, 
     Comments=@Comments, 
     IsArchive=@IsArchive, 
     IsActive=@IsActive, 
-    LastModifiedBy=@LastModifiedBy, 
+    LastModifiedBy=@LastModifiedBy,
+    LastUpdateFrom=@LastUpdateFrom,
     LastModifiedOn=GETDATE()
 WHERE Id = @Id";
 
@@ -126,10 +132,14 @@ WHERE Id = @Id";
                     cmd.Parameters.AddWithValue("@Id", vm.Id);
                     cmd.Parameters.AddWithValue("@Name", vm.Name ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Description", vm.Description ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
+                    cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
                     cmd.Parameters.AddWithValue("@IsActive", vm.IsActive);
                     cmd.Parameters.AddWithValue("@LastModifiedBy", vm.LastModifiedBy ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@LastUpdateFrom", vm.LastUpdateFrom ?? (object)DBNull.Value);
+
 
                     int rowsAffected = cmd.ExecuteNonQuery();
                     if (rowsAffected > 0)

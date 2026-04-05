@@ -38,15 +38,15 @@ namespace ShampanPOS.Repository
                 string query = @"
 INSERT INTO Customers
 (
-    Code, Name, CustomerGroupId,CompanyId, BanglaName, Address, BanglaAddress, 
+    Code, Name, CustomerGroupId,CompanyId,BranchId, BanglaName, Address, BanglaAddress, 
      TelephoneNo, FaxNo, Email, TINNo, BINNo, NIDNo, 
-    Comments, IsArchive, IsActive, CreatedBy, CreatedOn,ImagePath
+    Comments, IsArchive, IsActive,CreatedFrom, CreatedBy, CreatedOn,ImagePath
 )
 VALUES
 (
-    @Code, @Name, @CustomerGroupId,@CompanyId, @BanglaName, @Address, @BanglaAddress, 
+    @Code, @Name, @CustomerGroupId,@CompanyId,@BranchId, @BanglaName, @Address, @BanglaAddress, 
      @TelephoneNo, @FaxNo, @Email, @TINNo, @BINNo, @NIDNo,
-    @Comments, @IsArchive, @IsActive, @CreatedBy, @CreatedOn, @ImagePath
+    @Comments, @IsArchive, @IsActive,@CreatedFrom, @CreatedBy, @CreatedOn, @ImagePath
 );
 SELECT SCOPE_IDENTITY();";
 
@@ -57,7 +57,7 @@ SELECT SCOPE_IDENTITY();";
                     
                     cmd.Parameters.AddWithValue("@CustomerGroupId", vm.CustomerGroupId);
                     cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
-                    
+                    cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
                     cmd.Parameters.AddWithValue("@BanglaName", vm.BanglaName ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Address", vm.Address ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@BanglaAddress", vm.BanglaAddress ?? (object)DBNull.Value);
@@ -71,6 +71,7 @@ SELECT SCOPE_IDENTITY();";
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
                     cmd.Parameters.AddWithValue("@IsActive", true);
+                    cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy);
                     cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
                     cmd.Parameters.AddWithValue("@ImagePath", string.IsNullOrEmpty(vm.ImagePath) ? (object)DBNull.Value : vm.ImagePath);
@@ -134,6 +135,8 @@ UPDATE Customers
 SET 
     Code = @Code,
     Name = @Name,
+    BranchId = @BranchId,
+    CompanyId = @CompanyId,
     CustomerGroupId = @CustomerGroupId,
     BanglaName = @BanglaName,
     Address = @Address,
@@ -163,6 +166,8 @@ WHERE Id = @Id";
                     cmd.Parameters.AddWithValue("@Id", vm.Id);
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Name", vm.Name ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
                     cmd.Parameters.AddWithValue("@CustomerGroupId", vm.CustomerGroupId);
                     cmd.Parameters.AddWithValue("@BanglaName", vm.BanglaName ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Address", vm.Address ?? (object)DBNull.Value);

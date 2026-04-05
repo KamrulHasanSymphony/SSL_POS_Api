@@ -36,12 +36,12 @@ namespace ShampanPOS.Repository
                 string query = @"
 INSERT INTO Suppliers 
 (
- Code, Name,CompanyId,UserId, SupplierGroupId, BanglaName, Address, City, TelephoneNo, Email, 
+ Code, Name,BranchId,CompanyId,UserId, SupplierGroupId, BanglaName, Address, City, TelephoneNo, Email, 
  ContactPerson, Comments, IsArchive, IsActive, CreatedBy, CreatedOn,CreatedFrom,ImagePath
 )
 VALUES 
 (
- @Code, @Name,@CompanyId,@UserId, @SupplierGroupId, @BanglaName, @Address, @City, @TelephoneNo, 
+ @Code, @Name,@BranchId,@CompanyId,@UserId, @SupplierGroupId, @BanglaName, @Address, @City, @TelephoneNo, 
  @Email, @ContactPerson, @Comments, @IsArchive, @IsActive, @CreatedBy, GETDATE(),@CreatedFrom,@ImagePath
 );
 SELECT SCOPE_IDENTITY();";
@@ -50,6 +50,7 @@ SELECT SCOPE_IDENTITY();";
                 {
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Name", vm.Name ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
                     cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
                     //cmd.Parameters.AddWithValue("@UserId", vm.UserId);
@@ -125,10 +126,11 @@ SELECT SCOPE_IDENTITY();";
                 string query = @"
 UPDATE Suppliers 
 SET 
-    Name = @Name, SupplierGroupId = @SupplierGroupId, BanglaName = @BanglaName, 
+    Name = @Name,BranchId = @BranchId,CompanyId = @CompanyId, SupplierGroupId = @SupplierGroupId, BanglaName = @BanglaName, 
     Address = @Address, City = @City, TelephoneNo = @TelephoneNo, Email = @Email, 
     ContactPerson = @ContactPerson, Comments = @Comments, IsArchive = @IsArchive, 
-    IsActive = @IsActive, LastModifiedBy = @LastModifiedBy, LastModifiedOn = GETDATE(),ImagePath = @ImagePath
+    IsActive = @IsActive, LastModifiedBy = @LastModifiedBy, LastModifiedOn = GETDATE(),LastUpdateFrom=@LastUpdateFrom,
+ImagePath = @ImagePath
 
 WHERE Id = @Id";
 
@@ -136,6 +138,9 @@ WHERE Id = @Id";
                 {
                     cmd.Parameters.AddWithValue("@Id", vm.Id);
                     cmd.Parameters.AddWithValue("@Name", vm.Name ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
+                    //cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@SupplierGroupId", vm.SupplierGroupId);
                     cmd.Parameters.AddWithValue("@BanglaName", vm.BanglaName ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Address", vm.Address ?? (object)DBNull.Value);
@@ -147,6 +152,7 @@ WHERE Id = @Id";
                     cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
                     cmd.Parameters.AddWithValue("@IsActive", vm.IsActive);
                     cmd.Parameters.AddWithValue("@LastModifiedBy", vm.LastModifiedBy ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@LastUpdateFrom", vm.LastUpdateFrom ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@ImagePath", string.IsNullOrEmpty(vm.ImagePath) ? (object)DBNull.Value : vm.ImagePath);
 
                     int rowsAffected = cmd.ExecuteNonQuery();

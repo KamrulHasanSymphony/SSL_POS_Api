@@ -35,6 +35,7 @@ INSERT INTO ProductGroups
 (
 Code,
 Name,
+BranchId,
 CompanyId,
 UserId,
 Description,
@@ -49,6 +50,7 @@ VALUES
 (
  @Code,
 @Name,
+@BranchId,
 @CompanyId,
 @UserId,
 @Description,
@@ -65,6 +67,7 @@ VALUES
                 {
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Name", vm.Name ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
                     cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Description", vm.Description ?? (object)DBNull.Value);
@@ -134,6 +137,8 @@ VALUES
  UPDATE ProductGroups 
  SET 
  Name=@Name
+,BranchId = @BranchId
+,CompanyId = @CompanyId
 ,Description=@Description
 ,Comments=@Comments
 ,IsArchive=@IsArchive
@@ -148,6 +153,8 @@ VALUES
                     cmd.Parameters.AddWithValue("@Id", vm.Id);
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Name", vm.Name ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Description", vm.Description ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);

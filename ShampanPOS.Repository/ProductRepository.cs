@@ -39,12 +39,12 @@ namespace ShampanPOS.Repository
                 string query = @"
         INSERT INTO Products
         (
-            Code, Name,CompanyId,UserId, ProductGroupId, BanglaName, Description, UOMId, HSCodeNo,VATRate,SDRate,PurchasePrice,SalePrice, 
+            Code, Name,BranchId,CompanyId,UserId, ProductGroupId, BanglaName, Description, UOMId, HSCodeNo,VATRate,SDRate,PurchasePrice,SalePrice, 
             IsArchive, IsActive, CreatedBy,CreatedFrom, CreatedOn,ImagePath
         )
         VALUES
         (
-            @Code, @Name,@CompanyId,@UserId, @ProductGroupId, @BanglaName, @Description, @UOMId, @HSCodeNo,@VATRate,@SDRate,@PurchasePrice,@SalePrice,
+            @Code, @Name,@BranchId,@CompanyId,@UserId, @ProductGroupId, @BanglaName, @Description, @UOMId, @HSCodeNo,@VATRate,@SDRate,@PurchasePrice,@SalePrice,
             @IsArchive, @IsActive, @CreatedBy, @CreatedFrom,@CreatedOn,@ImagePath
         );
         SELECT SCOPE_IDENTITY();";
@@ -53,6 +53,8 @@ namespace ShampanPOS.Repository
                 {
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Name", vm.Name ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
+                    //cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
                     cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@ProductGroupId", vm.ProductGroupId);
@@ -182,7 +184,7 @@ namespace ShampanPOS.Repository
                 string query = @"
         UPDATE Products
         SET
-            Code = @Code, Name = @Name, ProductGroupId = @ProductGroupId, BanglaName = @BanglaName, VATRate= @VATRate,SDRate= @SDRate,PurchasePrice= @PurchasePrice,SalePrice= @SalePrice,
+            Code = @Code, Name = @Name,BranchId = @BranchId,CompanyId = @CompanyId, ProductGroupId = @ProductGroupId, BanglaName = @BanglaName, VATRate= @VATRate,SDRate= @SDRate,PurchasePrice=@PurchasePrice,SalePrice= @SalePrice,
             Description = @Description, UOMId = @UOMId, HSCodeNo = @HSCodeNo,
             IsArchive = @IsArchive, IsActive = @IsActive, LastModifiedBy = @LastModifiedBy, LastUpdateFrom=@LastUpdateFrom,
             LastModifiedOn = GETDATE(),ImagePath = @ImagePath
@@ -193,6 +195,9 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@Id", vm.Id);
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Name", vm.Name ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
+                    //cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@ProductGroupId", vm.ProductGroupId);
                     cmd.Parameters.AddWithValue("@BanglaName", vm.BanglaName ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Description", vm.Description ?? (object)DBNull.Value);

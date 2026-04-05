@@ -22,6 +22,7 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Description")]
         public string? Description { get; set; }
         public int? CompanyId { get; set; }
+        public int? BranchId { get; set; }
 
         [Display(Name = "Comments")]
         public string? Comments { get; set; }
