@@ -39,12 +39,12 @@ namespace ShampanPOS.Repository
 INSERT INTO Withdrawals
 (
      Code, TransactionDate,Reference, FromBankAccountId, ChequeNo,ChequeBankName, ChequeDate,ToBankAccountId,IsCash,TotalDepositAmount,
-    Comments, IsArchive, IsActive, CreatedBy, CreatedOn
+    Comments, IsArchive, IsActive, CreatedBy, CreatedOn, BranchId
 )
 VALUES
 (
     @Code, @TransactionDate, @Reference,@FromBankAccountId, @ChequeNo,@ChequeBankName, @ChequeDate,@ToBankAccountId,@IsCash, @TotalDepositAmount,@Comments,
-     @IsArchive, @IsActive, @CreatedBy, GETDATE() 
+     @IsArchive, @IsActive, @CreatedBy, GETDATE(),@BranchId 
 );
 SELECT SCOPE_IDENTITY();";
 
@@ -64,6 +64,7 @@ SELECT SCOPE_IDENTITY();";
                     cmd.Parameters.AddWithValue("@IsActive", vm.IsActive);
                     cmd.Parameters.AddWithValue("@IsCash", vm.IsCash);
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy);
+                    cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
 
                     vm.Id = Convert.ToInt32(cmd.ExecuteScalar());
 
@@ -130,7 +131,7 @@ SET
     FromBankAccountId = @FromBankAccountId,
     ToBankAccountId = @ToBankAccountId,
     ChequeBankName = @ChequeBankName,
-    TotalDepositAmount = @TotalDepositAmount,
+    TotalDepositAmount = @TotalDepositAmount,bc
     Comments = @Comments,   
     Reference = @Reference,   
     IsArchive = @IsArchive,
@@ -138,7 +139,8 @@ SET
     LastModifiedBy = @LastModifiedBy,
     LastModifiedOn = GETDATE(),
     CreatedFrom = @CreatedFrom,
-    LastUpdateFrom = @LastUpdateFrom
+    LastUpdateFrom = @LastUpdateFrom,
+    BranchId = @BranchId
 
 WHERE Id = @Id";
 
@@ -163,6 +165,7 @@ WHERE Id = @Id";
                     cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom ?? "Unknown");
                     cmd.Parameters.AddWithValue("@LastUpdateFrom", vm.LastUpdateFrom ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Id", vm.Id);
+                    cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
 
                     int rowsAffected = cmd.ExecuteNonQuery();
 

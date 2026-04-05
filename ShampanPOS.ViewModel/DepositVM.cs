@@ -75,6 +75,7 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Last Update From")]
         public string? LastUpdateFrom { get; set; }
         public string? Status { get; set; }
+        public int? BranchId { get; set; }
 
     }
 }

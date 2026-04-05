@@ -39,14 +39,14 @@ namespace ShampanPOS.Repository
 INSERT INTO BankInformations
 (
     Code, Name, UserId, BanglaName, Address, BanglaAddress, 
-     TelephoneNo, FaxNo, Email,
-    Comments, IsArchive, IsActive, CreatedBy, CreatedOn
+     TelephoneNo, FaxNo, Email,BranchId,
+    Comments, IsArchive, IsActive,CreatedFrom, CreatedBy, CreatedOn
 )
 VALUES
 (
     @Code, @Name,@UserId, @BanglaName, @Address, @BanglaAddress, 
-     @TelephoneNo, @FaxNo, @Email,
-    @Comments, @IsArchive, @IsActive, @CreatedBy, @CreatedOn 
+     @TelephoneNo, @FaxNo, @Email,@BranchId,
+    @Comments, @IsArchive, @IsActive,@CreatedFrom, @CreatedBy, @CreatedOn 
 );
 SELECT SCOPE_IDENTITY();";
 
@@ -63,10 +63,12 @@ SELECT SCOPE_IDENTITY();";
                     cmd.Parameters.AddWithValue("@TelephoneNo", vm.TelephoneNo ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@FaxNo", vm.FaxNo ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Email", vm.Email ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
 
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
                     cmd.Parameters.AddWithValue("@IsActive", vm.IsActive);
+                    cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy);
                     cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
 
@@ -129,6 +131,7 @@ UPDATE BankInformations
 SET 
     Code = @Code,
     Name = @Name,
+    BranchId = @BranchId,
     BanglaName = @BanglaName,
     Address = @Address,
     BanglaAddress = @BanglaAddress,
@@ -150,6 +153,7 @@ WHERE Id = @Id";
                     cmd.Parameters.AddWithValue("@Id", vm.Id);
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Name", vm.Name ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
                     cmd.Parameters.AddWithValue("@BanglaName", vm.BanglaName ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Address", vm.Address ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@BanglaAddress", vm.BanglaAddress ?? (object)DBNull.Value);
