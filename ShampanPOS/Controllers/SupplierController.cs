@@ -245,30 +245,6 @@ namespace ShampanPOS.Controllers
         }
 
 
-        //// POST: api/Supplier/GetPurchaseBySupplier
-        //[HttpPost("GetPurchaseBySupplier")]
-        //public async Task<ResultVM> GetPurchaseBySupplier(CommonVM vm)
-        //{
-        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-        //    try
-        //    {
-        //        _supplierService = new SupplierService();
-        //        resultVM = await _supplierService.GetPurchaseBySupplier(vm.IDs);
-        //        return resultVM;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return new ResultVM
-        //        {
-        //            Status = "Fail",
-        //            Message = ex.Message,
-        //            ExMessage = ex.Message,
-        //            DataVM = vm
-        //        };
-        //    }
-        //}
-
-
         // POST: api/Product/InsertFromMasterSupplier
         [HttpPost("InsertFromMasterSupplier")]
         public async Task<ResultVM> InsertFromMasterSupplier(SupplierVM supplier)

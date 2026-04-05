@@ -66,8 +66,6 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@Comments", purchaseOrder.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@TransactionType", purchaseOrder.TransactionType);
                     cmd.Parameters.AddWithValue("@PeriodId", purchaseOrder.PeriodId ?? (object)DBNull.Value);
-                    //cmd.Parameters.AddWithValue("@PeriodId",purchaseOrder.PeriodId);
-                    //cmd.Parameters.AddWithValue("@PeriodId", purchaseOrder.PeriodId ?? "0");
                     cmd.Parameters.AddWithValue("@IsPost", purchaseOrder.IsPost);
                     cmd.Parameters.AddWithValue("@CreatedBy", purchaseOrder.CreatedBy);
                     cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);

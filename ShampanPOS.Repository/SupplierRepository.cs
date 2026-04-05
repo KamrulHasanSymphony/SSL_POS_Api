@@ -37,12 +37,12 @@ namespace ShampanPOS.Repository
 INSERT INTO Suppliers 
 (
  Code, Name,CompanyId,UserId, SupplierGroupId, BanglaName, Address, City, TelephoneNo, Email, 
- ContactPerson, Comments, IsArchive, IsActive, CreatedBy, CreatedOn,ImagePath
+ ContactPerson, Comments, IsArchive, IsActive, CreatedBy, CreatedOn,CreatedFrom,ImagePath
 )
 VALUES 
 (
  @Code, @Name,@CompanyId,@UserId, @SupplierGroupId, @BanglaName, @Address, @City, @TelephoneNo, 
- @Email, @ContactPerson, @Comments, @IsArchive, @IsActive, @CreatedBy, GETDATE(),@ImagePath
+ @Email, @ContactPerson, @Comments, @IsArchive, @IsActive, @CreatedBy, GETDATE(),@CreatedFrom,@ImagePath
 );
 SELECT SCOPE_IDENTITY();";
 
@@ -64,6 +64,7 @@ SELECT SCOPE_IDENTITY();";
                     cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
                     cmd.Parameters.AddWithValue("@IsActive", true);
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@ImagePath", string.IsNullOrEmpty(vm.ImagePath) ? (object)DBNull.Value : vm.ImagePath);
 
                     vm.Id = Convert.ToInt32(cmd.ExecuteScalar());
