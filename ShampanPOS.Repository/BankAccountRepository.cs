@@ -37,12 +37,13 @@ namespace ShampanPOS.Repository
                 string query = @"
 INSERT INTO BankAccounts
 (
-     AccountNo, AccountName,UserId,IsCash, BankId, BranchName,BranchId, 
+     AccountNo, AccountName,UserId,IsCash, BankId, BranchName,BranchId,CompanyId,
+ 
     Comments, IsArchive, IsActive, CreatedBy, CreatedOn
 )
 VALUES
 (
-    @AccountNo, @AccountName,@UserId, @IsCash,@BankId, @BranchName, BranchId,
+    @AccountNo, @AccountName,@UserId, @IsCash,@BankId, @BranchName, @BranchId,@CompanyId,
     @Comments, @IsArchive, @IsActive, @CreatedBy, @CreatedOn 
 );
 SELECT SCOPE_IDENTITY();";
@@ -56,7 +57,8 @@ SELECT SCOPE_IDENTITY();";
 
                     cmd.Parameters.AddWithValue("@BankId", vm.BankId);
                     cmd.Parameters.AddWithValue("@BranchName", vm.BranchName ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@BranchId", vm.BranchId ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
 
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
