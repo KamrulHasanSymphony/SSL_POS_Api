@@ -38,12 +38,12 @@ namespace ShampanPOS.Repository
 INSERT INTO OverHeads
 (
     Code, OverHead,
-    Comments, IsArchive, IsActive, CreatedBy, CreatedOn
+    Comments, IsArchive, IsActive, CreatedBy, CreatedOn,BranchId,CreatedFrom
 )
 VALUES
 (
     @Code, @OverHead, 
-    @Comments, @IsArchive, @IsActive, @CreatedBy, @CreatedOn 
+    @Comments, @IsArchive, @IsActive, @CreatedBy, @CreatedOn ,@BranchId ,@CreatedFrom
 );
 SELECT SCOPE_IDENTITY();";
 
@@ -57,6 +57,8 @@ SELECT SCOPE_IDENTITY();";
                     cmd.Parameters.AddWithValue("@IsActive", vm.IsActive);
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy);
                     cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
+                    cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom ?? (object)DBNull.Value);
 
                     vm.Id = Convert.ToInt32(cmd.ExecuteScalar());
 
@@ -117,6 +119,7 @@ UPDATE OverHeads
 SET 
     Code = @Code,
     OverHead = @OverHead,
+    BranchId = @BranchId,
     Comments = @Comments,   
     IsArchive = @IsArchive,
     IsActive = @IsActive,
@@ -132,6 +135,7 @@ WHERE Id = @Id";
                     cmd.Parameters.AddWithValue("@Id", vm.Id);
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@OverHead", vm.OverHead ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
 
                     cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
