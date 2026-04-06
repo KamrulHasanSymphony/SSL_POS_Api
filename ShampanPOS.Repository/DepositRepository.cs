@@ -39,12 +39,12 @@ namespace ShampanPOS.Repository
 INSERT INTO Deposits
 (
      Code, TransactionDate,Reference, FromBankAccountId, ChequeNo,ChequeBankName, ChequeDate,ToBankAccountId,IsCash,TotalDepositAmount,
-    Comments, IsArchive, IsActive, CreatedBy, CreatedOn,BranchId
+    Comments, IsArchive, IsActive,CreatedFrom, CreatedBy, CreatedOn,BranchId
 )
 VALUES
 (
     @Code, @TransactionDate, @Reference,@FromBankAccountId, @ChequeNo,@ChequeBankName, @ChequeDate,@ToBankAccountId,@IsCash, @TotalDepositAmount,@Comments,
-     @IsArchive, @IsActive, @CreatedBy, GETDATE() ,@BranchId
+     @IsArchive, @IsActive,@CreatedFrom, @CreatedBy, GETDATE() ,@BranchId
 );
 SELECT SCOPE_IDENTITY();";
 
@@ -63,6 +63,7 @@ SELECT SCOPE_IDENTITY();";
                     cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
                     cmd.Parameters.AddWithValue("@IsActive", vm.IsActive);
                     cmd.Parameters.AddWithValue("@IsCash", vm.IsCash);
+                    cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy);
                     cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
 

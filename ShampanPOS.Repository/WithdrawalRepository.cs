@@ -39,12 +39,13 @@ namespace ShampanPOS.Repository
 INSERT INTO Withdrawals
 (
      Code, TransactionDate,Reference, FromBankAccountId, ChequeNo,ChequeBankName, ChequeDate,ToBankAccountId,IsCash,TotalDepositAmount,
-    Comments, IsArchive, IsActive, CreatedBy, CreatedOn, BranchId
+    Comments, IsArchive, IsActive, CreatedBy, CreatedOn,CreatedFrom,
+ BranchId
 )
 VALUES
 (
     @Code, @TransactionDate, @Reference,@FromBankAccountId, @ChequeNo,@ChequeBankName, @ChequeDate,@ToBankAccountId,@IsCash, @TotalDepositAmount,@Comments,
-     @IsArchive, @IsActive, @CreatedBy, GETDATE(),@BranchId 
+     @IsArchive, @IsActive, @CreatedBy, GETDATE(),@CreatedFrom,@BranchId 
 );
 SELECT SCOPE_IDENTITY();";
 
@@ -64,6 +65,7 @@ SELECT SCOPE_IDENTITY();";
                     cmd.Parameters.AddWithValue("@IsActive", vm.IsActive);
                     cmd.Parameters.AddWithValue("@IsCash", vm.IsCash);
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy);
+                    cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
 
                     vm.Id = Convert.ToInt32(cmd.ExecuteScalar());
@@ -131,14 +133,13 @@ SET
     FromBankAccountId = @FromBankAccountId,
     ToBankAccountId = @ToBankAccountId,
     ChequeBankName = @ChequeBankName,
-    TotalDepositAmount = @TotalDepositAmount,bc
+    TotalDepositAmount = @TotalDepositAmount,
     Comments = @Comments,   
     Reference = @Reference,   
     IsArchive = @IsArchive,
     IsActive = @IsActive,
     LastModifiedBy = @LastModifiedBy,
     LastModifiedOn = GETDATE(),
-    CreatedFrom = @CreatedFrom,
     LastUpdateFrom = @LastUpdateFrom,
     BranchId = @BranchId
 
