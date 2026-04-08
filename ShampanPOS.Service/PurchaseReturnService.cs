@@ -37,37 +37,7 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                //#region Current Fiscal Period Status
-                //var MonthName = Convert.ToDateTime(model.PurchaseReturnDate).ToString("MMM-yy");
-                //var periodData = new FiscalYearRepository().DetailsList(new[] { "D.MonthName" }, new[] { MonthName }, null, conn, transaction);
-
-                //if (periodData.Status == "Success" && periodData.DataVM is DataTable dt)
-                //{
-                //    string json = JsonConvert.SerializeObject(dt);
-                //    var details = JsonConvert.DeserializeObject<List<FiscalYearDetailVM>>(json);
-                //    if (details.Count == 0)
-                //    {
-                //        throw new Exception("Fiscal Year data not found!");
-                //    }
-                //    var data = details.FirstOrDefault();
-                //    model.PeriodId = data.FiscalYearId.ToString();
-                //    model.FiscalYear = data.Year.ToString();
-
-                //    if (data.MonthLock)
-                //    {
-                //        throw new Exception("This Fiscal Period: " + data.MonthName + " is Locked!");
-                //    }
-                //}
-                //else
-                //{
-                //    throw new Exception("Fiscal Year data not found!");
-                //}
-                //#endregion
-
-                
-
-                
-
+               
                 string code = _commonRepo.GenerateCode(CodeGroup, CodeName, model.PurchaseDate, model.BranchId, conn, transaction);
 
                 if (!string.IsNullOrEmpty(code))
@@ -134,34 +104,7 @@ namespace ShampanPOS.Service
                             }
                         }
 
-                        //var grndResult = await _repo.UpdateGrandTotal(model, conn, transaction);
-
-                        //if (grndResult.Status.ToLower() == "fail")
-                        //{
-                        //    throw new Exception(grndResult.Message);
-                        //}
-
-                        //foreach (var item in commonVM.IDs)
-                        //{
-                        //    PeramModel peramModel = new PeramModel();
-                        //    peramModel.Id = item;
-                        //    model.PurchaseId = Convert.ToInt32(peramModel.Id);
-
-                        //    var completedQtyResult = await _repo.GetLineItemCompletedQty(null, null, peramModel, conn, transaction);
-
-                        //    if (completedQtyResult.Status == "Success" && completedQtyResult.DataVM is DataTable statusValue)
-                        //    {
-                        //        if (statusValue.Rows.Count > 0)
-                        //        {
-                        //            var status = statusValue.Rows[0]["Status"].ToString();
-
-                        //            if (status == "True")
-                        //            {
-                        //                var updateIsCompletedResult = await _repo.UpdateIsCompleted(model, conn, transaction);
-                        //            }
-                        //        }
-                        //    }
-                        //}
+                        
                     }
                     else
                     {
@@ -273,12 +216,7 @@ namespace ShampanPOS.Service
                         }
                     }
 
-                    //var grndResult = await _repo.UpdateGrandTotal(model, conn, transaction);
-
-                    //if (grndResult.Status.ToLower() == "fail")
-                    //{
-                    //    throw new Exception(grndResult.Message);
-                    //}
+            
                 }
                 else
                 {
@@ -732,53 +670,6 @@ namespace ShampanPOS.Service
             }
         }
 
-        //public async Task<ResultVM> SummaryReport(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
-        //{
-        //    PurchaseReturnRepository _repo = new PurchaseReturnRepository();
-        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-
-        //    bool isNewConnection = false;
-        //    SqlConnection conn = null;
-        //    SqlTransaction transaction = null;
-        //    try
-        //    {
-        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-        //        conn.Open();
-        //        isNewConnection = true;
-
-        //        transaction = conn.BeginTransaction();
-
-        //        result = await _repo.ProductWisePurchaseReturn(conditionalFields, conditionalValues, vm, conn, transaction);
-
-        //        if (isNewConnection && result.Status == "Success")
-        //        {
-        //            transaction.Commit();
-        //        }
-        //        else
-        //        {
-        //            throw new Exception(result.Message);
-        //        }
-
-        //        return result;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        if (transaction != null && isNewConnection)
-        //        {
-        //            transaction.Rollback();
-        //        }
-        //        result.Message = ex.Message.ToString();
-        //        result.ExMessage = ex.ToString();
-        //        return result;
-        //    }
-        //    finally
-        //    {
-        //        if (isNewConnection && conn != null)
-        //        {
-        //            conn.Close();
-        //        }
-        //    }
-        //}
 
         public async Task<ResultVM> ReportPreview(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
         {

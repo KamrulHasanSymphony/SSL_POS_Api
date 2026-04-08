@@ -119,10 +119,20 @@ namespace ShampanPOS.Repository
             try
             {
                 string query = @"
-        INSERT INTO PurchaseReturnDetails
-        (PurchasesReturnId, Line,CompanyId, ProductId,Quantity, UnitPrice, SubTotal,IsPost, SD, SDAmount, VATRate, VATAmount,LineTotal,OthersAmount)
-        VALUES 
-        (@PurchasesReturnId, @Line,@CompanyId, @ProductId,@Quantity, @UnitPrice, @SubTotal, @SD, @SDAmount, @VATRate, @VATAmount,@LineTotal,@IsPost, @OthersAmount);
+       INSERT INTO PurchaseReturnDetails
+(
+    PurchasesReturnId, Line, CompanyId, ProductId,
+    Quantity, UnitPrice, SubTotal,
+    SD, SDAmount, VATRate, VATAmount,
+    LineTotal, OthersAmount, IsPost
+)
+VALUES 
+(
+    @PurchasesReturnId, @Line, @CompanyId, @ProductId,
+    @Quantity, @UnitPrice, @SubTotal,
+    @SD, @SDAmount, @VATRate, @VATAmount,
+    @LineTotal, @OthersAmount, @IsPost
+);
         SELECT SCOPE_IDENTITY();";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
@@ -593,6 +603,7 @@ WHERE 1 = 1
                         BranchName = row.Field<string>("BranchName"),
                         CompanyId = row.Field<int>("CompanyId"),
                         SupplierId = row.Field<int>("SupplierId"),
+                        SupplierName = row.Field<string>("SupplierName"),
                         BENumber = row.Field<string>("BENumber"),
                         PurchaseDate = row.Field<string>("PurchaseDate"),
                         Comments = row.Field<string>("Comments"),
