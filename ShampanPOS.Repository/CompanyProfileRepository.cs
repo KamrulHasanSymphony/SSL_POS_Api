@@ -63,7 +63,8 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@ContactPersonEmail", vm.ContactPersonEmail ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
-                    cmd.Parameters.AddWithValue("@IsActive", vm.IsActive);
+                    //cmd.Parameters.AddWithValue("@IsActive", vm.IsActive);
+                    cmd.Parameters.AddWithValue("@IsActive", true);
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy ?? "");
                     cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@BusinessNature", vm.BusinessNature ?? (object)DBNull.Value);

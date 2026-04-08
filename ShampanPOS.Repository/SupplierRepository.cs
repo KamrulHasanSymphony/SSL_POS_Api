@@ -117,7 +117,7 @@ SELECT SCOPE_IDENTITY();";
                     conn.Open();
                     isNewConnection = true;
                 }
-
+                 
                 if (transaction == null)
                 {
                     transaction = conn.BeginTransaction();
@@ -388,6 +388,88 @@ WHERE 1 = 1
             }
         }
 
+        //        public ResultVM DetailsList(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        //        {
+        //            bool isNewConnection = false;
+        //            DataTable dataTable = new DataTable();
+        //            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+        //            try
+        //            {
+        //                if (conn == null)
+        //                {
+        //                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //                    conn.Open();
+        //                    isNewConnection = true;
+        //                }
+
+        //                string query = @"
+        //SELECT
+        //    ISNULL(M.Id, 0) AS Id,
+        //    ISNULL(M.SupplierId, 0) AS SupplierId,
+        //    ISNULL(M.ProductId, 0) AS ProductId,
+        //    ISNULL(p.Code, '') AS Code,             
+        //    ISNULL(p.Name, '') AS Name,             
+        //    ISNULL(pg.Name, '') AS ProductGroupName,
+        //    ISNULL(s.Name, '') AS SupplierName,
+        //    ISNULL(M.UserId, 0) AS UserId,
+        //    ISNULL(M.IsArchive, 0) AS IsArchive,
+        //    ISNULL(M.IsActive, 0) AS IsActive,
+        //    ISNULL(M.CreatedBy, '') AS CreatedBy,
+        //    FORMAT(ISNULL(M.CreatedOn, '1900-01-01'), 'yyyy-MM-dd') AS CreatedOn,
+        //    ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
+        //    FORMAT(ISNULL(M.LastModifiedOn, '1900-01-01'), 'yyyy-MM-dd') AS LastModifiedOn
+
+        //FROM SupplierProduct M
+        //LEFT JOIN Suppliers s ON M.SupplierId = s.Id
+        //LEFT JOIN Products p ON M.ProductId = p.Id
+        //LEFT JOIN ProductGroups pg ON p.ProductGroupId = pg.Id
+        //WHERE 1 = 1
+        //";
+
+        //                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+        //                {
+        //                    query += " AND M.SupplierId  = @Id ";
+        //                }
+
+        //                // Apply additional conditions
+        //                query = ApplyConditions(query, conditionalFields, conditionalValue, false);
+
+        //                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+        //                // SET additional conditions param
+        //                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValue);
+
+        //                if (vm != null && int.TryParse(vm.Id, out int id))
+        //                {
+        //                    query += " AND M.Id = @Id ";
+        //                    objComm.SelectCommand.Parameters.Add("@Id", SqlDbType.Int).Value = id;
+        //                }
+
+        //                objComm.Fill(dataTable);
+
+        //                result.Status = "Success";
+        //                result.Message = "Details Data retrieved successfully.";
+        //                result.DataVM = dataTable;
+
+        //                return result;
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                result.ExMessage = ex.Message;
+        //                result.Message = ex.Message;
+        //                return result;
+        //            }
+        //            finally
+        //            {
+        //                if (isNewConnection && conn != null)
+        //                {
+        //                    conn.Close();
+        //                }
+        //            }
+        //        }
+
+
         public ResultVM DetailsList(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
@@ -404,47 +486,45 @@ WHERE 1 = 1
                 }
 
                 string query = @"
-	SELECT
+SELECT
     ISNULL(M.Id, 0) AS Id,
-	ISNULL(M.SupplierId, 0) AS SupplierId,
-	ISNULL(M.ProductId, 0) AS ProductId,
+    ISNULL(M.SupplierId, 0) AS SupplierId,
+    ISNULL(M.ProductId, 0) AS ProductId,
+    ISNULL(p.Code, '') AS Code,             
+    ISNULL(p.Name, '') AS Name,             
+    ISNULL(pg.Name, '') AS ProductGroupName,
     ISNULL(s.Name, '') AS SupplierName,
-	ISNULL(M.UserId, 0) AS UserId,
-    ISNULL(p.Name, '') AS ProductName,
+    ISNULL(M.UserId, 0) AS UserId,
     ISNULL(M.IsArchive, 0) AS IsArchive,
-	ISNULL(M.IsActive, 0) AS IsActive,   
+    ISNULL(M.IsActive, 0) AS IsActive,
     ISNULL(M.CreatedBy, '') AS CreatedBy,
     FORMAT(ISNULL(M.CreatedOn, '1900-01-01'), 'yyyy-MM-dd') AS CreatedOn,
     ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
-    FORMAT(ISNULL(M.LastModifiedOn, '1900-01-01'), 'yyyy-MM-dd') AS LastModifiedOn,
-	ISNULL(pg.Name, '') AS ProductGroupName
-	--ISNULL(pg.Id,0) ProductGroupId
-
+    FORMAT(ISNULL(M.LastModifiedOn, '1900-01-01'), 'yyyy-MM-dd') AS LastModifiedOn
 FROM SupplierProduct M
-LEFT OUTER JOIN Suppliers s on M.SupplierId = s.Id
-LEFT OUTER JOIN Products p on M.ProductId = p.Id
-LEFT OUTER JOIN ProductGroups pg ON p.ProductGroupId = pg.Id  
-
+LEFT JOIN Suppliers s ON M.SupplierId = s.Id
+LEFT JOIN Products p ON M.ProductId = p.Id
+LEFT JOIN ProductGroups pg ON p.ProductGroupId = pg.Id
 WHERE 1 = 1
 ";
 
-                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+                // ✅ ONLY THIS FILTER (CORRECT)
+                if (vm != null && int.TryParse(vm.Id, out int supplierId))
                 {
-                    query += " AND M.Id = @Id ";
+                    query += " AND M.SupplierId = @SupplierId ";
                 }
 
-                // Apply additional conditions
+                // Apply conditions
                 query = ApplyConditions(query, conditionalFields, conditionalValue, false);
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
-                // SET additional conditions param
                 objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValue);
 
+                // ✅ PARAMETER ADD
                 if (vm != null && int.TryParse(vm.Id, out int id))
                 {
-                    query += " AND M.Id = @Id ";
-                    objComm.SelectCommand.Parameters.Add("@Id", SqlDbType.Int).Value = id;
+                    objComm.SelectCommand.Parameters.Add("@SupplierId", SqlDbType.Int).Value = id;
                 }
 
                 objComm.Fill(dataTable);
@@ -469,6 +549,8 @@ WHERE 1 = 1
                 }
             }
         }
+
+
 
         // ListAsDataTable Method
         public async Task<ResultVM> ListAsDataTable(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)

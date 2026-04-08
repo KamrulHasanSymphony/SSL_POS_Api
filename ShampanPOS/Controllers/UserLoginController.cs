@@ -66,31 +66,6 @@ namespace ShampanPOS.Controllers
                         user.SalePersonId = model.SalePersonId;
                         user.ImagePath = model.ImagePath;
 
-                        //var updateResult = await _userManager.UpdateAsync(user);
-
-                        //if (!updateResult.Succeeded)
-                        //{
-                        //    resultVM.Status = "Failed";
-                        //    resultVM.Message = "Failed to update user profile.";
-                        //    return resultVM;
-                        //}
-                        //UserProfileService _userProfileService = new UserProfileService();
-                        //// ✅ প্রথম সার্ভিস সফল হলে এখন দ্বিতীয় সার্ভিস কল করো
-                        //var secondServiceResult = await _userProfileService.Update(model);
-
-                        //if (secondServiceResult.Status != "Success")
-                        //{
-                        //    resultVM.Status = "Failed";
-                        //    resultVM.Message = "User profile updated but failed to complete next step.";
-                        //    return resultVM;
-                        //}
-
-                        //// ✅ দুইটিই সফল হলে Success
-                        //resultVM.Status = "Success";
-                        //resultVM.Message = "User profile updated successfully.";
-                        //resultVM.DataVM = model;
-                        //return resultVM;
-
                         var updateResult = await _userManager.UpdateAsync(user);
 
                         if (!updateResult.Succeeded)

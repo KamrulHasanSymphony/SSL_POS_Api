@@ -1083,6 +1083,7 @@ namespace ShampanPOS.Service
                             CreatedBy = product.CreatedBy,
                             CreatedOn = product.CreatedOn,
                             CompanyId = product.CompanyId,
+                            BranchId = product.BranchId,
                             UserId = product.UserId
                         };
 
@@ -1112,6 +1113,7 @@ namespace ShampanPOS.Service
                         ProductVM pvm = new ProductVM
                         {
                             CompanyId = product.CompanyId,
+                            BranchId = product.BranchId,
                             UserId = product.UserId,
 
                             Name = productName,

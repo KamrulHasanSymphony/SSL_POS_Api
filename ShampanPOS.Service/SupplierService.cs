@@ -94,74 +94,14 @@ namespace ShampanPOS.Service
             }
         }
 
-        //public async Task<ResultVM> Update(SupplierVM supplier)
-        //{
-        //    SupplierRepository _repo = new SupplierRepository();
-        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-
-        //    bool isNewConnection = false;
-        //    SqlConnection conn = null;
-        //    SqlTransaction transaction = null;
-        //    try
-        //    {
-        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-        //        conn.Open();
-        //        isNewConnection = true;
-
-        //        transaction = conn.BeginTransaction();
-
-        //        #region Check Exist Data
-        //        string[] conditionField = { "Id not", "Name" };
-        //        string[] conditionValue = { supplier.Id.ToString(), supplier.Name.Trim() };
-
-        //        bool exist = _commonRepo.CheckExists("Suppliers", conditionField, conditionValue, conn, transaction);
-
-        //        if (exist)
-        //        {
-        //            result.Message = "Data Already Exist!";
-        //            throw new Exception("Data Already Exist!");
-        //        }
-        //        #endregion
-
-        //        result = await _repo.Update(supplier, conn, transaction);
-
-        //        if (isNewConnection && result.Status == "Success")
-        //        {
-        //            transaction.Commit();
-        //        }
-        //        else
-        //        {
-        //            throw new Exception(result.Message);
-        //        }
-
-        //        return result;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        if (transaction != null && isNewConnection)
-        //        {
-        //            transaction.Rollback();
-        //        }
-
-        //        result.ExMessage = ex.ToString();
-        //        return result;
-        //    }
-        //    finally
-        //    {
-        //        if (isNewConnection && conn != null)
-        //        {
-        //            conn.Close();
-        //        }
-        //    }
-        //}
-
 
 
         public async Task<ResultVM> Update(SupplierVM supplier)
         {
             SupplierRepository _repo = new SupplierRepository();
             SupplierProductRepository _productRepo = new SupplierProductRepository();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            ResultVM result = new ResultVM{Status = "Fail",Message = "Error",ExMessage = null,Id = "0",DataVM = null};
 
             bool isNewConnection = false;
             SqlConnection conn = null;
@@ -169,7 +109,6 @@ namespace ShampanPOS.Service
 
             try
             {
-                // Open connection and begin transaction
                 conn = new SqlConnection(DatabaseHelper.GetConnectionString());
                 conn.Open();
                 isNewConnection = true;
@@ -185,50 +124,45 @@ namespace ShampanPOS.Service
                     throw new Exception("Data Already Exist!");
                 #endregion
 
-                // 1️⃣ Update Supplier
+                // ✅ 1. Update Supplier
                 result = await _repo.Update(supplier, conn, transaction);
                 if (result.Status != "Success")
                     throw new Exception(result.Message);
 
-                // 2️⃣ Only if MasterItemList has items
-                if (supplier.MasterItemList != null && supplier.MasterItemList.Count > 0)
+                // ✅ 2. DELETE OLD DETAILS (ALWAYS DO THIS)
+                var deleteResult = _commonRepo.DetailsDelete("SupplierProduct",new[] { "SupplierId" },new[]{ supplier.Id.ToString() },conn,transaction);
+
+                if (deleteResult.Status == "Fail")
+                    throw new Exception("Error deleting existing SupplierProduct records.");
+
+                // ✅ 3. INSERT NEW DETAILS
+                if (supplier.MasterItemList != null && supplier.MasterItemList.Any())
                 {
-                    // Delete existing SupplierProducts
-                    var deleteResult = _commonRepo.DetailsDelete(
-                        "SupplierProduct",
-                        new[] { "SupplierId" },
-                        new[] { supplier.Id.ToString() },
-                        conn,
-                        transaction
-                    );
-
-                    if (deleteResult.Status == "Fail")
-                        throw new Exception("Error deleting existing SupplierProduct records.");
-
-                    // Prepare SupplierProductVM wrapper
-                    SupplierProductVM supplierProductModel = new SupplierProductVM
-                    {
-                        SupplierId = supplier.Id,
-                        UserId = supplier.UserId,
-                        CompanyId = supplier.CompanyId,
-                        CreatedBy = supplier.LastModifiedBy ?? supplier.CreatedBy,
-                        CreatedFrom = supplier.LastUpdateFrom ?? supplier.CreatedFrom,
-                        MasterItemList = supplier.MasterItemList
-                    };
-
-                    // Insert all MasterItems
                     foreach (var item in supplier.MasterItemList)
                     {
-                        item.SupplierId = supplier.Id;
-                        // Await each insert
-                        var insertResult = await _productRepo.Insert(item, conn, transaction, supplierProductModel);
+                        // 🔥 VERY IMPORTANT FIX
+                        int productId = item.ProductId.HasValue && item.ProductId.Value > 0? item.ProductId.Value: item.Id;
 
-                        if (insertResult.Status != "Success")
-                            throw new Exception(insertResult.Message);
+                        if (productId <= 0)
+                            continue; // skip invalid
+
+                        string insertQuery = @"
+                INSERT INTO SupplierProduct
+                (SupplierId, ProductId, CreatedBy, CreatedOn, IsActive, IsArchive)
+                VALUES
+                (@SupplierId, @ProductId, @CreatedBy, GETDATE(), 1, 0)";
+
+                        using (SqlCommand cmd = new SqlCommand(insertQuery, conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@SupplierId", supplier.Id);
+                            cmd.Parameters.AddWithValue("@ProductId", productId); // ✅ FIXED
+                            cmd.Parameters.AddWithValue("@CreatedBy", supplier.LastModifiedBy ?? supplier.CreatedBy ?? (object)DBNull.Value);
+
+                            cmd.ExecuteNonQuery();
+                        }
                     }
                 }
 
-                // Commit AFTER SupplierProducts are inserted
                 transaction.Commit();
 
                 result.Status = "Success";
@@ -243,7 +177,7 @@ namespace ShampanPOS.Service
                     transaction.Rollback();
 
                 result.ExMessage = ex.ToString();
-                result.Message = ex.Message; // better feedback
+                result.Message = ex.Message;
                 return result;
             }
             finally
@@ -252,6 +186,105 @@ namespace ShampanPOS.Service
                     conn.Close();
             }
         }
+
+
+
+
+        //public async Task<ResultVM> Update(SupplierVM supplier)
+        //{
+        //    SupplierRepository _repo = new SupplierRepository();
+        //    SupplierProductRepository _productRepo = new SupplierProductRepository();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+
+        //    try
+        //    {
+        //        // Open connection and begin transaction
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
+        //        transaction = conn.BeginTransaction();
+
+        //        #region Check Exist Data
+        //        string[] conditionField = { "Id not", "Name" };
+        //        string[] conditionValue = { supplier.Id.ToString(), supplier.Name.Trim() };
+
+        //        bool exist = _commonRepo.CheckExists("Suppliers", conditionField, conditionValue, conn, transaction);
+
+        //        if (exist)
+        //            throw new Exception("Data Already Exist!");
+        //        #endregion
+
+        //        // 1️⃣ Update Supplier
+        //        result = await _repo.Update(supplier, conn, transaction);
+        //        if (result.Status != "Success")
+        //            throw new Exception(result.Message);
+
+        //        // 2️⃣ Only if MasterItemList has items
+        //        if (supplier.MasterItemList != null && supplier.MasterItemList.Count > 0)
+        //        {
+        //            // Delete existing SupplierProducts
+        //            var deleteResult = _commonRepo.DetailsDelete(
+        //                "SupplierProduct",
+        //                new[] { "SupplierId" },
+        //                new[] { supplier.Id.ToString() },
+        //                conn,
+        //                transaction
+        //            );
+
+        //            if (deleteResult.Status == "Fail")
+        //                throw new Exception("Error deleting existing SupplierProduct records.");
+
+        //            // Prepare SupplierProductVM wrapper
+        //            SupplierProductVM supplierProductModel = new SupplierProductVM
+        //            {
+        //                SupplierId = supplier.Id,
+        //                UserId = supplier.UserId,
+        //                CompanyId = supplier.CompanyId,
+        //                CreatedBy = supplier.LastModifiedBy ?? supplier.CreatedBy,
+        //                CreatedFrom = supplier.LastUpdateFrom ?? supplier.CreatedFrom,
+        //                MasterItemList = supplier.MasterItemList
+        //            };
+
+        //            // Insert all MasterItems
+        //            foreach (var item in supplier.MasterItemList)
+        //            {
+        //                item.SupplierId = supplier.Id;
+        //                // Await each insert
+        //                var insertResult = await _productRepo.Insert(item, conn, transaction, supplierProductModel);
+
+        //                if (insertResult.Status != "Success")
+        //                    throw new Exception(insertResult.Message);
+        //            }
+        //        }
+
+        //        // Commit AFTER SupplierProducts are inserted
+        //        transaction.Commit();
+
+        //        result.Status = "Success";
+        //        result.Message = "Supplier and Supplier Products updated successfully.";
+        //        result.DataVM = supplier;
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //            transaction.Rollback();
+
+        //        result.ExMessage = ex.ToString();
+        //        result.Message = ex.Message; // better feedback
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //            conn.Close();
+        //    }
+        //}
 
 
 
@@ -820,6 +853,7 @@ namespace ShampanPOS.Service
                             CreatedBy = supplier.CreatedBy,
                             CreatedOn = supplier.CreatedOn,
                             CompanyId = supplier.CompanyId,
+                            BranchId = supplier.BranchId,
                             UserId = supplier.UserId
 
                         };
@@ -850,6 +884,7 @@ namespace ShampanPOS.Service
                                 SupplierVM pvm = new SupplierVM
                                 {
                                     CompanyId = supplier.CompanyId,
+                                    BranchId = supplier.BranchId,
                                     UserId = supplier.UserId,
                                     Name = supplierName,
                                     Code = string.IsNullOrWhiteSpace(item.Code) ? _commonRepo.CodeGenerationNo("Supplier", "Supplier", conn, transaction) : item.Code,

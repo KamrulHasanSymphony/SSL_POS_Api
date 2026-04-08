@@ -80,6 +80,7 @@ namespace ShampanPOS.ViewModel
         public int? UOMId { get; set; }
 
         public string? HSCodeNo { get; set; }
+        public int? BranchId { get; set; }
 
         public bool IsAlreadyAdded { get; set; }
 
