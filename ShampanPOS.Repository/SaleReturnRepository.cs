@@ -348,7 +348,7 @@ WHERE Id = @Id";
                         CustomerId = Convert.ToInt32(row["CustomerId"]),
                         CustomerName = row.Field<string>("CustomerName"),
                         DeliveryAddress = row["DeliveryAddress"].ToString(),
-                        InvoiceDateTime = row["InvoiceDateTime"] != DBNull.Value ? Convert.ToDateTime(row["InvoiceDateTime"]).ToString("yyyy-MM-dd HH:mm:ss") : "1900-01-01 00:00:00",
+                        InvoiceDateTime = row["InvoiceDateTime"] != DBNull.Value ? Convert.ToDateTime(row["InvoiceDateTime"]).ToString("yyyy-MM-dd") : "1900-01-01",
                         Comments = row["Comments"].ToString(),
                         TransactionType = row["TransactionType"].ToString(),
                         IsPost = row["IsPost"] != DBNull.Value ? Convert.ToBoolean(row["IsPost"]) : false,
