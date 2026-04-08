@@ -150,7 +150,7 @@ namespace ShampanPOS.Controllers
                 }
 
                 PurchaseService _service = new PurchaseService();
-                resultVM = await _service.List(conditionFields, conditionValues, null);
+                resultVM = await _service.GetPurchaseReport(conditionFields, conditionValues, null);
                 return resultVM;
             }
             catch (Exception ex)
