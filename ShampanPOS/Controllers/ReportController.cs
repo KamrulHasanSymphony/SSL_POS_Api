@@ -438,5 +438,53 @@ namespace ShampanPOS.Controllers
             }
         }
 
+        [HttpPost("GetProductReport")]
+        public async Task<ResultVM> GetProductReport(CommonVM Vm)
+        {
+            ResultVM resultVM = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                Id = "0",
+                DataVM = null
+            };
+
+            try
+            {
+                string[] conditionFields = null;
+                string[] conditionValues = null;
+
+                if (!string.IsNullOrEmpty(Vm.Id))
+                {
+                    conditionFields = new string[] { "M.Id" };
+                    conditionValues = new string[] { Vm.Id };
+                }
+
+                var param = new PeramModel
+                {
+                    Id = Vm.Id,
+                    CompanyId = Vm.CompanyId  
+                };
+
+                ProductService _service = new ProductService();
+
+                resultVM = await _service.ProductReport(conditionFields, conditionValues, param);
+
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
+
+
     }
 }

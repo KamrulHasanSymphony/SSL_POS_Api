@@ -818,7 +818,6 @@ namespace ShampanPOS.Service
             }
         }
 
-
         //public async Task<ResultVM> InsertFromMasterItem(ProductVM product)
         //{
         //    ProductRepository _repo = new ProductRepository();
@@ -1023,8 +1022,6 @@ namespace ShampanPOS.Service
         //    }
         //}
 
-
-
         public async Task<ResultVM> InsertFromMasterItem(ProductVM product)
         {
             ProductRepository _repo = new ProductRepository();
@@ -1186,6 +1183,70 @@ namespace ShampanPOS.Service
             }
         }
 
+        public async Task<ResultVM> ProductReport(string[] conditionalFields,string[] conditionalValues,PeramModel vm = null)
+        {
+            ProductRepository _repo = new ProductRepository();
+
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                Id = "0",
+                DataVM = null
+            };
+
+            bool isNewConnection = false;
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+
+            try
+            {
+                if (vm == null)
+                {
+                    throw new Exception("PeramModel vm is null. CompanyId is required.");
+                }
+
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+
+                transaction = conn.BeginTransaction();
+
+                result = await _repo.ProductReport(
+                    conditionalFields,
+                    conditionalValues,
+                    vm,
+                    conn,
+                    transaction
+                );
+
+                // ✅ Commit only if success
+                if (result != null && result.Status == "Success")
+                {
+                    transaction.Commit();
+                }
+                else
+                {
+                    transaction.Rollback();
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null)
+                {
+                    transaction.Rollback();
+                }
+
+                result.Status = "Fail";
+                result.Message = ex.Message;
+                result.ExMessage = ex.ToString();
+
+                return result;
+            }
+        }
 
     }
 
