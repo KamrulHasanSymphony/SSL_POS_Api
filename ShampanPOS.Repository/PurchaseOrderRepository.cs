@@ -1708,5 +1708,125 @@ WHERE  1 = 1 ";
                 }
             }
         }
+
+        public async Task<ResultVM> PurchaseOrderReport(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = @"
+SELECT 
+
+    ISNULL(M.Id, 0) AS Id,
+    ISNULL(M.Code, '') AS Code,
+    ISNULL(M.BranchId, 0) AS BranchId,
+    ISNULL(M.CompanyId, 0) AS CompanyId,
+    ISNULL(M.SupplierId, 0) AS SupplierId,
+    ISNULL(S.Name, '') AS SupplierName,
+    ISNULL(S.Address, '') AS SupplierAddress,
+    ISNULL(FORMAT(M.OrderDate, 'yyyy-MM-dd'), '1900-01-01') AS OrderDate,
+    ISNULL(FORMAT(M.DeliveryDateTime, 'yyyy-MM-dd'), '1900-01-01') AS DeliveryDateTime,
+    ISNULL(M.Comments, '') AS Comments,
+    ISNULL(M.TransactionType, '') AS TransactionType,
+	ISNULL(M.IsPost, 0) AS IsPost,
+	ISNULL(M.PostBy, '') AS PostBy,
+    ISNULL(FORMAT(M.PostedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS PostedOn,
+    ISNULL(M.PeriodId,0) AS PeriodId,   
+    
+    ISNULL(M.CreatedBy, '') AS CreatedBy,
+    ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS CreatedOn,
+    ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
+    ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
+	ISNULL(Br.Name,'') BranchName,
+    ISNULL(CP.CompanyName,'') CompanyName
+    
+FROM 
+    PurchaseOrders M
+LEFT OUTER JOIN Suppliers S ON ISNULL(M.SupplierId,0) = S.Id
+LEFT OUTER JOIN CompanyProfiles CP ON M.CompanyId = CP.Id
+    LEFT OUTER JOIN BranchProfiles Br ON M.BranchId = Br.Id
+
+WHERE  1 = 1
+ ";
+
+                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+                {
+                    query += " AND M.Id = @Id ";
+                }
+
+                // Apply additional conditions
+                query = ApplyConditions(query, conditionalFields, conditionalValue, false);
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                // SET additional conditions param
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValue);
+
+                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@Id", vm.Id);
+                }
+
+                objComm.Fill(dataTable);
+
+                var lst = new List<PurchaseOrderVM>();
+
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    lst.Add(new PurchaseOrderVM
+                    {
+                        Id = Convert.ToInt32(row["Id"]),
+                        Code = row["Code"].ToString(),
+                        BranchId = Convert.ToInt32(row["BranchId"]),
+                        BranchName = row.Field<string>("BranchName"),
+                        CompanyId = Convert.ToInt32(row["CompanyId"]),
+                        CompanyName = Convert.ToString(row["CompanyName"]),
+                        SupplierId = Convert.ToInt32(row["SupplierId"]),
+                        SupplierName = Convert.ToString(row["SupplierName"]),
+                        OrderDate = row["OrderDate"].ToString(),
+                        DeliveryDateTime = row["DeliveryDateTime"].ToString(),
+                        Comments = row["Comments"].ToString(),
+                        TransactionType = row["TransactionType"].ToString(),
+                        IsPost = Convert.ToBoolean(row["IsPost"]),
+                        PostBy = row["PostBy"].ToString(),
+                        PosteOn = row["PostedOn"].ToString(),
+                        PeriodId = Convert.ToString(row["PeriodId"]),
+                        CreatedBy = row["CreatedBy"].ToString(),
+                        CreatedOn = row["CreatedOn"].ToString(),
+                        LastModifiedBy = row["LastModifiedBy"].ToString(),
+                        LastModifiedOn = row["LastModifiedOn"].ToString()
+                    });
+                }
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = lst;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
     }
 }

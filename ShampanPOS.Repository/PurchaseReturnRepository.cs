@@ -1516,7 +1516,118 @@ WHERE  1 = 1 ";
             }
         }
 
+        public async Task<ResultVM> PurchaseReturnReport(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = @"
+SELECT 
+    ISNULL(M.Id, 0) AS Id,
+    ISNULL(M.Code, '') AS Code,
+    ISNULL(M.BranchId, 0) AS BranchId,
+	ISNULL(M.CompanyId, 0) AS CompanyId,
+    ISNULL(M.SupplierId, 0) AS SupplierId,
+    ISNULL(M.BENumber, '') AS BENumber,
+    ISNULL(FORMAT(M.PurchaseDate, 'yyyy-MM-dd'), '1900-01-01') AS PurchaseDate,
+    ISNULL(M.Comments, '') AS Comments,
+    ISNULL(M.TransactionType, '') AS TransactionType,
+    ISNULL(M.IsPost, 0) AS IsPost,
+    ISNULL(M.PostedBy, '') AS PostedBy,
+    ISNULL(FORMAT(M.PostedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS PostedOn,
+    ISNULL(M.FiscalYear, '') AS FiscalYear,
+    ISNULL(M.PeriodId, '') AS PeriodId,
+    ISNULL(M.CreatedBy, '') AS CreatedBy,
+    ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS CreatedOn,
+    ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
+    ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
+    ISNULL(M.CreatedFrom, '') AS CreatedFrom,
+    ISNULL(M.LastUpdateFrom, '') AS LastUpdateFrom,
+    ISNULL(S.Name, '') AS SupplierName,
+	ISNULL(Br.Name,'') BranchName,
+    ISNULL(CP.CompanyName,'') CompanyName
+FROM 
+    PurchasesReturn M
+    LEFT OUTER JOIN Suppliers S ON ISNULL(M.SupplierId,0) = S.Id
+    LEFT OUTER JOIN BranchProfiles Br ON M.BranchId = Br.Id
+	LEFT OUTER JOIN CompanyProfiles CP ON M.CompanyId = CP.Id
+WHERE 1 = 1
+ ";
+
+                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+                {
+                    query += " AND M.Id = @Id ";
+                }
+
+                // Apply additional conditions
+                query = ApplyConditions(query, conditionalFields, conditionalValue, false);
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                // SET additional conditions param
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValue);
+
+                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@Id", vm.Id);
+                }
+
+                objComm.Fill(dataTable);
+
+                var lst = new List<PurchaseReturnVM>();
+
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    lst.Add(new PurchaseReturnVM
+                    {
+                        Id = row.Field<int>("Id"),
+                        Code = row.Field<string>("Code"),
+                        BranchId = row.Field<int>("BranchId"),
+                        BranchName = row.Field<string>("BranchName"),
+                        CompanyId = row.Field<int>("CompanyId"),
+                        CompanyName = row.Field<string>("CompanyName"),
+                        SupplierId = row.Field<int>("SupplierId"),
+                        SupplierName = row.Field<string>("SupplierName"),
+                        BENumber = row.Field<string>("BENumber"),
+                        PurchaseDate = row.Field<string>("PurchaseDate"),
+                        Comments = row.Field<string>("Comments"),
+                        TransactionType = row.Field<string>("TransactionType"),
+                        IsPost = row.Field<bool>("IsPost"),
+                        PostedBy = row.Field<string>("PostedBy"),
+                        PostedOn = row.Field<string?>("PostedOn"),
+                        FiscalYear = row.Field<string>("FiscalYear"),
+                        PeriodId = row.Field<string>("PeriodId"),
+                        CreatedBy = row.Field<string>("CreatedBy"),
+                        CreatedOn = row.Field<string>("CreatedOn"),
+                        LastModifiedBy = row.Field<string>("LastModifiedBy"),
+                        LastModifiedOn = row.Field<string?>("LastModifiedOn"),
+                        LastUpdateFrom = row.Field<string?>("LastUpdateFrom")
+                    });
+                }
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = lst;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+        }
 
     }
-
 }

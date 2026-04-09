@@ -734,8 +734,63 @@ namespace ShampanPOS.Service
             }
         }
 
+        public async Task<ResultVM> PurchaseReturnReport(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
+        {
+            PurchaseReturnRepository _repo = new PurchaseReturnRepository();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            bool isNewConnection = false;
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+            try
+            {
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+
+                transaction = conn.BeginTransaction();
+
+                result = await _repo.PurchaseReturnReport(conditionalFields, conditionalValues, vm, conn, transaction);
+
+                var lst = new List<PurchaseReturnVM>();
+
+                string data = JsonConvert.SerializeObject(result.DataVM);
+                lst = JsonConvert.DeserializeObject<List<PurchaseReturnVM>>(data);
+
+                var detailsDataList = await _repo.DetailsList(new[] { "D.PurchasesReturnId" }, conditionalValues, vm, conn, transaction);
+
+                if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
+                {
+                    string json = JsonConvert.SerializeObject(dt);
+                    var details = JsonConvert.DeserializeObject<List<PurchaseReturnDetailVM>>(json);
+
+                    lst.FirstOrDefault().purchaseReturnDetailList = details;
+                    lst.FirstOrDefault().PurchaseId = details.FirstOrDefault().PurchaseId;
+                    result.DataVM = lst;
+                }
+
+                if (isNewConnection && result.Status == "Success")
+                {
+                    transaction.Commit();
+                }
+                else
+                {
+                    throw new Exception(result.Message);
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection)
+                {
+                    transaction.Rollback();
+                }
+                result.Message = ex.Message.ToString();
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+        }
 
     }
-
-
 }
