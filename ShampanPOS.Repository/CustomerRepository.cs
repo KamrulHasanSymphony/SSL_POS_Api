@@ -423,6 +423,7 @@ WHERE 1 = 1
                 }
             }
         }
+
         public async Task<ResultVM> GetCustomerListByRoute(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
@@ -1301,6 +1302,133 @@ and M.Code!='ALL'
                 }
             }
         }
+
+
+        public async Task<ResultVM> CustomerReport(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null,
+    SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                DataVM = null
+            };
+
+            try
+            {
+                if (vm == null)
+                {
+                    throw new Exception("vm is null. CompanyId required.");
+                }
+
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = @"
+SELECT
+    ISNULL(M.Id, 0) AS Id,
+    ISNULL(M.Code, '') AS Code,
+    ISNULL(M.Name, '') AS Name,
+    ISNULL(M.BanglaName, '') AS BanglaName,
+    ISNULL(M.CustomerGroupId, 0) AS CustomerGroupId,
+    ISNULL(M.CompanyId, 0) AS CompanyId,
+    ISNULL(M.BranchId, 0) AS BranchId,
+    ISNULL(M.Address, '') AS Address,
+    ISNULL(M.BanglaAddress, '') AS BanglaAddress,
+    ISNULL(M.TelephoneNo, '') AS TelephoneNo,
+    ISNULL(M.FaxNo, '') AS FaxNo,
+    ISNULL(M.Email, '') AS Email,
+    ISNULL(M.TINNo, '') AS TINNo,
+    ISNULL(M.BINNo, '') AS BINNo,
+    ISNULL(M.NIDNo, '') AS NIDNo,
+    ISNULL(M.Comments, '') AS Comments,
+    ISNULL(M.IsArchive, 0) AS IsArchive,
+    ISNULL(M.IsActive, 0) AS IsActive,
+    ISNULL(M.CreatedBy, '') AS CreatedBy,
+    FORMAT(ISNULL(M.CreatedOn, '1900-01-01'), 'yyyy-MM-dd HH:mm') AS CreatedOn,
+    ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
+    FORMAT(ISNULL(M.LastModifiedOn, '1900-01-01'), 'yyyy-MM-dd HH:mm') AS LastModifiedOn,
+    ISNULL(M.ImagePath,'') AS ImagePath,
+    ISNULL(CP.CompanyName,'') AS CompanyName,
+    ISNULL(Br.Name,'') AS BranchName
+FROM Customers M
+LEFT JOIN BranchProfiles Br ON M.BranchId = Br.Id
+LEFT JOIN CompanyProfiles CP ON M.CompanyId = CP.Id
+WHERE 1=1
+AND M.CompanyId = @CompanyId
+";
+
+                if (!string.IsNullOrEmpty(vm.Id))
+                {
+                    query += " AND M.Id = @Id ";
+                }
+
+                // Apply dynamic conditions
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
+
+                SqlDataAdapter adapter = CreateAdapter(query, conn, transaction);
+                adapter.SelectCommand = ApplyParameters(adapter.SelectCommand, conditionalFields, conditionalValues);
+
+                // ✅ Safe parameters
+                adapter.SelectCommand.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
+                if (!string.IsNullOrEmpty(vm.Id))
+                {
+                    adapter.SelectCommand.Parameters.AddWithValue("@Id", vm.Id);
+                }
+
+                adapter.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new CustomerVM
+                {
+                    Id = row.Field<int>("Id"),
+                    Code = row.Field<string>("Code"),
+                    Name = row.Field<string>("Name"),
+                    BanglaName = row.Field<string>("BanglaName"),
+                    CustomerGroupId = row.Field<int>("CustomerGroupId"),
+                    CompanyId = row.Field<int>("CompanyId"),
+                    CompanyName = row.Field<string>("CompanyName"),
+                    BranchId = row.Field<int>("BranchId"),
+                    BranchName = row.Field<string>("BranchName"),
+                    Address = row.Field<string>("Address"),
+                    BanglaAddress = row.Field<string>("BanglaAddress"),
+                    TelephoneNo = row.Field<string>("TelephoneNo"),
+                    FaxNo = row.Field<string>("FaxNo"),
+                    Email = row.Field<string>("Email"),
+                    TINNo = row.Field<string>("TINNo"),
+                    BINNo = row.Field<string>("BINNo"),
+                    NIDNo = row.Field<string>("NIDNo"),
+                    Comments = row.Field<string>("Comments"),
+                    IsArchive = row.Field<bool?>("IsArchive") ?? false,
+                    IsActive = row.Field<bool?>("IsActive") ?? false,
+                    CreatedBy = row.Field<string>("CreatedBy"),
+                    CreatedOn = row.Field<string>("CreatedOn"),
+                    LastModifiedBy = row.Field<string>("LastModifiedBy"),
+                    LastModifiedOn = row.Field<string>("LastModifiedOn"),
+                    ImagePath = row.Field<string>("ImagePath")
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Status = "Fail";
+                result.Message = ex.Message;
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+        }
+
 
     }
 

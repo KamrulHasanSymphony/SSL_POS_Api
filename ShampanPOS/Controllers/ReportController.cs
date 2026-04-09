@@ -75,8 +75,15 @@ namespace ShampanPOS.Controllers
                     conditionValues = new string[] { Vm.Id };
                 }
 
+                var param = new PeramModel
+                {
+                    Id = Vm.Id,
+                    CompanyId = Vm.CompanyId
+                };
+
                 CustomerService _service = new CustomerService();
-                resultVM = await _service.List(conditionFields, conditionValues, null);
+                resultVM = await _service.CustomerReport(conditionFields, conditionValues, param);
+
                 return resultVM;
             }
             catch (Exception ex)
