@@ -16,7 +16,15 @@ namespace ShampanPOS.Controllers
         [HttpPost("GetSupplierReport")]
         public async Task<ResultVM> GetSupplierReport(CommonVM Vm)
         {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            ResultVM resultVM = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                Id = "0",
+                DataVM = null
+            };
+
             try
             {
                 string[] conditionFields = null;
@@ -28,8 +36,16 @@ namespace ShampanPOS.Controllers
                     conditionValues = new string[] { Vm.Id };
                 }
 
+                var param = new PeramModel
+                {
+                    Id = Vm.Id,
+                    CompanyId = Vm.CompanyId
+                };
+
                 SupplierService _service = new SupplierService();
-                resultVM = await _service.List(conditionFields, conditionValues, null);
+
+                resultVM = await _service.SupplierReport(conditionFields, conditionValues, param);
+
                 return resultVM;
             }
             catch (Exception ex)

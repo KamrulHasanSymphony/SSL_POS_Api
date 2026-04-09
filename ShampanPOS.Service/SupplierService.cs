@@ -93,9 +93,6 @@ namespace ShampanPOS.Service
                 }
             }
         }
-
-
-
         public async Task<ResultVM> Update(SupplierVM supplier)
         {
             SupplierRepository _repo = new SupplierRepository();
@@ -186,9 +183,6 @@ namespace ShampanPOS.Service
                     conn.Close();
             }
         }
-
-
-
 
         //public async Task<ResultVM> Update(SupplierVM supplier)
         //{
@@ -285,12 +279,6 @@ namespace ShampanPOS.Service
         //            conn.Close();
         //    }
         //}
-
-
-
-
-
-
         public async Task<ResultVM> Delete(CommonVM vm)
         {
             SupplierRepository _repo = new SupplierRepository();
@@ -594,8 +582,7 @@ namespace ShampanPOS.Service
             }
         }
 
-
-        //public async Task<ResultVM> InsertFromMasterSupplier(SupplierVM supplier)
+       //public async Task<ResultVM> InsertFromMasterSupplier(SupplierVM supplier)
         //{
         //    SupplierRepository _repo = new SupplierRepository();
         //    _commonRepo = new CommonRepository();
@@ -794,8 +781,6 @@ namespace ShampanPOS.Service
         //    }
         //}
 
-
-
         public async Task<ResultVM> InsertFromMasterSupplier(SupplierVM supplier)
         {
             SupplierRepository _repo = new SupplierRepository();
@@ -954,8 +939,6 @@ namespace ShampanPOS.Service
             }
         }
 
-
-
         public async Task<ResultVM> ReportList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
         {
             SupplierRepository _repo = new SupplierRepository();
@@ -997,6 +980,54 @@ namespace ShampanPOS.Service
                 {
                     conn.Close();
                 }
+            }
+        }
+
+        public async Task<ResultVM> SupplierReport(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
+        {
+            SupplierRepository _repo = new SupplierRepository();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            bool isNewConnection = false;
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+            try
+            {
+                if (vm == null)
+                {
+                    throw new Exception("PeramModel vm is null. CompanyId is required.");
+                }
+
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+
+                transaction = conn.BeginTransaction();
+
+                result = await _repo.SupplierReport(
+                    conditionalFields, conditionalValues, vm, conn, transaction);
+
+                // ✅ Commit only if success
+                if (result != null && result.Status == "Success")
+                {
+                    transaction.Commit();
+                }
+                else
+                {
+                    transaction.Rollback();
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection)
+                {
+                    transaction.Rollback();
+                }
+
+                result.ExMessage = ex.ToString();
+                return result;
             }
         }
 

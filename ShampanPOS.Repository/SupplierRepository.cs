@@ -1,12 +1,15 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.SqlServer.Server;
+using Newtonsoft.Json;
 using ShampanPOS.ViewModel;
 using ShampanPOS.ViewModel.CommonVMs;
 using ShampanPOS.ViewModel.KendoCommon;
 using ShampanPOS.ViewModel.Utility;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Data;
 using System.Data.SqlClient;
 using System.Text.Json;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace ShampanPOS.Repository
 {
@@ -963,11 +966,6 @@ WHERE 1 = 1
                 }
             }
         }
-
-
-
-
-
         //        public async Task<ResultVM> GetPurchaseBySupplier(string?[] IDs, SqlConnection conn = null, SqlTransaction transaction = null)
         //        {
         //            bool isNewConnection = false;
@@ -1174,7 +1172,146 @@ WHERE 1 = 1
         //                }
         //            }
         //        }
+        public async Task<ResultVM> SupplierReport(
+            string[] conditionalFields,
+            string[] conditionalValues,
+            PeramModel vm = null,
+            SqlConnection conn = null,
+            SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
 
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                DataVM = null
+            };
+
+            try
+            {
+                if (vm == null)
+                {
+                    throw new Exception("vm is null. CompanyId required.");
+                }
+
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = @"
+        SELECT
+            ISNULL(M.Id, 0) Id,
+            ISNULL(M.Code, '') Code,
+            ISNULL(M.Name, '') Name,
+            ISNULL(M.SupplierGroupId, 0) SupplierGroupId,
+            ISNULL(SG.Name, '') SupplierGroupName,
+            ISNULL(M.BanglaName, '') BanglaName,
+            ISNULL(M.Address, '') Address,
+            ISNULL(M.City, '') City,
+            ISNULL(M.TelephoneNo, '') TelephoneNo,
+            ISNULL(M.Email, '') Email,
+            ISNULL(M.ContactPerson, '') ContactPerson,
+            ISNULL(M.Comments, '') Comments,
+            ISNULL(M.IsArchive, 0) IsArchive,
+            ISNULL(M.IsActive, 0) IsActive,
+            ISNULL(M.CreatedBy, '') CreatedBy,
+            ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm'), '') CreatedOn,
+            ISNULL(M.LastModifiedBy, '') LastModifiedBy,
+            ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '') LastModifiedOn,
+            ISNULL(M.ImagePath,'') AS ImagePath,
+            ISNULL(M.BranchId, 0) AS BranchId,
+            ISNULL(M.CompanyId, 0) AS CompanyId,
+            ISNULL(Br.Name,'') BranchName,
+            ISNULL(CP.CompanyName,'') CompanyName
+        FROM Suppliers M
+        LEFT JOIN SupplierGroups SG ON M.SupplierGroupId = SG.Id
+        LEFT JOIN BranchProfiles Br ON M.BranchId = Br.Id
+        LEFT JOIN CompanyProfiles CP ON M.CompanyId = CP.Id
+        WHERE 1=1
+        AND M.CompanyId = @CompanyId
+        ";
+
+                // ✅ ID filter
+                if (!string.IsNullOrEmpty(vm.Id))
+                {
+                    query += " AND M.Id = @Id ";
+                }
+
+                // ✅ Dynamic filter
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                if (objComm?.SelectCommand == null)
+                {
+                    throw new Exception("SelectCommand is null");
+                }
+
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                // ✅ REQUIRED PARAM
+                objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
+
+                if (!string.IsNullOrEmpty(vm.Id))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@Id", vm.Id);
+                }
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new SupplierVM
+                {
+                    Id = row.Field<int>("Id"),
+                    Code = row.Field<string>("Code"),
+                    Name = row.Field<string>("Name"),
+                    SupplierGroupId = row.Field<int>("SupplierGroupId"),
+                    SupplierGroupName = row.Field<string>("SupplierGroupName"),
+                    BanglaName = row.Field<string>("BanglaName"),
+                    Address = row.Field<string>("Address"),
+                    City = row.Field<string>("City"),
+                    TelephoneNo = row.Field<string>("TelephoneNo"),
+                    Email = row.Field<string>("Email"),
+                    ContactPerson = row.Field<string>("ContactPerson"),
+                    Comments = row.Field<string>("Comments"),
+
+                    // ✅ SAFE BOOL
+                    IsArchive = row.Field<bool?>("IsArchive") ?? false,
+                    IsActive = row.Field<bool?>("IsActive") ?? false,
+
+                    CreatedBy = row.Field<string>("CreatedBy"),
+                    CreatedOn = row.Field<string?>("CreatedOn"),
+                    LastModifiedBy = row.Field<string>("LastModifiedBy"),
+                    LastModifiedOn = row.Field<string?>("LastModifiedOn"),
+
+                    ImagePath = row.Field<string>("ImagePath"),
+
+                    BranchId = row.Field<int>("BranchId"),
+                    BranchName = row.Field<string>("BranchName"),
+                    CompanyId = row.Field<int>("CompanyId"),
+                    CompanyName = row.Field<string>("CompanyName")
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Status = "Fail";
+                result.Message = ex.Message;
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+           
+        }
 
     }
 
