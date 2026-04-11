@@ -71,6 +71,11 @@ namespace ShampanPOS.ViewModel
         public string? UOMName { get; set; }
         public string? ImagePath { get; set; }
         public int? BranchId { get; set; }
+        public string? CompanyName { get; set; }
+        public string? BranchName { get; set; }
+
+
+
         public List<BranchProfileVM> BranchProfileList { get; set; }
         public PeramModel PeramModel { get; set; }
 

@@ -16,7 +16,6 @@ namespace ShampanPOS.Repository
     public class ProductRepository : CommonRepository
     {
         // Insert Method
-       
         public async Task<ResultVM> Insert(ProductVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
@@ -159,9 +158,7 @@ namespace ShampanPOS.Repository
             return result;
         }
 
-
         // Update Method
-
         public async Task<ResultVM> Update(ProductVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
@@ -253,9 +250,7 @@ namespace ShampanPOS.Repository
             }
         }
 
-
-        // Delete Method
-       
+        // Delete Method      
         public async Task<ResultVM> Delete(CommonVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
@@ -328,7 +323,6 @@ namespace ShampanPOS.Repository
                 }
             }
         }
-
 
         // List Method
         public async Task<ResultVM> List(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
@@ -561,7 +555,6 @@ ORDER BY Name";
                 }
             }
         }
-
 
         // GetProductModalData Method
 //        public async Task<ResultVM> GetProductModalData(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
@@ -964,9 +957,6 @@ ORDER BY Name";
             }
         }
 
-
-
-
 //        public async Task<ResultVM> ExportProductExcel(CommonVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
 //        {
 //            bool isNewConnection = false;
@@ -1120,7 +1110,6 @@ ORDER BY Name";
 //            }
 //        }
 
-
         public async Task<ResultVM> TempProductList(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
@@ -1196,7 +1185,6 @@ WHERE 1 = 1 ";
                 }
             }
         }
-
 
         //        public async Task<ResultVM> ExportProductStockExcel(CommonVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
         //        {
@@ -1535,10 +1523,6 @@ WHERE 1 = 1 ";
             }
         }
 
-
-
-
-
         public bool Exists(string name, SqlConnection conn, SqlTransaction tran)
         {
             string sql = @"
@@ -1553,6 +1537,149 @@ WHERE 1 = 1 ";
                 cmd.Parameters.AddWithValue("@Name", name.Trim());
                 return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
             }
+        }
+
+
+
+        public async Task<ResultVM> ProductReport(string[] conditionalFields,string[] conditionalValues,PeramModel vm = null,
+            SqlConnection conn = null,SqlTransaction transaction = null)
+       
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                DataVM = null
+            };
+
+            try
+            {
+                if (vm == null)
+                {
+                    throw new Exception("vm is null. CompanyId required.");
+                }
+
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = @"
+        SELECT
+            ISNULL(M.Id, 0) Id,
+            ISNULL(M.Code, '') Code,
+            ISNULL(M.Name, '') Name,
+            ISNULL(M.ProductGroupId, 0) ProductGroupId,
+            ISNULL(PG.Name, '') ProductGroupName,
+            ISNULL(M.BanglaName, '') BanglaName,
+            ISNULL(M.Description, '') Description,
+            ISNULL(M.UOMId, 0) UOMId,
+            ISNULL(UM.Name, '') UOMName,
+            ISNULL(M.HSCodeNo, '') HSCodeNo,
+            ISNULL(M.IsArchive, 0) IsArchive,
+            ISNULL(M.IsActive, 0) IsActive,
+            ISNULL(M.CreatedBy, '') CreatedBy,
+            ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm'), '') CreatedOn,
+            ISNULL(M.LastModifiedBy, '') LastModifiedBy,
+            ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '') LastModifiedOn,
+            ISNULL(M.ImagePath,'') AS ImagePath,
+            ISNULL(M.VATRate, 0) AS VATRate,
+            ISNULL(M.SDRate, 0) AS SDRate,
+            ISNULL(M.PurchasePrice, 0) AS PurchasePrice,
+            ISNULL(M.SalePrice, 0) AS SalePrice,
+            ISNULL(M.BranchId, 0) AS BranchId,
+            ISNULL(M.CompanyId, 0) AS CompanyId,
+            ISNULL(Br.Name,'') BranchName,
+            ISNULL(CP.CompanyName,'') CompanyName
+        FROM Products M
+        LEFT JOIN ProductGroups PG ON M.ProductGroupId = PG.Id
+        LEFT JOIN UOMs UM ON M.UOMId = UM.Id
+        LEFT JOIN BranchProfiles Br ON M.BranchId = Br.Id
+        LEFT JOIN CompanyProfiles CP ON M.CompanyId = CP.Id
+        WHERE 1=1
+        AND M.CompanyId = @CompanyId
+        ";
+
+                if (!string.IsNullOrEmpty(vm.Id))
+                {
+                    query += " AND M.Id = @Id ";
+                }
+
+                // dynamic filter
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                if (objComm?.SelectCommand == null)
+                {
+                    throw new Exception("SelectCommand is null");
+                }
+
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                // ✅ SAFE PARAM
+                objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
+
+                if (!string.IsNullOrEmpty(vm.Id))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@Id", vm.Id);
+                }
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new ProductVM
+                {
+                    Id = row.Field<int>("Id"),
+                    Code = row.Field<string>("Code"),
+                    Name = row.Field<string>("Name"),
+                    ProductGroupId = row.Field<int>("ProductGroupId"),
+                    ProductGroupName = row.Field<string>("ProductGroupName"),
+                    BanglaName = row.Field<string>("BanglaName"),
+                    Description = row.Field<string>("Description"),
+                    UOMId = row.Field<int?>("UOMId"),
+                    UOMName = row.Field<string>("UOMName"),
+                    HSCodeNo = row.Field<string>("HSCodeNo"),
+
+                    IsArchive = row.Field<bool?>("IsArchive") ?? false,
+                    IsActive = row.Field<bool?>("IsActive") ?? false,
+
+                    CreatedBy = row.Field<string>("CreatedBy"),
+                    CreatedOn = row.Field<string?>("CreatedOn"),
+                    LastModifiedBy = row.Field<string>("LastModifiedBy"),
+                    LastModifiedOn = row.Field<string?>("LastModifiedOn"),
+
+                    ImagePath = row.Field<string>("ImagePath"),
+                    VATRate = row.Field<decimal?>("VATRate") ?? 0,
+                    SDRate = row.Field<decimal?>("SDRate") ?? 0,
+                    PurchasePrice = row.Field<decimal?>("PurchasePrice") ?? 0,
+                    SalePrice = row.Field<decimal?>("SalePrice") ?? 0,
+
+                    BranchId = row.Field<int>("BranchId"),
+                    BranchName = row.Field<string>("BranchName"),
+                    CompanyId = row.Field<int>("CompanyId"),
+                    CompanyName = row.Field<string>("CompanyName")
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Status = "Fail";
+                result.Message = ex.Message;
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+         
         }
 
     }
