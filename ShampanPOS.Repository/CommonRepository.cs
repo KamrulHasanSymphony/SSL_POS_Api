@@ -2778,6 +2778,87 @@ LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
 
 
 
+
+
+        public async Task<ResultVM> GetProductModalPurchase(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+        {
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    throw new Exception("Database connection fail!");
+                }
+
+                string query = @"
+SELECT 
+ISNULL(P.Id,0)ProductId , 
+ISNULL(P.Name,'') ProductName,
+ISNULL(P.BanglaName,'') BanglaName, 
+ISNULL(P.Code,'') ProductCode, 
+ISNULL(P.HSCodeNo,'') HSCodeNo,
+ISNULL(P.ProductGroupId,0) ProductGroupId,
+ISNULL(PG.Name,'') ProductGroupName,
+ISNULL(P.UOMId,0) UOMId,
+ISNULL(UOM.Name,'') UOMName,
+ISNULL(P.PurchasePrice,0) PurchasePrice,
+ISNULL(P.SalePrice,0) SalesPrice,
+CASE WHEN P.IsActive = 1 THEN 'Active' ELSE 'Inactive' END Status,
+ISNULL(P.SDRate,0) SDRate,
+ISNULL(P.VATRate,0) VATRate
+
+FROM Products P
+LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+LEFT OUTER JOIN UOMs uom ON P.UOMId = uom.Id
+
+WHERE P.IsActive = 1
+";
+
+                //sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                //objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new ProductDataVM
+                {
+                    ProductId = row.Field<int>("ProductId"),
+                    ProductName = row.Field<string>("ProductName"),
+                    BanglaName = row.Field<string>("BanglaName"),
+                    ProductCode = row.Field<string>("ProductCode"),
+                    HSCodeNo = row.Field<string>("HSCodeNo"),
+                    ProductGroupId = row.Field<int>("ProductGroupId"),
+                    ProductGroupName = row.Field<string>("ProductGroupName"),
+                    UOMId = row.Field<int>("UOMId"),
+                    UOMName = row.Field<string>("UOMName"),
+                    PurchasePrice = row.Field<decimal>("PurchasePrice"),
+                    SalesPrice = row.Field<decimal>("SalesPrice"),
+                    SDRate = row.Field<decimal>("SDRate"),
+                    VATRate = row.Field<decimal>("VATRate"),
+                    Status = row.Field<string>("Status")
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+        }
+
+
+
+
+
+
         public async Task<ResultVM> SaleModal(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
         {
             DataTable dataTable = new DataTable();

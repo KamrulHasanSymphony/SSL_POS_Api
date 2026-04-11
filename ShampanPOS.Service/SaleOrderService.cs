@@ -20,8 +20,8 @@ namespace ShampanPOS.Service
     {
         CommonRepository _commonRepo = new CommonRepository();
 
-public async Task<ResultVM> Insert(SaleOrderVM saleOrder)
-        {
+         public async Task<ResultVM> Insert(SaleOrderVM saleOrder)
+           {
             string CodeGroup = "SaleOrder";
             string CodeName = "SaleOrder";
             SaleOrderRepository _repo = new SaleOrderRepository();
