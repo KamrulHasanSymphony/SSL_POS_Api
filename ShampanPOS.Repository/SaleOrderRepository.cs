@@ -272,6 +272,7 @@ namespace ShampanPOS.Repository
                         BranchId = Convert.ToInt32(row["BranchId"]),
                         BranchName = row.Field<string>("BranchName"),
                         CompanyId = Convert.ToInt32(row["CompanyId"]),
+                        CompanyName = row.Field<string>("CompanyName"),
                         CustomerId = Convert.ToInt32(row["CustomerId"]),
                         CustomerName = row.Field<string>("CustomerName"),
                         DeliveryAddress = row.Field<string>("DeliveryAddress") ?? string.Empty,
