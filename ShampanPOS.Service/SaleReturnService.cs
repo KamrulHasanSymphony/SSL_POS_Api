@@ -1,15 +1,16 @@
-﻿using ShampanPOS.Repository;
-using ShampanPOS.ViewModel.CommonVMs;
+﻿using Newtonsoft.Json;
+using ShampanPOS.Repository;
 using ShampanPOS.ViewModel;
+using ShampanPOS.ViewModel.CommonVMs;
+using ShampanPOS.ViewModel.KendoCommon;
+using ShampanPOS.ViewModel.Utility;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Data;
-using ShampanPOS.ViewModel.Utility;
-using ShampanPOS.ViewModel.KendoCommon;
 
 namespace ShampanPOS.Service
 {
@@ -352,13 +353,7 @@ namespace ShampanPOS.Service
                 result.ExMessage = ex.ToString();
                 return result;
             }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
+           
         }
 
         public async Task<ResultVM> ListAsDataTable(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
@@ -762,8 +757,6 @@ namespace ShampanPOS.Service
             }
         }
 
-
-
         public async Task<ResultVM> GetSaleReturnDetailDataById(GridOptions options, int masterId)
         {
             SaleReturnRepository _repo = new SaleReturnRepository();
@@ -811,6 +804,114 @@ namespace ShampanPOS.Service
                 }
             }
         }
+
+
+        public async Task<ResultVM> SaleReturnReport(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
+        {
+            SaleReturnRepository _repo = new SaleReturnRepository();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            bool isNewConnection = false;
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+            try
+            {
+                if (vm == null)
+                {
+                    throw new Exception("PeramModel vm is null. CompanyId is required.");
+                }
+
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+
+                transaction = conn.BeginTransaction();
+
+                result = await _repo.SaleReturnReport(conditionalFields, conditionalValues, vm, conn, transaction);
+
+                if (isNewConnection && result.Status == "Success")
+                {
+                    transaction.Commit();
+                }
+                else
+                {
+                    throw new Exception(result.Message);
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection)
+                {
+                    transaction.Rollback();
+                }
+                result.Message = ex.ToString();
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+        }
+
+
+
+        //public async Task<ResultVM> SaleReturnReport(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
+        //{
+        //    SaleReturnRepository _repo = new SaleReturnRepository();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
+
+        //        transaction = conn.BeginTransaction();
+
+        //        result = await _repo.SaleReturnReport(conditionalFields, conditionalValues, vm, conn, transaction);
+
+        //        var lst = new List<SaleReturnVM>();
+
+        //        string data = JsonConvert.SerializeObject(result.DataVM);
+        //        lst = JsonConvert.DeserializeObject<List<SaleReturnVM>>(data);
+
+        //        var detailsDataList = _repo.DetailsList(new[] { "D.SaleReturnId" },conditionalValues,vm,conn,transaction);
+
+        //        if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
+        //        {
+        //            string json = JsonConvert.SerializeObject(dt);
+        //            var details = JsonConvert.DeserializeObject<List<SaleReturnDetailVM>>(json);
+
+        //            lst.FirstOrDefault().saleReturnDetailList = details;
+        //            result.DataVM = lst;
+        //        }
+
+        //        if (isNewConnection && result.Status == "Success")
+        //        {
+        //            transaction.Commit();
+        //        }
+        //        else
+        //        {
+        //            throw new Exception(result.Message);
+        //        }
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+        //        result.Message = ex.Message.ToString();
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //}
+
+
 
 
     }
