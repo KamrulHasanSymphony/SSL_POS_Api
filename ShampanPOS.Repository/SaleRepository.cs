@@ -548,10 +548,6 @@ WHERE 1 = 1
             }
         }
 
-
-
-
-
         public ResultVM UpdateDetailsList(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
@@ -609,10 +605,10 @@ LEFT JOIN CompanyProfiles CP ON sd.CompanyId = CP.Id
 WHERE 1 = 1
 ";
 
-                if (vm != null && !string.IsNullOrEmpty(vm.Id))
-                {
-                    query += " AND sd.Id = @Id ";
-                }
+                //if (vm != null && !string.IsNullOrEmpty(vm.Id))
+                //{
+                //    query += " AND sd.Id = @Id ";
+                //}
 
                 // Apply additional conditions
                 query = ApplyConditions(query, conditionalFields, conditionalValue, false);
@@ -622,11 +618,11 @@ WHERE 1 = 1
                 // SET additional conditions param
                 objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValue);
 
-                if (vm != null && int.TryParse(vm.Id, out int id))
-                {
-                    query += " AND sd.Id = @Id ";
-                    objComm.SelectCommand.Parameters.Add("@Id", SqlDbType.Int).Value = id;
-                }
+                //if (vm != null && int.TryParse(vm.Id, out int id))
+                //{
+                //    query += " AND sd.Id = @Id ";
+                //    objComm.SelectCommand.Parameters.Add("@Id", SqlDbType.Int).Value = id;
+                //}
 
                 objComm.Fill(dataTable);
 
@@ -650,11 +646,6 @@ WHERE 1 = 1
                 }
             }
         }
-
-
-
-
-
 
 
         // ListAsDataTable Method
@@ -2262,11 +2253,6 @@ WHERE 1 = 1
             }
         }
 
-
-
-
-
-
         public async Task<ResultVM> CheckRemaingQuantity(
             int? saleOrderDetailId,
             int? productId,
@@ -2319,6 +2305,159 @@ WHERE 1 = 1
         }
 
 
+        public async Task<ResultVM> SaleReport(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = @"
+			SELECT 
+				ISNULL(M.Id, 0) AS Id,
+				ISNULL(M.Code, '') AS Code,
+				ISNULL(M.BranchId, 0) AS BranchId,
+				ISNULL(M.CompanyId, 0) AS CompanyId,
+				ISNULL(M.CustomerId, 0) AS CustomerId,
+				ISNULL(M.SaleOrderId, 0) AS SaleOrderId,
+				ISNULL(S.Code, 0) AS SaleOrderCode,
+	            ISNULL(M.SubTotal, 0) AS SubTotal,
+	            ISNULL(M.TotalSD, 0) AS TotalSD,
+	            ISNULL(M.TotalVAT, 0) AS TotalVAT,
+	            ISNULL(M.GrandTotal, 0) AS GrandTotal,
+	            ISNULL(M.PaidAmount, 0) AS PaidAmount,
+	            ISNULL(M.GrandTotal, 0)-ISNULL(M.PaidAmount, 0) AS DueAmount,
+
+				ISNULL(M.DeliveryAddress, '') AS DeliveryAddress,
+				ISNULL(FORMAT(M.InvoiceDateTime, 'yyyy-MM-dd'), '1900-01-01') AS InvoiceDateTime,
+				ISNULL(M.Comments, '') AS Comments,     
+				ISNULL(M.TransactionType, '') AS TransactionType,
+				ISNULL(M.IsPost, 0) AS IsPost,
+				ISNULL(FORMAT(M.PostedOn, 'yyyy-MM-dd'), '1900-01-01') AS      PostedOn, 
+				ISNULL(M.PeriodId, 0) AS PeriodId,
+				ISNULL(M.CreatedBy, '') AS CreatedBy,
+				ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS CreatedOn,
+				ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
+				ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
+				ISNULL(M.CreatedFrom, '') AS CreatedFrom,
+				ISNULL(M.LastUpdateFrom, '') AS LastUpdateFrom,
+				ISNULL(Br.Name,'') BranchName,
+				ISNULL(CP.CompanyName,'') CompanyName,
+				ISNULL(cus.Name,'') CustomerName
+			FROM 
+				Sales M
+	            LEFT OUTER JOIN BranchProfiles Br ON M.BranchId = Br.Id
+				LEFT OUTER JOIN CompanyProfiles CP ON M.CompanyId = CP.Id
+                LEFT OUTER JOIN Customers cus ON M.CustomerId = cus.Id
+				LEFT OUTER JOIN SaleOrders S ON M.SaleOrderId = S.Id
+			WHERE 1 = 1
+            AND M.CompanyId = @CompanyId
+                        ";
+
+                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+                {
+                    query += " AND M.Id = @Id ";
+                }
+
+                // Apply additional conditions
+                query = ApplyConditions(query, conditionalFields, conditionalValue, false);
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                // SET additional conditions param
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValue);
+                objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
+
+
+                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@Id", vm.Id);
+                }
+
+                objComm.Fill(dataTable);
+
+                var model = new List<SaleVM>();
+
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    model.Add(new SaleVM
+                    {
+                        Id = Convert.ToInt32(row["Id"]),
+                        SubTotal = row.Field<decimal>("SubTotal"),
+                        TotalSD = row.Field<decimal>("TotalSD"),
+                        TotalVAT = row.Field<decimal>("TotalVAT"),
+                        GrandTotal = row.Field<decimal>("GrandTotal"),
+                        PaidAmount = row.Field<decimal>("PaidAmount"),
+                        DueAmount = row.Field<decimal>("DueAmount"),
+                        Code = row["Code"].ToString(),
+                        SaleOrderCode = row["SaleOrderCode"].ToString(),
+                        BranchId = Convert.ToInt32(row["BranchId"]),
+                        BranchName = row.Field<string>("BranchName"),
+                        CompanyId = Convert.ToInt32(row["CompanyId"]),
+                        CompanyName = row.Field<string>("CompanyName"),
+                        CustomerId = Convert.ToInt32(row["CustomerId"]),
+                        CustomerName = row["CustomerName"].ToString(),
+                        SaleOrderId = Convert.ToInt32(row["SaleOrderId"]),
+                        DeliveryAddress = row["DeliveryAddress"].ToString(),
+                        InvoiceDateTime = row["InvoiceDateTime"] != DBNull.Value ? Convert.ToDateTime(row["InvoiceDateTime"]).ToString("yyyy-MM-dd") : "1900-01-01",
+                        Comments = row["Comments"].ToString(),
+                        TransactionType = row["TransactionType"].ToString(),
+                        IsPost = row["IsPost"] != DBNull.Value ? Convert.ToBoolean(row["IsPost"]) : false,
+                        PostedOn = row["PostedOn"] != DBNull.Value ? Convert.ToDateTime(row["PostedOn"]).ToString("yyyy-MM-dd HH:mm:ss") : "1900-01-01 00:00:00",
+                        PeriodId = row["PeriodId"].ToString(),
+                        CreatedBy = row["CreatedBy"].ToString(),
+                        CreatedOn = row["CreatedOn"] != DBNull.Value ? Convert.ToDateTime(row["CreatedOn"]).ToString("yyyy-MM-dd HH:mm:ss") : "1900-01-01 00:00:00",
+                        LastModifiedBy = row["LastModifiedBy"].ToString(),
+                        LastModifiedOn = row["LastModifiedOn"] != DBNull.Value ? Convert.ToDateTime(row["LastModifiedOn"]).ToString("yyyy-MM-dd HH:mm:ss") : "1900-01-01 00:00:00",
+                        CreatedFrom = row["CreatedFrom"].ToString(),
+                        LastUpdateFrom = row["LastUpdateFrom"].ToString()
+                    });
+                }
+                var detailsDataList = UpdateDetailsList(new[] { "sd.SaleId" }, conditionalValue, vm, conn, transaction);
+
+                if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dts)
+                {
+                    string json = JsonConvert.SerializeObject(dts);
+                    var details = JsonConvert.DeserializeObject<List<SaleDetailVM>>(json);
+
+                    if (model.Any())
+                        model.FirstOrDefault().saleDetailsList = details;
+                }
+
+                // ✅ Load SaleCreditCardList
+                SaleCreditCardRepository cardRepository = new SaleCreditCardRepository();
+                var cardDataList = cardRepository.DDetailsList(new[] { "M.SaleId" }, conditionalValue, vm, conn, transaction);
+
+                if (cardDataList.Status == "Success" && cardDataList.DataVM is DataTable cardDts)
+                {
+                    string cardJson = JsonConvert.SerializeObject(cardDts);
+                    var cardDetails = JsonConvert.DeserializeObject<List<SaleCreditCardVM>>(cardJson);
+
+                    if (model.Any())
+                        model.FirstOrDefault().SaleCreditCardList = cardDetails;
+                }
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = model;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+        }
 
 
     }
