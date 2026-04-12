@@ -676,12 +676,6 @@ namespace ShampanPOS.Service
             }
         }
 
-
-
-
-
-
-
         //public async Task<ResultVM> Update(SaleVM sale)
         //{
         //    SaleRepository _repo = new SaleRepository();
@@ -851,8 +845,6 @@ namespace ShampanPOS.Service
         //        }
         //    }
         //}
-
-
 
         public async Task<ResultVM> List(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
         {
@@ -1817,6 +1809,50 @@ namespace ShampanPOS.Service
             }
         }
 
+        public async Task<ResultVM> SaleReport(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
+        {
+            SaleRepository _repo = new SaleRepository();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            bool isNewConnection = false;
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+            try
+            {
+                if (vm == null)
+                {
+                    throw new Exception("PeramModel vm is null. CompanyId is required.");
+                }
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+
+                transaction = conn.BeginTransaction();
+
+                result = await _repo.SaleReport(conditionalFields, conditionalValues, vm, conn, transaction);
+
+                if (isNewConnection && result.Status == "Success")
+                {
+                    transaction.Commit();
+                }
+                else
+                {
+                    throw new Exception(result.Message);
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection)
+                {
+                    transaction.Rollback();
+                }
+                result.Message = ex.ToString();
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+        }
 
     }
 
