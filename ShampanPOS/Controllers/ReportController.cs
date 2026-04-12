@@ -329,8 +329,6 @@ namespace ShampanPOS.Controllers
         }
 
 
-
-
         [HttpPost("GetPurchaseOrderReport")]
         public async Task<ResultVM> GetPurchaseOrderReport(CommonVM Vm)
         {
@@ -557,8 +555,6 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
-
-
 
         //[HttpPost("GetSaleReturnReport")]
         //public async Task<ResultVM> GetSaleReturnReport(CommonVM Vm)
