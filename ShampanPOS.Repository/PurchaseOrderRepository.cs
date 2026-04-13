@@ -1225,7 +1225,12 @@ WHERE  1 = 1
                 ISNULL(D.SDAmount,0.00) AS SDAmount,
                 ISNULL(D.VATRate,0.00) AS VATRate,
                 ISNULL(D.VATAmount,0.00) AS VATAmount,
-                (ISNULL(D.Quantity, 0.00)-ISNULL(D.CompletedQty, 0.00))*ISNULL(D.UnitPrice,0.00) AS LineTotal,
+               (
+                    ((ISNULL(D.Quantity, 0.00)-ISNULL(D.CompletedQty, 0.00)) * ISNULL(D.UnitPrice,0.00))
+                    + ISNULL(D.SDAmount,0.00)
+                    + ISNULL(D.VATAmount,0.00)
+                    + ISNULL(D.OthersAmount,0.00)
+                ) AS LineTotal,
                 ISNULL(FORMAT(D.OthersAmount, 'N2'), '0.00') AS OthersAmount,
                 ISNULL(P.Name,'') ProductName,
                 ISNULL(P.BanglaName,'') BanglaName, 
