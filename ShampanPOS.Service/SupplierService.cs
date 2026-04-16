@@ -163,10 +163,10 @@ namespace ShampanPOS.Service
                 transaction.Commit();
 
                 result.Status = "Success";
-                result.Message = "Supplier and Supplier Products updated successfully.";
+                result.Message = "Supplier updated successfully.";
                 result.DataVM = supplier;
 
-                return result;
+                return result; 
             }
             catch (Exception ex)
             {

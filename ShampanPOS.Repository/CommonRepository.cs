@@ -1188,7 +1188,7 @@ WHERE
 
                 objComm.Fill(dataTable);
 
-                var modelList = dataTable.AsEnumerable().Select(row => new ProductVM
+                var modelList = dataTable.AsEnumerable().Select(row => new ProductNewVM
                 {
                     Id = Convert.ToInt32(row["Id"]),
                     Name = row["Name"]?.ToString(),
