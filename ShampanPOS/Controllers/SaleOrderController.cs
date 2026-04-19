@@ -227,33 +227,40 @@ namespace ShampanPOS.Controllers
             try
             {
 
-                List<string> conditionFields = new List<string>
-                 {
-                     "H.BranchId",
-                     "H.OrderDate between",
-                     "H.OrderDate between"
-                 };
+                //List<string> conditionFields = new List<string>
+                // {
+                //     "H.BranchId",
+                //     "H.OrderDate between",
+                //     "H.OrderDate between"
+                // };
 
-                List<string> conditionValues = new List<string>
-                 {
-                     options.vm.BranchId.ToString(),
-                     options.vm.FromDate.ToString(),
-                     options.vm.ToDate.ToString()
-                 };
+                //List<string> conditionValues = new List<string>
+                // {
+                //     options.vm.BranchId.ToString(),
+                //     options.vm.FromDate.ToString(),
+                //     options.vm.ToDate.ToString()
+                // };
 
-                if (!string.IsNullOrEmpty(options.vm.UserId))
-                {
-                    conditionFields.Add("H.SalePersonId");
-                    conditionValues.Add(options.vm.UserId);
+                //if (!string.IsNullOrEmpty(options.vm.UserId))
+                //{
+                //    conditionFields.Add("H.SalePersonId");
+                //    conditionValues.Add(options.vm.UserId);
 
-                }
+                //}
 
-                string[] finalConditionFields = conditionFields.ToArray();
-                string[] finalConditionValues = conditionValues.ToArray();
+                //string[] finalConditionFields = conditionFields.ToArray();
+                //string[] finalConditionValues = conditionValues.ToArray();
+
+                //_saleOrderService = new SaleOrderService();
+                //resultVM = await _saleOrderService.GetGridData(options, finalConditionFields, finalConditionValues);
+                //return resultVM;
+
 
                 _saleOrderService = new SaleOrderService();
-                resultVM = await _saleOrderService.GetGridData(options, finalConditionFields, finalConditionValues);
+                resultVM = await _saleOrderService.GetGridData(options, new[] { "H.BranchId", "H.IsPost", "H.OrderDate between", "H.OrderDate between" }, new[] { options.vm.BranchId.ToString(), options.vm.IsPost.ToString(), options.vm.FromDate.ToString(), options.vm.ToDate.ToString() });
+
                 return resultVM;
+
             }
             catch (Exception ex)
             {

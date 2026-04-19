@@ -6,6 +6,7 @@ using ShampanPOS.ViewModel.Utility;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Globalization;
 using System.Text.Json;
 
 namespace ShampanPOS.Repository
@@ -56,8 +57,7 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@SaleOrderId", sale.SaleOrderId ?? (object)DBNull.Value);
 
                     cmd.Parameters.AddWithValue("@DeliveryAddress", sale.DeliveryAddress ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@InvoiceDateTime", sale.InvoiceDateTime + " " + DateTime.Now.ToString("HH:mm"));
-                    cmd.Parameters.AddWithValue("@Comments", sale.Comments ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@InvoiceDateTime", DateTime.ParseExact(sale.InvoiceDateTime, "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)); cmd.Parameters.AddWithValue("@Comments", sale.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@SubTotal", sale.SubTotal);
                     cmd.Parameters.AddWithValue("@TotalSD", sale.TotalSD);
                     cmd.Parameters.AddWithValue("@TotalVAT", sale.TotalVAT);

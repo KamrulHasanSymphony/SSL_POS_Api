@@ -2290,7 +2290,8 @@ SELECT
         ISNULL(M.CustomerId, 0) AS CustomerId,
         ISNULL(C.Name, '') AS CustomerName,
         ISNULL(M.DeliveryAddress, '') AS DeliveryAddress,
-        ISNULL(FORMAT(M.OrderDate, 'yyyy-MM-dd'), '1900-01-01') AS OrderDate,
+       ISNULL(CONVERT(VARCHAR(19), M.OrderDate, 120), '1900-01-01 00:00:00') AS OrderDate,
+       ISNULL(CONVERT(VARCHAR(19), M.OrderDate, 120), '1900-01-01 00:00:00') AS InvoiceDateTime,
         ISNULL(FORMAT(M.DeliveryDate, 'yyyy-MM-dd'), '1900-01-01') AS DeliveryDate,
 
         ISNULL(M.Comments, '') AS Comments,
@@ -2352,7 +2353,7 @@ SELECT
                         DeliveryAddress = row.Field<string>("DeliveryAddress") ?? string.Empty,
                         OrderDate = row.Field<string>("OrderDate"),
                         DeliveryDate = row.Field<string>("DeliveryDate"),
-
+                        InvoiceDateTime = row.Field<string>("InvoiceDateTime"),
                         Comments = row.Field<string>("Comments") ?? string.Empty,
                         TransactionType = row.Field<string>("TransactionType") ?? string.Empty,
                         IsPost = row.Field<bool>("IsPost"),

@@ -43,8 +43,8 @@ namespace ShampanPOS.ViewModel
         [Required]
         [Display(Name = "Purchase Date")]
         public string? PurchaseDate { get; set; }
-
-
+        public string? OrderDate { get; set; }
+        public string? DeliveryDateTime { get; set; }
 
         [Display(Name = "Comments")]
         public string? Comments { get; set; }
