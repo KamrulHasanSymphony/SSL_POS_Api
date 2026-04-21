@@ -2729,7 +2729,8 @@ SELECT
     ISNULL(P.SDRate,0) SDRate,
 	ISNULL(P.VATRate,0) VATRate,
     ISNULL(P.PurchasePrice,0) PurchasePrice,
-    ISNULL(P.SalePrice,0) SalesPrice
+    ISNULL(P.SalePrice,0) SalesPrice,
+	ISNULL(P.ImagePath,'') AS ImagePath
 
 FROM Products P
 LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
@@ -2759,7 +2760,9 @@ LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
                     SDRate = row.Field<decimal>("SDRate"),
                     VATRate = row.Field<decimal>("VATRate"),
                     PurchasePrice = row.Field<decimal>("PurchasePrice"),
-                    SalesPrice = row.Field<decimal>("SalesPrice")
+                    SalesPrice = row.Field<decimal>("SalesPrice"),
+                    ImagePath = row.Field<string>("ImagePath"),
+
                 }).ToList();
 
                 result.Status = "Success";
