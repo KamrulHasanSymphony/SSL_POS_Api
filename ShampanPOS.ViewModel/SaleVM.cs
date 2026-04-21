@@ -18,6 +18,7 @@ namespace ShampanPOS.ViewModel
         public int? BranchId { get; set; }
         public int? CompanyId { get; set; }
         public string? UserId { get; set; }
+        public int? ProductGroupId { get; set; }
 
         public bool IsManualSale { get; set; }
 
