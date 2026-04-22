@@ -2779,8 +2779,83 @@ LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
         }
 
 
+        public async Task<ResultVM> ProductModal(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+        {
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
 
+            try
+            {
+                if (conn == null)
+                {
+                    throw new Exception("Database connection fail!");
+                }
 
+                string query = @" 
+        SELECT 
+            ISNULL(P.Id,0) AS ProductId, 
+            ISNULL(P.Name,'') AS ProductName,
+            ISNULL(P.BanglaName,'') AS BanglaName, 
+            ISNULL(P.Code,'') AS ProductCode, 
+            ISNULL(P.ProductGroupId, 0) AS ProductGroupId,
+            ISNULL(PG.Name,'') AS ProductGroupName,
+            0 AS UOMId,
+            ISNULL(UOM.Name,'') AS UOMName,
+            CASE WHEN P.IsActive = 1 THEN 'Active' ELSE 'Inactive' END AS Status,
+            ISNULL(P.SDRate,0) SDRate,
+            ISNULL(P.VATRate,0) VATRate,
+            ISNULL(P.PurchasePrice,0) PurchasePrice,
+            ISNULL(P.SalePrice,0) SalesPrice,
+            ISNULL(P.ImagePath,'') AS ImagePath
+
+        FROM Products P
+        LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+        LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
+
+        WHERE (@ProductGroupId IS NULL OR @ProductGroupId = '' OR P.ProductGroupId = @ProductGroupId)
+        ";
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                var groupId = conditionalValues != null && conditionalValues.Length > 0
+                              ? conditionalValues[0]
+                              : null;
+
+                objComm.SelectCommand.Parameters.AddWithValue("@ProductGroupId",
+                    string.IsNullOrEmpty(groupId) ? (object)DBNull.Value : groupId);
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new ProductDataVM
+                {
+                    ProductId = row.Field<int>("ProductId"),
+                    ProductName = row.Field<string>("ProductName"),
+                    BanglaName = row.Field<string>("BanglaName"),
+                    ProductCode = row.Field<string>("ProductCode"),
+                    ProductGroupId = row.Field<int>("ProductGroupId"),
+                    ProductGroupName = row.Field<string>("ProductGroupName"),
+                    UOMId = row.Field<int>("UOMId"),
+                    UOMName = row.Field<string>("UOMName"),
+                    Status = row.Field<string>("Status"),
+                    SDRate = row.Field<decimal>("SDRate"),
+                    VATRate = row.Field<decimal>("VATRate"),
+                    PurchasePrice = row.Field<decimal>("PurchasePrice"),
+                    SalesPrice = row.Field<decimal>("SalesPrice"),
+                    ImagePath = row.Field<string>("ImagePath"),
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+        }
 
 
         public async Task<ResultVM> GetProductModalPurchase(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)

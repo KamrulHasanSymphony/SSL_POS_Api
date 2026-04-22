@@ -220,7 +220,7 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@SaleOrderId", sale.SaleOrderId ?? (object)DBNull.Value);
 
                     cmd.Parameters.AddWithValue("@DeliveryAddress", sale.DeliveryAddress ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@InvoiceDateTime", sale.InvoiceDateTime + " " + DateTime.Now.ToString("HH:mm"));
+                    cmd.Parameters.AddWithValue("@InvoiceDateTime", sale.InvoiceDateTime ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Comments", sale.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@SubTotal", sale.SubTotal);
                     cmd.Parameters.AddWithValue("@TotalSD", sale.TotalSD);

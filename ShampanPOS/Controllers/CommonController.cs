@@ -604,6 +604,29 @@ namespace ShampanPOS.Controllers
         }
 
 
+        [HttpPost("ProductModal")]
+        public async Task<ResultVM> ProductModal(CommonVM Vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                CommonService _commonService = new CommonService();
+                resultVM = await _commonService.ProductModal(new[] { "" }, new[] { "" }, null);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
+
+
 
         [HttpPost("GetProductModalPurchase")]
         public async Task<ResultVM> GetProductModalPurchase(CommonVM Vm)
