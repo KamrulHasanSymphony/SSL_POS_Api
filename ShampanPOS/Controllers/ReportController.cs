@@ -586,6 +586,72 @@ namespace ShampanPOS.Controllers
         //        };
         //    }
         //}
+        [HttpPost("GetPurchaseByList")]
+        public async Task<ResultVM> GetPurchaseByList(PurchaseVM purchase)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+
+            try
+            {
+                List<string> conditionFields = new List<string>();
+                List<string> conditionValues = new List<string>();
+
+                if (!string.IsNullOrEmpty(purchase.SupplierName))
+                {
+                    conditionFields.Add("M.SupplierName");
+                    conditionValues.Add(purchase.SupplierName);
+                }
+
+                if (!string.IsNullOrEmpty(purchase.PurchaseFromDate))
+                {
+                    conditionFields.Add("M.PurchaseFromDate");
+                    conditionValues.Add(purchase.PurchaseFromDate);
+                }
+
+                if (!string.IsNullOrEmpty(purchase.PurchaseToDate))
+                {
+                    conditionFields.Add("M.PurchaseToDate");
+                    conditionValues.Add(purchase.PurchaseToDate);
+                }
+
+                if (!string.IsNullOrEmpty(purchase.InvoiceFromDate))
+                {
+                    conditionFields.Add("M.InvoiceFromDate");
+                    conditionValues.Add(purchase.InvoiceFromDate);
+                }
+                if (!string.IsNullOrEmpty(purchase.InvoiceToDate))
+                {
+                    conditionFields.Add("M.InvoiceToDate");
+                    conditionValues.Add(purchase.InvoiceToDate);
+                }
+
+                PurchaseService _service = new PurchaseService();
+
+                if (conditionFields.Count == 0)
+                {
+                    resultVM = await _service.ReportList(null, null, null);
+                }
+                else
+                {
+                    resultVM = await _service.ReportList(
+                        conditionFields.ToArray(),
+                        conditionValues.ToArray(),
+                        null
+                    );
+                }
+
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message
+                };
+            }
+        }
 
 
 
