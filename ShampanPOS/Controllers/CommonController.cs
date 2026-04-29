@@ -838,6 +838,32 @@ namespace ShampanPOS.Controllers
         }
 
 
+
+        [HttpPost("GetReportTypeList")]
+        public async Task<ResultVM> GetReportTypeList(CommonVM Vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                CommonService _commonService = new CommonService();
+                resultVM = await _commonService.GetReportTypeList(new[] { "" }, new[] { "" }, null);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
+
+
+
+
         [HttpPost("GetTableList")]
         public async Task<ResultVM> GetTableList(CommonVM Vm)
         {

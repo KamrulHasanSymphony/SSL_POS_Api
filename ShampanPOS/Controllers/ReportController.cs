@@ -588,5 +588,62 @@ namespace ShampanPOS.Controllers
         //}
 
 
+
+        [HttpPost("GetSaleByList")]
+        public async Task<ResultVM> GetSaleByList(SaleReportVM sale)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+
+            try
+            {
+                SaleService _service = new SaleService();
+
+                resultVM = await _service.ReportList( sale);
+                
+
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message
+                };
+            }
+        }
+
+
+
+        //[HttpPost("GetSaleOrderByList")]
+        //public async Task<ResultVM> GetSaleOrderByList(SaleOrderReportVM saleorder)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+
+        //    try
+        //    {
+        //        SaleOrderService _service = new SaleOrderService();
+
+        //        resultVM = await _service.ReportList(saleorder);
+
+
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message
+        //        };
+        //    }
+        //}
+
+
+
+
+
     }
 }

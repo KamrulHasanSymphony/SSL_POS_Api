@@ -1116,6 +1116,103 @@ namespace ShampanPOS.Service
                 }
             }
         }
+
+
+        //public async Task<ResultVM> ReportList(SaleOrderReportVM vm = null)
+        //{
+        //    SaleOrderRepository _repo = new SaleOrderRepository();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
+
+        //        transaction = conn.BeginTransaction();
+
+        //        List<string> conditionFields = new List<string>();
+        //        List<string> conditionValues = new List<string>();
+        //        if (vm != null)
+        //        {
+        //            // =========================
+        //            // CUSTOMER NAME
+        //            // =========================
+        //            if (!string.IsNullOrEmpty(vm.CustomerName))
+        //            {
+        //                conditionFields.Add("C.Name");
+        //                conditionValues.Add(vm.CustomerName);
+        //            }
+
+        //            // =========================
+        //            // CUSTOMER CODE
+        //            // =========================
+        //            if (!string.IsNullOrEmpty(vm.Code))
+        //            {
+        //                conditionFields.Add("S.Code");
+        //                conditionValues.Add(vm.Code);
+        //            }
+
+        //            // =========================
+        //            // REPORT TYPE LOGIC (FIXED)
+        //            // =========================
+        //            string reportMode = "INVOICE";
+
+        //            if (vm.ReportType == 2)
+        //                reportMode = "PRODUCT";
+        //            else if (vm.ReportType == 3)
+        //                reportMode = "CUSTOMER";
+
+        //            // =========================
+        //            // SUMMARY / DETAILS (FINAL OVERRIDE)
+        //            // =========================
+        //            vm.Operation = vm.IsSummary ? "SUMMARY" : "DETAILS";
+        //        }
+
+        //        // =========================
+        //        // CALL REPOSITORY
+        //        // =========================
+        //        if (conditionFields.Count == 0)
+        //        {
+        //            result = await _repo.ReportList(null, null, vm, conn, transaction);
+        //        }
+        //        else
+        //        {
+        //            result = await _repo.ReportList(conditionFields.ToArray(), conditionValues.ToArray(), vm, conn, transaction);
+        //        }
+
+        //        if (isNewConnection)
+        //        {
+        //            transaction.Commit();
+        //        }
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
+
+
+
     }
 
 
