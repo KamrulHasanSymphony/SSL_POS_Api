@@ -1629,5 +1629,214 @@ WHERE 1 = 1
             }
         }
 
+
+        public async Task<ResultVM> ReportList(string[] conditionalFields, string[] conditionalValues, PurchaseReturnReportVM vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = "";
+
+                if (vm != null && vm.IsSummary)
+                {
+                    query = @"
+SELECT
+    ISNULL(M.Code,'') AS ReturnCode,
+    ISNULL(D.ProductId,0) AS ProductId,
+    ISNULL(PD.Name,'') AS ProductName,
+    ISNULL(S.Name,'') AS SupplierName,
+
+    ISNULL(FORMAT(M.CreatedOn, 'dd/MM/yyyy'), '') AS ReturnDate,
+    ISNULL(FORMAT(P.PurchaseDate, 'dd/MM/yyyy'), '') AS PurchaseDate,
+
+    SUM(ISNULL(D.Quantity,0)) AS Quantity,
+    SUM(ISNULL(D.SubTotal,0)) AS SubTotal,
+    SUM(ISNULL(D.VATAmount,0)) AS VATAmount,
+    SUM(ISNULL(D.LineTotal,0)) AS LineTotal
+
+FROM PurchasesReturn M
+LEFT JOIN PurchaseReturnDetails D ON M.Id = D.PurchasesReturnId
+
+-- 🔥 IMPORTANT JOIN
+LEFT JOIN Purchases P ON M.PurchaseId = P.Id  
+
+LEFT JOIN Products PD ON D.ProductId = PD.Id
+LEFT JOIN Suppliers S ON M.SupplierId = S.Id
+
+WHERE 1=1
+
+-- 🔥 Return Date filter
+AND (@fromDate IS NULL OR M.CreatedOn >= @fromDate)
+AND (@toDate IS NULL OR M.CreatedOn <= @toDate)
+
+-- 🔥 Purchase Date filter
+AND (@purchaseFromDate IS NULL OR P.PurchaseDate >= @purchaseFromDate)
+AND (@purchaseToDate IS NULL OR P.PurchaseDate <= @purchaseToDate)
+
+AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
+
+GROUP BY 
+    M.Code,
+    D.ProductId,
+    PD.Name,
+    S.Name,
+    P.PurchaseDate
+";
+                }
+                else
+                {
+                    query = @"
+SELECT 
+    ISNULL(D.Id, 0) AS Id,
+
+    ISNULL(M.Code,'') AS ReturnCode,
+
+    ISNULL(FORMAT(M.CreatedOn, 'dd/MM/yyyy'), '') AS ReturnDate,
+    ISNULL(FORMAT(P.PurchaseDate, 'dd/MM/yyyy'), '') AS PurchaseDate,
+
+    ISNULL(S.Name, '') AS SupplierName,
+
+    ISNULL(PR.Name,'') AS ProductName,
+    ISNULL(PR.Code,'') AS ProductCode,
+    ISNULL(PR.HSCodeNo,'') AS HSCodeNo,
+
+    ISNULL(PG.Name,'') AS ProductGroupName,
+
+    ISNULL(D.Quantity,0) AS Quantity,
+    ISNULL(D.UnitPrice,0) AS UnitPrice,
+    ISNULL(D.SubTotal,0) AS SubTotal,
+    ISNULL(D.SD,0) AS SD,
+    ISNULL(D.SDAmount,0) AS SDAmount,
+    ISNULL(D.VATRate,0) AS VATRate,
+    ISNULL(D.VATAmount,0) AS VATAmount,
+    ISNULL(D.LineTotal,0) AS LineTotal
+
+FROM PurchaseReturnDetails D
+
+LEFT JOIN PurchasesReturn M ON D.PurchasesReturnId = M.Id
+
+-- 🔥 IMPORTANT JOIN
+LEFT JOIN Purchases P ON M.PurchaseId = P.Id  
+
+LEFT JOIN Suppliers S ON M.SupplierId = S.Id
+LEFT JOIN Products PR ON D.ProductId = PR.Id
+LEFT JOIN ProductGroups PG ON PR.ProductGroupId = PG.Id
+
+WHERE 1=1
+
+-- 🔥 Return Date filter
+AND (@fromDate IS NULL OR M.CreatedOn >= @fromDate)
+AND (@toDate IS NULL OR M.CreatedOn <= @toDate)
+
+-- 🔥 Purchase Date filter
+AND (@purchaseFromDate IS NULL OR P.PurchaseDate >= @purchaseFromDate)
+AND (@purchaseToDate IS NULL OR P.PurchaseDate <= @purchaseToDate)
+
+AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
+";
+                }
+
+                // Apply additional conditions
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                // SET additional conditions param
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                objComm.SelectCommand.Parameters.AddWithValue("@SupplierId", vm.SupplierId);
+                objComm.SelectCommand.Parameters.AddWithValue("@fromDate", string.IsNullOrEmpty(vm.InvoiceFromDate) ? (object)DBNull.Value : DateTime.Parse(vm.InvoiceFromDate));
+
+                objComm.SelectCommand.Parameters.AddWithValue("@toDate", string.IsNullOrEmpty(vm.InvoiceToDate) ? (object)DBNull.Value : DateTime.Parse(vm.InvoiceToDate));
+
+
+                objComm.SelectCommand.Parameters.AddWithValue("@purchasefromDate", string.IsNullOrEmpty(vm.PurchaseFromDate) ? (object)DBNull.Value : DateTime.Parse(vm.PurchaseFromDate));
+
+                objComm.SelectCommand.Parameters.AddWithValue("@purchasetoDate", string.IsNullOrEmpty(vm.PurchaseToDate) ? (object)DBNull.Value
+                        : DateTime.Parse(vm.PurchaseToDate));
+
+                objComm.Fill(dataTable);
+
+
+
+                var modelList = dataTable.AsEnumerable().Select(row => new PurchaseReturnReportVM
+                {
+                    Id = dataTable.Columns.Contains("Id") ? row.Field<int>("Id") : 0,
+
+                    Code = dataTable.Columns.Contains("PurchaseCode")
+                        ? row.Field<string>("PurchaseCode")
+                        : "",
+
+                    SupplierName = dataTable.Columns.Contains("SupplierName")
+                        ? row.Field<string>("SupplierName")
+                        : "",
+
+                    ProductName = dataTable.Columns.Contains("ProductName")
+                        ? row.Field<string>("ProductName")
+                        : "",
+
+                    Quantity = row.Field<decimal?>("Quantity") ?? 0.0m,
+
+                    UnitPrice = dataTable.Columns.Contains("UnitPrice")
+                        ? row.Field<decimal?>("UnitPrice") ?? 0.0m
+                        : 0.0m,
+
+                    SubTotal = row.Field<decimal?>("SubTotal") ?? 0.0m,
+
+                    SD = dataTable.Columns.Contains("SD")
+                        ? row.Field<decimal?>("SD") ?? 0.0m
+                        : 0.0m,
+
+                    SDAmount = dataTable.Columns.Contains("SDAmount")
+                        ? row.Field<decimal?>("SDAmount") ?? 0.0m
+                        : 0.0m,
+
+                    VATRate = dataTable.Columns.Contains("VATRate")
+                        ? row.Field<decimal?>("VATRate") ?? 0.0m
+                        : 0.0m,
+
+                    VATAmount = row.Field<decimal?>("VATAmount") ?? 0.0m,
+
+                    LineTotal = row.Field<decimal?>("LineTotal") ?? 0.0m,
+
+                    InvoiceDateTime = dataTable.Columns.Contains("InvoiceDateTime")
+                        ? row.Field<string>("InvoiceDateTime")
+                        : "",
+
+                    PurchaseDate = dataTable.Columns.Contains("PurchaseDate")
+                        ? row.Field<string>("PurchaseDate")
+                        : ""
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Message = ex.Message;
+                result.ExMessage = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
     }
 }

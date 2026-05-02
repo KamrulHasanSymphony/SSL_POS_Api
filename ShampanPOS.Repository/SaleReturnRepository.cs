@@ -1703,6 +1703,146 @@ WHERE 1 = 1
         }
 
 
+        public async Task<ResultVM> ReportList(string[] conditionalFields, string[] conditionalValues, SaleReturnReportVM vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = "";
+
+                if (vm != null && vm.IsSummary)
+                {
+                    query = @"
+                       SELECT
+                ISNULL(M.Id,0) Id,
+                ISNULL(M.Code,'') SaleReturnCode,
+                ISNULL(FORMAT(M.InvoiceDateTime, 'dd/MM/yyyy'), '') AS InvoiceDateTime,
+                ISNULL(C.Name,'') CustomerName,
+
+                ISNULL(P.Name,'') ProductName, 
+
+                SUM(ISNULL(D.Quantity,0)) Quantity,
+                SUM(ISNULL(D.SubTotal,0)) SubTotal,
+                SUM(ISNULL(D.VATAmount,0)) VATAmount,
+                SUM(ISNULL(D.LineTotal,0)) LineTotal
+
+                FROM SaleReturnDetails D
+                LEFT OUTER JOIN SaleReturns M ON D.SaleReturnId = M.Id
+                LEFT OUTER JOIN Customers C ON M.CustomerId = C.Id
+                LEFT OUTER JOIN Products P ON D.ProductId = P.Id
+
+                WHERE M.InvoiceDateTime >= @fromDate 
+                AND M.InvoiceDateTime <= @toDate
+                AND (@CustomerId = 0 OR M.CustomerId = @CustomerId)
+
+                GROUP BY 
+                M.Id, M.Code, M.InvoiceDateTime, C.Name, P.Name
+                ";
+                }
+                else
+                {
+                    query = @"
+                SELECT 
+                ISNULL(D.Id,0) Id,
+                ISNULL(M.Code,'') SaleReturnCode,
+                ISNULL(FORMAT(M.InvoiceDateTime, 'dd/MM/yyyy'), '') AS InvoiceDateTime,
+                ISNULL(C.Name,'') CustomerName,
+
+                ISNULL(P.Name,'') ProductName,
+                ISNULL(P.Code,'') ProductCode,
+                ISNULL(P.HSCodeNo,'') HSCodeNo,
+                ISNULL(PG.Name,'') ProductGroupName,
+
+                ISNULL(D.Quantity,0) Quantity,
+                ISNULL(D.UnitRate,0) UnitRate,
+                ISNULL(D.SubTotal,0) SubTotal,
+                ISNULL(D.SD,0) SD,
+                ISNULL(D.SDAmount,0) SDAmount,
+                ISNULL(D.VATRate,0) VATRate,
+                ISNULL(D.VATAmount,0) VATAmount,
+                ISNULL(D.LineTotal,0) LineTotal
+
+                FROM SaleReturnDetails D
+
+                LEFT OUTER JOIN SaleReturns M ON D.SaleReturnId = M.Id
+                LEFT OUTER JOIN Products P ON D.ProductId = P.Id
+                LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+                LEFT OUTER JOIN Customers C ON M.CustomerId = C.Id
+
+                WHERE M.InvoiceDateTime >= @fromDate 
+                AND M.InvoiceDateTime <= @toDate
+                AND (@CustomerId = 0 OR M.CustomerId = @CustomerId)
+                ";
+                }
+
+                // Apply additional conditions
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                // SET additional conditions param
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                
+
+                // Ensure correct date formats are passed to SQL query
+                objComm.SelectCommand.Parameters.AddWithValue("@CustomerId", (vm.CustomerId));
+                objComm.SelectCommand.Parameters.AddWithValue("@fromDate", DateTime.Parse(vm.InvoiceFromDate));
+                objComm.SelectCommand.Parameters.AddWithValue("@toDate", DateTime.Parse(vm.InvoiceToDate));
+
+                objComm.Fill(dataTable);
+
+
+
+                var modelList = dataTable.AsEnumerable().Select(row => new SaleReturnReportVM
+                {
+                    Id = row.Field<int>("Id"),
+                    Code = row.Field<string>("SaleReturnCode"),
+                    CustomerName = row.Field<string>("CustomerName"),
+                    ProductName = dataTable.Columns.Contains("ProductName") ? row.Field<string>("ProductName") : "",
+                    Quantity = row.Field<decimal?>("Quantity") ?? 0.0m,
+                    UnitRate = dataTable.Columns.Contains("UnitRate") ? row.Field<decimal?>("UnitRate") ?? 0.0m : 0.0m,
+                    SubTotal = row.Field<decimal?>("SubTotal") ?? 0.0m,
+                    SD = dataTable.Columns.Contains("SD") ? row.Field<decimal?>("SD") ?? 0.0m : 0.0m,
+                    SDAmount = dataTable.Columns.Contains("SDAmount") ? row.Field<decimal?>("SDAmount") ?? 0.0m : 0.0m,
+                    VATRate = dataTable.Columns.Contains("VATRate") ? row.Field<decimal?>("VATRate") ?? 0.0m : 0.0m,
+                    VATAmount = row.Field<decimal?>("VATAmount") ?? 0.0m,
+                    LineTotal = row.Field<decimal?>("LineTotal") ?? 0.0m,
+                    InvoiceDateTime = row.Field<string>("InvoiceDateTime")
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Message = ex.Message;
+                result.ExMessage = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
+
+
     }
 
 }

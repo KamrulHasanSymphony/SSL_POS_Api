@@ -904,5 +904,110 @@ namespace ShampanPOS.Service
             }
         }
 
+
+        public async Task<ResultVM> ReportList(PurchaseOrderReportVM vm = null)
+        {
+            PurchaseOrderRepository _repo = new PurchaseOrderRepository();
+
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            bool isNewConnection = false;
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+
+            try
+            {
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+
+                transaction = conn.BeginTransaction();
+
+                List<string> conditionFields = new List<string>();
+                List<string> conditionValues = new List<string>();
+
+                if (vm != null)
+                {
+                    ////// =========================
+                    ////// ✅ SUPPLIER FILTER (FIXED)
+                    ////// =========================
+                    ////if (vm.SupplierId > 0)
+                    ////{
+                    ////    conditionFields.Add("M.SupplierId");
+                    ////    conditionValues.Add(vm.SupplierId.ToString());
+                    ////}
+
+                    // =========================
+                    // PURCHASE CODE (OPTIONAL)
+                    // =========================
+                    if (!string.IsNullOrEmpty(vm.Code))
+                    {
+                        conditionFields.Add("M.Code");
+                        conditionValues.Add(vm.Code);
+                    }
+
+                    // =========================
+                    // DATE NULL HANDLE
+                    // =========================
+                    vm.OrderFromDate = string.IsNullOrEmpty(vm.OrderFromDate) ? null : vm.OrderFromDate;
+                    vm.OrderToDate = string.IsNullOrEmpty(vm.OrderToDate) ? null : vm.OrderToDate;
+
+                    vm.DeliveryFromDate = string.IsNullOrEmpty(vm.DeliveryFromDate) ? null : vm.DeliveryFromDate;
+                    vm.DeliveryToDate = string.IsNullOrEmpty(vm.DeliveryToDate) ? null : vm.DeliveryToDate;
+
+                    // =========================
+                    // REPORT TYPE
+                    // =========================
+                    string reportMode = "INVOICE";
+
+                    if (vm.ReportType == 2)
+                        reportMode = "PRODUCT";
+                    else if (vm.ReportType == 3)
+                        reportMode = "SUPPLIER";
+
+                    // =========================
+                    // SUMMARY / DETAILS
+                    // =========================
+                    vm.Operation = vm.IsSummary ? "SUMMARY" : "DETAILS";
+                }
+
+                // =========================
+                // CALL REPOSITORY
+                // =========================
+                if (conditionFields.Count == 0)
+                {
+                    result = await _repo.ReportList(null, null, vm, conn, transaction);
+                }
+                else
+                {
+                    result = await _repo.ReportList(conditionFields.ToArray(), conditionValues.ToArray(), vm, conn, transaction);
+                }
+
+                if (isNewConnection)
+                {
+                    transaction.Commit();
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection)
+                {
+                    transaction.Rollback();
+                }
+
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
     }
 }

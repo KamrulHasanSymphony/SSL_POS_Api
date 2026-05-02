@@ -586,72 +586,72 @@ namespace ShampanPOS.Controllers
         //        };
         //    }
         //}
-        [HttpPost("GetPurchaseByList")]
-        public async Task<ResultVM> GetPurchaseByList(PurchaseVM purchase)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+        //[HttpPost("GetPurchaseByList")]
+        //public async Task<ResultVM> GetPurchaseByList(PurchaseVM purchase)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
 
-            try
-            {
-                List<string> conditionFields = new List<string>();
-                List<string> conditionValues = new List<string>();
+        //    try
+        //    {
+        //        List<string> conditionFields = new List<string>();
+        //        List<string> conditionValues = new List<string>();
 
-                if (!string.IsNullOrEmpty(purchase.SupplierName))
-                {
-                    conditionFields.Add("M.SupplierName");
-                    conditionValues.Add(purchase.SupplierName);
-                }
+        //        if (!string.IsNullOrEmpty(purchase.SupplierName))
+        //        {
+        //            conditionFields.Add("M.SupplierName");
+        //            conditionValues.Add(purchase.SupplierName);
+        //        }
 
-                if (!string.IsNullOrEmpty(purchase.PurchaseFromDate))
-                {
-                    conditionFields.Add("M.PurchaseFromDate");
-                    conditionValues.Add(purchase.PurchaseFromDate);
-                }
+        //        if (!string.IsNullOrEmpty(purchase.PurchaseFromDate))
+        //        {
+        //            conditionFields.Add("M.PurchaseFromDate");
+        //            conditionValues.Add(purchase.PurchaseFromDate);
+        //        }
 
-                if (!string.IsNullOrEmpty(purchase.PurchaseToDate))
-                {
-                    conditionFields.Add("M.PurchaseToDate");
-                    conditionValues.Add(purchase.PurchaseToDate);
-                }
+        //        if (!string.IsNullOrEmpty(purchase.PurchaseToDate))
+        //        {
+        //            conditionFields.Add("M.PurchaseToDate");
+        //            conditionValues.Add(purchase.PurchaseToDate);
+        //        }
 
-                if (!string.IsNullOrEmpty(purchase.InvoiceFromDate))
-                {
-                    conditionFields.Add("M.InvoiceFromDate");
-                    conditionValues.Add(purchase.InvoiceFromDate);
-                }
-                if (!string.IsNullOrEmpty(purchase.InvoiceToDate))
-                {
-                    conditionFields.Add("M.InvoiceToDate");
-                    conditionValues.Add(purchase.InvoiceToDate);
-                }
+        //        if (!string.IsNullOrEmpty(purchase.InvoiceFromDate))
+        //        {
+        //            conditionFields.Add("M.InvoiceFromDate");
+        //            conditionValues.Add(purchase.InvoiceFromDate);
+        //        }
+        //        if (!string.IsNullOrEmpty(purchase.InvoiceToDate))
+        //        {
+        //            conditionFields.Add("M.InvoiceToDate");
+        //            conditionValues.Add(purchase.InvoiceToDate);
+        //        }
 
-                PurchaseService _service = new PurchaseService();
+        //        PurchaseService _service = new PurchaseService();
 
-                if (conditionFields.Count == 0)
-                {
-                    resultVM = await _service.ReportList(null, null, null);
-                }
-                else
-                {
-                    resultVM = await _service.ReportList(
-                        conditionFields.ToArray(),
-                        conditionValues.ToArray(),
-                        null
-                    );
-                }
+        //        if (conditionFields.Count == 0)
+        //        {
+        //            resultVM = await _service.ReportList(null, null, null);
+        //        }
+        //        else
+        //        {
+        //            resultVM = await _service.ReportList(
+        //                conditionFields.ToArray(),
+        //                conditionValues.ToArray(),
+        //                null
+        //            );
+        //        }
 
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = "Data not fetched.",
-                    ExMessage = ex.Message
-                };
-            }
-        }
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message
+        //        };
+        //    }
+        //}
 
 
 
@@ -682,32 +682,139 @@ namespace ShampanPOS.Controllers
 
 
 
-        //[HttpPost("GetSaleOrderByList")]
-        //public async Task<ResultVM> GetSaleOrderByList(SaleOrderReportVM saleorder)
-        //{
-        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+        [HttpPost("GetSaleOrderByList")]
+        public async Task<ResultVM> GetSaleOrderByList(SaleOrderReportVM saleorder)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
 
-        //    try
-        //    {
-        //        SaleOrderService _service = new SaleOrderService();
+            try
+            {
+                SaleOrderService _service = new SaleOrderService();
 
-        //        resultVM = await _service.ReportList(saleorder);
-
-
-        //        return resultVM;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return new ResultVM
-        //        {
-        //            Status = "Fail",
-        //            Message = "Data not fetched.",
-        //            ExMessage = ex.Message
-        //        };
-        //    }
-        //}
+                resultVM = await _service.ReportList(saleorder);
 
 
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message
+                };
+            }
+        }
+
+
+
+        [HttpPost("GetSaleReturnByList")]
+        public async Task<ResultVM> GetSaleReturnByList(SaleReturnReportVM salereturn)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+
+            try
+            {
+                SaleReturnService _service = new SaleReturnService();
+
+                resultVM = await _service.ReportList(salereturn);
+
+
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message
+                };
+            }
+        }
+
+
+
+        [HttpPost("GetPurchaseByList")]
+        public async Task<ResultVM> GetPurchaseByList(PurchaseReportVM purchase)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+
+            try
+            {
+                PurchaseService _service = new PurchaseService();
+
+                resultVM = await _service.ReportList(purchase);
+
+
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message
+                };
+            }
+        }
+
+
+
+        [HttpPost("GetPurchaseOrderByList")]
+        public async Task<ResultVM> GetPurchaseOrderByList(PurchaseOrderReportVM purchaseorder)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+
+            try
+            {
+                PurchaseOrderService _service = new PurchaseOrderService();
+
+                resultVM = await _service.ReportList(purchaseorder);
+
+
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message
+                };
+            }
+        }
+
+
+
+
+        [HttpPost("GetPurchaseReturnByList")]
+        public async Task<ResultVM> GetPurchaseReturnByList(PurchaseReturnReportVM purchasereturn)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+
+            try
+            {
+                PurchaseReturnService _service = new PurchaseReturnService();
+
+                resultVM = await _service.ReportList(purchasereturn);
+
+
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message
+                };
+            }
+        }
 
 
 

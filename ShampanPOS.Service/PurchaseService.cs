@@ -1146,14 +1146,130 @@ namespace ShampanPOS.Service
             }
         }
 
-        public async Task<ResultVM> ReportList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
+
+
+
+
+
+        //public async Task<ResultVM> ReportList(PurchaseReportVM vm = null)
+        //{
+        //    PurchaseRepository _repo = new PurchaseRepository();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
+
+        //        transaction = conn.BeginTransaction();
+
+        //        List<string> conditionFields = new List<string>();
+        //        List<string> conditionValues = new List<string>();
+
+        //        if (vm != null)
+        //        {
+        //            // =========================
+        //            // SUPPLIER NAME (OPTIONAL)
+        //            // =========================
+        //            if (!string.IsNullOrEmpty(vm.SupplierName))
+        //            {
+        //                conditionFields.Add("S.Name");
+        //                conditionValues.Add(vm.SupplierName);
+        //            }
+
+        //            // =========================
+        //            // PURCHASE CODE (OPTIONAL)
+        //            // =========================
+        //            if (!string.IsNullOrEmpty(vm.Code))
+        //            {
+        //                conditionFields.Add("M.Code");
+        //                conditionValues.Add(vm.Code);
+        //            }
+
+        //            // =========================
+        //            // DATE NULL HANDLE (IMPORTANT FIX)
+        //            // =========================
+
+        //            vm.PurchaseFromDate = string.IsNullOrEmpty(vm.PurchaseFromDate) ? null : vm.PurchaseFromDate;
+        //            vm.PurchaseToDate = string.IsNullOrEmpty(vm.PurchaseToDate) ? null : vm.PurchaseToDate;
+
+        //            vm.InvoiceFromDate = string.IsNullOrEmpty(vm.InvoiceFromDate) ? null : vm.InvoiceFromDate;
+        //            vm.InvoiceToDate = string.IsNullOrEmpty(vm.InvoiceToDate) ? null : vm.InvoiceToDate;
+
+        //            // =========================
+        //            // REPORT TYPE (KEEPED SAME)
+        //            // =========================
+        //            string reportMode = "INVOICE";
+
+        //            if (vm.ReportType == 2)
+        //                reportMode = "PRODUCT";
+        //            else if (vm.ReportType == 3)
+        //                reportMode = "SUPPLIER";
+
+        //            // =========================
+        //            // SUMMARY / DETAILS
+        //            // =========================
+        //            vm.Operation = vm.IsSummary ? "SUMMARY" : "DETAILS";
+        //        }
+
+        //        // =========================
+        //        // CALL REPOSITORY
+        //        // =========================
+        //        if (conditionFields.Count == 0)
+        //        {
+        //            result = await _repo.ReportList(null, null, vm, conn, transaction);
+        //        }
+        //        else
+        //        {
+        //            result = await _repo.ReportList(conditionFields.ToArray(), conditionValues.ToArray(), vm, conn, transaction);
+        //        }
+
+        //        if (isNewConnection)
+        //        {
+        //            transaction.Commit();
+        //        }
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
+
+
+
+
+
+
+        public async Task<ResultVM> ReportList(PurchaseReportVM vm = null)
         {
             PurchaseRepository _repo = new PurchaseRepository();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            ResultVM result = new ResultVM{Status = "Fail",Message = "Error",ExMessage = null,Id = "0",DataVM = null};
 
             bool isNewConnection = false;
             SqlConnection conn = null;
             SqlTransaction transaction = null;
+
             try
             {
                 conn = new SqlConnection(DatabaseHelper.GetConnectionString());
@@ -1162,7 +1278,65 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                result = await _repo.ReportList(conditionalFields, conditionalValues, vm, conn, transaction);
+                List<string> conditionFields = new List<string>();
+                List<string> conditionValues = new List<string>();
+
+                if (vm != null)
+                {
+                    // =========================
+                    // ✅ SUPPLIER FILTER (FIXED)
+                    // =========================
+                    //if (vm.SupplierId > 0)
+                    //{
+                    //    conditionFields.Add("M.SupplierId");
+                    //    conditionValues.Add(vm.SupplierId.ToString());
+                    //}
+
+                    // =========================
+                    // PURCHASE CODE (OPTIONAL)
+                    // =========================
+                    if (!string.IsNullOrEmpty(vm.Code))
+                    {
+                        conditionFields.Add("M.Code");
+                        conditionValues.Add(vm.Code);
+                    }
+
+                    // =========================
+                    // DATE NULL HANDLE
+                    // =========================
+                    vm.PurchaseFromDate = string.IsNullOrEmpty(vm.PurchaseFromDate) ? null : vm.PurchaseFromDate;
+                    vm.PurchaseToDate = string.IsNullOrEmpty(vm.PurchaseToDate) ? null : vm.PurchaseToDate;
+
+                    vm.InvoiceFromDate = string.IsNullOrEmpty(vm.InvoiceFromDate) ? null : vm.InvoiceFromDate;
+                    vm.InvoiceToDate = string.IsNullOrEmpty(vm.InvoiceToDate) ? null : vm.InvoiceToDate;
+
+                    // =========================
+                    // REPORT TYPE
+                    // =========================
+                    string reportMode = "INVOICE";
+
+                    if (vm.ReportType == 2)
+                        reportMode = "PRODUCT";
+                    else if (vm.ReportType == 3)
+                        reportMode = "SUPPLIER";
+
+                    // =========================
+                    // SUMMARY / DETAILS
+                    // =========================
+                    vm.Operation = vm.IsSummary ? "SUMMARY" : "DETAILS";
+                }
+
+                // =========================
+                // CALL REPOSITORY
+                // =========================
+                if (conditionFields.Count == 0)
+                {
+                    result = await _repo.ReportList(null, null, vm, conn, transaction);
+                }
+                else
+                {
+                    result = await _repo.ReportList(conditionFields.ToArray(), conditionValues.ToArray(), vm, conn, transaction);
+                }
 
                 if (isNewConnection)
                 {
@@ -1180,9 +1354,111 @@ namespace ShampanPOS.Service
 
                 result.ExMessage = ex.ToString();
                 return result;
-            }          
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
         }
 
+
+
+
+        //public async Task<ResultVM> ReportList(PurchaseReportVM vm = null)
+        //{
+        //    PurchaseRepository _repo = new PurchaseRepository();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
+
+        //        transaction = conn.BeginTransaction();
+
+        //        List<string> conditionFields = new List<string>();
+        //        List<string> conditionValues = new List<string>();
+        //        if (vm != null)
+        //        {
+        //            // =========================
+        //            // CUSTOMER NAME
+        //            // =========================
+        //            if (!string.IsNullOrEmpty(vm.SupplierName))
+        //            {
+        //                conditionFields.Add("S.Name");
+        //                conditionValues.Add(vm.SupplierName);
+        //            }
+
+        //            // =========================
+        //            // CUSTOMER CODE
+        //            // =========================
+        //            if (!string.IsNullOrEmpty(vm.Code))
+        //            {
+        //                conditionFields.Add("M.Code");
+        //                conditionValues.Add(vm.Code);
+        //            }
+
+        //            // =========================
+        //            // REPORT TYPE LOGIC (FIXED)
+        //            // =========================
+        //            string reportMode = "INVOICE";
+
+        //            if (vm.ReportType == 2)
+        //                reportMode = "PRODUCT";
+        //            else if (vm.ReportType == 3)
+        //                reportMode = "SUPPLIER";
+
+        //            // =========================
+        //            // SUMMARY / DETAILS (FINAL OVERRIDE)
+        //            // =========================
+        //            vm.Operation = vm.IsSummary ? "SUMMARY" : "DETAILS";
+        //        }
+
+        //        // =========================
+        //        // CALL REPOSITORY
+        //        // =========================
+        //        if (conditionFields.Count == 0)
+        //        {
+        //            result = await _repo.ReportList(null, null, vm, conn, transaction);
+        //        }
+        //        else
+        //        {
+        //            result = await _repo.ReportList(conditionFields.ToArray(), conditionValues.ToArray(), vm, conn, transaction);
+        //        }
+
+        //        if (isNewConnection)
+        //        {
+        //            transaction.Commit();
+        //        }
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
 
     }
 

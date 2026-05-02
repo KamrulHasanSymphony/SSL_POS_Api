@@ -2261,7 +2261,97 @@ WHERE 1 = 1
             }
         }
 
-        public async Task<ResultVM> ReportList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        //        public async Task<ResultVM> ReportList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        //        {
+        //            bool isNewConnection = false;
+        //            DataTable dataTable = new DataTable();
+        //            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+        //            try
+        //            {
+        //                if (conn == null)
+        //                {
+        //                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //                    conn.Open();
+        //                    isNewConnection = true;
+        //                }
+
+        //                string query = @"
+        //            //    SELECT
+        //            //    ISNULL(M.Id, 0) Id,
+        //            //    ISNULL(M.Code, '') Code,
+        //            //    ISNULL(M.Name, '') Name,
+        //            //    ISNULL(M.ProductGroupId, 0) ProductGroupId,
+        //            //    ISNULL(PG.Name, 0) ProductGroupName ,
+        //            //    ISNULL(M.BanglaName, '') BanglaName,
+        //            //    ISNULL(M.Description, '') Description,
+        //            //    ISNULL(M.UOMId, 0) UOMId,
+        //            //    ISNULL(UM.Name, '') UOMName,
+        //            //    ISNULL(M.HSCodeNo, '') HSCodeNo,
+        //            //    ISNULL(M.IsArchive, 0) IsArchive,
+        //            //    ISNULL(M.IsActive, 0) IsActive,
+        //            //    ISNULL(M.CreatedBy, '') CreatedBy,
+        //            //    ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') CreatedOn,
+        //            //    ISNULL(M.LastModifiedBy, '') LastModifiedBy,
+        //            //    ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') LastModifiedOn,
+        //            //    ISNULL(M.ImagePath,'') AS ImagePath,
+        //            //	ISNULL(M.VATRate, 0) AS VATRate,
+        //            //	ISNULL(M.SDRate, 0) AS SDRate,
+        //            //	ISNULL(M.PurchasePrice, 0) AS PurchasePrice,
+        //            //	ISNULL(M.SalePrice, 0) AS SalePrice
+
+        //            //FROM Products M
+        //            //LEFT OUTER JOIN ProductGroups PG ON M.ProductGroupId = PG.Id
+        //            //LEFT OUTER JOIN UOMs UM ON M.UOMId = UM.Id
+        //            //WHERE 1 = 1
+        //";
+
+        //                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+        //                {
+        //                    query += " AND Id = @Id ";
+
+
+        //                }
+
+        //                // Apply additional conditions
+        //                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
+
+        //                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+        //                // SET additional conditions param
+        //                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+        //                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+        //                {
+        //                    objComm.SelectCommand.Parameters.AddWithValue("@Id", vm.Id);
+        //                }
+
+        //                objComm.Fill(dataTable);
+
+        //                var modelList = dataTable.AsEnumerable().Select(row => new PurchaseVM
+        //                {
+        //                    Id = row.Field<int>("Id"),
+        //                    Code = row.Field<string>("Code"),
+
+
+        //                }).ToList();
+
+
+        //                result.Status = "Success";
+        //                result.Message = "Data retrieved successfully.";
+        //                result.DataVM = modelList;
+        //                return result;
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                result.Message = ex.Message;
+        //                result.ExMessage = ex.Message;
+        //                return result;
+        //            }
+        //        }
+
+
+        public async Task<ResultVM> ReportList(string[] conditionalFields, string[] conditionalValues, PurchaseReportVM vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();
@@ -2276,41 +2366,96 @@ WHERE 1 = 1
                     isNewConnection = true;
                 }
 
-                string query = @"
-            //    SELECT
-            //    ISNULL(M.Id, 0) Id,
-            //    ISNULL(M.Code, '') Code,
-            //    ISNULL(M.Name, '') Name,
-            //    ISNULL(M.ProductGroupId, 0) ProductGroupId,
-            //    ISNULL(PG.Name, 0) ProductGroupName ,
-            //    ISNULL(M.BanglaName, '') BanglaName,
-            //    ISNULL(M.Description, '') Description,
-            //    ISNULL(M.UOMId, 0) UOMId,
-            //    ISNULL(UM.Name, '') UOMName,
-            //    ISNULL(M.HSCodeNo, '') HSCodeNo,
-            //    ISNULL(M.IsArchive, 0) IsArchive,
-            //    ISNULL(M.IsActive, 0) IsActive,
-            //    ISNULL(M.CreatedBy, '') CreatedBy,
-            //    ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') CreatedOn,
-            //    ISNULL(M.LastModifiedBy, '') LastModifiedBy,
-            //    ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') LastModifiedOn,
-            //    ISNULL(M.ImagePath,'') AS ImagePath,
-            //	ISNULL(M.VATRate, 0) AS VATRate,
-            //	ISNULL(M.SDRate, 0) AS SDRate,
-            //	ISNULL(M.PurchasePrice, 0) AS PurchasePrice,
-            //	ISNULL(M.SalePrice, 0) AS SalePrice
-            
-            //FROM Products M
-            //LEFT OUTER JOIN ProductGroups PG ON M.ProductGroupId = PG.Id
-            //LEFT OUTER JOIN UOMs UM ON M.UOMId = UM.Id
-            //WHERE 1 = 1
-";
+                string query = "";
 
-                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+                if (vm != null && vm.IsSummary)
                 {
-                    query += " AND Id = @Id ";
+                    query = @"
+SELECT
+    ISNULL(M.Code,'') AS ReturnCode,
+    ISNULL(D.ProductId,0) AS ProductId,
+    ISNULL(PD.Name,'') AS ProductName,
+    ISNULL(S.Name,'') AS SupplierName,
 
+    ISNULL(FORMAT(M.InvoiceDateTime, 'dd/MM/yyyy'), '') AS InvoiceDateTime,
+    ISNULL(FORMAT(P.PurchaseDate, 'dd/MM/yyyy'), '') AS PurchaseDate,
 
+    SUM(ISNULL(D.Quantity,0)) AS Quantity,
+    SUM(ISNULL(D.SubTotal,0)) AS SubTotal,
+    SUM(ISNULL(D.VATAmount,0)) AS VATAmount,
+    SUM(ISNULL(D.LineTotal,0)) AS LineTotal
+
+FROM PurchasesReturn M
+LEFT JOIN PurchaseReturnDetails D ON M.Id = D.PurchasesReturnId
+
+-- 🔥 IMPORTANT JOIN
+LEFT JOIN Purchases P ON M.PurchaseId = P.Id  
+
+LEFT JOIN Products PD ON D.ProductId = PD.Id
+LEFT JOIN Suppliers S ON M.SupplierId = S.Id
+
+WHERE 1=1
+
+AND (@fromDate IS NULL OR M.InvoiceDateTime >= @fromDate)
+AND (@toDate IS NULL OR M.InvoiceDateTime <= @toDate)
+
+AND (@purchaseFromDate IS NULL OR P.PurchaseDate >= @purchaseFromDate)
+AND (@purchaseToDate IS NULL OR P.PurchaseDate <= @purchaseToDate)
+
+AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
+
+GROUP BY 
+    M.Code,
+    D.ProductId,
+    PD.Name,
+    S.Name,
+    P.PurchaseDate
+";
+                }
+                    else
+                    {
+                    query = @"
+SELECT 
+ISNULL(PD.Id, 0) AS Id,
+
+ISNULL(M.Code,'') PurchaseCode,
+
+ISNULL(FORMAT(M.InvoiceDateTime, 'dd/MM/yyyy'), '') AS InvoiceDateTime,
+ISNULL(FORMAT(M.PurchaseDate, 'dd/MM/yyyy'), '') AS PurchaseDate,
+
+ISNULL(S.Name, '') AS SupplierName,
+
+ISNULL(PR.Name,'') ProductName,
+ISNULL(PR.Code,'') ProductCode,
+ISNULL(PR.HSCodeNo,'') HSCodeNo,
+
+ISNULL(PG.Name,'') ProductGroupName,
+
+ISNULL(PD.Quantity,0) Quantity,
+ISNULL(PD.UnitPrice,0) UnitPrice,
+ISNULL(PD.SubTotal,0) SubTotal,
+ISNULL(PD.SD,0) SD,
+ISNULL(PD.SDAmount,0) SDAmount,
+ISNULL(PD.VATRate,0) VATRate,
+ISNULL(PD.VATAmount,0) VATAmount,
+ISNULL(PD.LineTotal,0) LineTotal
+
+FROM PurchaseDetails PD
+LEFT JOIN Purchases M ON PD.PurchaseId = M.Id
+LEFT JOIN Suppliers S ON M.SupplierId = S.Id
+LEFT JOIN Products PR ON PD.ProductId = PR.Id
+LEFT JOIN ProductGroups PG ON PR.ProductGroupId = PG.Id
+
+WHERE 1=1   -- 🔥 FIX
+
+AND (@fromDate IS NULL OR M.InvoiceDateTime >= @fromDate)
+AND (@toDate IS NULL OR M.InvoiceDateTime <= @toDate)
+
+AND (@purchasefromDate IS NULL OR M.PurchaseDate >= @purchasefromDate)
+AND (@purchasetoDate IS NULL OR M.PurchaseDate <= @purchasetoDate)
+
+AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
+";
                 }
 
                 // Apply additional conditions
@@ -2321,21 +2466,81 @@ WHERE 1 = 1
                 // SET additional conditions param
                 objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
-                if (vm != null && !string.IsNullOrEmpty(vm.Id))
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@Id", vm.Id);
-                }
+
+
+                // Ensure correct date formats are passed to SQL query
+                //objComm.SelectCommand.Parameters.AddWithValue("@SupplierId", (vm.SupplierId));
+                //objComm.SelectCommand.Parameters.AddWithValue("@fromDate", DateTime.Parse(vm.InvoiceFromDate));
+                //objComm.SelectCommand.Parameters.AddWithValue("@toDate", DateTime.Parse(vm.InvoiceToDate));
+
+                //objComm.SelectCommand.Parameters.AddWithValue("@purchasefromDate", DateTime.Parse(vm.PurchaseToDate));
+                //objComm.SelectCommand.Parameters.AddWithValue("@purchasetoDate", DateTime.Parse(vm.PurchaseFromDate));
+
+
+
+                objComm.SelectCommand.Parameters.AddWithValue("@SupplierId", vm.SupplierId);
+                objComm.SelectCommand.Parameters.AddWithValue("@fromDate",string.IsNullOrEmpty(vm.InvoiceFromDate)? (object)DBNull.Value: DateTime.Parse(vm.InvoiceFromDate));
+
+                objComm.SelectCommand.Parameters.AddWithValue("@toDate",string.IsNullOrEmpty(vm.InvoiceToDate)? (object)DBNull.Value: DateTime.Parse(vm.InvoiceToDate));
+
+
+                objComm.SelectCommand.Parameters.AddWithValue("@purchasefromDate",string.IsNullOrEmpty(vm.PurchaseFromDate)? (object)DBNull.Value: DateTime.Parse(vm.PurchaseFromDate));
+
+                objComm.SelectCommand.Parameters.AddWithValue("@purchasetoDate",string.IsNullOrEmpty(vm.PurchaseToDate)? (object)DBNull.Value
+                        : DateTime.Parse(vm.PurchaseToDate));
 
                 objComm.Fill(dataTable);
 
-                var modelList = dataTable.AsEnumerable().Select(row => new PurchaseVM
+
+
+                var modelList = dataTable.AsEnumerable().Select(row => new PurchaseReportVM
                 {
-                    Id = row.Field<int>("Id"),
-                    Code = row.Field<string>("Code"),
-                   
+                    Id = dataTable.Columns.Contains("Id") ? row.Field<int>("Id") : 0,
 
+                    Code = dataTable.Columns.Contains("PurchaseCode")
+                        ? row.Field<string>("PurchaseCode")
+                        : "",
+
+                    SupplierName = dataTable.Columns.Contains("SupplierName")
+                        ? row.Field<string>("SupplierName")
+                        : "",
+
+                    ProductName = dataTable.Columns.Contains("ProductName")
+                        ? row.Field<string>("ProductName")
+                        : "",
+
+                    Quantity = row.Field<decimal?>("Quantity") ?? 0.0m,
+
+                    UnitPrice = dataTable.Columns.Contains("UnitPrice")
+                        ? row.Field<decimal?>("UnitPrice") ?? 0.0m
+                        : 0.0m,
+
+                    SubTotal = row.Field<decimal?>("SubTotal") ?? 0.0m,
+
+                    SD = dataTable.Columns.Contains("SD")
+                        ? row.Field<decimal?>("SD") ?? 0.0m
+                        : 0.0m,
+
+                    SDAmount = dataTable.Columns.Contains("SDAmount")
+                        ? row.Field<decimal?>("SDAmount") ?? 0.0m
+                        : 0.0m,
+
+                    VATRate = dataTable.Columns.Contains("VATRate")
+                        ? row.Field<decimal?>("VATRate") ?? 0.0m
+                        : 0.0m,
+
+                    VATAmount = row.Field<decimal?>("VATAmount") ?? 0.0m,
+
+                    LineTotal = row.Field<decimal?>("LineTotal") ?? 0.0m,
+
+                    InvoiceDateTime = dataTable.Columns.Contains("InvoiceDateTime")
+                        ? row.Field<string>("InvoiceDateTime")
+                        : "",
+
+                    PurchaseDate = dataTable.Columns.Contains("PurchaseDate")
+                        ? row.Field<string>("PurchaseDate")
+                        : ""
                 }).ToList();
-
 
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";
@@ -2348,7 +2553,16 @@ WHERE 1 = 1
                 result.ExMessage = ex.Message;
                 return result;
             }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
         }
+
+
 
 
 
