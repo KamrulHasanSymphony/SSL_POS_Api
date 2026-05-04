@@ -896,7 +896,7 @@ WHERE
 				ISNULL(H.SubTotal, 0) AS SubTotal,
 				ISNULL(H.TotalSD, 0) AS TotalSD,
 				ISNULL(H.TotalVAT, 0) AS TotalVAT,
-				ISNULL(H.LineTotal, 0) AS LineTotal,
+				ISNULL(H.GrandTotal, 0) AS LineTotal,
 				ISNULL(H.PaidAmount, 0) AS PaidAmount,
                 ISNULL(FORMAT(H.InvoiceDateTime, 'yyyy-MM-dd'), '1900-01-01') AS InvoiceDateTime,
                 ISNULL(H.Comments, '') AS Comments,
