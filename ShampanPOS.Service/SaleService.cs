@@ -1856,6 +1856,53 @@ namespace ShampanPOS.Service
 
 
 
+
+        public async Task<ResultVM> GetSaleReport(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
+        {
+            SaleRepository _repo = new SaleRepository();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            bool isNewConnection = false;
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+            try
+            {
+                if (vm == null)
+                {
+                    throw new Exception("PeramModel vm is null. CompanyId is required.");
+                }
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+
+                transaction = conn.BeginTransaction();
+
+                result = await _repo.GetSaleReport(conditionalFields, conditionalValues, vm, conn, transaction);
+
+                if (isNewConnection && result.Status == "Success")
+                {
+                    transaction.Commit();
+                }
+                else
+                {
+                    throw new Exception(result.Message);
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection)
+                {
+                    transaction.Rollback();
+                }
+                result.Message = ex.ToString();
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+        }
+
+
         //public async Task<ResultVM> ReportList( SaleReportVM vm = null)
         //{
         //    SaleRepository _repo = new SaleRepository();
@@ -1956,11 +2003,11 @@ namespace ShampanPOS.Service
                     // =========================
                     // CUSTOMER NAME
                     // =========================
-                    if (!string.IsNullOrEmpty(vm.CustomerName))
-                    {
-                        conditionFields.Add("C.Name");
-                        conditionValues.Add(vm.CustomerName);
-                    }
+                    //if (!string.IsNullOrEmpty(vm.CustomerName))
+                    //{
+                    //    conditionFields.Add("C.Name");
+                    //    conditionValues.Add(vm.CustomerName);
+                    //}
 
                     // =========================
                     // CUSTOMER CODE
@@ -1970,6 +2017,15 @@ namespace ShampanPOS.Service
                         conditionFields.Add("S.Code");
                         conditionValues.Add(vm.Code);
                     }
+
+                    // =========================
+                    // PRODUCT FILTER ✅ ADD
+                    // =========================
+                    //if (vm.ProductId > 0)
+                    //{
+                    //    conditionFields.Add("SD.ProductId");
+                    //    conditionValues.Add(vm.ProductId.ToString());
+                    //}
 
                     // =========================
                     // REPORT TYPE LOGIC (FIXED)
