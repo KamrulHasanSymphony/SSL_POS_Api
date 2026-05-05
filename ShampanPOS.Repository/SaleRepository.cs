@@ -305,7 +305,7 @@ namespace ShampanPOS.Repository
 				ISNULL(M.SubTotal, 0) AS SubTotal,
 				ISNULL(M.TotalSD, 0) AS TotalSD,
 				ISNULL(M.TotalVAT, 0) AS TotalVAT,
-				ISNULL(M.LineTotal, 0) AS LineTotal,
+				ISNULL(M.GrandTotal, 0) AS LineTotal,
 				ISNULL(M.PaidAmount, 0) AS PaidAmount,
 				ISNULL(M.DeliveryAddress, '') AS DeliveryAddress,
 				ISNULL(FORMAT(M.InvoiceDateTime, 'yyyy-MM-dd'), '1900-01-01') AS InvoiceDateTime,
@@ -1751,7 +1751,7 @@ SELECT
     ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
     ISNULL(M.CreatedFrom, '') AS CreatedFrom,
     ISNULL(M.LastUpdateFrom, '') AS LastUpdateFrom,
-    ISNULL(M.LineTotal, 0) AS LineTotal
+    ISNULL(M.GrandTotal, 0) AS LineTotal
 
 FROM 
     Sales M
@@ -1850,7 +1850,7 @@ WHERE 1 = 1
 SELECT 
 ISNULL(Pur.Code,'') SaleCode,
 ISNULL(Pur.Id,0) SaleId,
-ISNULL(FORMAT(Pur.LineTotal, 'N2'), '0.00') AS SaleAmount,
+ISNULL(FORMAT(Pur.GrandTotal, 'N2'), '0.00') AS SaleAmount,
 ISNULL(D.Id, 0) AS Id,
 ISNULL(D.Id, 0) AS SaleDetailId,
 ISNULL(D.SaleId, 0) AS SaleId,
@@ -2325,9 +2325,9 @@ WHERE 1 = 1
 	            ISNULL(M.SubTotal, 0) AS SubTotal,
 	            ISNULL(M.TotalSD, 0) AS TotalSD,
 	            ISNULL(M.TotalVAT, 0) AS TotalVAT,
-	            ISNULL(M.LineTotal, 0) AS LineTotal,
+	            ISNULL(M.GrandTotal, 0) AS LineTotal,
 	            ISNULL(M.PaidAmount, 0) AS PaidAmount,
-	            ISNULL(M.LineTotal, 0)-ISNULL(M.PaidAmount, 0) AS DueAmount,
+	            ISNULL(M.GrandTotal, 0)-ISNULL(M.PaidAmount, 0) AS DueAmount,
 
 				ISNULL(M.DeliveryAddress, '') AS DeliveryAddress,
 				ISNULL(FORMAT(M.InvoiceDateTime, 'yyyy-MM-dd'), '1900-01-01') AS InvoiceDateTime,
@@ -2487,9 +2487,9 @@ WHERE 1 = 1
 	            ISNULL(M.SubTotal, 0) AS SubTotal,
 	            ISNULL(M.TotalSD, 0) AS TotalSD,
 	            ISNULL(M.TotalVAT, 0) AS TotalVAT,
-	            ISNULL(M.LineTotal, 0) AS LineTotal,
+	            ISNULL(M.GrandTotal, 0) AS LineTotal,
 	            ISNULL(M.PaidAmount, 0) AS PaidAmount,
-	            ISNULL(M.LineTotal, 0)-ISNULL(M.PaidAmount, 0) AS DueAmount,
+	            ISNULL(M.GrandTotal, 0)-ISNULL(M.PaidAmount, 0) AS DueAmount,
 
 				ISNULL(M.DeliveryAddress, '') AS DeliveryAddress,
 				ISNULL(FORMAT(M.InvoiceDateTime, 'yyyy-MM-dd'), '1900-01-01') AS InvoiceDateTime,
@@ -2824,7 +2824,7 @@ WHERE 1=1
 AND S.InvoiceDateTime >= @fromDate
 AND S.InvoiceDateTime <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+AND (@ProductId = 0 OR SD.ProductId = @ProductId) -- Product Filter
 GROUP BY P.Id, P.Name
 ORDER BY LineTotal DESC";
                             break;
@@ -2961,7 +2961,8 @@ INNER JOIN SaleDetails SD ON P.Id = SD.ProductId
 INNER JOIN Sales S ON S.Id = SD.SaleId
 WHERE 1=1
 AND S.InvoiceDateTime >= @fromDate
-AND S.InvoiceDateTime <= @toDate";
+AND S.InvoiceDateTime <= @toDate
+AND (@ProductId = 0 OR SD.ProductId = @ProductId) -- Product Filter";
                             break;
 
                         case 5: // Invoice-wise Details
