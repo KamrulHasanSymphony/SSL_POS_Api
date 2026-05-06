@@ -14,7 +14,9 @@ namespace ShampanPOS.ViewModel
 
         [Display(Name = "Sale Code(Auto Generate)")]
         public string? Code { get; set; }
-        public int ReportType { get; set; }
+        //public int ReportType { get; set; }
+
+        public string ReportType { get; set; }
 
         [Display(Name = "Distributor")]
         public int? BranchId { get; set; }

@@ -36,11 +36,11 @@ namespace ShampanPOS.Repository
                 string query = @"
         INSERT INTO Sales 
         (Code, BranchId,CompanyId,UserId, CustomerId, SaleOrderId, DeliveryAddress,
-         InvoiceDateTime, Comments,SubTotal, TotalSD, TotalVAT, LineTotal, PaidAmount, 
+         InvoiceDateTime, Comments,SubTotal, TotalSD, TotalVAT, GrandTotal, PaidAmount, 
         TransactionType, IsPost, PeriodId, CreatedBy, CreatedOn, CreatedFrom)
         VALUES 
         (@Code, @BranchId,@CompanyId,@UserId, @CustomerId, @SaleOrderId,@DeliveryAddress, 
-         @InvoiceDateTime, @Comments,@SubTotal, @TotalSD, @TotalVAT, @LineTotal, @PaidAmount, @TransactionType, @IsPost, @PeriodId, 
+         @InvoiceDateTime, @Comments,@SubTotal, @TotalSD, @TotalVAT, @GrandTotal, @PaidAmount, @TransactionType, @IsPost, @PeriodId, 
          @CreatedBy, GETDATE(), @CreatedFrom);
         SELECT SCOPE_IDENTITY();";
 
@@ -61,7 +61,7 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@SubTotal", sale.SubTotal);
                     cmd.Parameters.AddWithValue("@TotalSD", sale.TotalSD);
                     cmd.Parameters.AddWithValue("@TotalVAT", sale.TotalVAT);
-                    cmd.Parameters.AddWithValue("@LineTotal", sale.GrandTotal);
+                    cmd.Parameters.AddWithValue("@GrandTotal", sale.GrandTotal);
                     cmd.Parameters.AddWithValue("@PaidAmount", sale.PaidAmount);
                     cmd.Parameters.AddWithValue("@TransactionType", sale.TransactionType);
                     cmd.Parameters.AddWithValue("@IsPost", false);
@@ -198,7 +198,7 @@ namespace ShampanPOS.Repository
             SubTotal = @SubTotal, 
             TotalSD = @TotalSD,
             TotalVAT = @TotalVAT,
-            LineTotal = @LineTotal,
+            GrandTotal = @GrandTotal,
             PaidAmount = @PaidAmount,
             TransactionType = @TransactionType,
             IsPost = @IsPost,
@@ -225,7 +225,7 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@SubTotal", sale.SubTotal);
                     cmd.Parameters.AddWithValue("@TotalSD", sale.TotalSD);
                     cmd.Parameters.AddWithValue("@TotalVAT", sale.TotalVAT);
-                    cmd.Parameters.AddWithValue("@LineTotal", sale.GrandTotal);
+                    cmd.Parameters.AddWithValue("@GrandTotal", sale.GrandTotal);
                     cmd.Parameters.AddWithValue("@PaidAmount", sale.PaidAmount);
                     cmd.Parameters.AddWithValue("@IsPrint", false);
                     cmd.Parameters.AddWithValue("@TransactionType", sale.TransactionType ?? (object)DBNull.Value);
@@ -2617,107 +2617,6 @@ WHERE 1 = 1
 
 
 
-        //    public async Task<ResultVM> ReportList(string[] conditionalFields, string[] conditionalValues, SaleReportVM vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
-        //    {
-        //        bool isNewConnection = false;
-        //        DataTable dataTable = new DataTable();
-        //        ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
-
-        //        try
-        //        {
-        //            if (conn == null)
-        //            {
-        //                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-        //                conn.Open();
-        //                isNewConnection = true;
-        //            }
-
-        //            string query = @"
-        //Select
-        //ISNULL(D.Id,0) Id,
-        //ISNULL(S.Code,'') SaleCode,
-        //ISNULL(FORMAT(S.InvoiceDateTime, 'dd/MM/yyyy'), '') AS InvoiceDateTime,
-        //ISNULL(C.Name,'') CustomerName,
-        //ISNULL(P.Name,'') ProductName,
-        //ISNULL(D.Quantity,0) Quantity,
-        //ISNULL(D.UnitRate,0) UnitRate,
-        //ISNULL(D.SubTotal,0) SubTotal,
-        //ISNULL(D.SD,0) SD,
-        //ISNULL(D.SDAmount,0) SDAmount,
-        //ISNULL(D.VATRate,0) VATRate,
-        //ISNULL(D.VATAmount,0) VATAmount,
-        //ISNULL(D.LineTotal,0) LineTotal
-
-        //from SaleDetails D
-        //LEFT OUTER JOIN Sales S on D.SaleId=S.Id
-        //LEFT OUTER JOIN Products P on D.ProductId=P.Id
-        //LEFT OUTER JOIN Customers C on S.CustomerId=C.Id
-        //Where S.InvoiceDateTime >= @fromDate AND S.InvoiceDateTime <= @toDate AND S.CustomerId = @CustomerId";
-
-        //            //if (vm != null && !string.IsNullOrEmpty(vm.Id.ToString()))
-        //            //{
-        //            //    query += " AND D.Id = @Id ";
-        //            //}
-
-        //            // Apply additional conditions
-        //            query = ApplyConditions(query, conditionalFields, conditionalValues, false);
-
-        //            SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
-
-        //            // SET additional conditions param
-        //            objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
-
-        //            //if (vm != null && !string.IsNullOrEmpty(vm.Id.ToString()))
-        //            //{
-        //            //    objComm.SelectCommand.Parameters.AddWithValue("@Id", vm.Id);
-        //            //}
-
-        //            // Ensure correct date formats are passed to SQL query
-        //            objComm.SelectCommand.Parameters.AddWithValue("@CustomerId", (vm.CustomerId));
-        //            objComm.SelectCommand.Parameters.AddWithValue("@fromDate", DateTime.Parse(vm.InvoiceFromDate));
-        //            objComm.SelectCommand.Parameters.AddWithValue("@toDate", DateTime.Parse(vm.InvoiceToDate));
-
-        //            objComm.Fill(dataTable);
-
-        //            var modelList = dataTable.AsEnumerable().Select(row => new SaleReportVM
-        //            {
-        //                Id = row.Field<int>("Id"),
-        //                Code = row.Field<string>("SaleCode"),
-        //                CustomerName = row.Field<string>("CustomerName"),
-        //                ProductName = row.Field<string>("ProductName"),
-        //                Quantity = row.Field<decimal?>("Quantity") ?? 0.0m,
-        //                UnitRate = row.Field<decimal?>("UnitRate") ?? 0.0m,
-        //                SubTotal = row.Field<decimal?>("SubTotal") ?? 0.0m,
-        //                SD = row.Field<decimal?>("SD") ?? 0.0m,
-        //                SDAmount = row.Field<decimal?>("SDAmount") ?? 0.0m,
-        //                VATRate = row.Field<decimal?>("VATRate") ?? 0.0m,
-        //                VATAmount = row.Field<decimal?>("VATAmount") ?? 0.0m,
-        //                LineTotal = row.Field<decimal?>("LineTotal") ?? 0.0m,
-        //                InvoiceDateTime = row.Field<string>("InvoiceDateTime")
-
-        //            }).ToList();
-
-
-        //            result.Status = "Success";
-        //            result.Message = "Data retrieved successfully.";
-        //            result.DataVM = modelList;
-        //            return result;
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            result.Message = ex.Message;
-        //            result.ExMessage = ex.Message;
-        //            return result;
-        //        }
-        //        finally
-        //        {
-        //            if (isNewConnection && conn != null)
-        //            {
-        //                conn.Close();
-        //            }
-        //        }
-        //    }
-
 
 
         public async Task<ResultVM> ReportList(string[] conditionalFields, string[] conditionalValues, SaleReportVM vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
@@ -2744,7 +2643,7 @@ WHERE 1 = 1
                     // =========================
                     switch (vm.ReportType)
                     {
-                        case 1: // Day-wise Summary
+                        case "Day Wise": // Day-wise Summary
                             query = @"
 SELECT 
 CAST(S.InvoiceDateTime AS DATE) AS InvoiceDateTime,
@@ -2764,7 +2663,7 @@ GROUP BY CAST(S.InvoiceDateTime AS DATE)
 ORDER BY CAST(S.InvoiceDateTime AS DATE)";
                             break;
 
-                        case 2: // Monthly Summary
+                        case "Monthly": // Monthly Summary
                             query = @"
 SELECT 
 DATENAME(MONTH, S.InvoiceDateTime) + '-' + 
@@ -2788,7 +2687,7 @@ YEAR(S.InvoiceDateTime),
 MONTH(S.InvoiceDateTime)";
                             break;
 
-                        case 3: // Customer-wise Summary
+                        case "Customer Wise": // Customer-wise Summary
                             query = @"
 SELECT 
 C.Id,
@@ -2808,7 +2707,7 @@ GROUP BY C.Id, C.Name
 ORDER BY LineTotal DESC";
                             break;
 
-                        case 4: // Product-wise Summary
+                        case "Product Wise": // Product-wise Summary
                             query = @"
 SELECT 
 P.Id,
@@ -2829,7 +2728,7 @@ GROUP BY P.Id, P.Name
 ORDER BY LineTotal DESC";
                             break;
 
-                        case 5: // ✅ Invoice-wise Summary (FIXED)
+                        case "Invoice Wise": // ✅ Invoice-wise Summary (FIXED)
                             query = @"
 SELECT 
 S.Code AS SaleCode ,
@@ -2883,7 +2782,7 @@ ORDER BY S.InvoiceDateTime";
                     switch (vm.ReportType)
                     {
 
-                        case 1: // Day-wise Details
+                        case "Day Wise": // Day-wise Details
                             query = @"
 SELECT 
 CAST(S.InvoiceDateTime AS DATE) AS InvoiceDateTime,
@@ -2901,7 +2800,7 @@ AND S.InvoiceDateTime <= @toDate
 ORDER BY S.InvoiceDateTime";
                             break;
 
-                        case 2: // Monthly Details
+                        case "Monthly": // Monthly Details
                             query = @"
 SELECT 
 DATENAME(MONTH, S.InvoiceDateTime) + '-' + 
@@ -2923,7 +2822,7 @@ MONTH(S.InvoiceDateTime)";
 
 
 
-                        case 3: // Customer-wise Details
+                        case "Customer Wise": // Customer-wise Details
                             query = @"
 SELECT 
 C.Id,
@@ -2944,7 +2843,7 @@ AND S.InvoiceDateTime <= @toDate";
                             break;
 
 
-                        case 4: // Product-wise Details
+                        case "Product Wise": // Product-wise Details
                             query = @"
 SELECT 
 P.Id,
@@ -2965,7 +2864,7 @@ AND S.InvoiceDateTime <= @toDate
 AND (@ProductId = 0 OR SD.ProductId = @ProductId) -- Product Filter";
                             break;
 
-                        case 5: // Invoice-wise Details
+                        case "Invoice Wise": // Invoice-wise Details
                             query = @"
 SELECT 
 S.Code AS SaleCode,
@@ -2987,7 +2886,7 @@ AND S.InvoiceDateTime <= @toDate";
 
 
 
-                        case 6: // Details All
+                        case "Details": // Details All
                             query = @"
 SELECT 
 S.Id AS SaleId,
@@ -3061,8 +2960,8 @@ AND S.InvoiceDateTime <= @toDate";
                     //Code = row.Field<string>("SaleCode"),
                     //CustomerName = row.Field<string>("CustomerName"),
 
-                    Code = dataTable.Columns.Contains("SaleCode")? row["SaleCode"]?.ToString(): "",
-                    CustomerName = dataTable.Columns.Contains("CustomerName")? row["CustomerName"]?.ToString(): "",
+                    Code = dataTable.Columns.Contains("SaleCode") ? row["SaleCode"]?.ToString() : "",
+                    CustomerName = dataTable.Columns.Contains("CustomerName") ? row["CustomerName"]?.ToString() : "",
                     ProductName = dataTable.Columns.Contains("ProductName") ? row.Field<string>("ProductName") : "",
                     //Quantity = row.Field<decimal?>("Quantity") ?? 0.0m,
                     Quantity = dataTable.Columns.Contains("Quantity")
@@ -3123,6 +3022,443 @@ AND S.InvoiceDateTime <= @toDate";
                 }
             }
         }
+
+
+
+        //        public async Task<ResultVM> ReportList(string[] conditionalFields, string[] conditionalValues, SaleReportVM vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        //        {
+        //            bool isNewConnection = false;
+        //            DataTable dataTable = new DataTable();
+        //            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+        //            try
+        //            {
+        //                if (conn == null)
+        //                {
+        //                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //                    conn.Open();
+        //                    isNewConnection = true;
+        //                }
+
+        //                string query = "";
+
+        //                if (vm != null && vm.IsSummary)
+        //                {
+        //                    // =========================
+        //                    // SUMMARY MODE (ReportType Wise)
+        //                    // =========================
+        //                    switch (vm.ReportType)
+        //                    {
+        //                        case 1: // Day-wise Summary
+        //                            query = @"
+        //SELECT 
+        //CAST(S.InvoiceDateTime AS DATE) AS InvoiceDateTime,
+        //COUNT(DISTINCT S.Id) AS TotalInvoice,
+        //SUM(SD.Quantity) AS Quantity,
+        //SUM(SD.SubTotal) AS SubTotal,
+        //SUM(SD.VATAmount) AS VAT,
+        //SUM(SD.LineTotal) AS LineTotal
+        //FROM Sales S
+        //INNER JOIN SaleDetails SD ON S.Id = SD.SaleId
+        //WHERE 1=1
+        //AND S.InvoiceDateTime >= @fromDate
+        //AND S.InvoiceDateTime <= @toDate
+        //AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+        //AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+        //GROUP BY CAST(S.InvoiceDateTime AS DATE)
+        //ORDER BY CAST(S.InvoiceDateTime AS DATE)";
+        //                            break;
+
+        //                        case 2: // Monthly Summary
+        //                            query = @"
+        //SELECT 
+        //DATENAME(MONTH, S.InvoiceDateTime) + '-' + 
+        //CAST(YEAR(S.InvoiceDateTime) AS VARCHAR(4)) AS MonthYear,
+        //COUNT(DISTINCT S.Id) AS TotalInvoice,
+        //SUM(SD.Quantity) AS Quantity,
+        //SUM(SD.LineTotal) AS LineTotal
+        //FROM Sales S
+        //INNER JOIN SaleDetails SD ON S.Id = SD.SaleId
+        //WHERE 1=1
+        //AND S.InvoiceDateTime >= @fromDate
+        //AND S.InvoiceDateTime <= @toDate
+        //AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+        //AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+        //GROUP BY 
+        //YEAR(S.InvoiceDateTime),
+        //MONTH(S.InvoiceDateTime),
+        //DATENAME(MONTH, S.InvoiceDateTime)
+        //ORDER BY 
+        //YEAR(S.InvoiceDateTime),
+        //MONTH(S.InvoiceDateTime)";
+        //                            break;
+
+        //                        case 3: // Customer-wise Summary
+        //                            query = @"
+        //SELECT 
+        //C.Id,
+        //C.Name AS CustomerName,
+        //COUNT(DISTINCT S.Id) AS TotalInvoice,
+        //SUM(SD.Quantity) AS Quantity,
+        //SUM(SD.LineTotal) AS LineTotal
+        //FROM Customers C
+        //INNER JOIN Sales S ON C.Id = S.CustomerId
+        //INNER JOIN SaleDetails SD ON S.Id = SD.SaleId
+        //WHERE 1=1
+        //AND S.InvoiceDateTime >= @fromDate
+        //AND S.InvoiceDateTime <= @toDate
+        //AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+        //AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+        //GROUP BY C.Id, C.Name
+        //ORDER BY LineTotal DESC";
+        //                            break;
+
+        //                        case 4: // Product-wise Summary
+        //                            query = @"
+        //SELECT 
+        //P.Id,
+        //P.Name AS ProductName,
+        //SUM(SD.Quantity) AS Quantity,
+        //SUM(SD.SubTotal) AS SubTotal,
+        //SUM(SD.VATAmount) AS VAT,
+        //SUM(SD.LineTotal) AS LineTotal
+        //FROM Products P
+        //INNER JOIN SaleDetails SD ON P.Id = SD.ProductId
+        //INNER JOIN Sales S ON S.Id = SD.SaleId
+        //WHERE 1=1
+        //AND S.InvoiceDateTime >= @fromDate
+        //AND S.InvoiceDateTime <= @toDate
+        //AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+        //AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+        //GROUP BY P.Id, P.Name
+        //ORDER BY LineTotal DESC";
+        //                            break;
+
+        //                        case 5: // Invoice-wise Summary
+        //                            query = @"
+        //SELECT 
+        //S.Code AS SaleCode,
+        //S.InvoiceDateTime,
+        //C.Name AS CustomerName,
+        //SUM(SD.Quantity) AS Quantity,
+        //SUM(SD.SubTotal) AS SubTotal,
+        //SUM(SD.VATAmount) AS VAT,
+        //SUM(SD.LineTotal) AS LineTotal
+        //FROM Sales S
+        //INNER JOIN Customers C ON S.CustomerId = C.Id
+        //INNER JOIN SaleDetails SD ON S.Id = SD.SaleId
+        //WHERE 1=1
+        //AND S.InvoiceDateTime >= @fromDate
+        //AND S.InvoiceDateTime <= @toDate
+        //AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+        //AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+        //GROUP BY S.Code, S.InvoiceDateTime, C.Name
+        //ORDER BY S.InvoiceDateTime";
+        //                            break;
+
+        //                        default:
+        //                            query = @"
+        //SELECT 
+        //S.Code AS SaleCode,
+        //S.InvoiceDateTime,
+        //C.Name AS CustomerName,
+        //SUM(SD.Quantity) AS Quantity,
+        //SUM(SD.SubTotal) AS SubTotal,
+        //SUM(SD.VATAmount) AS VAT,
+        //SUM(SD.LineTotal) AS LineTotal
+        //FROM Sales S
+        //INNER JOIN Customers C ON S.CustomerId = C.Id
+        //INNER JOIN SaleDetails SD ON S.Id = SD.SaleId
+        //WHERE 1=1
+        //AND S.InvoiceDateTime >= @fromDate
+        //AND S.InvoiceDateTime <= @toDate
+        //AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+        //AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+        //GROUP BY S.Code, S.InvoiceDateTime, C.Name
+        //ORDER BY S.InvoiceDateTime";
+        //                            break;
+        //                    }
+        //                }
+        //                else
+        //                {
+        //                    // =========================
+        //                    // DETAILS MODE (ReportType Wise)
+        //                    // =========================
+        //                    switch (vm.ReportType)
+        //                    {
+
+        //                        case 1:
+        //                            query = @"
+        //SELECT 
+        //CAST(S.InvoiceDateTime AS DATE) AS InvoiceDateTime,
+        //S.Id AS SaleId,
+        //S.Code AS SaleCode,
+        //SD.Quantity,
+        //SD.SubTotal,
+        //SD.VATAmount,
+        //SD.LineTotal
+        //FROM Sales S
+        //INNER JOIN SaleDetails SD ON S.Id = SD.SaleId
+        //WHERE 1=1
+        //AND S.InvoiceDateTime >= @fromDate
+        //AND S.InvoiceDateTime <= @toDate
+        //AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+        //AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+        //ORDER BY S.InvoiceDateTime";
+        //                            break;
+
+        //                        case 2:
+        //                            query = @"
+        //SELECT 
+        //DATENAME(MONTH, S.InvoiceDateTime) + '-' + 
+        //CAST(YEAR(S.InvoiceDateTime) AS VARCHAR(4)) AS MonthYear,
+        //S.Id AS SaleId,
+        //S.Code AS SaleCode,
+        //S.InvoiceDateTime,
+        //SD.Quantity,
+        //SD.LineTotal
+        //FROM Sales S
+        //INNER JOIN SaleDetails SD ON S.Id = SD.SaleId
+        //WHERE 1=1
+        //AND S.InvoiceDateTime >= @fromDate
+        //AND S.InvoiceDateTime <= @toDate
+        //AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+        //AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+        //ORDER BY YEAR(S.InvoiceDateTime), MONTH(S.InvoiceDateTime)";
+        //                            break;
+
+        //                        case 3:
+        //                            query = @"
+        //SELECT 
+        //C.Id,
+        //S.Code AS SaleCode,
+        //C.Name AS CustomerName,
+        //FORMAT(S.InvoiceDateTime, 'dd/MM/yyyy') AS InvoiceDateTime,
+        //SD.Quantity,
+        //SD.UnitRate,
+        //SD.SubTotal,
+        //SD.VATAmount,
+        //SD.LineTotal
+        //FROM Customers C
+        //INNER JOIN Sales S ON C.Id = S.CustomerId
+        //INNER JOIN SaleDetails SD ON S.Id = SD.SaleId
+        //WHERE 1=1
+        //AND S.InvoiceDateTime >= @fromDate
+        //AND S.InvoiceDateTime <= @toDate
+        //AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+        //AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
+        //                            break;
+
+        //                        case 4:
+        //                            query = @"
+        //SELECT 
+        //P.Id,
+        //P.Name AS ProductName,
+        //S.Code AS SaleCode,
+        //FORMAT(S.InvoiceDateTime, 'dd/MM/yyyy') AS InvoiceDateTime,
+        //SD.Quantity,
+        //SD.UnitRate,
+        //SD.SubTotal,
+        //SD.VATAmount,
+        //SD.LineTotal
+        //FROM Products P
+        //INNER JOIN SaleDetails SD ON P.Id = SD.ProductId
+        //INNER JOIN Sales S ON S.Id = SD.SaleId
+        //WHERE 1=1
+        //AND S.InvoiceDateTime >= @fromDate
+        //AND S.InvoiceDateTime <= @toDate
+        //AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+        //AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
+        //                            break;
+
+        //                        case 5: // ✅ FIXED
+        //                            query = @"
+        //SELECT 
+        //S.Code AS SaleCode,
+        //FORMAT(S.InvoiceDateTime, 'dd/MM/yyyy') AS InvoiceDateTime,
+        //C.Name AS CustomerName,
+        //P.Name AS ProductName,
+        //SD.Quantity,
+        //SD.UnitRate,
+        //SD.SubTotal,
+        //SD.VATAmount,
+        //SD.LineTotal
+        //FROM Sales S
+        //INNER JOIN Customers C ON S.CustomerId = C.Id
+        //INNER JOIN SaleDetails SD ON S.Id = SD.SaleId
+        //INNER JOIN Products P ON SD.ProductId = P.Id
+        //WHERE 1=1
+        //AND CAST(S.InvoiceDateTime AS DATE) >= CAST(@fromDate AS DATE)
+        //AND CAST(S.InvoiceDateTime AS DATE) <= CAST(@toDate AS DATE)
+        //AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+        //AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
+        //                            break;
+
+        //                        case 6: // ✅ FIXED
+        //                            query = @"
+        //SELECT 
+        //S.Id AS SaleId,
+        //S.Code AS SaleCode,
+        //S.InvoiceDateTime,
+        //CAST(S.InvoiceDateTime AS DATE) AS InvoiceDate,
+        //C.Id AS CustomerId,
+        //C.Name AS CustomerName,
+        //P.Id AS ProductId,
+        //P.Name AS ProductName,
+        //SD.Quantity,
+        //SD.UnitRate,
+        //SD.SubTotal,
+        //SD.VATAmount,
+        //SD.LineTotal
+        //FROM Sales S
+        //INNER JOIN Customers C ON S.CustomerId = C.Id
+        //INNER JOIN SaleDetails SD ON S.Id = SD.SaleId
+        //INNER JOIN Products P ON SD.ProductId = P.Id
+        //WHERE 1=1
+        //AND S.InvoiceDateTime >= @fromDate
+        //AND S.InvoiceDateTime <= @toDate
+        //AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+        //AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
+        //                            break;
+
+        //                        default: // ✅ FIXED
+        //                            query = @"
+        //SELECT 
+        //S.Id AS SaleId,
+        //S.Code AS SaleCode,
+        //S.InvoiceDateTime,
+        //C.Name AS CustomerName,
+        //SD.Quantity,
+        //SD.LineTotal
+        //FROM Sales S
+        //INNER JOIN Customers C ON S.CustomerId = C.Id
+        //INNER JOIN SaleDetails SD ON S.Id = SD.SaleId
+        //WHERE 1=1
+        //AND S.InvoiceDateTime >= @fromDate
+        //AND S.InvoiceDateTime <= @toDate
+        //AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+        //AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
+        //                            break;
+        //                    }
+        //                }
+        //                // Apply additional conditions
+        //                if (!query.ToUpper().Contains("WHERE"))
+        //                {
+        //                    query += " WHERE 1=1 ";
+        //                }
+
+        //                // Apply dynamic conditions
+        //                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
+
+        //                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+        //                // Apply dynamic parameters
+        //                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+        //                // Safe parameter binding
+        //                objComm.SelectCommand.Parameters.AddWithValue("@ProductId", vm.ProductId ?? 0);
+        //                objComm.SelectCommand.Parameters.AddWithValue("@CustomerId", vm.CustomerId ?? 0);
+        //                objComm.SelectCommand.Parameters.AddWithValue(
+        //                    "@fromDate",
+        //                    DateTime.Parse(vm.InvoiceFromDate ?? DateTime.Now.ToString())
+        //                );
+
+        //                objComm.SelectCommand.Parameters.AddWithValue(
+        //                    "@toDate",
+        //                    DateTime.Parse(vm.InvoiceToDate ?? DateTime.Now.ToString())
+        //                );
+
+        //                objComm.Fill(dataTable);
+
+
+        //                // =========================
+        //                // MODEL MAPPING (CLEANED)
+        //                // =========================
+        //                var modelList = dataTable.AsEnumerable().Select(row => new SaleReportVM
+        //                {
+        //                    Id = dataTable.Columns.Contains("SaleId")
+        //                        ? row.Field<int?>("SaleId") ?? 0
+        //                        : 0,
+
+        //                    Code = dataTable.Columns.Contains("SaleCode")
+        //                        ? row["SaleCode"]?.ToString()
+        //                        : "",
+
+        //                    CustomerName = dataTable.Columns.Contains("CustomerName")
+        //                        ? row["CustomerName"]?.ToString()
+        //                        : "",
+
+        //                    ProductName = dataTable.Columns.Contains("ProductName")
+        //                        ? row["ProductName"]?.ToString()
+        //                        : "",
+
+        //                    Quantity = dataTable.Columns.Contains("Quantity")
+        //                        ? row.Field<decimal?>("Quantity") ?? 0
+        //                        : 0,
+
+        //                    UnitRate = dataTable.Columns.Contains("UnitRate")
+        //                        ? row.Field<decimal?>("UnitRate") ?? 0
+        //                        : 0,
+
+        //                    SubTotal = dataTable.Columns.Contains("SubTotal")
+        //                        ? row.Field<decimal?>("SubTotal") ?? 0
+        //                        : 0,
+
+        //                    TotalInvoice = dataTable.Columns.Contains("TotalInvoice")
+        //                        ? row.Field<int?>("TotalInvoice") ?? 0
+        //                        : 0,
+
+        //                    SD = dataTable.Columns.Contains("SD")
+        //                        ? row.Field<decimal?>("SD") ?? 0
+        //                        : 0,
+
+        //                    SDAmount = dataTable.Columns.Contains("SDAmount")
+        //                        ? row.Field<decimal?>("SDAmount") ?? 0
+        //                        : 0,
+
+        //                    VATRate = dataTable.Columns.Contains("VATRate")
+        //                        ? row.Field<decimal?>("VATRate") ?? 0
+        //                        : 0,
+
+        //                    // FIX: VAT OR VATAmount handle
+        //                    VATAmount = dataTable.Columns.Contains("VATAmount")
+        //                        ? row.Field<decimal?>("VATAmount") ?? 0
+        //                        : dataTable.Columns.Contains("VAT")
+        //                            ? row.Field<decimal?>("VAT") ?? 0
+        //                            : 0,
+
+        //                    LineTotal = dataTable.Columns.Contains("LineTotal")
+        //                        ? row.Field<decimal?>("LineTotal") ?? 0
+        //                        : 0,
+
+        //                    // FIX: Date OR MonthYear
+        //                    InvoiceDateTime = dataTable.Columns.Contains("InvoiceDateTime")
+        //                        ? row["InvoiceDateTime"]?.ToString()
+        //                        : dataTable.Columns.Contains("MonthYear")
+        //                            ? row["MonthYear"]?.ToString()
+        //                            : ""
+
+        //                }).ToList();
+
+        //                result.Status = "Success";
+        //                result.Message = "Data retrieved successfully.";
+        //                result.DataVM = modelList;
+        //                return result;
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                result.Message = ex.Message;
+        //                result.ExMessage = ex.Message;
+        //                return result;
+        //            }
+        //            finally
+        //            {
+        //                if (isNewConnection && conn != null)
+        //                {
+        //                    conn.Close();
+        //                }
+        //            }
+        //        }
 
 
 
@@ -3209,7 +3545,7 @@ AND S.InvoiceDateTime <= @toDate";
 
         //        objComm.Fill(dataTable);
 
-     
+
         //        var modelList = dataTable.AsEnumerable().Select(row => new SaleReportVM
         //        {
         //            Id = row.Field<int>("Id"),

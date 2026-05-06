@@ -1903,7 +1903,9 @@ namespace ShampanPOS.Service
         }
 
 
-        //public async Task<ResultVM> ReportList( SaleReportVM vm = null)
+
+
+        //public async Task<ResultVM> ReportList(SaleReportVM vm = null)
         //{
         //    SaleRepository _repo = new SaleRepository();
         //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
@@ -1911,6 +1913,7 @@ namespace ShampanPOS.Service
         //    bool isNewConnection = false;
         //    SqlConnection conn = null;
         //    SqlTransaction transaction = null;
+
         //    try
         //    {
         //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
@@ -1921,24 +1924,54 @@ namespace ShampanPOS.Service
 
         //        List<string> conditionFields = new List<string>();
         //        List<string> conditionValues = new List<string>();
-
-
-        //        // Customer Name
-        //        if (!string.IsNullOrEmpty(vm.CustomerName))
+        //        if (vm != null)
         //        {
-        //            conditionFields.Add("C.Name");
-        //            conditionValues.Add(vm.CustomerName);
+        //            // =========================
+        //            // CUSTOMER NAME
+        //            // =========================
+        //            //if (!string.IsNullOrEmpty(vm.CustomerName))
+        //            //{
+        //            //    conditionFields.Add("C.Name");
+        //            //    conditionValues.Add(vm.CustomerName);
+        //            //}
+
+        //            // =========================
+        //            // CUSTOMER CODE
+        //            // =========================
+        //            if (!string.IsNullOrEmpty(vm.Code))
+        //            {
+        //                conditionFields.Add("S.Code");
+        //                conditionValues.Add(vm.Code);
+        //            }
+
+        //            // =========================
+        //            // PRODUCT FILTER ✅ ADD
+        //            // =========================
+        //            //if (vm.ProductId > 0)
+        //            //{
+        //            //    conditionFields.Add("SD.ProductId");
+        //            //    conditionValues.Add(vm.ProductId.ToString());
+        //            //}
+
+        //            // =========================
+        //            // REPORT TYPE LOGIC (FIXED)
+        //            // =========================
+        //            string reportMode = "INVOICE";
+
+        //            if (vm.ReportType == 2)
+        //                reportMode = "PRODUCT";
+        //            else if (vm.ReportType == 3)
+        //                reportMode = "CUSTOMER";
+
+        //            // =========================
+        //            // SUMMARY / DETAILS (FINAL OVERRIDE)
+        //            // =========================
+        //            vm.Operation = vm.IsSummary ? "SUMMARY" : "DETAILS";
         //        }
 
-        //        // Customer Code
-        //        if (!string.IsNullOrEmpty(vm.Code))
-        //        {
-        //            conditionFields.Add("S.Code");
-        //            conditionValues.Add(vm.Code);
-        //        }
-
-
-
+        //        // =========================
+        //        // CALL REPOSITORY
+        //        // =========================
         //        if (conditionFields.Count == 0)
         //        {
         //            result = await _repo.ReportList(null, null, vm, conn, transaction);
@@ -1947,7 +1980,6 @@ namespace ShampanPOS.Service
         //        {
         //            result = await _repo.ReportList(conditionFields.ToArray(), conditionValues.ToArray(), vm, conn, transaction);
         //        }
-
 
         //        if (isNewConnection)
         //        {
@@ -1982,9 +2014,9 @@ namespace ShampanPOS.Service
         public async Task<ResultVM> ReportList(SaleReportVM vm = null)
         {
             SaleRepository _repo = new SaleRepository();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
-            bool isNewConnection = false;
+            ResultVM result = new ResultVM{Status = "Fail",Message = "Error",ExMessage = null,Id = "0",DataVM = null};
+
             SqlConnection conn = null;
             SqlTransaction transaction = null;
 
@@ -1992,98 +2024,34 @@ namespace ShampanPOS.Service
             {
                 conn = new SqlConnection(DatabaseHelper.GetConnectionString());
                 conn.Open();
-                isNewConnection = true;
 
                 transaction = conn.BeginTransaction();
 
-                List<string> conditionFields = new List<string>();
-                List<string> conditionValues = new List<string>();
+                // SUMMARY / DETAILS
                 if (vm != null)
                 {
-                    // =========================
-                    // CUSTOMER NAME
-                    // =========================
-                    //if (!string.IsNullOrEmpty(vm.CustomerName))
-                    //{
-                    //    conditionFields.Add("C.Name");
-                    //    conditionValues.Add(vm.CustomerName);
-                    //}
-
-                    // =========================
-                    // CUSTOMER CODE
-                    // =========================
-                    if (!string.IsNullOrEmpty(vm.Code))
-                    {
-                        conditionFields.Add("S.Code");
-                        conditionValues.Add(vm.Code);
-                    }
-
-                    // =========================
-                    // PRODUCT FILTER ✅ ADD
-                    // =========================
-                    //if (vm.ProductId > 0)
-                    //{
-                    //    conditionFields.Add("SD.ProductId");
-                    //    conditionValues.Add(vm.ProductId.ToString());
-                    //}
-
-                    // =========================
-                    // REPORT TYPE LOGIC (FIXED)
-                    // =========================
-                    string reportMode = "INVOICE";
-
-                    if (vm.ReportType == 2)
-                        reportMode = "PRODUCT";
-                    else if (vm.ReportType == 3)
-                        reportMode = "CUSTOMER";
-
-                    // =========================
-                    // SUMMARY / DETAILS (FINAL OVERRIDE)
-                    // =========================
                     vm.Operation = vm.IsSummary ? "SUMMARY" : "DETAILS";
                 }
 
-                // =========================
                 // CALL REPOSITORY
-                // =========================
-                if (conditionFields.Count == 0)
-                {
-                    result = await _repo.ReportList(null, null, vm, conn, transaction);
-                }
-                else
-                {
-                    result = await _repo.ReportList(conditionFields.ToArray(), conditionValues.ToArray(), vm, conn, transaction);
-                }
+                result = await _repo.ReportList(null, null, vm, conn, transaction);
 
-                if (isNewConnection)
-                {
-                    transaction.Commit();
-                }
+                transaction.Commit();
 
                 return result;
             }
             catch (Exception ex)
             {
-                if (transaction != null && isNewConnection)
-                {
-                    transaction.Rollback();
-                }
+                transaction?.Rollback();
 
                 result.ExMessage = ex.ToString();
                 return result;
             }
             finally
             {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
+                conn?.Close();
             }
         }
-
-
-
-
 
 
 
