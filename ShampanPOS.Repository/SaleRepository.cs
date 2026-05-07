@@ -2651,15 +2651,21 @@ COUNT(DISTINCT S.Id) AS TotalInvoice,
 SUM(SD.Quantity) AS Quantity,
 SUM(SD.SubTotal) AS SubTotal,
 SUM(SD.VATAmount) AS VAT,
-SUM(SD.LineTotal) AS LineTotal
+SUM(SD.LineTotal) AS LineTotal,
+S.BranchId AS BranchId,
+S.CompanyId AS CompanyId,
+C.CompanyName,  
+B.Name
 FROM Sales S
 INNER JOIN SaleDetails SD ON S.Id = SD.SaleId
+INNER JOIN CompanyProfiles C ON S.CompanyId = C.Id 
+INNER JOIN BranchProfiles B ON S.BranchId = B.Id 
 WHERE 1=1
 AND S.InvoiceDateTime >= @fromDate
 AND S.InvoiceDateTime <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
 AND (@ProductId = 0 OR SD.ProductId = @ProductId)
-GROUP BY CAST(S.InvoiceDateTime AS DATE)
+GROUP BY CAST(S.InvoiceDateTime AS DATE), S.CompanyId, S.BranchId, C.CompanyName, B.Name
 ORDER BY CAST(S.InvoiceDateTime AS DATE)";
                             break;
 
@@ -2797,6 +2803,8 @@ INNER JOIN SaleDetails SD ON S.Id = SD.SaleId
 WHERE 1=1
 AND S.InvoiceDateTime >= @fromDate
 AND S.InvoiceDateTime <= @toDate
+AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+AND (@ProductId = 0 OR SD.ProductId = @ProductId)
 ORDER BY S.InvoiceDateTime";
                             break;
 
@@ -2815,6 +2823,8 @@ INNER JOIN SaleDetails SD ON S.Id = SD.SaleId
 WHERE 1=1
 AND S.InvoiceDateTime >= @fromDate
 AND S.InvoiceDateTime <= @toDate
+AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+AND (@ProductId = 0 OR SD.ProductId = @ProductId)
 ORDER BY 
 YEAR(S.InvoiceDateTime),
 MONTH(S.InvoiceDateTime)";
@@ -2839,7 +2849,9 @@ INNER JOIN Sales S ON C.Id = S.CustomerId
 INNER JOIN SaleDetails SD ON S.Id = SD.SaleId
 WHERE 1=1
 AND S.InvoiceDateTime >= @fromDate
-AND S.InvoiceDateTime <= @toDate";
+AND S.InvoiceDateTime <= @toDate
+AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
                             break;
 
 
@@ -2861,7 +2873,8 @@ INNER JOIN Sales S ON S.Id = SD.SaleId
 WHERE 1=1
 AND S.InvoiceDateTime >= @fromDate
 AND S.InvoiceDateTime <= @toDate
-AND (@ProductId = 0 OR SD.ProductId = @ProductId) -- Product Filter";
+AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
                             break;
 
                         case "Invoice Wise": // Invoice-wise Details
@@ -2880,8 +2893,11 @@ FROM Sales S
 INNER JOIN Customers C ON S.CustomerId = C.Id
 INNER JOIN SaleDetails SD ON S.Id = SD.SaleId
 INNER JOIN Products P ON SD.ProductId = P.Id
+WHERE 1=1
 AND S.InvoiceDateTime >= @fromDate
-AND S.InvoiceDateTime <= @toDate";
+AND S.InvoiceDateTime <= @toDate
+AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
                             break;
 
 
@@ -2908,7 +2924,9 @@ INNER JOIN SaleDetails SD ON S.Id = SD.SaleId
 INNER JOIN Products P ON SD.ProductId = P.Id
 WHERE 1=1
 AND S.InvoiceDateTime >= @fromDate
-AND S.InvoiceDateTime <= @toDate";
+AND S.InvoiceDateTime <= @toDate
+AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
                             break;
 
                         default:
@@ -2924,7 +2942,9 @@ AND S.InvoiceDateTime <= @toDate";
     INNER JOIN Customers C ON S.CustomerId = C.Id
     INNER JOIN SaleDetails SD ON S.Id = SD.SaleId
     WHERE S.InvoiceDateTime >= @fromDate
-    AND S.InvoiceDateTime <= @toDate";
+    AND S.InvoiceDateTime <= @toDate
+AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
                             break;
                     }
                 }
@@ -2963,6 +2983,11 @@ AND S.InvoiceDateTime <= @toDate";
                     Code = dataTable.Columns.Contains("SaleCode") ? row["SaleCode"]?.ToString() : "",
                     CustomerName = dataTable.Columns.Contains("CustomerName") ? row["CustomerName"]?.ToString() : "",
                     ProductName = dataTable.Columns.Contains("ProductName") ? row.Field<string>("ProductName") : "",
+                    BranchId = Convert.ToInt32(row["BranchId"]),
+                    CompanyId = Convert.ToInt32(row["CompanyId"]),
+                    BranchName = row.Field<string>("Name"),
+                    CompanyName = row.Field<string>("CompanyName"),
+
                     //Quantity = row.Field<decimal?>("Quantity") ?? 0.0m,
                     Quantity = dataTable.Columns.Contains("Quantity")
                     ? row.Field<decimal?>("Quantity") ?? 0.0m

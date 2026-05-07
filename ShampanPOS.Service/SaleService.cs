@@ -2011,12 +2011,54 @@ namespace ShampanPOS.Service
 
 
 
+        //public async Task<ResultVM> ReportList(SaleReportVM vm = null)
+        //{
+        //    SaleRepository _repo = new SaleRepository();
+
+        //    ResultVM result = new ResultVM{Status = "Fail",Message = "Error",ExMessage = null,Id = "0",DataVM = null};
+
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+
+        //        transaction = conn.BeginTransaction();
+
+        //        // SUMMARY / DETAILS
+        //        if (vm != null)
+        //        {
+        //            vm.Operation = vm.IsSummary ? "SUMMARY" : "DETAILS";
+        //        }
+
+        //        // CALL REPOSITORY
+        //        result = await _repo.ReportList(null, null, vm, conn, transaction);
+
+        //        transaction.Commit();
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        transaction?.Rollback();
+
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        conn?.Close();
+        //    }
+        //}
+
         public async Task<ResultVM> ReportList(SaleReportVM vm = null)
         {
             SaleRepository _repo = new SaleRepository();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
-            ResultVM result = new ResultVM{Status = "Fail",Message = "Error",ExMessage = null,Id = "0",DataVM = null};
-
+            bool isNewConnection = false;
             SqlConnection conn = null;
             SqlTransaction transaction = null;
 
@@ -2024,6 +2066,7 @@ namespace ShampanPOS.Service
             {
                 conn = new SqlConnection(DatabaseHelper.GetConnectionString());
                 conn.Open();
+                isNewConnection = true;
 
                 transaction = conn.BeginTransaction();
 
@@ -2036,24 +2079,36 @@ namespace ShampanPOS.Service
                 // CALL REPOSITORY
                 result = await _repo.ReportList(null, null, vm, conn, transaction);
 
-                transaction.Commit();
+                if (result.Status == "Success")
+                {
+                    transaction.Commit();
+                }
+                else
+                {
+                    throw new Exception(result.Message);
+                }
 
                 return result;
             }
             catch (Exception ex)
             {
-                transaction?.Rollback();
+                if (transaction != null && isNewConnection)
+                {
+                    transaction.Rollback();
+                }
 
                 result.ExMessage = ex.ToString();
                 return result;
             }
+    
             finally
             {
-                conn?.Close();
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
             }
         }
-
-
 
 
 
