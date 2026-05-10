@@ -3111,10 +3111,15 @@ SUM(SD.Quantity) AS Quantity,
 SUM(SD.LineTotal) AS LineTotal,
 S.CompanyId AS CompanyId,
 S.BranchId AS BranchId,
-C.CompanyName,  
+C.CompanyName,
+CU.Name CustomerName,
+P.Name AS ProductName,
 B.Name AS BranchName
 FROM Sales S
 INNER JOIN SaleDetails SD ON S.Id = SD.SaleId
+INNER JOIN Customers CU ON S.CustomerId = CU.Id--
+INNER JOIN Products P ON SD.ProductId = P.Id
+
 INNER JOIN CompanyProfiles C ON S.CompanyId = C.Id 
 INNER JOIN BranchProfiles B ON S.BranchId = B.Id 
 WHERE 1=1
@@ -3129,6 +3134,8 @@ DATENAME(MONTH, S.InvoiceDateTime),
 S.CompanyId,
 S.BranchId,
 C.CompanyName,
+CU.Name,
+P.Name,
 B.Name
 ORDER BY 
 YEAR(S.InvoiceDateTime),

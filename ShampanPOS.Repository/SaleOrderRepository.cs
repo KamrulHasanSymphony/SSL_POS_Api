@@ -3065,7 +3065,7 @@ AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
                 var modelList = dataTable.AsEnumerable().Select(row => new SaleOrderReportVM
                 {
                     //Id = row.Field<int>("Id"),
-                    Id = dataTable.Columns.Contains("SaleId") ? row.Field<int>("SaleId") : 0,
+                    Id = dataTable.Columns.Contains("SaleOrderId") ? row.Field<int>("SaleOrderId") : 0,
                     //Code = row.Field<string>("SaleCode"),
                     //CustomerName = row.Field<string>("CustomerName"),
 
@@ -3077,11 +3077,8 @@ AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
                     BranchName = row.Field<string>("BranchName"),
                     CompanyName = row.Field<string>("CompanyName"),
                     //OrderDate = dataTable.Columns.Contains("OrderDate")? row["OrderDate"]?.ToString(): "",
-                    OrderDate = dataTable.Columns.Contains("OrderDate")
-                ? row["OrderDate"]?.ToString()
-                : dataTable.Columns.Contains("MonthYear")
-                    ? row["MonthYear"]?.ToString()
-                    : "",
+                    OrderDate = dataTable.Columns.Contains("OrderDate")? row["OrderDate"]?.ToString(): dataTable.Columns.Contains("MonthYear")
+                    ? row["MonthYear"]?.ToString(): "",
                     //Quantity = row.Field<decimal?>("Quantity") ?? 0.0m,
                     Quantity = dataTable.Columns.Contains("Quantity")
                     ? row.Field<decimal?>("Quantity") ?? 0.0m
