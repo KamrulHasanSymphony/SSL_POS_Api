@@ -846,7 +846,7 @@ namespace ShampanPOS.Controllers
             try
             {
                 CommonService _commonService = new CommonService();
-                resultVM = await _commonService.GetReportTypeList(new[] { "M.EnumType" }, new[] { "" }, null);
+                resultVM = await _commonService.GetReportTypeList(new[] { "M.EnumType" },  new[] { Vm.Value }, null);
                 return resultVM;
             }
             catch (Exception ex)

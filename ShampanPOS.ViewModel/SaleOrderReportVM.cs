@@ -14,6 +14,7 @@ namespace ShampanPOS.ViewModel
 
         [Display(Name = "Code(Auto Generate)")]
         public string? Code { get; set; }
+        public string? SaleOderCode { get; set; }
 
         [Display(Name = "Distributor")]
         public int? BranchId { get; set; }
@@ -87,6 +88,10 @@ namespace ShampanPOS.ViewModel
         [DataType(DataType.Currency)]
         public decimal? LineTotal { get; set; }
 
+        [Display(Name = "Total Invoice")]
+        [DataType(DataType.Currency)]
+        public decimal? TotalInvoice { get; set; }
+
         public string? InvoiceDateTime { get; set; }
         public string? Operation { get; set; }
 
@@ -103,7 +108,10 @@ namespace ShampanPOS.ViewModel
         public string? CompanyName { get; set; }
 
         [Display(Name = "Report Type")]
-        public int ReportType { get; set; }
+
+        //public int ReportType { get; set; }
+
+        public string ReportType { get; set; }
 
         public bool IsSummary { get; set; }
     }
