@@ -1154,7 +1154,8 @@ namespace ShampanPOS.Service
         //public async Task<ResultVM> ReportList(PurchaseReportVM vm = null)
         //{
         //    PurchaseRepository _repo = new PurchaseRepository();
-        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+        //    ResultVM result = new ResultVM{Status = "Fail",Message = "Error",ExMessage = null,Id = "0",DataVM = null};
 
         //    bool isNewConnection = false;
         //    SqlConnection conn = null;
@@ -1174,13 +1175,13 @@ namespace ShampanPOS.Service
         //        if (vm != null)
         //        {
         //            // =========================
-        //            // SUPPLIER NAME (OPTIONAL)
+        //            // ✅ SUPPLIER FILTER (FIXED)
         //            // =========================
-        //            if (!string.IsNullOrEmpty(vm.SupplierName))
-        //            {
-        //                conditionFields.Add("S.Name");
-        //                conditionValues.Add(vm.SupplierName);
-        //            }
+        //            //if (vm.SupplierId > 0)
+        //            //{
+        //            //    conditionFields.Add("M.SupplierId");
+        //            //    conditionValues.Add(vm.SupplierId.ToString());
+        //            //}
 
         //            // =========================
         //            // PURCHASE CODE (OPTIONAL)
@@ -1192,9 +1193,8 @@ namespace ShampanPOS.Service
         //            }
 
         //            // =========================
-        //            // DATE NULL HANDLE (IMPORTANT FIX)
+        //            // DATE NULL HANDLE
         //            // =========================
-
         //            vm.PurchaseFromDate = string.IsNullOrEmpty(vm.PurchaseFromDate) ? null : vm.PurchaseFromDate;
         //            vm.PurchaseToDate = string.IsNullOrEmpty(vm.PurchaseToDate) ? null : vm.PurchaseToDate;
 
@@ -1202,7 +1202,7 @@ namespace ShampanPOS.Service
         //            vm.InvoiceToDate = string.IsNullOrEmpty(vm.InvoiceToDate) ? null : vm.InvoiceToDate;
 
         //            // =========================
-        //            // REPORT TYPE (KEEPED SAME)
+        //            // REPORT TYPE
         //            // =========================
         //            string reportMode = "INVOICE";
 
@@ -1259,12 +1259,10 @@ namespace ShampanPOS.Service
 
 
 
-
         public async Task<ResultVM> ReportList(PurchaseReportVM vm = null)
         {
             PurchaseRepository _repo = new PurchaseRepository();
-
-            ResultVM result = new ResultVM{Status = "Fail",Message = "Error",ExMessage = null,Id = "0",DataVM = null};
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
             bool isNewConnection = false;
             SqlConnection conn = null;
@@ -1278,69 +1276,22 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                List<string> conditionFields = new List<string>();
-                List<string> conditionValues = new List<string>();
-
+                // SUMMARY / DETAILS
                 if (vm != null)
                 {
-                    // =========================
-                    // ✅ SUPPLIER FILTER (FIXED)
-                    // =========================
-                    //if (vm.SupplierId > 0)
-                    //{
-                    //    conditionFields.Add("M.SupplierId");
-                    //    conditionValues.Add(vm.SupplierId.ToString());
-                    //}
-
-                    // =========================
-                    // PURCHASE CODE (OPTIONAL)
-                    // =========================
-                    if (!string.IsNullOrEmpty(vm.Code))
-                    {
-                        conditionFields.Add("M.Code");
-                        conditionValues.Add(vm.Code);
-                    }
-
-                    // =========================
-                    // DATE NULL HANDLE
-                    // =========================
-                    vm.PurchaseFromDate = string.IsNullOrEmpty(vm.PurchaseFromDate) ? null : vm.PurchaseFromDate;
-                    vm.PurchaseToDate = string.IsNullOrEmpty(vm.PurchaseToDate) ? null : vm.PurchaseToDate;
-
-                    vm.InvoiceFromDate = string.IsNullOrEmpty(vm.InvoiceFromDate) ? null : vm.InvoiceFromDate;
-                    vm.InvoiceToDate = string.IsNullOrEmpty(vm.InvoiceToDate) ? null : vm.InvoiceToDate;
-
-                    // =========================
-                    // REPORT TYPE
-                    // =========================
-                    string reportMode = "INVOICE";
-
-                    if (vm.ReportType == 2)
-                        reportMode = "PRODUCT";
-                    else if (vm.ReportType == 3)
-                        reportMode = "SUPPLIER";
-
-                    // =========================
-                    // SUMMARY / DETAILS
-                    // =========================
                     vm.Operation = vm.IsSummary ? "SUMMARY" : "DETAILS";
                 }
 
-                // =========================
                 // CALL REPOSITORY
-                // =========================
-                if (conditionFields.Count == 0)
+                result = await _repo.ReportList(null, null, vm, conn, transaction);
+
+                if (result.Status == "Success")
                 {
-                    result = await _repo.ReportList(null, null, vm, conn, transaction);
+                    transaction.Commit();
                 }
                 else
                 {
-                    result = await _repo.ReportList(conditionFields.ToArray(), conditionValues.ToArray(), vm, conn, transaction);
-                }
-
-                if (isNewConnection)
-                {
-                    transaction.Commit();
+                    throw new Exception(result.Message);
                 }
 
                 return result;
@@ -1355,6 +1306,7 @@ namespace ShampanPOS.Service
                 result.ExMessage = ex.ToString();
                 return result;
             }
+
             finally
             {
                 if (isNewConnection && conn != null)
@@ -1363,6 +1315,7 @@ namespace ShampanPOS.Service
                 }
             }
         }
+
 
 
 

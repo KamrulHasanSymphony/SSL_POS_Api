@@ -19,6 +19,14 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Purchase Order Code")]
         public string? PurchaseOrderCode { get; set; }
 
+        public int? CompanyId { get; set; }
+
+        public int? ProductGroupId { get; set; }
+        public int? ProductId { get; set; }
+
+        [Display(Name = "Purchase Date")]
+        public string? PurchaseDate { get; set; }
+
         [Display(Name = "Distributor")]
         public int? BranchId { get; set; }
 
@@ -34,8 +42,6 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Invoice Date")]
         public string? InvoiceDateTime { get; set; }
 
-        [Display(Name = "Purchase Date")]
-        public string? PurchaseDate { get; set; }
         public string? OrderDate { get; set; }
         public string? DeliveryDateTime { get; set; }
 
@@ -73,12 +79,19 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Invoice To Date")]
         public string? InvoiceToDate { get; set; }
         [Display(Name = "Report Type")]
-        public int ReportType { get; set; }
+        public string ReportType { get; set; }
 
         [Display(Name = "Summery")]
         public bool IsSummary { get; set; }
 
+        public string? BranchName { get; set; }
 
+        public string? BranchAddress { get; set; }
 
+        public string? CompanyName { get; set; }
+
+        [Display(Name = "Total Invoice")]
+        [DataType(DataType.Currency)]
+        public decimal? TotalInvoice { get; set; }
     }
 }

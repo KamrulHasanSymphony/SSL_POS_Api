@@ -9,7 +9,6 @@ namespace ShampanPOS.ViewModel
 {
     public class PurchaseOrderReportVM
     {
-
         public int Id { get; set; }
 
         [Display(Name = "Code (Auto Generate)")]
@@ -52,7 +51,6 @@ namespace ShampanPOS.ViewModel
 
         [Display(Name = "Delivery To Date")]
         public string? DeliveryToDate { get; set; }
-
         public string? Operation { get; set; }
         public string? PurchaseOrderCode { get; set; }
         public string? SupplierCode { get; set; }
@@ -108,9 +106,18 @@ namespace ShampanPOS.ViewModel
 
 
         [Display(Name = "Report Type")]
-        public int ReportType { get; set; }
-
+        public string ReportType { get; set; }
         [Display(Name = "Summery")]
         public bool IsSummary { get; set; }
+
+        public string? BranchName { get; set; }
+
+        public string? BranchAddress { get; set; }
+
+        public string? CompanyName { get; set; }
+
+        [Display(Name = "Total Invoice")]
+        [DataType(DataType.Currency)]
+        public decimal? TotalInvoice { get; set; }
     }
 }

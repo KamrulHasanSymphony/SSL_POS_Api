@@ -2261,7 +2261,9 @@ WHERE 1 = 1
             }
         }
 
-        //        public async Task<ResultVM> ReportList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+
+
+        //        public async Task<ResultVM> ReportList(string[] conditionalFields, string[] conditionalValues, PurchaseReportVM vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         //        {
         //            bool isNewConnection = false;
         //            DataTable dataTable = new DataTable();
@@ -2276,41 +2278,96 @@ WHERE 1 = 1
         //                    isNewConnection = true;
         //                }
 
-        //                string query = @"
-        //            //    SELECT
-        //            //    ISNULL(M.Id, 0) Id,
-        //            //    ISNULL(M.Code, '') Code,
-        //            //    ISNULL(M.Name, '') Name,
-        //            //    ISNULL(M.ProductGroupId, 0) ProductGroupId,
-        //            //    ISNULL(PG.Name, 0) ProductGroupName ,
-        //            //    ISNULL(M.BanglaName, '') BanglaName,
-        //            //    ISNULL(M.Description, '') Description,
-        //            //    ISNULL(M.UOMId, 0) UOMId,
-        //            //    ISNULL(UM.Name, '') UOMName,
-        //            //    ISNULL(M.HSCodeNo, '') HSCodeNo,
-        //            //    ISNULL(M.IsArchive, 0) IsArchive,
-        //            //    ISNULL(M.IsActive, 0) IsActive,
-        //            //    ISNULL(M.CreatedBy, '') CreatedBy,
-        //            //    ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') CreatedOn,
-        //            //    ISNULL(M.LastModifiedBy, '') LastModifiedBy,
-        //            //    ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') LastModifiedOn,
-        //            //    ISNULL(M.ImagePath,'') AS ImagePath,
-        //            //	ISNULL(M.VATRate, 0) AS VATRate,
-        //            //	ISNULL(M.SDRate, 0) AS SDRate,
-        //            //	ISNULL(M.PurchasePrice, 0) AS PurchasePrice,
-        //            //	ISNULL(M.SalePrice, 0) AS SalePrice
+        //                string query = "";
 
-        //            //FROM Products M
-        //            //LEFT OUTER JOIN ProductGroups PG ON M.ProductGroupId = PG.Id
-        //            //LEFT OUTER JOIN UOMs UM ON M.UOMId = UM.Id
-        //            //WHERE 1 = 1
-        //";
-
-        //                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+        //                if (vm != null && vm.IsSummary)
         //                {
-        //                    query += " AND Id = @Id ";
+        //                    query = @"
+        //SELECT
+        //    ISNULL(M.Code,'') AS ReturnCode,
+        //    ISNULL(D.ProductId,0) AS ProductId,
+        //    ISNULL(PD.Name,'') AS ProductName,
+        //    ISNULL(S.Name,'') AS SupplierName,
 
+        //    ISNULL(FORMAT(M.InvoiceDateTime, 'dd/MM/yyyy'), '') AS InvoiceDateTime,
+        //    ISNULL(FORMAT(P.PurchaseDate, 'dd/MM/yyyy'), '') AS PurchaseDate,
 
+        //    SUM(ISNULL(D.Quantity,0)) AS Quantity,
+        //    SUM(ISNULL(D.SubTotal,0)) AS SubTotal,
+        //    SUM(ISNULL(D.VATAmount,0)) AS VATAmount,
+        //    SUM(ISNULL(D.LineTotal,0)) AS LineTotal
+
+        //FROM PurchasesReturn M
+        //LEFT JOIN PurchaseReturnDetails D ON M.Id = D.PurchasesReturnId
+
+        //-- 🔥 IMPORTANT JOIN
+        //LEFT JOIN Purchases P ON M.PurchaseId = P.Id  
+
+        //LEFT JOIN Products PD ON D.ProductId = PD.Id
+        //LEFT JOIN Suppliers S ON M.SupplierId = S.Id
+
+        //WHERE 1=1
+
+        //AND (@fromDate IS NULL OR M.InvoiceDateTime >= @fromDate)
+        //AND (@toDate IS NULL OR M.InvoiceDateTime <= @toDate)
+
+        //AND (@purchaseFromDate IS NULL OR P.PurchaseDate >= @purchaseFromDate)
+        //AND (@purchaseToDate IS NULL OR P.PurchaseDate <= @purchaseToDate)
+
+        //AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
+
+        //GROUP BY 
+        //    M.Code,
+        //    D.ProductId,
+        //    PD.Name,
+        //    S.Name,
+        //    P.PurchaseDate
+        //";
+        //                }
+        //                    else
+        //                    {
+        //                    query = @"
+        //SELECT 
+        //ISNULL(PD.Id, 0) AS Id,
+
+        //ISNULL(M.Code,'') PurchaseCode,
+
+        //ISNULL(FORMAT(M.InvoiceDateTime, 'dd/MM/yyyy'), '') AS InvoiceDateTime,
+        //ISNULL(FORMAT(M.PurchaseDate, 'dd/MM/yyyy'), '') AS PurchaseDate,
+
+        //ISNULL(S.Name, '') AS SupplierName,
+
+        //ISNULL(PR.Name,'') ProductName,
+        //ISNULL(PR.Code,'') ProductCode,
+        //ISNULL(PR.HSCodeNo,'') HSCodeNo,
+
+        //ISNULL(PG.Name,'') ProductGroupName,
+
+        //ISNULL(PD.Quantity,0) Quantity,
+        //ISNULL(PD.UnitPrice,0) UnitPrice,
+        //ISNULL(PD.SubTotal,0) SubTotal,
+        //ISNULL(PD.SD,0) SD,
+        //ISNULL(PD.SDAmount,0) SDAmount,
+        //ISNULL(PD.VATRate,0) VATRate,
+        //ISNULL(PD.VATAmount,0) VATAmount,
+        //ISNULL(PD.LineTotal,0) LineTotal
+
+        //FROM PurchaseDetails PD
+        //LEFT JOIN Purchases M ON PD.PurchaseId = M.Id
+        //LEFT JOIN Suppliers S ON M.SupplierId = S.Id
+        //LEFT JOIN Products PR ON PD.ProductId = PR.Id
+        //LEFT JOIN ProductGroups PG ON PR.ProductGroupId = PG.Id
+
+        //WHERE 1=1   -- 🔥 FIX
+
+        //AND (@fromDate IS NULL OR M.InvoiceDateTime >= @fromDate)
+        //AND (@toDate IS NULL OR M.InvoiceDateTime <= @toDate)
+
+        //AND (@purchasefromDate IS NULL OR M.PurchaseDate >= @purchasefromDate)
+        //AND (@purchasetoDate IS NULL OR M.PurchaseDate <= @purchasetoDate)
+
+        //AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
+        //";
         //                }
 
         //                // Apply additional conditions
@@ -2321,21 +2378,81 @@ WHERE 1 = 1
         //                // SET additional conditions param
         //                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
-        //                if (vm != null && !string.IsNullOrEmpty(vm.Id))
-        //                {
-        //                    objComm.SelectCommand.Parameters.AddWithValue("@Id", vm.Id);
-        //                }
+
+
+        //                // Ensure correct date formats are passed to SQL query
+        //                //objComm.SelectCommand.Parameters.AddWithValue("@SupplierId", (vm.SupplierId));
+        //                //objComm.SelectCommand.Parameters.AddWithValue("@fromDate", DateTime.Parse(vm.InvoiceFromDate));
+        //                //objComm.SelectCommand.Parameters.AddWithValue("@toDate", DateTime.Parse(vm.InvoiceToDate));
+
+        //                //objComm.SelectCommand.Parameters.AddWithValue("@purchasefromDate", DateTime.Parse(vm.PurchaseToDate));
+        //                //objComm.SelectCommand.Parameters.AddWithValue("@purchasetoDate", DateTime.Parse(vm.PurchaseFromDate));
+
+
+
+        //                objComm.SelectCommand.Parameters.AddWithValue("@SupplierId", vm.SupplierId);
+        //                objComm.SelectCommand.Parameters.AddWithValue("@fromDate",string.IsNullOrEmpty(vm.InvoiceFromDate)? (object)DBNull.Value: DateTime.Parse(vm.InvoiceFromDate));
+
+        //                objComm.SelectCommand.Parameters.AddWithValue("@toDate",string.IsNullOrEmpty(vm.InvoiceToDate)? (object)DBNull.Value: DateTime.Parse(vm.InvoiceToDate));
+
+
+        //                objComm.SelectCommand.Parameters.AddWithValue("@purchasefromDate",string.IsNullOrEmpty(vm.PurchaseFromDate)? (object)DBNull.Value: DateTime.Parse(vm.PurchaseFromDate));
+
+        //                objComm.SelectCommand.Parameters.AddWithValue("@purchasetoDate",string.IsNullOrEmpty(vm.PurchaseToDate)? (object)DBNull.Value
+        //                        : DateTime.Parse(vm.PurchaseToDate));
 
         //                objComm.Fill(dataTable);
 
-        //                var modelList = dataTable.AsEnumerable().Select(row => new PurchaseVM
+
+
+        //                var modelList = dataTable.AsEnumerable().Select(row => new PurchaseReportVM
         //                {
-        //                    Id = row.Field<int>("Id"),
-        //                    Code = row.Field<string>("Code"),
+        //                    Id = dataTable.Columns.Contains("Id") ? row.Field<int>("Id") : 0,
 
+        //                    Code = dataTable.Columns.Contains("PurchaseCode")
+        //                        ? row.Field<string>("PurchaseCode")
+        //                        : "",
 
+        //                    SupplierName = dataTable.Columns.Contains("SupplierName")
+        //                        ? row.Field<string>("SupplierName")
+        //                        : "",
+
+        //                    ProductName = dataTable.Columns.Contains("ProductName")
+        //                        ? row.Field<string>("ProductName")
+        //                        : "",
+
+        //                    Quantity = row.Field<decimal?>("Quantity") ?? 0.0m,
+
+        //                    UnitPrice = dataTable.Columns.Contains("UnitPrice")
+        //                        ? row.Field<decimal?>("UnitPrice") ?? 0.0m
+        //                        : 0.0m,
+
+        //                    SubTotal = row.Field<decimal?>("SubTotal") ?? 0.0m,
+
+        //                    SD = dataTable.Columns.Contains("SD")
+        //                        ? row.Field<decimal?>("SD") ?? 0.0m
+        //                        : 0.0m,
+
+        //                    SDAmount = dataTable.Columns.Contains("SDAmount")
+        //                        ? row.Field<decimal?>("SDAmount") ?? 0.0m
+        //                        : 0.0m,
+
+        //                    VATRate = dataTable.Columns.Contains("VATRate")
+        //                        ? row.Field<decimal?>("VATRate") ?? 0.0m
+        //                        : 0.0m,
+
+        //                    VATAmount = row.Field<decimal?>("VATAmount") ?? 0.0m,
+
+        //                    LineTotal = row.Field<decimal?>("LineTotal") ?? 0.0m,
+
+        //                    InvoiceDateTime = dataTable.Columns.Contains("InvoiceDateTime")
+        //                        ? row.Field<string>("InvoiceDateTime")
+        //                        : "",
+
+        //                    PurchaseDate = dataTable.Columns.Contains("PurchaseDate")
+        //                        ? row.Field<string>("PurchaseDate")
+        //                        : ""
         //                }).ToList();
-
 
         //                result.Status = "Success";
         //                result.Message = "Data retrieved successfully.";
@@ -2348,7 +2465,17 @@ WHERE 1 = 1
         //                result.ExMessage = ex.Message;
         //                return result;
         //            }
+        //            finally
+        //            {
+        //                if (isNewConnection && conn != null)
+        //                {
+        //                    conn.Close();
+        //                }
+        //            }
         //        }
+
+
+
 
 
         public async Task<ResultVM> ReportList(string[] conditionalFields, string[] conditionalValues, PurchaseReportVM vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
@@ -2370,175 +2497,599 @@ WHERE 1 = 1
 
                 if (vm != null && vm.IsSummary)
                 {
-                    query = @"
-SELECT
-    ISNULL(M.Code,'') AS ReturnCode,
-    ISNULL(D.ProductId,0) AS ProductId,
-    ISNULL(PD.Name,'') AS ProductName,
-    ISNULL(S.Name,'') AS SupplierName,
-
-    ISNULL(FORMAT(M.InvoiceDateTime, 'dd/MM/yyyy'), '') AS InvoiceDateTime,
-    ISNULL(FORMAT(P.PurchaseDate, 'dd/MM/yyyy'), '') AS PurchaseDate,
-
-    SUM(ISNULL(D.Quantity,0)) AS Quantity,
-    SUM(ISNULL(D.SubTotal,0)) AS SubTotal,
-    SUM(ISNULL(D.VATAmount,0)) AS VATAmount,
-    SUM(ISNULL(D.LineTotal,0)) AS LineTotal
-
-FROM PurchasesReturn M
-LEFT JOIN PurchaseReturnDetails D ON M.Id = D.PurchasesReturnId
-
--- 🔥 IMPORTANT JOIN
-LEFT JOIN Purchases P ON M.PurchaseId = P.Id  
-
-LEFT JOIN Products PD ON D.ProductId = PD.Id
-LEFT JOIN Suppliers S ON M.SupplierId = S.Id
-
-WHERE 1=1
-
-AND (@fromDate IS NULL OR M.InvoiceDateTime >= @fromDate)
-AND (@toDate IS NULL OR M.InvoiceDateTime <= @toDate)
-
-AND (@purchaseFromDate IS NULL OR P.PurchaseDate >= @purchaseFromDate)
-AND (@purchaseToDate IS NULL OR P.PurchaseDate <= @purchaseToDate)
-
-AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
-
-GROUP BY 
-    M.Code,
-    D.ProductId,
-    PD.Name,
-    S.Name,
-    P.PurchaseDate
-";
-                }
-                    else
+                    // =========================
+                    // SUMMARY MODE (ReportType Wise)
+                    // =========================
+                    switch (vm.ReportType)
                     {
-                    query = @"
+                        case "Day Wise": // Day-wise Summary
+                            query = @"
 SELECT 
-ISNULL(PD.Id, 0) AS Id,
+CAST(P.OrderDate AS DATE) AS OrderDate,
+CAST(P.DeliveryDateTime AS DATE) AS DeliveryDateTime,
+COUNT(DISTINCT P.Id) AS TotalInvoice,
+SUM(PD.Quantity) AS Quantity,
+SUM(PD.SubTotal) AS SubTotal,
+SUM(PD.VATAmount) AS VAT,
+SUM(PD.LineTotal) AS LineTotal,
+P.BranchId AS BranchId,
+P.CompanyId AS CompanyId,
+C.CompanyName As CompanyName,  
+B.Name AS BranchName
+FROM Purchases P
+INNER JOIN PurchaseDetails PD ON P.Id = PD.PurchaseId
+INNER JOIN CompanyProfiles C ON P.CompanyId = C.Id 
+INNER JOIN BranchProfiles B ON P.BranchId = B.Id 
+WHERE 1=1
+AND P.OrderDate >= @fromDate
+AND P.OrderDate <= @toDate
+AND P.DeliveryDateTime >= @purchaseFromDate
+AND P.DeliveryDateTime <= @purchaseToDate
+AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+GROUP BY 
+CAST(P.OrderDate AS DATE),
+CAST(P.DeliveryDateTime AS DATE),
+P.CompanyId,
+P.BranchId,
+C.CompanyName,
+B.Name
+ORDER BY 
+CAST(P.DeliveryDateTime AS DATE),
+CAST(P.OrderDate AS DATE)";
+                            break;
 
-ISNULL(M.Code,'') PurchaseCode,
+                        case "Monthly": // Monthly Summary
+                            query = @"
+SELECT 
+DATENAME(MONTH, P.OrderDate) + '-' + 
+CAST(YEAR(P.OrderDate) AS VARCHAR(4)) AS MonthYear,
+P.OrderDate,
+P.DeliveryDateTime,
+COUNT(DISTINCT P.Id) AS TotalInvoice,
+SUM(PD.Quantity) AS Quantity,
+SUM(PD.LineTotal) AS LineTotal,
+P.CompanyId AS CompanyId,
+P.BranchId AS BranchId,
+C.CompanyName,
+S.Name AS SupplierName,
+PR.Name AS ProductName,
+B.Name AS BranchName
+FROM Purchases P
+INNER JOIN PurchaseDetails PD ON P.Id = PD.PurchaseId
+INNER JOIN Suppliers S ON P.SupplierId = S.Id
+INNER JOIN Products PR ON PD.ProductId = PR.Id
+INNER JOIN CompanyProfiles C ON P.CompanyId = C.Id 
+INNER JOIN BranchProfiles B ON P.BranchId = B.Id 
+WHERE 1=1
+AND P.OrderDate >= @fromDate
+AND P.OrderDate <= @toDate
+AND P.DeliveryDateTime >= @purchaseFromDate
+AND P.DeliveryDateTime <= @purchaseToDate
+AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+GROUP BY 
+YEAR(P.OrderDate),
+MONTH(P.OrderDate),
+DATENAME(MONTH, P.OrderDate),
+P.OrderDate,
+P.DeliveryDateTime,
+P.CompanyId,
+P.BranchId,
+C.CompanyName,
+S.Name,
+PR.Name,
+B.Name
+ORDER BY 
+P.DeliveryDateTime,
+P.OrderDate";
+                            break;
 
-ISNULL(FORMAT(M.InvoiceDateTime, 'dd/MM/yyyy'), '') AS InvoiceDateTime,
-ISNULL(FORMAT(M.PurchaseDate, 'dd/MM/yyyy'), '') AS PurchaseDate,
+                        case "Supplier Wise": // Supplier-wise Summary
+                            query = @"
+SELECT 
+S.Id,
+S.Name AS SupplierName,
+P.OrderDate,
+P.DeliveryDateTime,
+COUNT(DISTINCT P.Id) AS TotalInvoice,
+SUM(PD.Quantity) AS Quantity,
+SUM(PD.LineTotal) AS LineTotal,
+P.CompanyId AS CompanyId,
+P.BranchId AS BranchId,
+Co.CompanyName,  
+B.Name AS BranchName
+FROM Suppliers S
+INNER JOIN Purchases P ON S.Id = P.SupplierId
+INNER JOIN PurchaseDetails PD ON P.Id = PD.PurchaseId
+INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
+INNER JOIN BranchProfiles B ON P.BranchId = B.Id
+WHERE 1=1
+AND P.OrderDate >= @fromDate
+AND P.OrderDate <= @toDate
+AND P.DeliveryDateTime >= @purchaseFromDate
+AND P.DeliveryDateTime <= @purchaseToDate
+AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+GROUP BY 
+S.Id,
+S.Name,
+P.OrderDate,
+P.DeliveryDateTime,
+P.CompanyId,
+P.BranchId,
+Co.CompanyName,
+B.Name
+ORDER BY LineTotal DESC";
+                            break;
 
-ISNULL(S.Name, '') AS SupplierName,
+                        case "Product Wise": // Product-wise Summary
+                            query = @"
+SELECT 
+PR.Id,
+PR.Name AS ProductName,
+P.OrderDate,
+P.DeliveryDateTime,
+SUM(PD.Quantity) AS Quantity,
+SUM(PD.SubTotal) AS SubTotal,
+SUM(PD.VATAmount) AS VAT,
+SUM(PD.LineTotal) AS LineTotal,
+P.CompanyId AS CompanyId,
+P.BranchId AS BranchId,
+Co.CompanyName,  
+B.Name AS BranchName
+FROM Products PR
+INNER JOIN PurchaseDetails PD ON PR.Id = PD.ProductId
+INNER JOIN Purchases P ON P.Id = PD.PurchaseId
+INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
+INNER JOIN BranchProfiles B ON P.BranchId = B.Id
+WHERE 1=1
+AND P.OrderDate >= @fromDate
+AND P.OrderDate <= @toDate
+AND P.DeliveryDateTime >= @purchaseFromDate
+AND P.DeliveryDateTime <= @purchaseToDate
+AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+GROUP BY 
+PR.Id,
+PR.Name,
+P.OrderDate,
+P.DeliveryDateTime,
+P.CompanyId,
+P.BranchId,
+Co.CompanyName,
+B.Name
+ORDER BY LineTotal DESC";
+                            break;
 
-ISNULL(PR.Name,'') ProductName,
-ISNULL(PR.Code,'') ProductCode,
-ISNULL(PR.HSCodeNo,'') HSCodeNo,
+                        case "Invoice Wise":
+                            query = @"
+SELECT 
+P.Code AS PurchaseCode,
+P.OrderDate,
+P.DeliveryDateTime,
+S.Name AS SupplierName,
+SUM(PD.Quantity) AS Quantity,
+SUM(PD.SubTotal) AS SubTotal,
+SUM(PD.VATAmount) AS VAT,
+SUM(PD.LineTotal) AS LineTotal,
+P.CompanyId AS CompanyId,
+P.BranchId AS BranchId,
+Co.CompanyName,  
+B.Name AS BranchName
+FROM Purchases P
+INNER JOIN Suppliers S ON P.SupplierId = S.Id
+INNER JOIN PurchaseDetails PD ON P.Id = PD.PurchaseId
+INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
+INNER JOIN BranchProfiles B ON P.BranchId = B.Id
+WHERE 1=1
+AND P.OrderDate >= @fromDate
+AND P.OrderDate <= @toDate
+AND P.DeliveryDateTime >= @purchaseFromDate
+AND P.DeliveryDateTime <= @purchaseToDate
+AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+GROUP BY 
+P.Code,
+P.OrderDate,
+P.DeliveryDateTime,
+S.Name,
+P.CompanyId,
+P.BranchId,
+Co.CompanyName,
+B.Name
+ORDER BY 
+P.DeliveryDateTime,
+P.OrderDate";
+                            break;
 
-ISNULL(PG.Name,'') ProductGroupName,
+                        default:
+                            query = @"
+SELECT 
+P.Code AS PurchaseCode,
+P.OrderDate,
+P.DeliveryDateTime,
+S.Name AS SupplierName,
+SUM(PD.Quantity) AS Quantity,
+SUM(PD.SubTotal) AS SubTotal,
+SUM(PD.VATAmount) AS VAT,
+SUM(PD.LineTotal) AS LineTotal,
+P.CompanyId AS CompanyId,
+P.BranchId AS BranchId,
+Co.CompanyName,  
+B.Name AS BranchName,
+PR.Name AS ProductName
+FROM Purchases P
+INNER JOIN Suppliers S ON P.SupplierId = S.Id
+INNER JOIN PurchaseDetails PD ON P.Id = PD.PurchaseId
+INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
+INNER JOIN BranchProfiles B ON P.BranchId = B.Id
+INNER JOIN Products PR ON PD.ProductId = PR.Id 
+WHERE 1=1
+AND P.OrderDate >= @fromDate
+AND P.OrderDate <= @toDate
+AND P.DeliveryDateTime >= @purchaseFromDate
+AND P.DeliveryDateTime <= @purchaseToDate
+AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+GROUP BY 
+P.Code,
+P.OrderDate,
+P.DeliveryDateTime,
+S.Name,
+P.CompanyId,
+P.BranchId,
+Co.CompanyName,
+B.Name,
+PR.Name
+ORDER BY 
+P.DeliveryDateTime,
+P.OrderDate";
+                            break;
+                    }
+                }
 
-ISNULL(PD.Quantity,0) Quantity,
-ISNULL(PD.UnitPrice,0) UnitPrice,
-ISNULL(PD.SubTotal,0) SubTotal,
-ISNULL(PD.SD,0) SD,
-ISNULL(PD.SDAmount,0) SDAmount,
-ISNULL(PD.VATRate,0) VATRate,
-ISNULL(PD.VATAmount,0) VATAmount,
-ISNULL(PD.LineTotal,0) LineTotal
+                else
+                {
+                    // =========================
+                    // DETAILS MODE (ReportType Wise)
+                    // =========================
+                    switch (vm.ReportType)
+                    {
 
-FROM PurchaseDetails PD
-LEFT JOIN Purchases M ON PD.PurchaseId = M.Id
-LEFT JOIN Suppliers S ON M.SupplierId = S.Id
-LEFT JOIN Products PR ON PD.ProductId = PR.Id
-LEFT JOIN ProductGroups PG ON PR.ProductGroupId = PG.Id
+                        case "Day Wise": // Day-wise Details
+                            query = @"
+SELECT 
+CAST(P.OrderDate AS DATE) AS OrderDate,
+CAST(P.DeliveryDateTime AS DATE) AS DeliveryDateTime,
+P.Id AS PurchaseId,
+P.Code AS PurchaseCode,
+PD.Quantity,
+PD.SubTotal,
+PD.VATAmount,
+PD.LineTotal,
+P.CompanyId AS CompanyId,
+P.BranchId AS BranchId,
+Co.CompanyName,  
+B.Name AS BranchName
+FROM Purchases P
+INNER JOIN PurchaseDetails PD ON P.Id = PD.PurchaseId
+INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
+INNER JOIN BranchProfiles B ON P.BranchId = B.Id
+WHERE 1=1
+AND P.OrderDate >= @fromDate
+AND P.OrderDate <= @toDate
+AND P.DeliveryDateTime >= @purchaseFromDate
+AND P.DeliveryDateTime <= @purchaseToDate
+AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+ORDER BY 
+P.DeliveryDateTime,
+P.OrderDate";
+                            break;
 
-WHERE 1=1   -- 🔥 FIX
+                        case "Monthly": // Monthly Details
+                            query = @"
+SELECT 
+DATENAME(MONTH, P.OrderDate) + '-' + 
+CAST(YEAR(P.OrderDate) AS VARCHAR(4)) AS MonthYear,
+P.Id AS PurchaseId,
+P.Code AS PurchaseCode,
+P.OrderDate,
+P.DeliveryDateTime,
+PD.Quantity,
+PD.LineTotal,
+P.CompanyId AS CompanyId,
+P.BranchId AS BranchId,
+Co.CompanyName,  
+B.Name AS BranchName
+FROM Purchases P
+INNER JOIN PurchaseDetails PD ON P.Id = PD.PurchaseId
+INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
+INNER JOIN BranchProfiles B ON P.BranchId = B.Id
+WHERE 1=1
+AND P.OrderDate >= @fromDate
+AND P.OrderDate <= @toDate
+AND P.DeliveryDateTime >= @purchaseFromDate
+AND P.DeliveryDateTime <= @purchaseToDate
+AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+ORDER BY 
+YEAR(P.OrderDate),
+MONTH(P.OrderDate)";
+                            break;
 
-AND (@fromDate IS NULL OR M.InvoiceDateTime >= @fromDate)
-AND (@toDate IS NULL OR M.InvoiceDateTime <= @toDate)
+                        case "Supplier Wise": // Supplier-wise Details
+                            query = @"
+SELECT 
+S.Id,
+P.Code AS PurchaseCode,
+S.Name AS SupplierName,
+FORMAT(P.OrderDate, 'dd/MM/yyyy') AS OrderDate,
+FORMAT(P.DeliveryDateTime, 'dd/MM/yyyy') AS DeliveryDateTime,
+PD.Quantity,
+PD.UnitPrice,
+PD.SubTotal,
+PD.VATAmount,
+PD.LineTotal,
+P.CompanyId AS CompanyId,
+P.BranchId AS BranchId,
+Co.CompanyName,  
+B.Name AS BranchName
+FROM Suppliers S
+INNER JOIN Purchases P ON S.Id = P.SupplierId
+INNER JOIN PurchaseDetails PD ON P.Id = PD.PurchaseId
+INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
+INNER JOIN BranchProfiles B ON P.BranchId = B.Id
+WHERE 1=1
+AND P.OrderDate >= @fromDate
+AND P.OrderDate <= @toDate
+AND P.DeliveryDateTime >= @purchaseFromDate
+AND P.DeliveryDateTime <= @purchaseToDate
+AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
+                            break;
 
-AND (@purchasefromDate IS NULL OR M.PurchaseDate >= @purchasefromDate)
-AND (@purchasetoDate IS NULL OR M.PurchaseDate <= @purchasetoDate)
+                        case "Product Wise": // Product-wise Details
+                            query = @"
+SELECT 
+PR.Id,
+PR.Name AS ProductName,
+P.Code AS PurchaseCode,
+FORMAT(P.OrderDate, 'dd/MM/yyyy') AS OrderDate,
+FORMAT(P.DeliveryDateTime, 'dd/MM/yyyy') AS DeliveryDateTime,
+PD.Quantity,
+PD.UnitPrice,
+PD.SubTotal,
+PD.VATAmount,
+PD.LineTotal,
+P.CompanyId AS CompanyId,
+P.BranchId AS BranchId,
+Co.CompanyName,  
+B.Name AS BranchName
+FROM Products PR
+INNER JOIN PurchaseDetails PD ON PR.Id = PD.ProductId
+INNER JOIN Purchases P ON P.Id = PD.PurchaseId
+INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
+INNER JOIN BranchProfiles B ON P.BranchId = B.Id
+WHERE 1=1
+AND P.OrderDate >= @fromDate
+AND P.OrderDate <= @toDate
+AND P.DeliveryDateTime >= @purchaseFromDate
+AND P.DeliveryDateTime <= @purchaseToDate
+AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
+                            break;
 
-AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
-";
+                        case "Invoice Wise": // Invoice-wise Details
+                            query = @"
+SELECT 
+P.Code AS PurchaseCode,
+FORMAT(P.OrderDate, 'dd/MM/yyyy') AS OrderDate,
+FORMAT(P.DeliveryDateTime, 'dd/MM/yyyy') AS DeliveryDateTime,
+S.Name AS SupplierName,
+PR.Name AS ProductName,
+PD.Quantity,
+PD.UnitPrice,
+PD.SubTotal,
+PD.VATAmount,
+PD.LineTotal,
+P.CompanyId AS CompanyId,
+P.BranchId AS BranchId,
+Co.CompanyName,  
+B.Name AS BranchName
+FROM Purchases P
+INNER JOIN Suppliers S ON P.SupplierId = S.Id
+INNER JOIN PurchaseDetails PD ON P.Id = PD.PurchaseId
+INNER JOIN Products PR ON PD.ProductId = PR.Id
+INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
+INNER JOIN BranchProfiles B ON P.BranchId = B.Id
+WHERE 1=1
+AND P.OrderDate >= @fromDate
+AND P.OrderDate <= @toDate
+AND P.DeliveryDateTime >= @purchaseFromDate
+AND P.DeliveryDateTime <= @purchaseToDate
+AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
+                            break;
+
+                        case "Details": // Details All
+                            query = @"
+SELECT 
+P.Id AS PurchaseId,
+P.Code AS PurchaseCode,
+P.OrderDate,
+P.DeliveryDateTime,
+CAST(P.OrderDate AS DATE) AS OrderDateOnly,
+CAST(P.DeliveryDateTime AS DATE) AS DeliveryDateOnly,
+S.Id AS SupplierId,
+S.Name AS SupplierName,
+PR.Id AS ProductId,
+PR.Name AS ProductName,
+PD.Quantity,
+PD.UnitPrice,
+PD.SubTotal,
+PD.VATAmount,
+PD.LineTotal,
+P.CompanyId AS CompanyId,
+P.BranchId AS BranchId,
+Co.CompanyName,  
+B.Name AS BranchName
+FROM Purchases P
+INNER JOIN Suppliers S ON P.SupplierId = S.Id
+INNER JOIN PurchaseDetails PD ON P.Id = PD.PurchaseId
+INNER JOIN Products PR ON PD.ProductId = PR.Id
+INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
+INNER JOIN BranchProfiles B ON P.BranchId = B.Id
+WHERE 1=1
+AND P.OrderDate >= @fromDate
+AND P.OrderDate <= @toDate
+AND P.DeliveryDateTime >= @purchaseFromDate
+AND P.DeliveryDateTime <= @purchaseToDate
+AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
+                            break;
+
+                        default:
+                            query = @"
+SELECT 
+P.Code AS PurchaseCode,
+P.OrderDate,
+P.DeliveryDateTime,
+S.Name AS SupplierName,
+PD.Quantity,
+PD.SubTotal,
+PD.VATAmount,
+PD.LineTotal,
+P.CompanyId AS CompanyId,
+P.BranchId AS BranchId,
+Co.CompanyName,  
+B.Name AS BranchName,
+PR.Name AS ProductName
+FROM Purchases P
+INNER JOIN Suppliers S ON P.SupplierId = S.Id
+INNER JOIN PurchaseDetails PD ON P.Id = PD.PurchaseId
+INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
+INNER JOIN BranchProfiles B ON P.BranchId = B.Id
+INNER JOIN Products PR ON PD.ProductId = PR.Id 
+WHERE P.OrderDate >= @fromDate
+AND P.OrderDate <= @toDate
+AND P.DeliveryDateTime >= @purchaseFromDate
+AND P.DeliveryDateTime <= @purchaseToDate
+AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
+                            break;
+                    }
                 }
 
                 // Apply additional conditions
-                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
+                if (!query.ToUpper().Contains("WHERE"))
+                {
+                    query += " WHERE 1=1 ";
+                }
+
+                // Apply additional conditions
+                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
+                //query = ApplyConditions(query, conditionalFields, conditionalValues, false);
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
                 // SET additional conditions param
                 objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
-
-
                 // Ensure correct date formats are passed to SQL query
-                //objComm.SelectCommand.Parameters.AddWithValue("@SupplierId", (vm.SupplierId));
-                //objComm.SelectCommand.Parameters.AddWithValue("@fromDate", DateTime.Parse(vm.InvoiceFromDate));
-                //objComm.SelectCommand.Parameters.AddWithValue("@toDate", DateTime.Parse(vm.InvoiceToDate));
-
-                //objComm.SelectCommand.Parameters.AddWithValue("@purchasefromDate", DateTime.Parse(vm.PurchaseToDate));
-                //objComm.SelectCommand.Parameters.AddWithValue("@purchasetoDate", DateTime.Parse(vm.PurchaseFromDate));
-
-
-
-                objComm.SelectCommand.Parameters.AddWithValue("@SupplierId", vm.SupplierId);
-                objComm.SelectCommand.Parameters.AddWithValue("@fromDate",string.IsNullOrEmpty(vm.InvoiceFromDate)? (object)DBNull.Value: DateTime.Parse(vm.InvoiceFromDate));
-
-                objComm.SelectCommand.Parameters.AddWithValue("@toDate",string.IsNullOrEmpty(vm.InvoiceToDate)? (object)DBNull.Value: DateTime.Parse(vm.InvoiceToDate));
-
-
-                objComm.SelectCommand.Parameters.AddWithValue("@purchasefromDate",string.IsNullOrEmpty(vm.PurchaseFromDate)? (object)DBNull.Value: DateTime.Parse(vm.PurchaseFromDate));
-
-                objComm.SelectCommand.Parameters.AddWithValue("@purchasetoDate",string.IsNullOrEmpty(vm.PurchaseToDate)? (object)DBNull.Value
-                        : DateTime.Parse(vm.PurchaseToDate));
+                objComm.SelectCommand.Parameters.AddWithValue("@ProductId", vm.ProductId ?? 0);
+                objComm.SelectCommand.Parameters.AddWithValue("@SupplierId", (vm.SupplierId));
+                objComm.SelectCommand.Parameters.AddWithValue("@fromDate", DateTime.Parse(vm.InvoiceFromDate));
+                objComm.SelectCommand.Parameters.AddWithValue("@toDate", DateTime.Parse(vm.InvoiceToDate));
+                objComm.SelectCommand.Parameters.AddWithValue("@purchaseFromDate",DateTime.Parse(vm.PurchaseFromDate));
+                objComm.SelectCommand.Parameters.AddWithValue("@purchaseToDate",DateTime.Parse(vm.PurchaseToDate));
 
                 objComm.Fill(dataTable);
 
 
-
                 var modelList = dataTable.AsEnumerable().Select(row => new PurchaseReportVM
                 {
-                    Id = dataTable.Columns.Contains("Id") ? row.Field<int>("Id") : 0,
+                    //Id = row.Field<int>("Id"),
+                                    Id = dataTable.Columns.Contains("PurchaseId")
+                        ? row.Field<int>("PurchaseId")
+                        : 0,
 
-                    Code = dataTable.Columns.Contains("PurchaseCode")
-                        ? row.Field<string>("PurchaseCode")
+                                    //Code = row.Field<string>("PurchaseCode"),
+                                    Code = dataTable.Columns.Contains("PurchaseCode")
+                        ? row["PurchaseCode"]?.ToString()
                         : "",
 
-                    SupplierName = dataTable.Columns.Contains("SupplierName")
-                        ? row.Field<string>("SupplierName")
+                                    SupplierName = dataTable.Columns.Contains("SupplierName")
+                        ? row["SupplierName"]?.ToString()
                         : "",
 
-                    ProductName = dataTable.Columns.Contains("ProductName")
-                        ? row.Field<string>("ProductName")
+                                    ProductName = dataTable.Columns.Contains("ProductName")
+                        ? row["ProductName"]?.ToString()
                         : "",
 
-                    Quantity = row.Field<decimal?>("Quantity") ?? 0.0m,
+                                    BranchId = dataTable.Columns.Contains("BranchId")
+                        ? Convert.ToInt32(row["BranchId"])
+                        : 0,
 
-                    UnitPrice = dataTable.Columns.Contains("UnitPrice")
+                                    CompanyId = dataTable.Columns.Contains("CompanyId")
+                        ? Convert.ToInt32(row["CompanyId"])
+                        : 0,
+
+                                    BranchName = dataTable.Columns.Contains("BranchName")
+                        ? row["BranchName"]?.ToString()
+                        : "",
+
+                                    CompanyName = dataTable.Columns.Contains("CompanyName")
+                        ? row["CompanyName"]?.ToString()
+                        : "",
+
+                                    Quantity = dataTable.Columns.Contains("Quantity")
+                        ? row.Field<decimal?>("Quantity") ?? 0.0m
+                        : 0.0m,
+
+                                    UnitPrice = dataTable.Columns.Contains("UnitPrice")
                         ? row.Field<decimal?>("UnitPrice") ?? 0.0m
                         : 0.0m,
 
-                    SubTotal = row.Field<decimal?>("SubTotal") ?? 0.0m,
+                                    SubTotal = dataTable.Columns.Contains("SubTotal")
+                        ? row.Field<decimal?>("SubTotal") ?? 0.0m
+                        : 0.0m,
 
-                    SD = dataTable.Columns.Contains("SD")
+                                    TotalInvoice = dataTable.Columns.Contains("TotalInvoice")
+                        ? row.Field<int?>("TotalInvoice") ?? 0
+                        : 0,
+
+                                    SD = dataTable.Columns.Contains("SD")
                         ? row.Field<decimal?>("SD") ?? 0.0m
                         : 0.0m,
 
-                    SDAmount = dataTable.Columns.Contains("SDAmount")
+                                    SDAmount = dataTable.Columns.Contains("SDAmount")
                         ? row.Field<decimal?>("SDAmount") ?? 0.0m
                         : 0.0m,
 
-                    VATRate = dataTable.Columns.Contains("VATRate")
+                                    VATRate = dataTable.Columns.Contains("VATRate")
                         ? row.Field<decimal?>("VATRate") ?? 0.0m
                         : 0.0m,
 
-                    VATAmount = row.Field<decimal?>("VATAmount") ?? 0.0m,
+                                    VATAmount = dataTable.Columns.Contains("VATAmount")
+                        ? row.Field<decimal?>("VATAmount") ?? 0.0m
+                        : dataTable.Columns.Contains("VAT")
+                            ? row.Field<decimal?>("VAT") ?? 0.0m
+                            : 0.0m,
 
-                    LineTotal = row.Field<decimal?>("LineTotal") ?? 0.0m,
+                                    LineTotal = dataTable.Columns.Contains("LineTotal")
+                        ? row.Field<decimal?>("LineTotal") ?? 0.0m
+                        : 0.0m,
 
-                    InvoiceDateTime = dataTable.Columns.Contains("InvoiceDateTime")
-                        ? row.Field<string>("InvoiceDateTime")
-                        : "",
+                                    InvoiceDateTime = dataTable.Columns.Contains("InvoiceDateTime")
+                        ? row["InvoiceDateTime"]?.ToString()
+                        : dataTable.Columns.Contains("MonthYear")
+                            ? row["MonthYear"]?.ToString()
+                            : "",
 
-                    PurchaseDate = dataTable.Columns.Contains("PurchaseDate")
-                        ? row.Field<string>("PurchaseDate")
+                                    PurchaseDate = dataTable.Columns.Contains("PurchaseDate")
+                        ? row["PurchaseDate"]?.ToString()
                         : ""
                 }).ToList();
 
@@ -2561,6 +3112,7 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
                 }
             }
         }
+
 
 
 
