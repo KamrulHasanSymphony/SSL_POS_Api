@@ -2505,8 +2505,8 @@ WHERE 1 = 1
                         case "Day Wise": // Day-wise Summary
                             query = @"
 SELECT 
-CAST(P.OrderDate AS DATE) AS OrderDate,
-CAST(P.DeliveryDateTime AS DATE) AS DeliveryDateTime,
+CAST(P.InvoiceDateTime AS DATE) AS InvoiceDateTime,
+CAST(P.PurchaseDate AS DATE) AS PurchaseDate,
 COUNT(DISTINCT P.Id) AS TotalInvoice,
 SUM(PD.Quantity) AS Quantity,
 SUM(PD.SubTotal) AS SubTotal,
@@ -2521,31 +2521,31 @@ INNER JOIN PurchaseDetails PD ON P.Id = PD.PurchaseId
 INNER JOIN CompanyProfiles C ON P.CompanyId = C.Id 
 INNER JOIN BranchProfiles B ON P.BranchId = B.Id 
 WHERE 1=1
-AND P.OrderDate >= @fromDate
-AND P.OrderDate <= @toDate
-AND P.DeliveryDateTime >= @purchaseFromDate
-AND P.DeliveryDateTime <= @purchaseToDate
+AND P.InvoiceDateTime >= @fromDate
+AND P.InvoiceDateTime <= @toDate
+AND P.PurchaseDate >= @purchaseFromDate
+AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
 AND (@ProductId = 0 OR PD.ProductId = @ProductId)
 GROUP BY 
-CAST(P.OrderDate AS DATE),
-CAST(P.DeliveryDateTime AS DATE),
+CAST(P.InvoiceDateTime AS DATE),
+CAST(P.PurchaseDate AS DATE),
 P.CompanyId,
 P.BranchId,
 C.CompanyName,
 B.Name
 ORDER BY 
-CAST(P.DeliveryDateTime AS DATE),
-CAST(P.OrderDate AS DATE)";
+CAST(P.PurchaseDate AS DATE),
+CAST(P.InvoiceDateTime AS DATE)";
                             break;
 
                         case "Monthly": // Monthly Summary
                             query = @"
 SELECT 
-DATENAME(MONTH, P.OrderDate) + '-' + 
-CAST(YEAR(P.OrderDate) AS VARCHAR(4)) AS MonthYear,
-P.OrderDate,
-P.DeliveryDateTime,
+DATENAME(MONTH, P.InvoiceDateTime) + '-' + 
+CAST(YEAR(P.InvoiceDateTime) AS VARCHAR(4)) AS MonthYear,
+P.InvoiceDateTime,
+P.PurchaseDate,
 COUNT(DISTINCT P.Id) AS TotalInvoice,
 SUM(PD.Quantity) AS Quantity,
 SUM(PD.LineTotal) AS LineTotal,
@@ -2562,18 +2562,18 @@ INNER JOIN Products PR ON PD.ProductId = PR.Id
 INNER JOIN CompanyProfiles C ON P.CompanyId = C.Id 
 INNER JOIN BranchProfiles B ON P.BranchId = B.Id 
 WHERE 1=1
-AND P.OrderDate >= @fromDate
-AND P.OrderDate <= @toDate
-AND P.DeliveryDateTime >= @purchaseFromDate
-AND P.DeliveryDateTime <= @purchaseToDate
+AND P.InvoiceDateTime >= @fromDate
+AND P.InvoiceDateTime <= @toDate
+AND P.PurchaseDate >= @purchaseFromDate
+AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
 AND (@ProductId = 0 OR PD.ProductId = @ProductId)
 GROUP BY 
-YEAR(P.OrderDate),
-MONTH(P.OrderDate),
-DATENAME(MONTH, P.OrderDate),
-P.OrderDate,
-P.DeliveryDateTime,
+YEAR(P.InvoiceDateTime),
+MONTH(P.InvoiceDateTime),
+DATENAME(MONTH, P.InvoiceDateTime),
+P.InvoiceDateTime,
+P.PurchaseDate,
 P.CompanyId,
 P.BranchId,
 C.CompanyName,
@@ -2581,8 +2581,8 @@ S.Name,
 PR.Name,
 B.Name
 ORDER BY 
-P.DeliveryDateTime,
-P.OrderDate";
+P.PurchaseDate,
+P.InvoiceDateTime";
                             break;
 
                         case "Supplier Wise": // Supplier-wise Summary
@@ -2590,8 +2590,8 @@ P.OrderDate";
 SELECT 
 S.Id,
 S.Name AS SupplierName,
-P.OrderDate,
-P.DeliveryDateTime,
+P.InvoiceDateTime,
+P.PurchaseDate,
 COUNT(DISTINCT P.Id) AS TotalInvoice,
 SUM(PD.Quantity) AS Quantity,
 SUM(PD.LineTotal) AS LineTotal,
@@ -2605,17 +2605,17 @@ INNER JOIN PurchaseDetails PD ON P.Id = PD.PurchaseId
 INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
 INNER JOIN BranchProfiles B ON P.BranchId = B.Id
 WHERE 1=1
-AND P.OrderDate >= @fromDate
-AND P.OrderDate <= @toDate
-AND P.DeliveryDateTime >= @purchaseFromDate
-AND P.DeliveryDateTime <= @purchaseToDate
+AND P.InvoiceDateTime >= @fromDate
+AND P.InvoiceDateTime <= @toDate
+AND P.PurchaseDate >= @purchaseFromDate
+AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
 AND (@ProductId = 0 OR PD.ProductId = @ProductId)
 GROUP BY 
 S.Id,
 S.Name,
-P.OrderDate,
-P.DeliveryDateTime,
+P.InvoiceDateTime,
+P.PurchaseDate,
 P.CompanyId,
 P.BranchId,
 Co.CompanyName,
@@ -2628,8 +2628,8 @@ ORDER BY LineTotal DESC";
 SELECT 
 PR.Id,
 PR.Name AS ProductName,
-P.OrderDate,
-P.DeliveryDateTime,
+P.InvoiceDateTime,
+P.PurchaseDate,
 SUM(PD.Quantity) AS Quantity,
 SUM(PD.SubTotal) AS SubTotal,
 SUM(PD.VATAmount) AS VAT,
@@ -2644,17 +2644,17 @@ INNER JOIN Purchases P ON P.Id = PD.PurchaseId
 INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
 INNER JOIN BranchProfiles B ON P.BranchId = B.Id
 WHERE 1=1
-AND P.OrderDate >= @fromDate
-AND P.OrderDate <= @toDate
-AND P.DeliveryDateTime >= @purchaseFromDate
-AND P.DeliveryDateTime <= @purchaseToDate
+AND P.InvoiceDateTime >= @fromDate
+AND P.InvoiceDateTime <= @toDate
+AND P.PurchaseDate >= @purchaseFromDate
+AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
 AND (@ProductId = 0 OR PD.ProductId = @ProductId)
 GROUP BY 
 PR.Id,
 PR.Name,
-P.OrderDate,
-P.DeliveryDateTime,
+P.InvoiceDateTime,
+P.PurchaseDate,
 P.CompanyId,
 P.BranchId,
 Co.CompanyName,
@@ -2666,8 +2666,8 @@ ORDER BY LineTotal DESC";
                             query = @"
 SELECT 
 P.Code AS PurchaseCode,
-P.OrderDate,
-P.DeliveryDateTime,
+P.InvoiceDateTime,
+P.PurchaseDate,
 S.Name AS SupplierName,
 SUM(PD.Quantity) AS Quantity,
 SUM(PD.SubTotal) AS SubTotal,
@@ -2683,32 +2683,32 @@ INNER JOIN PurchaseDetails PD ON P.Id = PD.PurchaseId
 INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
 INNER JOIN BranchProfiles B ON P.BranchId = B.Id
 WHERE 1=1
-AND P.OrderDate >= @fromDate
-AND P.OrderDate <= @toDate
-AND P.DeliveryDateTime >= @purchaseFromDate
-AND P.DeliveryDateTime <= @purchaseToDate
+AND P.InvoiceDateTime >= @fromDate
+AND P.InvoiceDateTime <= @toDate
+AND P.PurchaseDate >= @purchaseFromDate
+AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
 AND (@ProductId = 0 OR PD.ProductId = @ProductId)
 GROUP BY 
 P.Code,
-P.OrderDate,
-P.DeliveryDateTime,
+P.InvoiceDateTime,
+P.PurchaseDate,
 S.Name,
 P.CompanyId,
 P.BranchId,
 Co.CompanyName,
 B.Name
 ORDER BY 
-P.DeliveryDateTime,
-P.OrderDate";
+P.PurchaseDate,
+P.InvoiceDateTime";
                             break;
 
                         default:
                             query = @"
 SELECT 
 P.Code AS PurchaseCode,
-P.OrderDate,
-P.DeliveryDateTime,
+P.InvoiceDateTime,
+P.PurchaseDate,
 S.Name AS SupplierName,
 SUM(PD.Quantity) AS Quantity,
 SUM(PD.SubTotal) AS SubTotal,
@@ -2726,16 +2726,16 @@ INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
 INNER JOIN BranchProfiles B ON P.BranchId = B.Id
 INNER JOIN Products PR ON PD.ProductId = PR.Id 
 WHERE 1=1
-AND P.OrderDate >= @fromDate
-AND P.OrderDate <= @toDate
-AND P.DeliveryDateTime >= @purchaseFromDate
-AND P.DeliveryDateTime <= @purchaseToDate
+AND P.InvoiceDateTime >= @fromDate
+AND P.InvoiceDateTime <= @toDate
+AND P.PurchaseDate >= @purchaseFromDate
+AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
 AND (@ProductId = 0 OR PD.ProductId = @ProductId)
 GROUP BY 
 P.Code,
-P.OrderDate,
-P.DeliveryDateTime,
+P.InvoiceDateTime,
+P.PurchaseDate,
 S.Name,
 P.CompanyId,
 P.BranchId,
@@ -2743,8 +2743,8 @@ Co.CompanyName,
 B.Name,
 PR.Name
 ORDER BY 
-P.DeliveryDateTime,
-P.OrderDate";
+P.PurchaseDate,
+P.InvoiceDateTime";
                             break;
                     }
                 }
@@ -2760,8 +2760,8 @@ P.OrderDate";
                         case "Day Wise": // Day-wise Details
                             query = @"
 SELECT 
-CAST(P.OrderDate AS DATE) AS OrderDate,
-CAST(P.DeliveryDateTime AS DATE) AS DeliveryDateTime,
+CAST(P.InvoiceDateTime AS DATE) AS InvoiceDateTime ,
+CAST(P.PurchaseDate AS DATE) AS PurchaseDate,
 P.Id AS PurchaseId,
 P.Code AS PurchaseCode,
 PD.Quantity,
@@ -2777,26 +2777,26 @@ INNER JOIN PurchaseDetails PD ON P.Id = PD.PurchaseId
 INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
 INNER JOIN BranchProfiles B ON P.BranchId = B.Id
 WHERE 1=1
-AND P.OrderDate >= @fromDate
-AND P.OrderDate <= @toDate
-AND P.DeliveryDateTime >= @purchaseFromDate
-AND P.DeliveryDateTime <= @purchaseToDate
+AND P.InvoiceDateTime >= @fromDate
+AND P.InvoiceDateTime <= @toDate
+AND P.PurchaseDate >= @purchaseFromDate
+AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
 AND (@ProductId = 0 OR PD.ProductId = @ProductId)
 ORDER BY 
-P.DeliveryDateTime,
-P.OrderDate";
+P.PurchaseDate,
+P.InvoiceDateTime";
                             break;
 
                         case "Monthly": // Monthly Details
                             query = @"
 SELECT 
-DATENAME(MONTH, P.OrderDate) + '-' + 
-CAST(YEAR(P.OrderDate) AS VARCHAR(4)) AS MonthYear,
+DATENAME(MONTH, P.InvoiceDateTime) + '-' + 
+CAST(YEAR(P.InvoiceDateTime) AS VARCHAR(4)) AS MonthYear,
 P.Id AS PurchaseId,
 P.Code AS PurchaseCode,
-P.OrderDate,
-P.DeliveryDateTime,
+P.InvoiceDateTime,
+P.PurchaseDate,
 PD.Quantity,
 PD.LineTotal,
 P.CompanyId AS CompanyId,
@@ -2808,15 +2808,15 @@ INNER JOIN PurchaseDetails PD ON P.Id = PD.PurchaseId
 INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
 INNER JOIN BranchProfiles B ON P.BranchId = B.Id
 WHERE 1=1
-AND P.OrderDate >= @fromDate
-AND P.OrderDate <= @toDate
-AND P.DeliveryDateTime >= @purchaseFromDate
-AND P.DeliveryDateTime <= @purchaseToDate
+AND P.InvoiceDateTime >= @fromDate
+AND P.InvoiceDateTime <= @toDate
+AND P.PurchaseDate >= @purchaseFromDate
+AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
 AND (@ProductId = 0 OR PD.ProductId = @ProductId)
 ORDER BY 
-YEAR(P.OrderDate),
-MONTH(P.OrderDate)";
+YEAR(P.InvoiceDateTime),
+MONTH(P.InvoiceDateTime)";
                             break;
 
                         case "Supplier Wise": // Supplier-wise Details
@@ -2825,8 +2825,8 @@ SELECT
 S.Id,
 P.Code AS PurchaseCode,
 S.Name AS SupplierName,
-FORMAT(P.OrderDate, 'dd/MM/yyyy') AS OrderDate,
-FORMAT(P.DeliveryDateTime, 'dd/MM/yyyy') AS DeliveryDateTime,
+FORMAT(P.InvoiceDateTime, 'dd/MM/yyyy') AS InvoiceDateTime,
+FORMAT(P.PurchaseDate, 'dd/MM/yyyy') AS PurchaseDate,
 PD.Quantity,
 PD.UnitPrice,
 PD.SubTotal,
@@ -2842,10 +2842,10 @@ INNER JOIN PurchaseDetails PD ON P.Id = PD.PurchaseId
 INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
 INNER JOIN BranchProfiles B ON P.BranchId = B.Id
 WHERE 1=1
-AND P.OrderDate >= @fromDate
-AND P.OrderDate <= @toDate
-AND P.DeliveryDateTime >= @purchaseFromDate
-AND P.DeliveryDateTime <= @purchaseToDate
+AND P.InvoiceDateTime >= @fromDate
+AND P.InvoiceDateTime <= @toDate
+AND P.PurchaseDate >= @purchaseFromDate
+AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
 AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                             break;
@@ -2856,8 +2856,8 @@ SELECT
 PR.Id,
 PR.Name AS ProductName,
 P.Code AS PurchaseCode,
-FORMAT(P.OrderDate, 'dd/MM/yyyy') AS OrderDate,
-FORMAT(P.DeliveryDateTime, 'dd/MM/yyyy') AS DeliveryDateTime,
+FORMAT(P.InvoiceDateTime, 'dd/MM/yyyy') AS InvoiceDateTime,
+FORMAT(P.PurchaseDate, 'dd/MM/yyyy') AS PurchaseDate,
 PD.Quantity,
 PD.UnitPrice,
 PD.SubTotal,
@@ -2873,10 +2873,10 @@ INNER JOIN Purchases P ON P.Id = PD.PurchaseId
 INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
 INNER JOIN BranchProfiles B ON P.BranchId = B.Id
 WHERE 1=1
-AND P.OrderDate >= @fromDate
-AND P.OrderDate <= @toDate
-AND P.DeliveryDateTime >= @purchaseFromDate
-AND P.DeliveryDateTime <= @purchaseToDate
+AND P.InvoiceDateTime >= @fromDate
+AND P.InvoiceDateTime <= @toDate
+AND P.PurchaseDate >= @purchaseFromDate
+AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
 AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                             break;
@@ -2885,8 +2885,8 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                             query = @"
 SELECT 
 P.Code AS PurchaseCode,
-FORMAT(P.OrderDate, 'dd/MM/yyyy') AS OrderDate,
-FORMAT(P.DeliveryDateTime, 'dd/MM/yyyy') AS DeliveryDateTime,
+FORMAT(P.InvoiceDateTime, 'dd/MM/yyyy') AS InvoiceDateTime,
+FORMAT(P.PurchaseDate, 'dd/MM/yyyy') AS PurchaseDate,
 S.Name AS SupplierName,
 PR.Name AS ProductName,
 PD.Quantity,
@@ -2905,10 +2905,10 @@ INNER JOIN Products PR ON PD.ProductId = PR.Id
 INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
 INNER JOIN BranchProfiles B ON P.BranchId = B.Id
 WHERE 1=1
-AND P.OrderDate >= @fromDate
-AND P.OrderDate <= @toDate
-AND P.DeliveryDateTime >= @purchaseFromDate
-AND P.DeliveryDateTime <= @purchaseToDate
+AND P.InvoiceDateTime >= @fromDate
+AND P.InvoiceDateTime <= @toDate
+AND P.PurchaseDate >= @purchaseFromDate
+AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
 AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                             break;
@@ -2918,10 +2918,10 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
 SELECT 
 P.Id AS PurchaseId,
 P.Code AS PurchaseCode,
-P.OrderDate,
-P.DeliveryDateTime,
-CAST(P.OrderDate AS DATE) AS OrderDateOnly,
-CAST(P.DeliveryDateTime AS DATE) AS DeliveryDateOnly,
+P.InvoiceDateTime,
+P.PurchaseDate,
+CAST(P.InvoiceDateTime AS DATE) AS InvoiceDateTime,
+CAST(P.PurchaseDate AS DATE) AS PurchaseDate,
 S.Id AS SupplierId,
 S.Name AS SupplierName,
 PR.Id AS ProductId,
@@ -2942,10 +2942,10 @@ INNER JOIN Products PR ON PD.ProductId = PR.Id
 INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
 INNER JOIN BranchProfiles B ON P.BranchId = B.Id
 WHERE 1=1
-AND P.OrderDate >= @fromDate
-AND P.OrderDate <= @toDate
-AND P.DeliveryDateTime >= @purchaseFromDate
-AND P.DeliveryDateTime <= @purchaseToDate
+AND P.InvoiceDateTime >= @fromDate
+AND P.InvoiceDateTime <= @toDate
+AND P.PurchaseDate >= @purchaseFromDate
+AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
 AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                             break;
@@ -2954,8 +2954,8 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                             query = @"
 SELECT 
 P.Code AS PurchaseCode,
-P.OrderDate,
-P.DeliveryDateTime,
+P.InvoiceDateTime,
+P.PurchaseDate,
 S.Name AS SupplierName,
 PD.Quantity,
 PD.SubTotal,
@@ -2972,10 +2972,10 @@ INNER JOIN PurchaseDetails PD ON P.Id = PD.PurchaseId
 INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
 INNER JOIN BranchProfiles B ON P.BranchId = B.Id
 INNER JOIN Products PR ON PD.ProductId = PR.Id 
-WHERE P.OrderDate >= @fromDate
-AND P.OrderDate <= @toDate
-AND P.DeliveryDateTime >= @purchaseFromDate
-AND P.DeliveryDateTime <= @purchaseToDate
+WHERE P.InvoiceDateTime >= @fromDate
+AND P.InvoiceDateTime <= @toDate
+AND P.PurchaseDate >= @purchaseFromDate
+AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
 AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                             break;

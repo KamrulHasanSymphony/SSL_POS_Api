@@ -159,6 +159,30 @@ namespace ShampanPOS.Controllers
         }
 
         // POST: api/Supplier/GetGridData
+        //[HttpPost("GetGridData")]
+        //public async Task<ResultVM> GetGridData(GridOptions options)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        _supplierService = new SupplierService();
+        //        resultVM = await _supplierService.GetGridData(options);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = ex.Message,
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
+
+
+
         [HttpPost("GetGridData")]
         public async Task<ResultVM> GetGridData(GridOptions options)
         {
@@ -166,7 +190,8 @@ namespace ShampanPOS.Controllers
             try
             {
                 _supplierService = new SupplierService();
-                resultVM = await _supplierService.GetGridData(options);
+                resultVM = await _supplierService.GetGridData(options, null, null);
+                //resultVM = await _CustomerService.GetGridData(options);
                 return resultVM;
             }
             catch (Exception ex)
@@ -180,6 +205,10 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
+
+
+
+
 
         // POST: api/Supplier/ReportPreview
         [HttpPost("ReportPreview")]

@@ -1338,6 +1338,7 @@ SELECT
     ISNULL(M.Name, '') AS Name,
     ISNULL(M.BanglaName, '') AS BanglaName,
     ISNULL(M.CustomerGroupId, 0) AS CustomerGroupId,
+    ISNULL(CG.Name, '') AS CustomerGroupName,
     ISNULL(M.CompanyId, 0) AS CompanyId,
     ISNULL(M.BranchId, 0) AS BranchId,
     ISNULL(M.Address, '') AS Address,
@@ -1361,6 +1362,7 @@ SELECT
 FROM Customers M
 LEFT JOIN BranchProfiles Br ON M.BranchId = Br.Id
 LEFT JOIN CompanyProfiles CP ON M.CompanyId = CP.Id
+LEFT JOIN CustomerGroups CG ON M.CustomerGroupId = CG.Id
 WHERE 1=1
 AND M.CompanyId = @CompanyId
 ";
@@ -1392,6 +1394,7 @@ AND M.CompanyId = @CompanyId
                     Name = row.Field<string>("Name"),
                     BanglaName = row.Field<string>("BanglaName"),
                     CustomerGroupId = row.Field<int>("CustomerGroupId"),
+                    CustomerGroupName = row.Field<string>("CustomerGroupName"),
                     CompanyId = row.Field<int>("CompanyId"),
                     CompanyName = row.Field<string>("CompanyName"),
                     BranchId = row.Field<int>("BranchId"),

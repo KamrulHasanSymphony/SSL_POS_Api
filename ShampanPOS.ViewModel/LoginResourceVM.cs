@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace ShampanPOS.ViewModel
 {
@@ -7,6 +8,9 @@ namespace ShampanPOS.ViewModel
     {
 
         [Required]
+        [DisplayName("User Name")]
+        [RegularExpression(@"^[a-zA-Z]+$", ErrorMessage = "User Name can contain only letters (A-Z, a-z)")]
+
         public string UserName { get; set; }
 
         [Required]

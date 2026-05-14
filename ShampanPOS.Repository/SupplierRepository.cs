@@ -676,7 +676,98 @@ ORDER BY Name";
             }
         }
 
-        public async Task<ResultVM> GetGridData(GridOptions options, SqlConnection conn = null, SqlTransaction transaction = null)
+//        public async Task<ResultVM> GetGridData(GridOptions options, SqlConnection conn = null, SqlTransaction transaction = null)
+//        {
+//            bool isNewConnection = false;
+//            DataTable dataTable = new DataTable();
+//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+//            try
+//            {
+//                if (conn == null)
+//                {
+//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+//                    conn.Open();
+//                    isNewConnection = true;
+//                }
+
+//                var data = new GridEntity<SupplierVM>();
+
+//                // Define your SQL query string
+//                string sqlQuery = @"
+//            -- Count query
+//            SELECT COUNT(DISTINCT H.Id) AS totalcount
+//FROM Suppliers H
+//LEFT OUTER JOIN SupplierGroups SG 
+//    ON H.SupplierGroupId = SG.Id
+//WHERE ISNULL(H.IsArchive, 0) <> 1
+//            -- Add the filter condition
+//            " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SupplierVM>.FilterCondition(options.filter) + ")" : "") + @"
+
+//            -- Data query with pagination and sorting
+//            SELECT * 
+//            FROM (
+//                SELECT 
+//                ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC ") + @") AS rowindex,
+//                ISNULL(H.Id, 0) AS Id,
+//                ISNULL(H.Code, '') AS Code,
+//                ISNULL(H.Name, '') AS Name,
+//                ISNULL(H.SupplierGroupId, 0) SupplierGroupId,
+//                ISNULL(SG.Name, '') AS SupplierGroupName,
+//                ISNULL(H.BanglaName, '') BanglaName,
+//                ISNULL(H.Address, '') Address,
+//                ISNULL(H.City, '') City,
+//                ISNULL(H.TelephoneNo, '') TelephoneNo,
+//                ISNULL(H.Email, '')  Email,
+//                ISNULL(H.ContactPerson, '') ContactPerson,
+//                ISNULL(H.Comments, '') Comments,
+//                ISNULL(H.IsArchive, 0) AS IsArchive,
+//                ISNULL(H.IsActive, 0) AS IsActive,
+//                CASE WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Active' ELSE 'Inactive' END AS Status,
+//                ISNULL(H.CreatedBy, '') AS CreatedBy,
+//                ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
+//                ISNULL(H.CreatedOn, '1900-01-01') AS CreatedOn,
+//                ISNULL(H.LastModifiedOn, '1900-01-01') AS LastModifiedOn
+
+//FROM Suppliers H
+//LEFT OUTER JOIN SupplierGroups SG 
+//    ON H.SupplierGroupId = SG.Id
+//WHERE ISNULL(H.IsArchive, 0) <> 1
+//            -- Add the filter condition
+//            " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SupplierVM>.FilterCondition(options.filter) + ")" : "") + @"
+
+//            ) AS a
+//            WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
+//        ";
+
+//                data = KendoGrid<SupplierVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+
+//                result.Status = "Success";
+//                result.Message = "Data retrieved successfully.";
+//                result.DataVM = data;
+
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                result.ExMessage = ex.Message;
+//                result.Message = ex.Message;
+//                return result;
+//            }
+//            finally
+//            {
+//                if (isNewConnection && conn != null)
+//                {
+//                    conn.Close();
+//                }
+//            }
+//        }
+
+
+
+
+        // GetGridData Method
+        public async Task<ResultVM> GetGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();
@@ -693,23 +784,31 @@ ORDER BY Name";
 
                 var data = new GridEntity<SupplierVM>();
 
-                // Define your SQL query string
                 string sqlQuery = @"
-            -- Count query
-            SELECT COUNT(DISTINCT H.Id) AS totalcount
+    -- Count query
+    SELECT COUNT(DISTINCT H.Id) AS totalcount
 FROM Suppliers H
 LEFT OUTER JOIN SupplierGroups SG 
     ON H.SupplierGroupId = SG.Id
-WHERE ISNULL(H.IsArchive, 0) <> 1
-            -- Add the filter condition
-            " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SupplierVM>.FilterCondition(options.filter) + ")" : "") + @"
+WHERE H.IsArchive != 1";
 
-            -- Data query with pagination and sorting
-            SELECT * 
-            FROM (
-                SELECT 
-                ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC ") + @") AS rowindex,
-                ISNULL(H.Id, 0) AS Id,
+                sqlQuery = sqlQuery + (options.filter.Filters.Count > 0 ?
+                    " AND (" + GridQueryBuilder<SupplierVM>.FilterCondition(options.filter) + ")" : "");
+
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+                sqlQuery += @"
+
+    -- Data query with pagination and sorting
+    SELECT * 
+    FROM (
+        SELECT 
+        ROW_NUMBER() OVER(ORDER BY " +
+                                        (options.sort.Count > 0 ?
+                                            options.sort[0].field + " " + options.sort[0].dir :
+                                            "H.Id DESC ") + @") AS rowindex,
+        
+	            ISNULL(H.Id, 0) AS Id,
                 ISNULL(H.Code, '') AS Code,
                 ISNULL(H.Name, '') AS Name,
                 ISNULL(H.SupplierGroupId, 0) SupplierGroupId,
@@ -732,16 +831,22 @@ WHERE ISNULL(H.IsArchive, 0) <> 1
 FROM Suppliers H
 LEFT OUTER JOIN SupplierGroups SG 
     ON H.SupplierGroupId = SG.Id
-WHERE ISNULL(H.IsArchive, 0) <> 1
-            -- Add the filter condition
-            " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SupplierVM>.FilterCondition(options.filter) + ")" : "") + @"
+WHERE H.IsArchive != 1";
 
-            ) AS a
-            WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
-        ";
+                sqlQuery = sqlQuery + (options.filter.Filters.Count > 0 ?
+                    " AND (" + GridQueryBuilder<SupplierVM>.FilterCondition(options.filter) + ")" : "");
+
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+                sqlQuery += @"
+    ) AS a
+    WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
+";
+
+
 
                 data = KendoGrid<SupplierVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
-
+                //data = KendoGrid<CustomerVM>.GetTransactionalGridData_CMD(options, sqlQuery, "H.Id", conditionalFields, conditionalValues);
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";
                 result.DataVM = data;
@@ -762,6 +867,9 @@ WHERE ISNULL(H.IsArchive, 0) <> 1
                 }
             }
         }
+
+
+
 
         public async Task<ResultVM> ReportPreview(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {

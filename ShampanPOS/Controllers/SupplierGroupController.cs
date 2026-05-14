@@ -163,7 +163,7 @@ namespace ShampanPOS.Controllers
             {
                
                 SupplierGroupService _supplierGroupService = new SupplierGroupService();
-                resultVM = await _supplierGroupService.GetGridData(options);
+                resultVM = await _supplierGroupService.GetGridData(options, null, null);
                 return resultVM;
 
             }
