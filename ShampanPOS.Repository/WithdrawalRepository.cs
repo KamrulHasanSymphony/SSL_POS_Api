@@ -301,6 +301,7 @@ WHERE Id = @Id";
                 string query = @"
 SELECT
     ISNULL(M.Id, 0) AS Id,
+	ISNULL(M.Code, '') AS Code,
 	ISNULL(M.FromBankAccountId, 0) AS FromBankAccountId,
 	ISNULL(M.ToBankAccountId, 0) AS ToBankAccountId,
     ISNULL(M.ChequeBankName, '') AS ChequeBankName,
@@ -350,6 +351,7 @@ WHERE 1 = 1
                     model.Add(new WithdrawalVM
                     {
                         Id = row.Field<int>("Id"),
+                        Code = row.Field<string>("Code"),
                         FromBankAccountId = row.Field<int>("FromBankAccountId"),
                         ToBankAccountId = row.Field<int>("ToBankAccountId"),
                         ChequeBankName = row.Field<string>("ChequeBankName"),

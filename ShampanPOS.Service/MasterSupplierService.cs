@@ -110,18 +110,18 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                #region Check Exist Data
-                string[] conditionField = { "Id not", "Name" };
-                string[] conditionValue = { masterSupplier.Id.ToString(), masterSupplier.Name.Trim() };
+                //#region Check Exist Data
+                //string[] conditionField = { "Id not", "Name" };
+                //string[] conditionValue = { masterSupplier.Id.ToString(), masterSupplier.Name.Trim() };
 
-                bool exist = _commonRepo.CheckExists("MasterSupplier", conditionField, conditionValue, conn, transaction);
+                //bool exist = _commonRepo.CheckExists("MasterSupplier", conditionField, conditionValue, conn, transaction);
 
-                if (exist)
-                {
-                    result.Message = "Data Already Exist!";
-                    throw new Exception("Data Already Exist!");
-                }
-                #endregion
+                //if (exist)
+                //{
+                //    result.Message = "Data Already Exist!";
+                //    throw new Exception("Data Already Exist!");
+                //}
+                //#endregion
 
                 result = await _repo.Update(masterSupplier, conn, transaction);
 
