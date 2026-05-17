@@ -149,7 +149,8 @@ WHERE Id = @Id";
                     }
                     else
                     {
-                        throw new Exception(result.Message);
+                        result.Status = "Fail";
+                        result.Message = "No data found to update.";
                     }
                 }
 
