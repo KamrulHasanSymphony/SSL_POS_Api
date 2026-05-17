@@ -738,11 +738,11 @@ WHERE 1 = 1 ";
 
                 FROM Payments H
                 LEFT OUTER JOIN Suppliers s on h.SupplierId = s.Id
-				LEFT OUTER JOIN BankAccounts e on h.BankAccountId= e.AccountNo
-
+				--LEFT OUTER JOIN BankAccounts e on h.BankAccountId= e.AccountNo
+                LEFT OUTER JOIN BankAccounts e on h.BankAccountId = e.Id
                 WHERE 1 = 1
             -- Add the filter condition
-        " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PaymentVM>.FilterCondition(options.filter) + ")" : "");
+        " + (options.filter != null && options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PaymentVM>.FilterCondition(options.filter) + ")" : "");
 
                 // Apply additional conditions
                 sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
@@ -751,39 +751,41 @@ WHERE 1 = 1 ";
     -- Data query with pagination and sorting
     SELECT * 
     FROM (
-        SELECT 
-        ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC") + $@") AS rowindex,
-        
-	            ISNULL(H.Id, 0) AS Id,
-				ISNULL(H.Code, '') AS Code,
-				ISNULL(H.BankAccountId, 0) AS BankAccountId,
-				ISNULL(e.AccountNo, 0) AS AccountNo,
-				ISNULL(H.SupplierId, 0) AS SupplierId,
-				ISNULL(H.TotalPaymentAmount, 0) AS TotalPaymentAmount,
-				ISNULL(FORMAT(H.TransactionDate, 'yyyy-MM-dd'), '1900-01-01') AS TransactionDate,
-				ISNULL(H.Comments, '') AS Comments,
-				ISNULL(H.Reference, '') AS Reference,
-				ISNULL(H.IsArchive, 0) AS IsArchive,
-				ISNULL(H.IsCash, 0) AS IsCash,   
-				ISNULL(H.IsActive, 0) AS IsActive, 
-				ISNULL(H.CreatedBy, '') AS CreatedBy,
-				ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS CreatedOn,
-				ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
-				ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
-				ISNULL(H.CreatedFrom, '') AS CreatedFrom,
-				ISNULL(H.LastUpdateFrom, '') AS LastUpdateFrom , 
-                ISNULL(S.Name,'') SupplierName
+       SELECT 
+            ROW_NUMBER() OVER(ORDER BY " + ((options.sort != null && options.sort.Count > 0)
+            ? options.sort[0].field + " " + options.sort[0].dir
+            : "H.Id DESC") + $@") AS rowindex,
+
+                    ISNULL(H.Id, 0) AS Id,
+		            ISNULL(H.Code, '') AS Code,
+		            ISNULL(H.BankAccountId, 0) AS BankAccountId,
+		            ISNULL(e.AccountNo, '') AS AccountNo,
+		            ISNULL(H.SupplierId, 0) AS SupplierId,
+		            ISNULL(H.TotalPaymentAmount, 0) AS TotalPaymentAmount,
+		            ISNULL(FORMAT(H.TransactionDate, 'yyyy-MM-dd'), '1900-01-01') AS TransactionDate,
+		            ISNULL(H.Comments, '') AS Comments,
+		            ISNULL(H.Reference, '') AS Reference,
+		            ISNULL(H.IsArchive, 0) AS IsArchive,
+		            ISNULL(H.IsCash, 0) AS IsCash,
+		            ISNULL(H.IsActive, 0) AS IsActive,
+		            ISNULL(H.CreatedBy, '') AS CreatedBy,
+		            ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS CreatedOn,
+		            ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
+		            ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
+		            ISNULL(H.CreatedFrom, '') AS CreatedFrom,
+		            ISNULL(H.LastUpdateFrom, '') AS LastUpdateFrom,
+                    ISNULL(S.Name,'') SupplierName
 
 
 
                 FROM Payments H
                 LEFT OUTER JOIN Suppliers s on h.SupplierId = s.Id
-				LEFT OUTER JOIN BankAccounts e on h.BankAccountId= e.AccountNo
-
+				--LEFT OUTER JOIN BankAccounts e on h.BankAccountId= e.AccountNo
+                LEFT OUTER JOIN BankAccounts e on h.BankAccountId = e.Id
                 WHERE 1 = 1
 
     -- Add the filter condition
-        " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PaymentVM>.FilterCondition(options.filter) + ")" : "");
+        " + (options.filter != null && options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PaymentVM>.FilterCondition(options.filter) + ")" : "");
 
                 // Apply additional conditions
                 sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
@@ -816,140 +818,140 @@ WHERE 1 = 1 ";
             }
         }
 
-//        public async Task<ResultVM> GetDetailsGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
-//        {
-//            bool isNewConnection = false;
-//            DataTable dataTable = new DataTable();
-//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //        public async Task<ResultVM> GetDetailsGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+        //        {
+        //            bool isNewConnection = false;
+        //            DataTable dataTable = new DataTable();
+        //            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
-//            try
-//            {
-//                if (conn == null)
-//                {
-//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-//                    conn.Open();
-//                    isNewConnection = true;
-//                }
+        //            try
+        //            {
+        //                if (conn == null)
+        //                {
+        //                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //                    conn.Open();
+        //                    isNewConnection = true;
+        //                }
 
-//                var data = new GridEntity<PaymentDetailVM>();
+        //                var data = new GridEntity<PaymentDetailVM>();
 
-//                // Define your SQL query string
-//                string sqlQuery = $@"
-//    -- Count query
-//    SELECT COUNT(DISTINCT H.Id) AS totalcount
-//            FROM Purchases H
-//            LEFT OUTER JOIN Suppliers s on h.SupplierId = s.Id
-//            LEFT OUTER JOIN BranchProfiles br on h.BranchId = br.Id
-//            LEFT OUTER JOIN PurchaseDetails D on h.Id = D.PurchaseId            
-//            LEFT OUTER JOIN Products P ON D.ProductId = P.Id
-//			LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
+        //                // Define your SQL query string
+        //                string sqlQuery = $@"
+        //    -- Count query
+        //    SELECT COUNT(DISTINCT H.Id) AS totalcount
+        //            FROM Purchases H
+        //            LEFT OUTER JOIN Suppliers s on h.SupplierId = s.Id
+        //            LEFT OUTER JOIN BranchProfiles br on h.BranchId = br.Id
+        //            LEFT OUTER JOIN PurchaseDetails D on h.Id = D.PurchaseId            
+        //            LEFT OUTER JOIN Products P ON D.ProductId = P.Id
+        //			LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
 
-//        WHERE 1 = 1
-//    -- Add the filter condition
-//        " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PaymentDetailVM>.FilterCondition(options.filter) + ")" : "");
+        //        WHERE 1 = 1
+        //    -- Add the filter condition
+        //        " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PaymentDetailVM>.FilterCondition(options.filter) + ")" : "");
 
-//                // Apply additional conditions
-//                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+        //                // Apply additional conditions
+        //                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
 
-//                sqlQuery += @"
-//    -- Data query with pagination and sorting
-//    SELECT * 
-//    FROM (
-//        SELECT 
-//        ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC") + $@") AS rowindex,
-        
-
-//	            ISNULL(H.Id, 0) AS Id,
-//                ISNULL(H.Code, '') AS Code,
-//                ISNULL(H.BranchId, 0) AS BranchId,
-//				ISNULL(H.CompanyId, 0) AS CompanyId,
-//				ISNULL(Br.Name,'') BranchName,
-//                ISNULL(H.SupplierId, 0) AS SupplierId,
-//				ISNULL(S.Name,'') SupplierName,
-//                ISNULL(S.Address, '') AS SupplierAddress,
-//                ISNULL(H.BENumber, '') AS BENumber,
-//                ISNULL(FORMAT(H.InvoiceDateTime, 'yyyy-MM-dd'), '1900-01-01') AS InvoiceDateTime,
-//                ISNULL(FORMAT(H.PurchaseDate, 'yyyy-MM-dd'), '1900-01-01') AS PurchaseDate,
-//                ISNULL(H.Comments, '') AS Comments,
-//                ISNULL(H.TransactionType, '') AS TransactionType,
-//                ISNULL(H.IsPost, 0) AS IsPost,	            
-//                CASE WHEN ISNULL(H.IsPost, 0) = 1 THEN 'Posted' ELSE 'Not-posted' END AS Status,
-//                ISNULL(H.PostedBy, '') AS PostedBy,
-//                ISNULL(FORMAT(H.PostedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS PostedOn,
-//                ISNULL(H.FiscalYear, '') AS FiscalYear,
-//                ISNULL(H.PeriodId, '') AS PeriodId,
-//                ISNULL(H.CreatedBy, '') AS CreatedBy,
-//                ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS CreatedOn,
-//                ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
-//                ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
-//                ISNULL(H.CreatedFrom, '') AS CreatedFrom,
-//                ISNULL(H.LastUpdateFrom, '') AS LastUpdateFrom,
-                
-               
-//                    -- Sales Details
-//            ISNULL(D.Id, 0) AS PurchaseDetailId,
-//            ISNULL(D.PurchaseOrderId, 0) AS PurchaseOrderId,
-//            ISNULL(D.PurchaseOrderDetailId, 0) AS PurchaseOrderDetailId,
-//            ISNULL(D.Line, 0) AS Line,
-//            ISNULL(D.ProductId, 0) AS ProductId,
-//            ISNULL(P.Name,'') ProductName,
-//            ISNULL(D.Quantity, 0) AS Quantity,
-//            ISNULL(D.UnitPrice, 0) AS UnitPrice,
-//            ISNULL(D.SubTotal, 0) AS SubTotal,
-//            ISNULL(D.SD, 0) AS SD,
-//            ISNULL(D.SDAmount, 0) AS SDAmount,
-//            ISNULL(D.VATRate, 0) AS VATRate,
-//            ISNULL(D.VATAmount, 0) AS VATAmount,
-//            ISNULL(D.OthersAmount, 0) AS OthersAmount,
-//			ISNULL(CP.CompanyName,'') CompanyName
+        //                sqlQuery += @"
+        //    -- Data query with pagination and sorting
+        //    SELECT * 
+        //    FROM (
+        //        SELECT 
+        //        ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC") + $@") AS rowindex,
 
 
-
-//            FROM Purchases H
-//            LEFT OUTER JOIN Suppliers s on h.SupplierId = s.Id
-//            LEFT OUTER JOIN BranchProfiles br on h.BranchId = br.Id
-//            LEFT OUTER JOIN PurchaseDetails D on h.Id = D.PurchaseId            
-//            LEFT OUTER JOIN Products P ON D.ProductId = P.Id
-//			LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
-
-//        WHERE 1 = 1
-
-//    -- Add the filter condition
-//        " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PaymentDetailVM>.FilterCondition(options.filter) + ")" : "");
-
-//                // Apply additional conditions
-//                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
-
-//                sqlQuery += @"
-//    ) AS a
-//    WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
-//";
-
-//                data = KendoGrid<PaymentDetailVM>.GetTransactionalGridData_CMD(options, sqlQuery, "H.Id", conditionalFields, conditionalValues);
-
-//                result.Status = "Success";
-//                result.Message = "Details data retrieved successfully.";
-//                result.DataVM = data;
-
-//                return result;
-//            }
-//            catch (Exception ex)
-//            {
-//                result.ExMessage = ex.Message;
-//                result.Message = ex.Message;
-//                return result;
-//            }
-//            finally
-//            {
-//                if (isNewConnection && conn != null)
-//                {
-//                    conn.Close();
-//                }
-//            }
-//        }
+        //	            ISNULL(H.Id, 0) AS Id,
+        //                ISNULL(H.Code, '') AS Code,
+        //                ISNULL(H.BranchId, 0) AS BranchId,
+        //				ISNULL(H.CompanyId, 0) AS CompanyId,
+        //				ISNULL(Br.Name,'') BranchName,
+        //                ISNULL(H.SupplierId, 0) AS SupplierId,
+        //				ISNULL(S.Name,'') SupplierName,
+        //                ISNULL(S.Address, '') AS SupplierAddress,
+        //                ISNULL(H.BENumber, '') AS BENumber,
+        //                ISNULL(FORMAT(H.InvoiceDateTime, 'yyyy-MM-dd'), '1900-01-01') AS InvoiceDateTime,
+        //                ISNULL(FORMAT(H.PurchaseDate, 'yyyy-MM-dd'), '1900-01-01') AS PurchaseDate,
+        //                ISNULL(H.Comments, '') AS Comments,
+        //                ISNULL(H.TransactionType, '') AS TransactionType,
+        //                ISNULL(H.IsPost, 0) AS IsPost,	            
+        //                CASE WHEN ISNULL(H.IsPost, 0) = 1 THEN 'Posted' ELSE 'Not-posted' END AS Status,
+        //                ISNULL(H.PostedBy, '') AS PostedBy,
+        //                ISNULL(FORMAT(H.PostedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS PostedOn,
+        //                ISNULL(H.FiscalYear, '') AS FiscalYear,
+        //                ISNULL(H.PeriodId, '') AS PeriodId,
+        //                ISNULL(H.CreatedBy, '') AS CreatedBy,
+        //                ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS CreatedOn,
+        //                ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
+        //                ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
+        //                ISNULL(H.CreatedFrom, '') AS CreatedFrom,
+        //                ISNULL(H.LastUpdateFrom, '') AS LastUpdateFrom,
 
 
-      public async Task<ResultVM> GetDetailsGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+        //                    -- Sales Details
+        //            ISNULL(D.Id, 0) AS PurchaseDetailId,
+        //            ISNULL(D.PurchaseOrderId, 0) AS PurchaseOrderId,
+        //            ISNULL(D.PurchaseOrderDetailId, 0) AS PurchaseOrderDetailId,
+        //            ISNULL(D.Line, 0) AS Line,
+        //            ISNULL(D.ProductId, 0) AS ProductId,
+        //            ISNULL(P.Name,'') ProductName,
+        //            ISNULL(D.Quantity, 0) AS Quantity,
+        //            ISNULL(D.UnitPrice, 0) AS UnitPrice,
+        //            ISNULL(D.SubTotal, 0) AS SubTotal,
+        //            ISNULL(D.SD, 0) AS SD,
+        //            ISNULL(D.SDAmount, 0) AS SDAmount,
+        //            ISNULL(D.VATRate, 0) AS VATRate,
+        //            ISNULL(D.VATAmount, 0) AS VATAmount,
+        //            ISNULL(D.OthersAmount, 0) AS OthersAmount,
+        //			ISNULL(CP.CompanyName,'') CompanyName
+
+
+
+        //            FROM Purchases H
+        //            LEFT OUTER JOIN Suppliers s on h.SupplierId = s.Id
+        //            LEFT OUTER JOIN BranchProfiles br on h.BranchId = br.Id
+        //            LEFT OUTER JOIN PurchaseDetails D on h.Id = D.PurchaseId            
+        //            LEFT OUTER JOIN Products P ON D.ProductId = P.Id
+        //			LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
+
+        //        WHERE 1 = 1
+
+        //    -- Add the filter condition
+        //        " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PaymentDetailVM>.FilterCondition(options.filter) + ")" : "");
+
+        //                // Apply additional conditions
+        //                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+        //                sqlQuery += @"
+        //    ) AS a
+        //    WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
+        //";
+
+        //                data = KendoGrid<PaymentDetailVM>.GetTransactionalGridData_CMD(options, sqlQuery, "H.Id", conditionalFields, conditionalValues);
+
+        //                result.Status = "Success";
+        //                result.Message = "Details data retrieved successfully.";
+        //                result.DataVM = data;
+
+        //                return result;
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                result.ExMessage = ex.Message;
+        //                result.Message = ex.Message;
+        //                return result;
+        //            }
+        //            finally
+        //            {
+        //                if (isNewConnection && conn != null)
+        //                {
+        //                    conn.Close();
+        //                }
+        //            }
+        //        }
+
+
+        public async Task<ResultVM> GetDetailsGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();

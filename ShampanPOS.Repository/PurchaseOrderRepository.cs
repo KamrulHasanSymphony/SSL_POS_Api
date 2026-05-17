@@ -301,31 +301,44 @@ SELECT
     ISNULL(M.BranchId, 0) AS BranchId,
     ISNULL(M.CompanyId, 0) AS CompanyId,
     ISNULL(M.SupplierId, 0) AS SupplierId,
+
     ISNULL(S.Name, '') AS SupplierName,
     ISNULL(S.Address, '') AS SupplierAddress,
+
     ISNULL(FORMAT(M.OrderDate, 'yyyy-MM-dd'), '1900-01-01') AS OrderDate,
     ISNULL(FORMAT(M.DeliveryDateTime, 'yyyy-MM-dd'), '1900-01-01') AS DeliveryDateTime,
+
     ISNULL(M.Comments, '') AS Comments,
     ISNULL(M.TransactionType, '') AS TransactionType,
-	ISNULL(M.IsPost, 0) AS IsPost,
-	ISNULL(M.PostBy, '') AS PostBy,
-    ISNULL(FORMAT(M.PostedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS PostedOn,
-    ISNULL(M.PeriodId,0) AS PeriodId,   
-    
-    ISNULL(M.CreatedBy, '') AS CreatedBy,
-    ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS CreatedOn,
-    ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
-    ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
-	ISNULL(Br.Name,'') BranchName,
-    ISNULL(CP.CompanyName,'') CompanyName
-    
-FROM 
-    PurchaseOrders M
-LEFT OUTER JOIN Suppliers S ON ISNULL(M.SupplierId,0) = S.Id
-LEFT OUTER JOIN CompanyProfiles CP ON M.CompanyId = CP.Id
-    LEFT OUTER JOIN BranchProfiles Br ON M.BranchId = Br.Id
 
-WHERE  1 = 1
+    ISNULL(M.IsPost, 0) AS IsPost,
+    ISNULL(M.PostBy, '') AS PostBy,
+
+    ISNULL(FORMAT(M.PostedOn, 'yyyy-MM-dd HH:mm:ss'), '') AS PostedOn,
+
+    ISNULL(M.PeriodId, 0) AS PeriodId,
+
+    ISNULL(M.CreatedBy, '') AS CreatedBy,
+    ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm:ss'), '') AS CreatedOn,
+
+    ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
+    ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '') AS LastModifiedOn,
+
+    ISNULL(Br.Name, '') AS BranchName,
+    ISNULL(CP.CompanyName, '') AS CompanyName
+
+FROM PurchaseOrders M
+
+LEFT OUTER JOIN Suppliers S
+    ON ISNULL(M.SupplierId, 0) = S.Id
+
+LEFT OUTER JOIN CompanyProfiles CP
+    ON M.CompanyId = CP.Id
+
+LEFT OUTER JOIN BranchProfiles Br
+    ON M.BranchId = Br.Id
+
+WHERE 1 = 1
  ";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
