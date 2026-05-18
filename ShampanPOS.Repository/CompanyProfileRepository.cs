@@ -682,14 +682,14 @@ FROM
                 INSERT INTO CompanyProfiles 
                     (
                         Code, CompanyName, CompanyBanglaName, CompanyLegalName, Address1, City, ZipCode,TINNo ,
-                        TelephoneNo, FaxNo, Email, ContactPerson, ContactPersonDesignation, ContactPersonTelephone, ContactPersonEmail,Comments, IsArchive, IsActive, CreatedBy, CreatedOn,CreatedFrom, BusinessNature, BIN,FYearStart, FYearEnd
+                        TelephoneNo, FaxNo, Email, ContactPerson, ContactPersonDesignation, ContactPersonTelephone, ContactPersonEmail,Comments, IsArchive, IsActive, CreatedBy, CreatedOn,CreatedFrom, BusinessNature, BIN,FYearStart, FYearEnd,MainCompanyId
                         
                     )
                     VALUES 
                     (
                       @Code, @CompanyName, @CompanyBanglaName, @CompanyLegalName, @Address, @City, @ZipCode,@TINNo,
                       @TelephoneNo, @FaxNo, @Email, @ContactPerson, @ContactPersonDesignation, @ContactPersonTelephone, @ContactPersonEmail,@Comments, 
-                        @IsArchive, @IsActive, @CreatedBy, GETDATE(), @CreatedFrom, @BusinessNature,@BIN,@FYearStart, @FYearEnd
+                        @IsArchive, @IsActive, @CreatedBy, GETDATE(), @CreatedFrom, @BusinessNature,@BIN,@FYearStart, @FYearEnd, @MainCompanyId
                     );
                     SELECT SCOPE_IDENTITY();";
 
@@ -719,6 +719,7 @@ FROM
                     cmd.Parameters.AddWithValue("@TINNo", vm.TIN ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@FYearStart", vm.FYearStart ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@FYearEnd", vm.FYearEnd ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@MainCompanyId", vm.MainCompanyId);
 
                     vm.Id = Convert.ToInt32(cmd.ExecuteScalar());
 
@@ -759,14 +760,22 @@ FROM
         public async Task<ResultVM> AuthCompanyUpdate(CompanyProfileVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = vm.Id.ToString(), DataVM = vm };
+
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                Id = vm.Id.ToString(),
+                DataVM = vm
+            };
 
             try
             {
                 if (conn == null)
                 {
                     conn = new SqlConnection(DatabaseHelper.GetAuthConnectionString());
-                    conn.Open();
+                    await conn.OpenAsync();
                     isNewConnection = true;
                 }
 
@@ -776,66 +785,100 @@ FROM
                 }
 
                 string query = @"
-UPDATE CompanyProfiles
-SET
-    CompanyName = @CompanyName,
-    CompanyBanglaName = @CompanyBanglaName,
-    CompanyLegalName = @CompanyLegalName,
-    Address = @Address,
-    City = @City,
-    ZipCode = @ZipCode,
-    TelephoneNo = @TelephoneNo,
-    FaxNo = @FaxNo,
-    Email = @Email,
-    ContactPerson = @ContactPerson,
-    ContactPersonDesignation = @ContactPersonDesignation,
-    ContactPersonTelephone = @ContactPersonTelephone,
-    ContactPersonEmail = @ContactPersonEmail,
-    Comments = @Comments,
-    LastModifiedOn = GETDATE(),
-    BusinessNature = @BusinessNature,
-    BIN = @BIN,
-    TIN = @TIN,
-    FYearStart = @FYearStart,
-    FYearEnd = @FYearEnd,
-    LastModifiedBy = @LastModifiedBy,    
-    LastUpdateFrom = @LastUpdateFrom,
-WHERE Id = @Id ";
+        UPDATE CompanyProfiles
+        SET
+            CompanyName = @CompanyName,
+            CompanyBanglaName = @CompanyBanglaName,
+            CompanyLegalName = @CompanyLegalName,
+            Address1 = @Address,
+            City = @City,
+            ZipCode = @ZipCode,
+            TelephoneNo = @TelephoneNo,
+            FaxNo = @FaxNo,
+            Email = @Email,
+            ContactPerson = @ContactPerson,
+            ContactPersonDesignation = @ContactPersonDesignation,
+            ContactPersonTelephone = @ContactPersonTelephone,
+            ContactPersonEmail = @ContactPersonEmail,
+            Comments = @Comments,
+            LastModifiedOn = GETDATE(),
+            BusinessNature = @BusinessNature,
+            BIN = @BIN,
+            TINNo = @TINNo,
+            FYearStart = @FYearStart,
+            FYearEnd = @FYearEnd,
+            LastModifiedBy = @LastModifiedBy,
+            LastUpdateFrom = @LastUpdateFrom
+
+        WHERE MainCompanyId = @Id";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
                 {
-                    cmd.Parameters.AddWithValue("@Id", vm.Id);
-                    cmd.Parameters.AddWithValue("@CompanyName", vm.CompanyName ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@CompanyBanglaName", vm.CompanyBanglaName ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@CompanyLegalName", vm.CompanyLegalName ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Address", vm.Address ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@City", vm.City ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@ZipCode", vm.ZipCode ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@TelephoneNo", vm.TelephoneNo ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@FaxNo", vm.FaxNo ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Email", vm.Email ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@ContactPerson", vm.ContactPerson ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@ContactPersonDesignation", vm.ContactPersonDesignation ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@ContactPersonTelephone", vm.ContactPersonTelephone ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@ContactPersonEmail", vm.ContactPersonEmail ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@BusinessNature", vm.BusinessNature ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@BIN", vm.BIN ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@TIN", vm.TIN ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@LastModifiedBy", vm.LastModifiedBy ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@LastUpdateFrom", vm.LastUpdateFrom ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@FYearStart", vm.FYearStart ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@FYearEnd", vm.FYearEnd ?? (object)DBNull.Value);
+                    try
+                    {
+                        cmd.Parameters.AddWithValue("@Id", vm.Id);
+                        cmd.Parameters.AddWithValue("@CompanyName", vm.CompanyName ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@CompanyBanglaName", vm.CompanyBanglaName ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@CompanyLegalName", vm.CompanyLegalName ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Address", vm.Address ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@City", vm.City ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@ZipCode", vm.ZipCode ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@TelephoneNo", vm.TelephoneNo ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@FaxNo", vm.FaxNo ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Email", vm.Email ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@ContactPerson", vm.ContactPerson ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@ContactPersonDesignation", vm.ContactPersonDesignation ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@ContactPersonTelephone", vm.ContactPersonTelephone ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@ContactPersonEmail", vm.ContactPersonEmail ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@BusinessNature", vm.BusinessNature ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@BIN", vm.BIN ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@TINNo", vm.TIN ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@LastModifiedBy", vm.LastModifiedBy ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@LastUpdateFrom", vm.LastUpdateFrom ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@FYearStart", vm.FYearStart ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@FYearEnd", vm.FYearEnd ?? (object)DBNull.Value);
 
-                    int rowsAffected = cmd.ExecuteNonQuery();
-                    if (rowsAffected > 0)
-                    {
-                        result.Status = "Success";
-                        result.Message = "Data updated successfully.";
+                        string debugQuery = "SELECT COUNT(*) FROM CompanyProfiles WHERE Id = @Id";
+
+                        using (SqlCommand debugCmd = new SqlCommand(debugQuery, conn, transaction))
+                        {
+                            debugCmd.Parameters.AddWithValue("@Id", vm.Id);
+
+                            int count = Convert.ToInt32(await debugCmd.ExecuteScalarAsync());
+
+                            result.ExMessage = $"Auth DB Matching Rows = {count}, Id = {vm.Id}";
+                        }
+                        int rowsAffected = await cmd.ExecuteNonQueryAsync();
+
+                        result.ExMessage += $" | RowsAffected = {rowsAffected}";
+
+                        if (rowsAffected > 0)
+                        {
+                            result.Status = "Success";
+                            result.Message = "Data updated successfully.";
+                        }
+                        else
+                        {
+                            result.Message = "No rows were updated.";
+                        }
                     }
-                    else
+                    catch (SqlException sqlEx)
                     {
-                        result.Message = "No rows were updated.";
+                        result.Status = "Fail";
+                        result.Message = "SQL Error";
+                        result.ExMessage = sqlEx.Message;
+
+                        // Get exact SQL error details
+                        foreach (SqlError error in sqlEx.Errors)
+                        {
+                            result.ExMessage +=
+                                $"\nMessage: {error.Message}" +
+                                $"\nLineNumber: {error.LineNumber}" +
+                                $"\nProcedure: {error.Procedure}";
+                        }
+
+                        throw;
                     }
                 }
 
@@ -852,9 +895,11 @@ WHERE Id = @Id ";
                 {
                     transaction.Rollback();
                 }
+
                 result.Status = "Fail";
-                result.ExMessage = ex.Message;
-                result.Message = ex.Message;
+                result.Message = "Exception Occurred";
+                result.ExMessage = ex.ToString(); // Full error details
+
                 return result;
             }
             finally
@@ -865,6 +910,116 @@ WHERE Id = @Id ";
                 }
             }
         }
+        //        public async Task<ResultVM> AuthCompanyUpdate(CompanyProfileVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
+        //        {
+        //            bool isNewConnection = false;
+        //            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = vm.Id.ToString(), DataVM = vm };
+
+        //            try
+        //            {
+        //                if (conn == null)
+        //                {
+        //                    conn = new SqlConnection(DatabaseHelper.GetAuthConnectionString());
+        //                    conn.Open();
+        //                    isNewConnection = true;
+        //                }
+
+        //                if (transaction == null)
+        //                {
+        //                    transaction = conn.BeginTransaction();
+        //                }
+
+        //                string query = @"
+        //UPDATE CompanyProfiles
+        //SET
+        //    CompanyName = @CompanyName,
+        //    CompanyBanglaName = @CompanyBanglaName,
+        //    CompanyLegalName = @CompanyLegalName,
+        //    Address1 = @Address,
+        //    City = @City,
+        //    ZipCode = @ZipCode,
+        //    TelephoneNo = @TelephoneNo,
+        //    FaxNo = @FaxNo,
+        //    Email = @Email,
+        //    ContactPerson = @ContactPerson,
+        //    ContactPersonDesignation = @ContactPersonDesignation,
+        //    ContactPersonTelephone = @ContactPersonTelephone,
+        //    ContactPersonEmail = @ContactPersonEmail,
+        //    Comments = @Comments,
+        //    LastModifiedOn = GETDATE(),
+        //    BusinessNature = @BusinessNature,
+        //    BIN = @BIN,
+        //    TINNo = @TINNo,
+        //    FYearStart = @FYearStart,
+        //    FYearEnd = @FYearEnd,
+        //    LastModifiedBy = @LastModifiedBy,    
+        //    LastUpdateFrom = @LastUpdateFrom
+
+        //WHERE Id = @Id ";
+
+        //                using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
+        //                {
+        //                    cmd.Parameters.AddWithValue("@Id", vm.Id);
+        //                    cmd.Parameters.AddWithValue("@CompanyName", vm.CompanyName ?? (object)DBNull.Value);
+        //                    cmd.Parameters.AddWithValue("@CompanyBanglaName", vm.CompanyBanglaName ?? (object)DBNull.Value);
+        //                    cmd.Parameters.AddWithValue("@CompanyLegalName", vm.CompanyLegalName ?? (object)DBNull.Value);
+        //                    cmd.Parameters.AddWithValue("@Address", vm.Address ?? (object)DBNull.Value);
+        //                    cmd.Parameters.AddWithValue("@City", vm.City ?? (object)DBNull.Value);
+        //                    cmd.Parameters.AddWithValue("@ZipCode", vm.ZipCode ?? (object)DBNull.Value);
+        //                    cmd.Parameters.AddWithValue("@TelephoneNo", vm.TelephoneNo ?? (object)DBNull.Value);
+        //                    cmd.Parameters.AddWithValue("@FaxNo", vm.FaxNo ?? (object)DBNull.Value);
+        //                    cmd.Parameters.AddWithValue("@Email", vm.Email ?? (object)DBNull.Value);
+        //                    cmd.Parameters.AddWithValue("@ContactPerson", vm.ContactPerson ?? (object)DBNull.Value);
+        //                    cmd.Parameters.AddWithValue("@ContactPersonDesignation", vm.ContactPersonDesignation ?? (object)DBNull.Value);
+        //                    cmd.Parameters.AddWithValue("@ContactPersonTelephone", vm.ContactPersonTelephone ?? (object)DBNull.Value);
+        //                    cmd.Parameters.AddWithValue("@ContactPersonEmail", vm.ContactPersonEmail ?? (object)DBNull.Value);
+        //                    cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
+        //                    cmd.Parameters.AddWithValue("@BusinessNature", vm.BusinessNature ?? (object)DBNull.Value);
+        //                    cmd.Parameters.AddWithValue("@BIN", vm.BIN ?? (object)DBNull.Value);
+        //                    cmd.Parameters.AddWithValue("@TINNo", vm.TIN ?? (object)DBNull.Value);
+        //                    cmd.Parameters.AddWithValue("@LastModifiedBy", vm.LastModifiedBy ?? (object)DBNull.Value);
+        //                    cmd.Parameters.AddWithValue("@LastUpdateFrom", vm.LastUpdateFrom ?? (object)DBNull.Value);
+        //                    cmd.Parameters.AddWithValue("@FYearStart", vm.FYearStart ?? (object)DBNull.Value);
+        //                    cmd.Parameters.AddWithValue("@FYearEnd", vm.FYearEnd ?? (object)DBNull.Value);
+
+        //                    int rowsAffected = cmd.ExecuteNonQuery();
+        //                    if (rowsAffected > 0)
+        //                    {
+        //                        result.Status = "Success";
+        //                        result.Message = "Data updated successfully.";
+        //                    }
+        //                    else
+        //                    {
+        //                        result.Message = "No rows were updated.";
+        //                    }
+        //                }
+
+        //                if (isNewConnection)
+        //                {
+        //                    transaction.Commit();
+        //                }
+
+        //                return result;
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                if (transaction != null && isNewConnection)
+        //                {
+        //                    transaction.Rollback();
+        //                }
+        //                result.Status = "Fail";
+        //                result.ExMessage = ex.Message;
+        //                result.Message = ex.Message;
+        //                return result;
+        //            }
+        //            finally
+        //            {
+        //                if (isNewConnection && conn != null)
+        //                {
+        //                    conn.Close();
+        //                }
+        //            }
+        //        }
 
         // Delete Method
         public async Task<ResultVM> AuthCompanyDelete(CommonVM vm, SqlConnection conn = null, SqlTransaction transaction = null)

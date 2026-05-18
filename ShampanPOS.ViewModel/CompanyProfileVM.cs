@@ -105,6 +105,9 @@ namespace ShampanPOS.ViewModel
         public string? Operation { get; set; }
 
         public string? Status { get; set; }
+
+        public int? MainCompanyId { get; set; }
+
     }
 
 }
