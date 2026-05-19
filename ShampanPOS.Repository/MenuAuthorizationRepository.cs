@@ -722,7 +722,7 @@ WHERE
                     DROP TABLE #Temp;
                 ";
 
-                data = KendoGrid<UserMenuVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+                data = KendoGrid<UserMenuVM>.GetGridData_CMD(options, sqlQuery, "UserId");
 
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";
