@@ -3038,11 +3038,12 @@ LEFT JOIN Suppliers S ON M.SupplierId = S.Id
 LEFT JOIN PurchaseOrders E ON M.PurchaseOrderId = E.Id
 WHERE 1 = 1";
 
-                //sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
-                //objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
                 objComm.Fill(dataTable);
 
                 var modelList = dataTable.AsEnumerable().Select(row => new PurchaseDataVM

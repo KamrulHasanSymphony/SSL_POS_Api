@@ -2406,18 +2406,19 @@ SELECT
                 // Define your SQL query string
                 string sqlQuery = @"
     -- Count query
-    SELECT COUNT(DISTINCT H.Id) AS totalcount
-            FROM SaleOrders H
-            LEFT OUTER JOIN Customers s on h.CustomerId = s.Id
-            LEFT OUTER JOIN BranchProfiles br on h.BranchId = br.Id
 
-            LEFT JOIN 
-					    (
-						    SELECT d.PurchaseOrderId, SUM(ISNULL(d.Quantity,0)) AS TotalQuantity, SUM(ISNULL(d.CompletedQty,0)) AS TotalCompletedQty
-						    FROM [dbo].[PurchaseOrderDetails] d   
-						    GROUP BY d.PurchaseOrderId
-					    ) SD ON H.Id = SD.PurchaseOrderId
-            WHERE H.IsPost != 1 AND  (SD.TotalCompletedQty < SD.TotalQuantity)
+                SELECT COUNT(DISTINCT H.Id) AS totalcount
+
+				FROM SaleOrders H 
+				LEFT OUTER JOIN BranchProfiles BF ON H.BranchId = BF.Id
+				LEFT OUTER JOIN Customers C ON H.CustomerId = C.Id
+				LEFT OUTER JOIN BranchProfiles BR on h.BranchId = BR.Id
+				LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
+				WHERE H.IsPost = 1
+
+
+
+
     -- Add the filter condition
     " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleOrderVM>.FilterCondition(options.filter) + ")" : "") + @"
 

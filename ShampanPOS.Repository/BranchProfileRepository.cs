@@ -124,7 +124,7 @@ namespace ShampanPOS.Repository
                 UPDATE BranchProfiles 
                 SET 
                     Code = @Code, DistributorCode = @DistributorCode, Name = @Name,BanglaName = @BanglaName, 
-                    AreaId = @AreaId, TelephoneNo = @TelephoneNo, Email = @Email, VATRegistrationNo = @VATRegistrationNo, BIN = @BIN, 
+                    TelephoneNo = @TelephoneNo, Email = @Email, VATRegistrationNo = @VATRegistrationNo, BIN = @BIN, 
                     TINNO = @TINNO, Comments = @Comments, IsArchive = @IsArchive, IsActive = @IsActiveStatus, 
                     LastModifiedBy = @LastModifiedBy, LastModifiedOn = @LastModifiedOn,Address=@Address
                 WHERE Id = @Id";
@@ -303,7 +303,6 @@ query += @"
     ,ISNULL(H.DistributorCode, '') AS DistributorCode
     ,ISNULL(H.Name, '') AS Name
     ,ISNULL(H.BanglaName, '') AS BanglaName
-    --,ISNULL(H.AreaId, 0) AS AreaId
 	
     ,ISNULL(H.TelephoneNo, '') AS TelephoneNo
     ,ISNULL(H.Address, '') AS Address
@@ -672,9 +671,6 @@ WHERE 1=1";
             -- Count query
                     SELECT COUNT(DISTINCT H.Id) AS totalcount
                     FROM BranchProfiles H
-						left outer join Areas A on A.Id=h.AreaId
-	--left outer join EnumTypes EParent on EParent.Id=H.ParentId
-	--left outer join EnumTypes EEnumType on EEnumType.Id=H.EnumTypeId
                     WHERE H.IsArchive != 1
                     " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<BranchProfileVM>.FilterCondition(options.filter) + ")" : "") + @"
 
@@ -689,14 +685,6 @@ WHERE 1=1";
                         ,ISNULL(H.DistributorCode, '') AS DistributorCode
                         ,ISNULL(H.Name, '') AS Name
                         ,ISNULL(H.BanglaName, '') AS BanglaName
-                        --,ISNULL(H.ParentId, 0) AS ParentId    
-                        --,ISNULL(EParent.Name,'N/A') AS EnumType
-                        
-                        --,ISNULL(H.CurrencyId, 0) AS CurrencyId
-                        --,ISNULL(H.EnumTypeId, 0) AS EnumTypeId
-                        --,ISNULL(EEnumType.Name,'N/A') AS EnumName
-                        ,ISNULL(H.AreaId, 0) AS AreaId
-                        ,ISNULL(A.Name, 'N/A') AS AreaName
 				        ,ISNULL(H.TelephoneNo,'') TelephoneNo
 				        ,ISNULL(H.Email,'') Email
 				        ,ISNULL(H.VATRegistrationNo,'''') VATRegistrationNo
@@ -712,9 +700,6 @@ WHERE 1=1";
 				        ,ISNULL(FORMAT(H.LastModifiedOn,'yyyy-MM-dd HH:mm'),'1900-01-01') LastModifiedOn
 
                     FROM BranchProfiles H
-						left outer join Areas A on A.Id=h.AreaId
-	--left outer join EnumTypes EParent on EParent.Id=H.ParentId
-	--left outer join EnumTypes EEnumType on EEnumType.Id=H.EnumTypeId
                     WHERE H.IsArchive != 1
                   
             -- Add the filter condition
