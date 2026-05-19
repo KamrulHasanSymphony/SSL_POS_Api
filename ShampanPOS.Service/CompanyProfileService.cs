@@ -60,6 +60,9 @@ namespace ShampanPOS.Service
 
                     if (result.Status == "Success")
                     {
+                       vm.MainCompanyId = Convert.ToInt32(result.Id);
+
+
                         result = await _repo.AuthCompanyInsert(vm, null, null);
                     }
                     else
@@ -119,21 +122,7 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                #region Check Exist Data
-                string[] conditionField = { "Id not", "CompanyName" };
-                string[] conditionValue = { vm.Id.ToString(), vm.CompanyName.Trim() };
-
-                bool exist = _commonRepo.CheckExists("CompanyProfiles", conditionField, conditionValue, conn, transaction);
-
-                if (exist)
-                {
-                    result.Message = "Data Already Exist!";
-                    throw new Exception("Data Already Exist!");
-                }
-                #endregion
-
-                result = await _repo.Update(vm, conn, transaction); 
-
+                result = await _repo.Update(vm, conn, transaction);
                 if (result.Status == "Success")
                 {
                     result = await _repo.AuthCompanyUpdate(vm, null, null); 
