@@ -652,14 +652,62 @@ namespace ShampanPOS.Controllers
 
 
 
+        //[HttpPost("SaleModal")]
+        //public async Task<ResultVM> SaleModal(CommonVM Vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        CommonService _commonService = new CommonService();
+        //        resultVM = await _commonService.SaleModal(new[] { "M.CustomerId" }, new[] { Vm.Value }, null);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
+
+
+
+
         [HttpPost("SaleModal")]
         public async Task<ResultVM> SaleModal(CommonVM Vm)
         {
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
+                // Normalize Vm.Value: if null, empty, 0, or negative, set to ""
+                string normalizedValue = string.Empty;
+                if (!string.IsNullOrWhiteSpace(Vm.Value))
+                {
+                    // Try parse as number to check for 0 or negative
+                    if (decimal.TryParse(Vm.Value, out decimal val))
+                    {
+                        if (val > 0)
+                        {
+                            normalizedValue = Vm.Value;
+                        }
+                    }
+                    else
+                    {
+                        // If not a number, just keep the string as is
+                        normalizedValue = Vm.Value;
+                    }
+                }
+
                 CommonService _commonService = new CommonService();
-                resultVM = await _commonService.SaleModal(new[] { "" }, new[] { "" }, null);
+                resultVM = await _commonService.SaleModal(
+                    new[] { "M.CustomerId" },
+                    new[] { normalizedValue },
+                    null
+                );
                 return resultVM;
             }
             catch (Exception ex)
@@ -673,6 +721,34 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
+
+
+
+
+
+        //[HttpPost("PurchaseModal")]
+        //public async Task<ResultVM> PurchaseModal(CommonVM Vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        CommonService _commonService = new CommonService();
+        //        resultVM = await _commonService.PurchaseModal(new[] { "M.SupplierId" }, new[] { Vm.Value }, null);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
+
+
 
 
         [HttpPost("PurchaseModal")]
@@ -681,8 +757,31 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
+                // Normalize Vm.Value: if null, empty, 0, or negative, set to ""
+                string normalizedValue = string.Empty;
+                if (!string.IsNullOrWhiteSpace(Vm.Value))
+                {
+                    // Try parse as number to check for 0 or negative
+                    if (decimal.TryParse(Vm.Value, out decimal val))
+                    {
+                        if (val > 0)
+                        {
+                            normalizedValue = Vm.Value;
+                        }
+                    }
+                    else
+                    {
+                        // If not a number, keep the string as is
+                        normalizedValue = Vm.Value;
+                    }
+                }
+
                 CommonService _commonService = new CommonService();
-                resultVM = await _commonService.PurchaseModal(new[] { "M.SupplierId" }, new[] { Vm.Value }, null);
+                resultVM = await _commonService.PurchaseModal(
+                    new[] { "M.SupplierId" },
+                    new[] { normalizedValue },
+                    null
+                );
                 return resultVM;
             }
             catch (Exception ex)
@@ -696,6 +795,7 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
+
 
 
 

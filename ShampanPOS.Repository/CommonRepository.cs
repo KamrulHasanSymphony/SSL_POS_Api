@@ -2973,11 +2973,11 @@ WHERE P.IsActive = 1
                     1 = 1
 ";
 
-                //sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
-                //objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
                 objComm.Fill(dataTable);
 
                 var modelList = dataTable.AsEnumerable().Select(row => new SaleDataVM
