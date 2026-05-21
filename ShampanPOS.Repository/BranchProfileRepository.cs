@@ -693,7 +693,7 @@ WHERE 1=1";
 				        ,ISNULL(H.Comments,'') Comments
 				        ,ISNULL(H.IsArchive,0)	IsArchive
 				        ,ISNULL(H.IsActive,0)	IsActive
-				        ,CASE WHEN ISNULL(H.IsActive,0) = 1 THEN 'Active' ELSE 'Inactive'	END Status
+				        ,CASE WHEN ISNULL(H.IsActive,0) = 1 THEN 'Yes' ELSE 'No'	END Status
 				        ,ISNULL(H.CreatedBy,'') CreatedBy
 				        ,ISNULL(H.LastModifiedBy,'') LastModifiedBy
 				        ,ISNULL(FORMAT(H.CreatedOn,'yyyy-MM-dd HH:mm'),'1900-01-01') CreatedOn

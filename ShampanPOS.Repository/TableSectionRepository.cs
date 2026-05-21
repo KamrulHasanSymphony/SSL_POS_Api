@@ -430,8 +430,8 @@ WHERE H.IsArchive != 1";
     ISNULL(H.IsActive, 0) AS IsActive,
 
     CASE 
-        WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Active' 
-        ELSE 'Inactive' 
+        WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Yes' 
+        ELSE 'No' 
     END AS Status,
 
     ISNULL(H.CreatedBy, '') AS CreatedBy,

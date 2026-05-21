@@ -822,7 +822,7 @@ WHERE H.IsArchive != 1";
                 ISNULL(H.Comments, '') Comments,
                 ISNULL(H.IsArchive, 0) AS IsArchive,
                 ISNULL(H.IsActive, 0) AS IsActive,
-                CASE WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Active' ELSE 'Inactive' END AS Status,
+                CASE WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Yes' ELSE 'No' END AS Status,
                 ISNULL(H.CreatedBy, '') AS CreatedBy,
                 ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
                 ISNULL(H.CreatedOn, '1900-01-01') AS CreatedOn,
