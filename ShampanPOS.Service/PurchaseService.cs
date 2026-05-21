@@ -18,6 +18,195 @@ namespace ShampanPOS.Service
     {
         CommonRepository _commonRepo = new CommonRepository();
 
+        public async Task<ResultVM> Insert(PurchaseVM model)
+        {
+            string CodeGroup = "Purchase";
+            string CodeName = "Purchase";
+            PurchaseRepository _repo = new PurchaseRepository();
+            _commonRepo = new CommonRepository();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            bool isNewConnection = false;
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+            try
+            {
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+
+                transaction = conn.BeginTransaction();
+
+                #region Date Check
+                if (Convert.ToDateTime(model.PurchaseDate) < Convert.ToDateTime(model.InvoiceDateTime))
+                {
+                    throw new Exception("Purchase Date cannot be smaller then Invoice Date!");
+                }
+                #endregion
+
+                #region Current Fiscal Period Status
+                var MonthName = Convert.ToDateTime(model.InvoiceDateTime).ToString("MMM-yy");
+                var periodData = new FiscalYearRepository().DetailsList(new[] { "D.MonthName" }, new[] { MonthName }, null, conn, transaction);
+
+                if (periodData.Status == "Success" && periodData.DataVM is DataTable dt)
+                {
+                    string json = JsonConvert.SerializeObject(dt);
+                    var details = JsonConvert.DeserializeObject<List<FiscalYearDetailVM>>(json);
+                    if (details.Count == 0)
+                    {
+                        throw new Exception("Fiscal Year data not found!");
+                    }
+                    var data = details.FirstOrDefault();
+                    model.PeriodId = data.FiscalYearId.ToString();
+                    model.FiscalYear = data.Year.ToString();
+
+                    if (data.MonthLock)
+                    {
+                        throw new Exception("This Fiscal Period: " + data.MonthName + " is Locked!");
+                    }
+                }
+                else
+                {
+                    throw new Exception("Fiscal Year data not found!");
+                }
+                #endregion
+
+                string code = _commonRepo.GenerateCode(CodeGroup, CodeName, model.InvoiceDateTime, model.BranchId, conn, transaction);
+
+                if (!string.IsNullOrEmpty(code))
+                {
+                    model.Code = code;
+                    //model.TransactionType = "Purchase";
+
+                    result = await _repo.Insert(model, conn, transaction);
+                    model.Id = Convert.ToInt32(result.Id);
+
+                    if (result.Status.ToLower() == "success")
+                    {
+                        CommonVM commonVM = new CommonVM();
+                        var idList = new List<string?>();
+                        int LineNo = 1;
+                        foreach (var details in model.purchaseDetailList)
+                        {
+                            idList.Add(details.PurchaseOrderId != null ? details.PurchaseOrderId.ToString() : "0");
+                            commonVM.IDs = idList.ToArray();
+
+                            details.PurchaseId = model.Id;
+                            details.SDAmount = 0;
+                            details.VATAmount = 0;
+                            details.BranchId = model.BranchId;
+                            details.Line = LineNo;
+                            details.CompanyId = model.CompanyId;
+
+                            #region Line Total Summation
+                            if (details.SD > 0)
+                            {
+                                details.SDAmount = (details.SubTotal * details.SD) / 100;
+                            }
+                            if (details.VATRate > 0)
+                            {
+                                details.VATAmount = ((details.SubTotal + details.SDAmount + details.OthersAmount) * details.VATRate) / 100;
+                            }
+
+                            details.LineTotal = details.SubTotal + details.SDAmount + details.VATAmount + details.OthersAmount;
+
+                            #endregion
+
+                            var resultDetail = await _repo.InsertDetails(details, conn, transaction);
+
+                            if (resultDetail.Status.ToLower() == "success")
+                            {
+                                LineNo++;
+                                if (details.PurchaseOrderDetailId > 0)
+                                {
+                                    var lineItemResult = await _repo.UpdateLineItem(details, conn, transaction);
+
+                                    if (lineItemResult.Status.ToLower() == "fail")
+                                    {
+                                        throw new Exception(lineItemResult.Message);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                throw new Exception(resultDetail.Message);
+                            }
+                        }
+
+                        //var grndResult = await _repo.UpdateGrandTotal(model, conn, transaction);
+
+                        //if (grndResult.Status.ToLower() == "fail")
+                        //{
+                        //    throw new Exception(grndResult.Message);
+                        //}
+
+                        //foreach (var item in commonVM.IDs)
+                        //{
+                        //    PeramModel peramModel = new PeramModel();
+                        //    peramModel.Id = item;
+                        //    model.PurchaseOrderId = Convert.ToInt32(peramModel.Id);
+
+                        //    var completedQtyResult = await _repo.GetLineItemCompletedQty(null, null, peramModel, conn, transaction);
+
+                        //    if (completedQtyResult.Status == "Success" && completedQtyResult.DataVM is DataTable statusValue)
+                        //    {
+                        //        if (statusValue.Rows.Count > 0)
+                        //        {
+                        //            var status = statusValue.Rows[0]["Status"].ToString();
+
+                        //            if (status == "True")
+                        //            {
+                        //                var updateIsCompletedResult = await _repo.UpdateIsCompleted(model, conn, transaction);
+                        //            }
+                        //        }
+                        //    }
+                        //}
+                    }
+                    else
+                    {
+                        throw new Exception(result.Message);
+                    }
+
+                    if (isNewConnection && result.Status == "Success")
+                    {
+                        transaction.Commit();
+                    }
+                    else
+                    {
+                        throw new Exception(result.Message);
+                    }
+
+                    return result;
+                }
+                else
+                {
+                    throw new Exception("Code Generation Failed!");
+                }
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection)
+                {
+                    transaction.Rollback();
+                }
+                result.Status = "Fail";
+                result.Message = ex.Message.ToString();
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
+
+
+
+
         //public async Task<ResultVM> Insert(PurchaseVM model)
         //{
         //    string CodeGroup = "Purchase";
@@ -29,18 +218,18 @@ namespace ShampanPOS.Service
         //    bool isNewConnection = false;
         //    SqlConnection conn = null;
         //    SqlTransaction transaction = null;
+
         //    try
         //    {
         //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
         //        conn.Open();
         //        isNewConnection = true;
-
         //        transaction = conn.BeginTransaction();
 
         //        #region Date Check
         //        if (Convert.ToDateTime(model.PurchaseDate) < Convert.ToDateTime(model.InvoiceDateTime))
         //        {
-        //            throw new Exception("Purchase Date cannot be smaller then Invoice Date!");
+        //            throw new Exception("Purchase Date cannot be smaller than Invoice Date!");
         //        }
         //        #endregion
 
@@ -50,20 +239,19 @@ namespace ShampanPOS.Service
 
         //        if (periodData.Status == "Success" && periodData.DataVM is DataTable dt)
         //        {
-        //            string json = JsonConvert.SerializeObject(dt);
-        //            var details = JsonConvert.DeserializeObject<List<FiscalYearDetailVM>>(json);
+        //            var details = JsonConvert.DeserializeObject<List<FiscalYearDetailVM>>(
+        //                JsonConvert.SerializeObject(dt)
+        //            );
+
         //            if (details.Count == 0)
-        //            {
         //                throw new Exception("Fiscal Year data not found!");
-        //            }
-        //            var data = details.FirstOrDefault();
+
+        //            var data = details.First();
         //            model.PeriodId = data.FiscalYearId.ToString();
         //            model.FiscalYear = data.Year.ToString();
 
         //            if (data.MonthLock)
-        //            {
         //                throw new Exception("This Fiscal Period: " + data.MonthName + " is Locked!");
-        //            }
         //        }
         //        else
         //        {
@@ -73,424 +261,90 @@ namespace ShampanPOS.Service
 
         //        string code = _commonRepo.GenerateCode(CodeGroup, CodeName, model.InvoiceDateTime, model.BranchId, conn, transaction);
 
-        //        if (!string.IsNullOrEmpty(code))
-        //        {
-        //            model.Code = code;
-        //            //model.TransactionType = "Purchase";
-
-        //            result = await _repo.Insert(model, conn, transaction);
-        //            model.Id = Convert.ToInt32(result.Id);
-
-        //            if (result.Status.ToLower() == "success")
-        //            {
-        //                CommonVM commonVM = new CommonVM();
-        //                var idList = new List<string?>();
-        //                int LineNo = 1;
-        //                foreach (var details in model.purchaseDetailList)
-        //                {
-        //                    idList.Add(details.PurchaseOrderId != null ? details.PurchaseOrderId.ToString() : "0");
-        //                    commonVM.IDs = idList.ToArray();
-
-        //                    details.PurchaseId = model.Id;
-        //                    details.SDAmount = 0;
-        //                    details.VATAmount = 0;
-        //                    details.BranchId = model.BranchId;
-        //                    details.Line = LineNo;
-        //                    details.CompanyId = model.CompanyId;
-
-        //                    #region Line Total Summation
-        //                    if (details.SD > 0)
-        //                    {
-        //                        details.SDAmount = (details.SubTotal * details.SD) / 100;
-        //                    }
-        //                    if (details.VATRate > 0)
-        //                    {
-        //                        details.VATAmount = ((details.SubTotal + details.SDAmount + details.OthersAmount) * details.VATRate) / 100;
-        //                    }
-
-        //                    details.LineTotal = details.SubTotal + details.SDAmount + details.VATAmount + details.OthersAmount;
-
-        //                    #endregion
-
-        //                    var resultDetail = await _repo.InsertDetails(details, conn, transaction);
-
-        //                    if (resultDetail.Status.ToLower() == "success")
-        //                    {
-        //                        LineNo++;
-        //                        if (details.PurchaseOrderDetailId > 0)
-        //                        {
-        //                            var lineItemResult = await _repo.UpdateLineItem(details, conn, transaction);
-
-        //                            if (lineItemResult.Status.ToLower() == "fail")
-        //                            {
-        //                                throw new Exception(lineItemResult.Message);
-        //                            }
-        //                        }
-        //                    }
-        //                    else
-        //                    {
-        //                        throw new Exception(resultDetail.Message);
-        //                    }
-        //                }
-
-        //                //var grndResult = await _repo.UpdateGrandTotal(model, conn, transaction);
-
-        //                //if (grndResult.Status.ToLower() == "fail")
-        //                //{
-        //                //    throw new Exception(grndResult.Message);
-        //                //}
-
-        //                //foreach (var item in commonVM.IDs)
-        //                //{
-        //                //    PeramModel peramModel = new PeramModel();
-        //                //    peramModel.Id = item;
-        //                //    model.PurchaseOrderId = Convert.ToInt32(peramModel.Id);
-
-        //                //    var completedQtyResult = await _repo.GetLineItemCompletedQty(null, null, peramModel, conn, transaction);
-
-        //                //    if (completedQtyResult.Status == "Success" && completedQtyResult.DataVM is DataTable statusValue)
-        //                //    {
-        //                //        if (statusValue.Rows.Count > 0)
-        //                //        {
-        //                //            var status = statusValue.Rows[0]["Status"].ToString();
-
-        //                //            if (status == "True")
-        //                //            {
-        //                //                var updateIsCompletedResult = await _repo.UpdateIsCompleted(model, conn, transaction);
-        //                //            }
-        //                //        }
-        //                //    }
-        //                //}
-        //            }
-        //            else
-        //            {
-        //                throw new Exception(result.Message);
-        //            }
-
-        //            if (isNewConnection && result.Status == "Success")
-        //            {
-        //                transaction.Commit();
-        //            }
-        //            else
-        //            {
-        //                throw new Exception(result.Message);
-        //            }
-
-        //            return result;
-        //        }
-        //        else
-        //        {
+        //        if (string.IsNullOrEmpty(code))
         //            throw new Exception("Code Generation Failed!");
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        if (transaction != null && isNewConnection)
-        //        {
-        //            transaction.Rollback();
-        //        }
-        //        result.Status = "Fail";
-        //        result.Message = ex.Message.ToString();
-        //        result.ExMessage = ex.ToString();
-        //        return result;
-        //    }
-        //    finally
-        //    {
-        //        if (isNewConnection && conn != null)
-        //        {
-        //            conn.Close();
-        //        }
-        //    }
-        //}
 
+        //        model.Code = code;
 
+        //        Insert main purchase record
+        //        result = await _repo.Insert(model, conn, transaction);
+        //        model.Id = Convert.ToInt32(result.Id);
 
-
-
-        public async Task<ResultVM> Insert(PurchaseVM model)
-        {
-            string CodeGroup = "Purchase";
-            string CodeName = "Purchase";
-            PurchaseRepository _repo = new PurchaseRepository();
-            _commonRepo = new CommonRepository();
-            ResultVM result = new ResultVM { Status = "Fail",Message = "Error",ExMessage = null,Id = "0",DataVM = null};
-
-            bool isNewConnection = false;
-            SqlConnection conn = null;
-            SqlTransaction transaction = null;
-
-            try
-            {
-                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                conn.Open();
-                isNewConnection = true;
-                transaction = conn.BeginTransaction();
-
-                #region Date Check
-                if (Convert.ToDateTime(model.PurchaseDate) < Convert.ToDateTime(model.InvoiceDateTime))
-                {
-                    throw new Exception("Purchase Date cannot be smaller than Invoice Date!");
-                }
-                #endregion
-
-                #region Current Fiscal Period Status
-                var MonthName = Convert.ToDateTime(model.InvoiceDateTime).ToString("MMM-yy");
-                var periodData = new FiscalYearRepository().DetailsList(new[] { "D.MonthName" },new[] { MonthName },null,conn,transaction);
-
-                if (periodData.Status == "Success" && periodData.DataVM is DataTable dt)
-                {
-                    var details = JsonConvert.DeserializeObject<List<FiscalYearDetailVM>>(
-                        JsonConvert.SerializeObject(dt)
-                    );
-
-                    if (details.Count == 0)
-                        throw new Exception("Fiscal Year data not found!");
-
-                    var data = details.First();
-                    model.PeriodId = data.FiscalYearId.ToString();
-                    model.FiscalYear = data.Year.ToString();
-
-                    if (data.MonthLock)
-                        throw new Exception("This Fiscal Period: " + data.MonthName + " is Locked!");
-                }
-                else
-                {
-                    throw new Exception("Fiscal Year data not found!");
-                }
-                #endregion
-
-                string code = _commonRepo.GenerateCode(CodeGroup, CodeName, model.InvoiceDateTime, model.BranchId, conn, transaction);
-
-                if (string.IsNullOrEmpty(code))
-                    throw new Exception("Code Generation Failed!");
-
-                model.Code = code;
-
-                // Insert main purchase record
-                result = await _repo.Insert(model, conn, transaction);
-                model.Id = Convert.ToInt32(result.Id);
-
-                if (result.Status.ToLower() != "success")
-                    throw new Exception(result.Message);
-
-                #region Insert Purchase Details
-                CommonVM commonVM = new CommonVM();
-                var idList = new List<string?>();
-                int LineNo = 1;
-
-                foreach (var details in model.purchaseDetailList)
-                {
-                    idList.Add(details.PurchaseOrderId?.ToString() ?? "0");
-                    commonVM.IDs = idList.ToArray();
-
-                    details.PurchaseId = model.Id;
-                    details.SDAmount = details.SD > 0 ? (details.SubTotal * details.SD) / 100 : 0;
-                    details.VATAmount = details.VATRate > 0 ? ((details.SubTotal + details.SDAmount + details.OthersAmount) * details.VATRate) / 100 : 0;
-                    details.LineTotal = details.SubTotal + details.SDAmount + details.VATAmount + details.OthersAmount;
-                    details.BranchId = model.BranchId;
-                    details.CompanyId = model.CompanyId;
-                    details.Line = LineNo;
-
-
-                    if (details.PurchaseOrderId.HasValue)
-                    {
-                        decimal remainQty = details.RemainQty ?? 0;
-                        decimal sellQty = details.Quantity ?? 0;
-
-                        if (sellQty > remainQty)
-                            throw new Exception($"Posting quantity ({sellQty}) cannot be greater than remaining quantity ({remainQty}).");
-                    }
-
-                    var resultDetail = await _repo.InsertDetails(details, conn, transaction);
-                    if (resultDetail.Status.ToLower() != "success")
-                        throw new Exception(resultDetail.Message);
-
-                    if (details.PurchaseOrderId.HasValue && details.ProductId.HasValue)
-                    {
-                        var updateResult = await _repo.UpdatePurchaseOrderDetails(details.PurchaseOrderId.Value, details.ProductId.Value, conn, transaction);
-                        if (updateResult.Status.ToLower() != "success")
-                            throw new Exception(updateResult.Message);
-                    }
-
-                    if (details.PurchaseOrderDetailId > 0)
-                    {
-                        var lineItemResult = await _repo.UpdateLineItem(details, conn, transaction);
-                        if (lineItemResult.Status.ToLower() == "fail")
-                            throw new Exception(lineItemResult.Message);
-                    }
-
-                    LineNo++;
-                }
-                #endregion
-
-                // Commit transaction after all insertions
-                if (isNewConnection)
-                    transaction.Commit();
-
-                result.Status = "Success";
-                result.Message = "Purchase inserted successfully!";
-                return result;
-            }
-            catch (Exception ex)
-            {
-                if (transaction != null && isNewConnection)
-                    transaction.Rollback();
-
-                result.Status = "Fail";
-                result.Message = ex.Message;
-                result.ExMessage = ex.ToString();
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                    conn.Close();
-            }
-        }
-
-
-
-
-        //public async Task<ResultVM> Update(PurchaseVM model)
-        //{
-        //    PurchaseRepository _repo = new PurchaseRepository();
-        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-        //    _commonRepo = new CommonRepository();
-        //    bool isNewConnection = false;
-        //    SqlConnection conn = null;
-        //    SqlTransaction transaction = null;
-        //    try
-        //    {
-        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-        //        conn.Open();
-        //        isNewConnection = true;
-
-        //        transaction = conn.BeginTransaction();
-
-        //        #region Date Check
-        //        if (Convert.ToDateTime(model.PurchaseDate) < Convert.ToDateTime(model.InvoiceDateTime))
-        //        {
-        //            throw new Exception("Purchase Date cannot be smaller then Invoice Date!");
-        //        }
-        //        #endregion
-
-        //        #region Current Fiscal Period Status
-        //        var MonthName = Convert.ToDateTime(model.InvoiceDateTime).ToString("MMM-yy");
-        //        var periodData = new FiscalYearRepository().DetailsList(new[] { "D.MonthName" }, new[] { MonthName }, null, conn, transaction);
-
-        //        if (periodData.Status == "Success" && periodData.DataVM is DataTable dt)
-        //        {
-        //            string json = JsonConvert.SerializeObject(dt);
-        //            var details = JsonConvert.DeserializeObject<List<FiscalYearDetailVM>>(json);
-        //            if (details.Count == 0)
-        //            {
-        //                throw new Exception("Fiscal Year data not found!");
-        //            }
-        //            var data = details.FirstOrDefault();
-        //            model.PeriodId = data.FiscalYearId.ToString();
-        //            model.FiscalYear = data.Year.ToString();
-
-        //            if (data.MonthLock)
-        //            {
-        //                throw new Exception("This Fiscal Period: " + data.MonthName + " is Locked!");
-        //            }
-        //        }
-        //        else
-        //        {
-        //            throw new Exception("Fiscal Year data not found!");
-        //        }
-        //        #endregion
-
-
-
-
-        //        var record = _commonRepo.DetailsDelete("PurchaseDetails", new[] { "PurchaseId" }, new[] { model.Id.ToString() }, conn, transaction);
-
-        //        if (record.Status == "Fail")
-        //        {
-        //            throw new Exception("Error in Delete for Details Data.");
-        //        }
-
-        //        result = await _repo.Update(model, conn, transaction);
-
-        //        if (result.Status.ToLower() == "success")
-        //        {
-        //            int LineNo = 1;
-        //            foreach (var details in model.purchaseDetailList)
-        //            {
-        //                details.PurchaseId = model.Id;
-        //                details.SDAmount = 0;
-        //                details.VATAmount = 0;
-        //                details.BranchId = model.BranchId;
-        //                details.Line = LineNo;
-
-
-        //                #region Line Total Summation
-        //                if (details.SD > 0)
-        //                {
-        //                    details.SDAmount = (details.SubTotal * details.SD) / 100;
-        //                }
-        //                if (details.VATRate > 0)
-        //                {
-        //                    details.VATAmount = ((details.SubTotal + details.SDAmount + details.OthersAmount) * details.VATRate) / 100;
-        //                }
-
-        //                details.LineTotal = details.SubTotal + details.SDAmount + details.VATAmount + details.OthersAmount;
-
-        //                #endregion
-
-        //                var resultDetail = await _repo.InsertDetails(details, conn, transaction);
-
-        //                if (resultDetail.Status.ToLower() == "success")
-        //                {
-        //                    LineNo++;
-        //                }
-        //                else
-        //                {
-        //                    throw new Exception(resultDetail.Message);
-        //                }
-        //            }
-
-        //            //var grndResult = await _repo.UpdateGrandTotal(model, conn, transaction);
-
-        //            //if (grndResult.Status.ToLower() == "fail")
-        //            //{
-        //            //    throw new Exception(grndResult.Message);
-        //            //}
-        //        }
-        //        else
-        //        {
+        //        if (result.Status.ToLower() != "success")
         //            throw new Exception(result.Message);
-        //        }
 
-        //        if (isNewConnection && result.Status == "Success")
+        //        #region Insert Purchase Details
+        //        CommonVM commonVM = new CommonVM();
+        //        var idList = new List<string?>();
+        //        int LineNo = 1;
+
+        //        foreach (var details in model.purchaseDetailList)
         //        {
+        //            idList.Add(details.PurchaseOrderId?.ToString() ?? "0");
+        //            commonVM.IDs = idList.ToArray();
+
+        //            details.PurchaseId = model.Id;
+        //            details.SDAmount = details.SD > 0 ? (details.SubTotal * details.SD) / 100 : 0;
+        //            details.VATAmount = details.VATRate > 0 ? ((details.SubTotal + details.SDAmount + details.OthersAmount) * details.VATRate) / 100 : 0;
+        //            details.LineTotal = details.SubTotal + details.SDAmount + details.VATAmount + details.OthersAmount;
+        //            details.BranchId = model.BranchId;
+        //            details.CompanyId = model.CompanyId;
+        //            details.Line = LineNo;
+
+
+        //            if (details.PurchaseOrderId.HasValue)
+        //            {
+        //                decimal remainQty = details.RemainQty ?? 0;
+        //                decimal sellQty = details.Quantity ?? 0;
+
+        //                if (sellQty > remainQty)
+        //                    throw new Exception($"Posting quantity ({sellQty}) cannot be greater than remaining quantity ({remainQty}).");
+        //            }
+
+        //            var resultDetail = await _repo.InsertDetails(details, conn, transaction);
+        //            if (resultDetail.Status.ToLower() != "success")
+        //                throw new Exception(resultDetail.Message);
+
+        //            if (details.PurchaseOrderId.HasValue && details.ProductId.HasValue)
+        //            {
+        //                var updateResult = await _repo.UpdatePurchaseOrderDetails(details.PurchaseOrderId.Value, details.ProductId.Value, conn, transaction);
+        //                if (updateResult.Status.ToLower() != "success")
+        //                    throw new Exception(updateResult.Message);
+        //            }
+
+        //            if (details.PurchaseOrderDetailId > 0)
+        //            {
+        //                var lineItemResult = await _repo.UpdateLineItem(details, conn, transaction);
+        //                if (lineItemResult.Status.ToLower() == "fail")
+        //                    throw new Exception(lineItemResult.Message);
+        //            }
+
+        //            LineNo++;
+        //        }
+        //        #endregion
+
+        //        Commit transaction after all insertions
+        //        if (isNewConnection)
         //            transaction.Commit();
-        //        }
-        //        else
-        //        {
-        //            throw new Exception(result.Message);
-        //        }
 
+        //        result.Status = "Success";
+        //        result.Message = "Purchase inserted successfully!";
         //        return result;
         //    }
         //    catch (Exception ex)
         //    {
         //        if (transaction != null && isNewConnection)
-        //        {
         //            transaction.Rollback();
-        //        }
+
         //        result.Status = "Fail";
-        //        result.Message = ex.Message.ToString();
+        //        result.Message = ex.Message;
         //        result.ExMessage = ex.ToString();
         //        return result;
         //    }
         //    finally
         //    {
         //        if (isNewConnection && conn != null)
-        //        {
         //            conn.Close();
-        //        }
         //    }
         //}
 
@@ -585,57 +439,10 @@ namespace ShampanPOS.Service
 
                         #endregion
 
-
-                        // RemainQty Check
-                        if (details.PurchaseOrderDetailId.HasValue)
-                        {
-                            var rrr = await _repo.CheckRemaingQuantity(details.PurchaseOrderDetailId, details.ProductId, details.Id, conn, transaction);
-
-                            decimal CompleteQty = 0;
-                            if (rrr.Status.ToLower() == "success" && rrr.DataVM != null)
-                            {
-                                CompleteQty = Convert.ToDecimal(rrr.DataVM);
-                            }
-
-                            decimal orderQty = details.OrderQuantity ?? 0;
-                            decimal sellQty = details.Quantity ?? 0;
-                            decimal remainQty = orderQty - CompleteQty;
-
-                            if (sellQty > remainQty)
-                            {
-                                result.Status = "Fail";
-                                result.Message = $"Posting quantity ({sellQty}) cannot be greater than remaining quantity ({remainQty}).";
-
-                                if (transaction != null)
-                                    transaction.Rollback();
-
-                                return result;
-                            }
-                        }
-
-
-
-
                         var resultDetail = await _repo.InsertDetails(details, conn, transaction);
 
                         if (resultDetail.Status.ToLower() == "success")
                         {
-
-                            if (details.PurchaseOrderDetailId.HasValue && details.ProductId.HasValue)
-                            {
-                                var updateResult = await _repo.UpdatePurchaseOrderDetails(
-                                    details.PurchaseOrderDetailId.Value,
-                                    details.ProductId.Value,
-                                    conn,
-                                    transaction
-                                );
-
-                                if (updateResult.Status.ToLower() != "success")
-                                {
-                                    throw new Exception(updateResult.Message);
-                                }
-                            }
-
                             LineNo++;
                         }
                         else
@@ -644,6 +451,12 @@ namespace ShampanPOS.Service
                         }
                     }
 
+                    //var grndResult = await _repo.UpdateGrandTotal(model, conn, transaction);
+
+                    //if (grndResult.Status.ToLower() == "fail")
+                    //{
+                    //    throw new Exception(grndResult.Message);
+                    //}
                 }
                 else
                 {
@@ -680,6 +493,193 @@ namespace ShampanPOS.Service
                 }
             }
         }
+
+
+
+
+        //public async Task<ResultVM> Update(PurchaseVM model)
+        //{
+        //    PurchaseRepository _repo = new PurchaseRepository();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    _commonRepo = new CommonRepository();
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
+
+        //        transaction = conn.BeginTransaction();
+
+        //        #region Date Check
+        //        if (Convert.ToDateTime(model.PurchaseDate) < Convert.ToDateTime(model.InvoiceDateTime))
+        //        {
+        //            throw new Exception("Purchase Date cannot be smaller then Invoice Date!");
+        //        }
+        //        #endregion
+
+        //        #region Current Fiscal Period Status
+        //        var MonthName = Convert.ToDateTime(model.InvoiceDateTime).ToString("MMM-yy");
+        //        var periodData = new FiscalYearRepository().DetailsList(new[] { "D.MonthName" }, new[] { MonthName }, null, conn, transaction);
+
+        //        if (periodData.Status == "Success" && periodData.DataVM is DataTable dt)
+        //        {
+        //            string json = JsonConvert.SerializeObject(dt);
+        //            var details = JsonConvert.DeserializeObject<List<FiscalYearDetailVM>>(json);
+        //            if (details.Count == 0)
+        //            {
+        //                throw new Exception("Fiscal Year data not found!");
+        //            }
+        //            var data = details.FirstOrDefault();
+        //            model.PeriodId = data.FiscalYearId.ToString();
+        //            model.FiscalYear = data.Year.ToString();
+
+        //            if (data.MonthLock)
+        //            {
+        //                throw new Exception("This Fiscal Period: " + data.MonthName + " is Locked!");
+        //            }
+        //        }
+        //        else
+        //        {
+        //            throw new Exception("Fiscal Year data not found!");
+        //        }
+        //        #endregion
+
+
+
+
+        //        var record = _commonRepo.DetailsDelete("PurchaseDetails", new[] { "PurchaseId" }, new[] { model.Id.ToString() }, conn, transaction);
+
+        //        if (record.Status == "Fail")
+        //        {
+        //            throw new Exception("Error in Delete for Details Data.");
+        //        }
+
+        //        result = await _repo.Update(model, conn, transaction);
+
+        //        if (result.Status.ToLower() == "success")
+        //        {
+        //            int LineNo = 1;
+        //            foreach (var details in model.purchaseDetailList)
+        //            {
+        //                details.PurchaseId = model.Id;
+        //                details.SDAmount = 0;
+        //                details.VATAmount = 0;
+        //                details.BranchId = model.BranchId;
+        //                details.Line = LineNo;
+
+
+        //                #region Line Total Summation
+        //                if (details.SD > 0)
+        //                {
+        //                    details.SDAmount = (details.SubTotal * details.SD) / 100;
+        //                }
+        //                if (details.VATRate > 0)
+        //                {
+        //                    details.VATAmount = ((details.SubTotal + details.SDAmount + details.OthersAmount) * details.VATRate) / 100;
+        //                }
+
+        //                details.LineTotal = details.SubTotal + details.SDAmount + details.VATAmount + details.OthersAmount;
+
+        //                #endregion
+
+
+        //                // RemainQty Check
+        //                if (details.PurchaseOrderDetailId.HasValue)
+        //                {
+        //                    var rrr = await _repo.CheckRemaingQuantity(details.PurchaseOrderDetailId, details.ProductId, details.Id, conn, transaction);
+
+        //                    decimal CompleteQty = 0;
+        //                    if (rrr.Status.ToLower() == "success" && rrr.DataVM != null)
+        //                    {
+        //                        CompleteQty = Convert.ToDecimal(rrr.DataVM);
+        //                    }
+
+        //                    decimal orderQty = details.OrderQuantity ?? 0;
+        //                    decimal sellQty = details.Quantity ?? 0;
+        //                    decimal remainQty = orderQty - CompleteQty;
+
+        //                    if (sellQty > remainQty)
+        //                    {
+        //                        result.Status = "Fail";
+        //                        result.Message = $"Posting quantity ({sellQty}) cannot be greater than remaining quantity ({remainQty}).";
+
+        //                        if (transaction != null)
+        //                            transaction.Rollback();
+
+        //                        return result;
+        //                    }
+        //                }
+
+
+
+
+        //                var resultDetail = await _repo.InsertDetails(details, conn, transaction);
+
+        //                if (resultDetail.Status.ToLower() == "success")
+        //                {
+
+        //                    if (details.PurchaseOrderDetailId.HasValue && details.ProductId.HasValue)
+        //                    {
+        //                        var updateResult = await _repo.UpdatePurchaseOrderDetails(
+        //                            details.PurchaseOrderDetailId.Value,
+        //                            details.ProductId.Value,
+        //                            conn,
+        //                            transaction
+        //                        );
+
+        //                        if (updateResult.Status.ToLower() != "success")
+        //                        {
+        //                            throw new Exception(updateResult.Message);
+        //                        }
+        //                    }
+
+        //                    LineNo++;
+        //                }
+        //                else
+        //                {
+        //                    throw new Exception(resultDetail.Message);
+        //                }
+        //            }
+
+        //        }
+        //        else
+        //        {
+        //            throw new Exception(result.Message);
+        //        }
+
+        //        if (isNewConnection && result.Status == "Success")
+        //        {
+        //            transaction.Commit();
+        //        }
+        //        else
+        //        {
+        //            throw new Exception(result.Message);
+        //        }
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+        //        result.Status = "Fail";
+        //        result.Message = ex.Message.ToString();
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
 
 
 
