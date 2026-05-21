@@ -61,9 +61,9 @@ namespace ShampanPOS.Controllers
                         user.Email = model.Email;
                         user.PhoneNumber = model.PhoneNumber;
                         user.FullName = model.FullName;
-                        user.IsHeadOffice = model.IsHeadOffice;
-                        user.IsSalePerson = model.IsSalePerson;
-                        user.SalePersonId = model.SalePersonId;
+                        //user.IsHeadOffice = model.IsHeadOffice;
+                        //user.IsSalePerson = model.IsSalePerson;
+                        //user.SalePersonId = model.SalePersonId;
                         user.ImagePath = model.ImagePath;
 
                         var updateResult = await _userManager.UpdateAsync(user);
@@ -124,7 +124,7 @@ namespace ShampanPOS.Controllers
                         return resultVM;
                     }
 
-                    var _user = new ApplicationUser { UserName = model.UserName, FullName = model.FullName, PhoneNumber = model.PhoneNumber, Email = model.Email, EmailConfirmed = false, PhoneNumberConfirmed  = false, TwoFactorEnabled  = false,LockoutEnabled  =false, AccessFailedCount = 0, NormalizedName = model.UserName, NormalizedUserName = model.UserName , NormalizedEmail = model.Email, NormalizedPassword  = model.Password, IsHeadOffice = model.IsHeadOffice,IsSalePerson = model.IsSalePerson ,SalePersonId = model.SalePersonId };
+                    var _user = new ApplicationUser { UserName = model.UserName, FullName = model.FullName, PhoneNumber = model.PhoneNumber, Email = model.Email, EmailConfirmed = false, PhoneNumberConfirmed  = false, TwoFactorEnabled  = false,LockoutEnabled  =false, AccessFailedCount = 0, NormalizedName = model.UserName, NormalizedUserName = model.UserName , NormalizedEmail = model.Email, NormalizedPassword  = model.Password, /*IsHeadOffice = model.IsHeadOffice,IsSalePerson = model.IsSalePerson ,SalePersonId = model.SalePersonId*/ };
 
                     var _result = await _userManager.CreateAsync(_user, model.Password);
 

@@ -18,6 +18,108 @@ namespace ShampanPOS.Service
     {
         CommonRepository _commonRepo = new CommonRepository();
 
+        //public async Task<ResultVM> Insert(PurchaseOrderVM model)
+        //{
+        //    string CodeGroup = "PurchaseOrder";
+        //    string CodeName = "PurchaseOrder";
+
+        //    PurchaseOrderRepository _repo = new PurchaseOrderRepository();
+        //    _commonRepo = new CommonRepository();
+
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
+
+        //        transaction = conn.BeginTransaction();
+
+        //        #region Date Check
+        //        if (Convert.ToDateTime(model.DeliveryDateTime) < Convert.ToDateTime(model.OrderDate))
+        //        {
+        //            throw new Exception("Delivery Date cannot be smaller then Order Date!");
+        //        }
+        //        #endregion                
+
+        //        string code = _commonRepo.GenerateCode(CodeGroup, CodeName, model.OrderDate, model.BranchId, conn, transaction);
+
+        //        if (!string.IsNullOrEmpty(code))
+        //        {
+        //            model.Code = code;
+
+        //            result = await _repo.Insert(model, conn, transaction);
+        //            model.Id = Convert.ToInt32(result.Id);
+
+        //            if (result.Status.ToLower() == "success")
+        //            {
+        //                int LineNo = 1;
+        //                foreach (var details in model.purchaseOrderDetailsList)
+        //                {
+        //                    details.PurchaseOrderId = model.Id;                            
+        //                    details.BranchId = model.BranchId;
+        //                    details.Line = LineNo;
+        //                    details.CompanyId = model.CompanyId;
+
+        //                    var resultDetail = await _repo.InsertDetails(details, conn, transaction);
+
+        //                    if (resultDetail.Status.ToLower() == "success")
+        //                    {
+        //                        LineNo++;
+        //                    }
+        //                    else
+        //                    {
+        //                        throw new Exception(resultDetail.Message);
+        //                    }
+        //                }
+
+        //            }
+        //            else
+        //            {
+        //                throw new Exception(result.Message);
+        //            }
+
+        //            if (isNewConnection && result.Status == "Success")
+        //            {
+        //                transaction.Commit();
+        //            }
+        //            else
+        //            {
+        //                throw new Exception(result.Message);
+        //            }
+
+        //            return result;
+        //        }
+        //        else
+        //        {
+        //            throw new Exception("Code Generation Failed!");
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+        //        result.Status = "Fail";
+        //        result.Message = ex.Message.ToString();
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
+
+
         public async Task<ResultVM> Insert(PurchaseOrderVM model)
         {
             string CodeGroup = "PurchaseOrder";
@@ -58,12 +160,34 @@ namespace ShampanPOS.Service
                     if (result.Status.ToLower() == "success")
                     {
                         int LineNo = 1;
+
+                        decimal subtotal = 0;
                         foreach (var details in model.purchaseOrderDetailsList)
                         {
-                            details.PurchaseOrderId = model.Id;                            
+                            details.PurchaseOrderId = model.Id;
                             details.BranchId = model.BranchId;
                             details.Line = LineNo;
+                            details.CompletedQty = 0;
+
+                            details.RemainQty = details.Quantity;
                             details.CompanyId = model.CompanyId;
+
+
+                            #region Line Total Summation
+                            if (details.SD > 0)
+                            {
+                                details.SDAmount = (details.SubTotal * details.SD) / 100;
+                            }
+                            if (details.VATRate > 0)
+                            {
+                                details.VATAmount = ((details.SubTotal + details.SDAmount) * details.VATRate) / 100;
+                                //details.VATAmount = (details.SubTotal * details.VATRate) / 100;
+                            }
+
+                            details.LineTotal = details.SubTotal + details.SDAmount + details.VATAmount;
+
+                            #endregion
+
 
                             var resultDetail = await _repo.InsertDetails(details, conn, transaction);
 
@@ -76,7 +200,7 @@ namespace ShampanPOS.Service
                                 throw new Exception(resultDetail.Message);
                             }
                         }
-                        
+
                     }
                     else
                     {
@@ -118,6 +242,99 @@ namespace ShampanPOS.Service
                 }
             }
         }
+
+
+        //public async Task<ResultVM> Update(PurchaseOrderVM model)
+        //{
+        //    PurchaseOrderRepository _repo = new PurchaseOrderRepository();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    _commonRepo = new CommonRepository();
+
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
+        //        transaction = conn.BeginTransaction();
+
+        //        #region Date Check
+        //        if (Convert.ToDateTime(model.DeliveryDateTime) < Convert.ToDateTime(model.OrderDate))
+        //        {
+        //            throw new Exception("Delivery Date cannot be smaller then Order Date!");
+        //        }
+        //        #endregion
+
+
+        //        var record = _commonRepo.DetailsDelete("PurchaseOrderDetails", new[] { "PurchaseOrderId" }, new[] { model.Id.ToString() }, conn, transaction);
+
+        //        if (record.Status == "Fail")
+        //        {
+        //            throw new Exception("Error in Delete for Details Data.");
+        //        }
+
+        //        result = await _repo.Update(model, conn, transaction);
+
+        //        if (result.Status.ToLower() == "success")
+        //        {
+        //            int LineNo = 1;
+        //            foreach (var details in model.purchaseOrderDetailsList)
+        //            {
+        //                details.PurchaseOrderId = model.Id;                        
+        //                details.BranchId = model.BranchId;
+        //                details.Line = LineNo;
+
+        //                var resultDetail = await _repo.InsertDetails(details, conn, transaction);
+
+        //                if (resultDetail.Status.ToLower() == "success")
+        //                {
+        //                    LineNo++;
+        //                }
+        //                else
+        //                {
+        //                    throw new Exception(resultDetail.Message);
+        //                }
+        //            }                    
+        //        }
+        //        else
+        //        {
+        //            throw new Exception(result.Message);
+        //        }
+
+        //        if (isNewConnection && result.Status == "Success")
+        //        {
+        //            transaction.Commit();
+        //        }
+        //        else
+        //        {
+        //            throw new Exception(result.Message);
+        //        }
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+        //        result.Status = "Fail";
+        //        result.Message = ex.Message.ToString();
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
+
+
         public async Task<ResultVM> Update(PurchaseOrderVM model)
         {
             PurchaseOrderRepository _repo = new PurchaseOrderRepository();
@@ -142,6 +359,9 @@ namespace ShampanPOS.Service
                 #endregion
 
 
+                var totalQuantity = model.purchaseOrderDetailsList.Sum(detail => detail.Quantity);
+
+
                 var record = _commonRepo.DetailsDelete("PurchaseOrderDetails", new[] { "PurchaseOrderId" }, new[] { model.Id.ToString() }, conn, transaction);
 
                 if (record.Status == "Fail")
@@ -154,11 +374,33 @@ namespace ShampanPOS.Service
                 if (result.Status.ToLower() == "success")
                 {
                     int LineNo = 1;
+
+                    decimal subtotal = 0;
+
                     foreach (var details in model.purchaseOrderDetailsList)
                     {
-                        details.PurchaseOrderId = model.Id;                        
+                        details.PurchaseOrderId = model.Id;
                         details.BranchId = model.BranchId;
+
+                        details.RemainQty = details.Quantity - details.CompletedQty;
                         details.Line = LineNo;
+
+
+                        #region Line Total Summation
+                        if (details.SD > 0)
+                        {
+                            details.SDAmount = (details.SubTotal * details.SD) / 100;
+                        }
+                        if (details.VATRate > 0)
+                        {
+                            details.VATAmount = ((details.SubTotal + details.SDAmount) * details.VATRate) / 100;
+                            // details.VATAmount = (details.SubTotal * details.VATRate) / 100;
+                        }
+
+                        details.LineTotal = details.SubTotal + details.SDAmount + details.VATAmount;
+
+                        #endregion
+
 
                         var resultDetail = await _repo.InsertDetails(details, conn, transaction);
 
@@ -170,7 +412,7 @@ namespace ShampanPOS.Service
                         {
                             throw new Exception(resultDetail.Message);
                         }
-                    }                    
+                    }
                 }
                 else
                 {
@@ -207,6 +449,8 @@ namespace ShampanPOS.Service
                 }
             }
         }
+
+
         public async Task<ResultVM> Delete(string[] IDs)
         {
             PurchaseOrderRepository _repo = new PurchaseOrderRepository();

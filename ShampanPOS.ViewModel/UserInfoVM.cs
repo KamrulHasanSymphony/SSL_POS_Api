@@ -17,6 +17,8 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "User Name")]
         public string? UserName { get; set; }
 
+        public string? RoleId { get; set; }
+
         [Required]
         [Display(Name = "Full Name")]
         public string? FullName { get; set; }

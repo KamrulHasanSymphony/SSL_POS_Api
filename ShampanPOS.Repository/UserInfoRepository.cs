@@ -37,6 +37,7 @@ namespace ShampanPOS.Repository
                 (
                     UserId,
                     UserName,
+                    RoleId,
                     FullName,
                     PhoneNumber,
                     Email,
@@ -50,6 +51,7 @@ namespace ShampanPOS.Repository
                 (
                     @UserId,
                     @UserName,
+                    @RoleId,
                     @FullName,
                     @PhoneNumber,
                     @Email,
@@ -65,6 +67,7 @@ namespace ShampanPOS.Repository
                 {
                     cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@UserName", vm.UserName);
+                    cmd.Parameters.AddWithValue("@RoleId", vm.RoleId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@FullName", vm.FullName);
 
                     cmd.Parameters.AddWithValue("@PhoneNumber", vm.PhoneNumber ?? (object)DBNull.Value);

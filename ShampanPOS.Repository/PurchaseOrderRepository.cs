@@ -1112,32 +1112,36 @@ ORDER BY Code";
 
                 string query = @"
 SELECT 
-
     ISNULL(M.Id, 0) AS Id,    
     ISNULL(M.Id, 0) AS PurchaseOrderId,
-    ISNULL(M.Code, '') AS Code,
+    ISNULL(P.Code, '') AS Code,
     ISNULL(M.Code, '') AS PurchaseOrderCode,
     ISNULL(M.BranchId, 0) AS BranchId,
     ISNULL(M.SupplierId, 0) AS SupplierId,
-    ISNULL(S.Name, 0) AS SupplierName,
+    ISNULL(S.Name, '') AS SupplierName,
     ISNULL(FORMAT(M.OrderDate, 'yyyy-MM-dd'), '1900-01-01') AS OrderDate,
     ISNULL(FORMAT(M.DeliveryDateTime, 'yyyy-MM-dd'), '1900-01-01') AS DeliveryDateTime,
     ISNULL(M.Comments, '') AS Comments,
     ISNULL(M.TransactionType, '') AS TransactionType,
-	ISNULL(M.IsPost, 0) AS IsPost,
-	ISNULL(M.PostBy, '') AS PostBy,
+    ISNULL(M.IsPost, 0) AS IsPost,
+    ISNULL(M.PostBy, '') AS PostBy,
     ISNULL(FORMAT(M.PostedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS PostedOn,
     ISNULL(M.PeriodId,0) AS PeriodId,   
-    
     ISNULL(M.CreatedBy, '') AS CreatedBy,
     ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS CreatedOn,
     ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
-    ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn
-    
+    ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
+
+    ISNULL(P.BENumber, '') AS BENumber,
+    ISNULL(FORMAT(P.PurchaseDate, 'yyyy-MM-dd'), '1900-01-01') AS PurchaseDate,
+	ISNULL(FORMAT(P.InvoiceDateTime, 'yyyy-MM-dd'), '1900-01-01') AS InvoiceDateTime
+
 FROM 
     PurchaseOrders M
-    LEFT OUTER JOIN Suppliers s on M.SupplierId = s.Id
-WHERE  1 = 1
+    LEFT OUTER JOIN Suppliers S ON M.SupplierId = S.Id
+    LEFT OUTER JOIN Purchases P ON M.Id = P.PurchaseOrderId  
+WHERE 
+    1 = 1
  ";
 
                 string inClause = string.Join(", ", IDs.Select((id, index) => $"@Id{index}"));
@@ -1173,8 +1177,11 @@ WHERE  1 = 1
                         BranchId = Convert.ToInt32(row["BranchId"]),
                         SupplierId = Convert.ToInt32(row["SupplierId"]),
                         SupplierName = Convert.ToString(row["SupplierName"]),
-                        PurchaseDate = row["DeliveryDateTime"].ToString(),
-                        InvoiceDateTime = row["OrderDate"].ToString(),
+                        BENumber = Convert.ToString(row["BENumber"]),
+                        DeliveryDateTime = row["DeliveryDateTime"].ToString(),
+                        PurchaseDate = row["PurchaseDate"].ToString(),
+                        OrderDate = row["OrderDate"].ToString(),  
+                        InvoiceDateTime = row["InvoiceDateTime"].ToString(), 
                         Comments = row["Comments"].ToString(),
                         Code = row["Code"].ToString(),
                         PurchaseOrderCode = row["PurchaseOrderCode"].ToString(),

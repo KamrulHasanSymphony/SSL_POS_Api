@@ -16,6 +16,7 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "User Name")]
         public string? UserName { get; set; }
 
+        public string? RoleId { get; set; }
         [Required]
         [Display(Name = "Full Name")]
         public string? FullName { get; set; }
@@ -32,21 +33,21 @@ namespace ShampanPOS.ViewModel
 
         [Required(ErrorMessage = "Please enter your email address.")]
         [EmailAddress(ErrorMessage = "Please enter a valid email address.")]
-        public string Email { get; set; }
+        public string? Email { get; set; }
         [Display(Name = "Phone Number")]
 
         [Required(ErrorMessage = "Please enter your phone number.")]
         [RegularExpression(@"^\d{11}$", ErrorMessage = "Please enter a valid 11-digit phone number.")]
-        public string PhoneNumber { get; set; }
+        public string? PhoneNumber { get; set; }
         public string? NormalizedPassword { get; set; }
         public string? Operation { get; set; }
         public string? Mode { get; set; }
-        public bool IsAdmin { get; set; }
-        public int? SalePersonId { get; set; }
-        public bool IsSalePerson { get; set; }
-        public bool IsHeadOffice { get; set; }
-        public string? SalePersonName { get; set; }
-        public string? SalePersonCode { get; set; }
+        public bool? IsAdmin { get; set; }
+        //public int? SalePersonId { get; set; }
+        //public bool IsSalePerson { get; set; }
+        //public bool IsHeadOffice { get; set; }
+        //public string? SalePersonName { get; set; }
+        //public string? SalePersonCode { get; set; }
 
 
         [Display(Name = "Created By")]
