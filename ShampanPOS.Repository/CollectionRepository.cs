@@ -341,6 +341,7 @@ WHERE 1 = 1
                         CustomerName = row.Field<string>("CustomerName"),
                         AccountNo = row.Field<string>("AccountNo"),
                         TransactionDate = row.Field<string>("TransactionDate"),
+                        ChequeDate = row.Field<string>("ChequeDate"),
                         Comments = row.Field<string>("Comments"),
                         IsArchive = row.Field<bool>("IsArchive"),
                         IsActive = row.Field<bool>("IsActive"),
