@@ -19,7 +19,7 @@ namespace ShampanPOS.ViewModel
         public string? BENumber { get; set; }
 
         public int? Line { get; set; }
-        public int ProductId { get; set; }
+        public int? ProductId { get; set; }
         public string? ProductCode { get; set; }
         public string? PurchaseCode { get; set; }
         public string? SupplierCode { get; set; }
@@ -27,7 +27,7 @@ namespace ShampanPOS.ViewModel
         public string? SupplierAddress { get; set; }
         public string? SupplierName { get; set; }
         public string? POCode { get; set; }
-        public decimal Quantity { get; set; }
+        public decimal? Quantity { get; set; }
         public decimal UnitPrice { get; set; }
         public decimal SubTotal { get; set; }
         public decimal? SD { get; set; }
@@ -39,6 +39,21 @@ namespace ShampanPOS.ViewModel
 
         public string? InvoiceDateTime { get; set; }
         public string? PurchaseDate { get; set; }
+
+
+        [Display(Name = "Order Quantity")]
+
+        public decimal? OrderQuantity { get; set; }
+
+
+        [Display(Name = "Completed Qty")]
+
+        public decimal? CompletedQty { get; set; }
+
+        [Display(Name = "Remain Qty")]
+
+        public decimal? RemainQty { get; set; }
+
 
     }
 

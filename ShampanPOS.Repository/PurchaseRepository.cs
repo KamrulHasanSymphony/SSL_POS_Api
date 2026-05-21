@@ -2475,7 +2475,113 @@ WHERE 1 = 1
         //        }
 
 
+        public async Task<ResultVM> UpdatePurchaseOrderDetails(
+            int purchaseOrderDetailId,
+            int productId,
+            SqlConnection conn,
+            SqlTransaction transaction)
+        {
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error" };
 
+            try
+            {
+                string query = @"
+        WITH PurchaseDetailsSummary AS
+        (
+            SELECT 
+                SD.PurchaseOrderDetailId,
+                SD.ProductId,
+                SUM(SD.Quantity) AS TotalQuantity
+            FROM PurchaseDetails SD
+            WHERE SD.PurchaseOrderDetailId = PurchaseOrderDetailId
+              AND SD.ProductId = @ProductId
+            GROUP BY SD.PurchaseOrderDetailId, SD.ProductId
+        )
+        UPDATE SOD
+        SET 
+            SOD.CompletedQty = ISNULL(SDS.TotalQuantity, 0),
+            SOD.RemainQty = SOD.Quantity - ISNULL(SDS.TotalQuantity, 0)
+        FROM PurchaseOrderDetails SOD
+        LEFT JOIN PurchaseDetailsSummary SDS
+               ON SDS.PurchaseOrderDetailId = SOD.Id
+              AND SDS.ProductId = SOD.ProductId
+        WHERE SOD.Id = PurchaseOrderDetailId
+          AND SOD.ProductId = @ProductId;
+        ";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
+                {
+                    cmd.Parameters.Add("@PurchaseOrderDetailId", SqlDbType.Int).Value = purchaseOrderDetailId;
+                    cmd.Parameters.Add("@ProductId", SqlDbType.Int).Value = productId;
+
+                    int rows = await cmd.ExecuteNonQueryAsync();
+                    if (rows <= 0)
+                        throw new Exception("Purchase order detail was not updated.");
+                }
+
+                result.Status = "Success";
+                result.Message = "Purchase order quantities updated successfully.";
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Status = "Fail";
+                result.Message = ex.Message;
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+        }
+
+        public async Task<ResultVM> CheckRemaingQuantity(
+            int? purchaseOrderDetailId,
+            int? productId,
+            int? Id,
+            SqlConnection conn,
+            SqlTransaction transaction)
+        {
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error" };
+
+            try
+            {
+                string query = @"
+
+                SELECT 
+                    ISNULL(SUM(ISNULL(SD.Quantity, 0)),0) AS CompleteQty
+                FROM PurchaseDetails SD
+                WHERE SD.PurchaseOrderDetailId = PurchaseOrderDetailId
+                  AND SD.ProductId = @ProductId
+                  and SD.Id != @Id
+                ";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
+                {
+                    cmd.Parameters.Add("@PurchaseOrderDetailId", SqlDbType.Int)
+                        .Value = purchaseOrderDetailId ?? (object)DBNull.Value;
+
+                    cmd.Parameters.Add("@ProductId", SqlDbType.Int)
+                        .Value = productId ?? (object)DBNull.Value;
+
+                    cmd.Parameters.Add("@Id", SqlDbType.Int)
+                        .Value = Id ?? (object)DBNull.Value;
+
+                    object value = await cmd.ExecuteScalarAsync();
+
+                    decimal completeQty = value != null ? Convert.ToDecimal(value) : 0;
+
+                    result.Status = "Success";
+                    result.Message = "Complete quantity calculated successfully.";
+                    result.DataVM = completeQty;
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Status = "Fail";
+                result.Message = ex.Message;
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+        }
 
 
         public async Task<ResultVM> ReportList(string[] conditionalFields, string[] conditionalValues, PurchaseReportVM vm = null, SqlConnection conn = null, SqlTransaction transaction = null)

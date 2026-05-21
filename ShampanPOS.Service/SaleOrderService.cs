@@ -135,7 +135,7 @@ namespace ShampanPOS.Service
                             details.Line = LineNo;
                             details.CompletedQty = 0;
 
-                            details.RemainQty = details.Quantity;
+                            details.RemainQty = details.Quantity;  
                             details.CompanyId = saleOrder.CompanyId;
 
 
