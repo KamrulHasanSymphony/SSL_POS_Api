@@ -979,7 +979,7 @@ SELECT SCOPE_IDENTITY();";
 		        ,ISNULL(BR.Name,'-') BranchName
 				,ISNULL(CP.CompanyName,'') CompanyName
 		        ,ISNULL(H.IsPost,0) IsPost
-		        ,CASE WHEN ISNULL(H.IsPost, 0) = 1 THEN 'Yes' ELSE 'No' END AS PostStatus
+		        ,CASE WHEN ISNULL(H.IsPost, 0) = 1 THEN 'Posted' ELSE 'Not Posted' END AS PostStatus
 
 				FROM SaleOrders H 
 				LEFT OUTER JOIN BranchProfiles BF ON H.BranchId = BF.Id

@@ -482,10 +482,10 @@ ORDER BY Name";
                       SELECT 
                      ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC ") + @") AS rowindex
 			                ,ISNULL(H.Id,0)	Id
-                      ,ISNULL(H.Code,'') Code	
+                            ,ISNULL(H.Code,'') Code	
 			                ,ISNULL(H.Name,'') Name				
 			                ,ISNULL(H.IsArchive,0)	IsArchive			                
-			                ,CASE WHEN ISNULL(H.IsActive,0) = 1 THEN 'Active' ELSE 'Inactive'	END Status
+			                ,CASE WHEN ISNULL(H.IsActive,0) = 1 THEN 'Yes' ELSE 'No'	END Status
 			                ,ISNULL(H.CreatedBy,'') CreatedBy
 			                ,ISNULL(H.LastModifiedBy,'') LastModifiedBy
 			                ,ISNULL(FORMAT(H.CreatedOn,'yyyy-MM-dd HH:mm'),'1900-01-01') CreatedOn
