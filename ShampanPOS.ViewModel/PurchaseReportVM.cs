@@ -14,6 +14,11 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Code (Auto Generate)")]
         public string? Code { get; set; }
 
+        public int? PurchaseId { get; set; }
+
+        public string? PurchaseCode { get; set; }
+        public string? PurchaseNo { get; set; }
+
         public string? UserId { get; set; }
 
         [Display(Name = "Purchase Order Code")]
@@ -79,7 +84,7 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Invoice To Date")]
         public string? InvoiceToDate { get; set; }
         [Display(Name = "Report Type")]
-        public string ReportType { get; set; }
+        public string? ReportType { get; set; }
 
         [Display(Name = "Summery")]
         public bool IsSummary { get; set; }
@@ -93,5 +98,8 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Total Invoice")]
         [DataType(DataType.Currency)]
         public decimal? TotalInvoice { get; set; }
+        public string? ProductCode { get; set; }
+        public string? SupplierCode { get; set; }
+
     }
 }

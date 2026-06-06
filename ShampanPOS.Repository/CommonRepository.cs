@@ -5161,7 +5161,167 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
             }
         }
 
+        public async Task<ResultVM> GetPurchaseModal(string[] conditionalFields,string[] conditionalValues,SqlConnection conn,SqlTransaction transaction)
+        {
+            DataTable dataTable = new DataTable();
 
+            ResultVM result = new ResultVM
+            {Status = "Fail",Message = "Error",ExMessage = null,DataVM = null};
+
+            try
+            {
+                if (conn == null)
+                {
+                    throw new Exception("Database connection fail!");
+                }
+
+                string query = @"
+SELECT 
+    ISNULL(M.Id, 0) AS Id,
+    ISNULL(M.Code, '') AS Code,
+    ISNULL(M.PurchaseOrderId, 0) AS PurchaseOrderId,
+    ISNULL(M.SupplierId, 0) AS SupplierId,
+    ISNULL(M.SubTotal, 0) AS SubTotal,
+    ISNULL(M.GrandTotal, 0) AS GrandTotal,
+    ISNULL(CONVERT(varchar(10), M.InvoiceDateTime, 23), '1900-01-01') AS InvoiceDateTime,
+    ISNULL(CONVERT(varchar(10), M.PurchaseDate, 23), '1900-01-01') AS PurchaseDate,
+    ISNULL(S.Name, '') AS SupplierName,
+    ISNULL(D.Quantity, 0) AS Quantity,
+    ISNULL(D.UnitPrice, 0) AS UnitPrice
+
+
+FROM Purchases M
+LEFT JOIN Suppliers S 
+    ON M.SupplierId = S.Id
+
+LEFT JOIN PurchaseDetails D 
+    ON M.Id = D.PurchaseId
+	WHERE 1 = 1;
+";
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                // optional filters (same pattern as ProductModal)
+                objComm.SelectCommand =
+                    ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new PurchaseDataVM
+                {
+                    // =========================
+                    // 🔥 HEADER (M = Purchases)
+                    // =========================
+                    Id = row.Field<int>("Id"),
+                    Code = row.Field<string>("Code"),
+                    PurchaseOrderId = row.Field<int?>("PurchaseOrderId"),
+
+                    SupplierId = row.Field<int?>("SupplierId"),
+                    SupplierName = row.Field<string>("SupplierName"),
+
+                    SubTotal = row.Field<decimal?>("SubTotal") ?? 0,
+                    GrandTotal = row.Field<decimal?>("GrandTotal") ?? 0,
+                    Quantity = row.Field<decimal?>("Quantity") ?? 0,
+                    UnitPrice = row.Field<decimal?>("UnitPrice") ?? 0,
+
+                    InvoiceDateTime = DateTime.TryParse(row.Field<string>("InvoiceDateTime"), out var invDate)
+                        ? invDate
+                        : (DateTime?)null,
+
+                    PurchaseDate = DateTime.TryParse(row.Field<string>("PurchaseDate"), out var purDate)
+                        ? purDate
+                        : (DateTime?)null
+
+                }).ToList(); result.Status = "Success";
+                result.Message = "Purchase modal data retrieved successfully.";
+                result.DataVM = modelList;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+        }
+
+        public async Task<ResultVM> GetPurchaseOrderModal(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+        {
+            DataTable dataTable = new DataTable();
+
+            ResultVM result = new ResultVM
+            { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    throw new Exception("Database connection fail!");
+                }
+
+                string query = @"
+SELECT 
+    ISNULL(M.Id, 0) AS Id,
+    ISNULL(M.Code, '') AS Code,
+    ISNULL(M.SupplierId, 0) AS SupplierId,
+    ISNULL(CONVERT(varchar(10), M.OrderDate, 23), '1900-01-01') AS OrderDate,
+    ISNULL(CONVERT(varchar(10), M.DeliveryDateTime, 23), '1900-01-01') AS DeliveryDateTime,
+    ISNULL(S.Name, '') AS SupplierName,
+    ISNULL(D.Quantity, 0) AS Quantity,
+    ISNULL(D.UnitPrice, 0) AS UnitPrice
+
+
+FROM PurchaseOrders M
+LEFT JOIN Suppliers S 
+    ON M.SupplierId = S.Id
+
+LEFT JOIN PurchaseOrderDetails D 
+    ON M.Id = D.PurchaseOrderId
+	WHERE 1 = 1;";
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                // optional filters (same pattern as ProductModal)
+                objComm.SelectCommand =
+                    ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new PurchaseOrderDataVM
+                {
+                    // =========================
+                    // 🔥 HEADER (M = Purchases)
+                    // =========================
+                    Id = row.Field<int>("Id"),
+                    Code = row.Field<string>("Code"),
+                    SupplierId = row.Field<int?>("SupplierId"),
+                    SupplierName = row.Field<string>("SupplierName"),
+
+                    Quantity = row.Field<decimal?>("Quantity") ?? 0,
+                    UnitPrice = row.Field<decimal?>("UnitPrice") ?? 0,
+
+                    OrderDate = DateTime.TryParse(row.Field<string>("OrderDate"), out var invDate)
+                        ? invDate
+                        : (DateTime?)null,
+
+                    DeliveryDateTime = DateTime.TryParse(row.Field<string>("DeliveryDateTime"), out var purDate)
+                        ? purDate
+                        : (DateTime?)null
+
+                }).ToList(); result.Status = "Success";
+                result.Message = "Purchase modal data retrieved successfully.";
+                result.DataVM = modelList;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+        }
 
 
     }

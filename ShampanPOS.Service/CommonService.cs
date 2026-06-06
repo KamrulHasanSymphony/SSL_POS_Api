@@ -2455,6 +2455,49 @@ namespace ShampanPOS.Service
                 result.ExMessage = ex.ToString();
                 return result;
             }
+        }
+
+
+        public async Task<ResultVM> GetPurchaseModal(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
+        {
+            CommonRepository _repo = new CommonRepository();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            bool isNewConnection = false;
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+
+            try
+            {
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+
+                transaction = conn.BeginTransaction();
+
+                result = await _repo.GetPurchaseModal(conditionalFields, conditionalValues, conn, transaction);
+
+                if (isNewConnection && result.Status == "Success")
+                {
+                    transaction.Commit();
+                }
+                else
+                {
+                    throw new Exception(result.Message);
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection)
+                {
+                    transaction.Rollback();
+                }
+                result.Message = ex.ToString();
+                result.ExMessage = ex.ToString();
+                return result;
+            }
             finally
             {
                 if (isNewConnection && conn != null)
@@ -2464,8 +2507,47 @@ namespace ShampanPOS.Service
             }
         }
 
+        public async Task<ResultVM> GetPurchaseOrderModal(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
+        {
+            CommonRepository _repo = new CommonRepository();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
+            bool isNewConnection = false;
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
 
+            try
+            {
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+
+                transaction = conn.BeginTransaction();
+
+                result = await _repo.GetPurchaseOrderModal(conditionalFields, conditionalValues, conn, transaction);
+
+                if (isNewConnection && result.Status == "Success")
+                {
+                    transaction.Commit();
+                }
+                else
+                {
+                    throw new Exception(result.Message);
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection)
+                {
+                    transaction.Rollback();
+                }
+                result.Message = ex.ToString();
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+        }
 
 
 
