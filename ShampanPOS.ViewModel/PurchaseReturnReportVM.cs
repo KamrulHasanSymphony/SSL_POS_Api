@@ -19,6 +19,9 @@ namespace ShampanPOS.ViewModel
         public int? BranchId { get; set; }
         public int? CompanyId { get; set; }
 
+        public string? MonthYear { get; set; }
+
+
         public int? ProductGroupId { get; set; }
         public int? ProductId { get; set; }
 
@@ -77,7 +80,7 @@ namespace ShampanPOS.ViewModel
         public string? ProductName { get; set; }
         public string? SupplierAddress { get; set; }
         public decimal Quantity { get; set; }
-        public decimal UnitPrice { get; set; }
+        public decimal? UnitPrice { get; set; }
         public decimal? SubTotal { get; set; }
         public decimal? SD { get; set; }
         public decimal? SDAmount { get; set; }

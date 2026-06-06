@@ -2094,11 +2094,12 @@ WHERE  1 = 1
                         case "Day Wise":
                             query = @"
 SELECT 
-CAST(P.OrderDate AS DATE) AS OrderDate,
-CAST(P.DeliveryDateTime AS DATE) AS DeliveryDateTime,
+FORMAT(CAST(P.OrderDate AS DATE),'dd-MMM-yyyy') AS OrderDate,
+FORMAT(CAST(P.DeliveryDateTime AS DATE),'dd-MMM-yyyy') AS DeliveryDateTime,
 COUNT(DISTINCT P.Id) AS TotalInvoice,
 SUM(PD.Quantity) AS Quantity,
 SUM(PD.SubTotal) AS SubTotal,
+SUM(PD.SDAmount) AS SD,
 SUM(PD.VATAmount) AS VAT,
 SUM(PD.LineTotal) AS LineTotal,
 P.BranchId AS BranchId,
@@ -2132,10 +2133,13 @@ CAST(P.OrderDate AS DATE)";
                             query = @"
 SELECT 
 DATENAME(MONTH, P.OrderDate) + '-' + CAST(YEAR(P.OrderDate) AS VARCHAR(4)) AS MonthYear,
-P.OrderDate,
-P.DeliveryDateTime,
+FORMAT(P.OrderDate,'dd-MMM-yyyy') AS OrderDate,
+FORMAT(P.DeliveryDateTime,'dd-MMM-yyyy') AS DeliveryDateTime,
 COUNT(DISTINCT P.Id) AS TotalInvoice,
-SUM(PD.Quantity) AS Quantity,
+
+SUM(PD.SubTotal) AS SubTotal,
+SUM(PD.SDAmount) AS SD,
+SUM(PD.VATAmount) AS VAT,
 SUM(PD.LineTotal) AS LineTotal,
 P.CompanyId,
 P.BranchId,
@@ -2178,10 +2182,12 @@ P.OrderDate";
 SELECT 
 S.Id,
 S.Name AS SupplierName,
-P.OrderDate,
-P.DeliveryDateTime,
+FORMAT(P.OrderDate,'dd-MMM-yyyy') AS OrderDate,
+FORMAT(P.DeliveryDateTime,'dd-MMM-yyyy') AS DeliveryDateTime,
 COUNT(DISTINCT P.Id) AS TotalInvoice,
-SUM(PD.Quantity) AS Quantity,
+SUM(PD.SubTotal) AS SubTotal,
+SUM(PD.SDAmount) AS SD,
+SUM(PD.VATAmount) AS VAT,
 SUM(PD.LineTotal) AS LineTotal,
 P.CompanyId,
 P.BranchId,
@@ -2216,10 +2222,11 @@ ORDER BY LineTotal DESC";
 SELECT 
 PR.Id,
 PR.Name AS ProductName,
-P.OrderDate,
-P.DeliveryDateTime,
+FORMAT(P.OrderDate,'dd-MMM-yyyy') AS OrderDate,
+FORMAT(P.DeliveryDateTime,'dd-MMM-yyyy') AS DeliveryDateTime,
 SUM(PD.Quantity) AS Quantity,
 SUM(PD.SubTotal) AS SubTotal,
+SUM(PD.SDAmount) AS SD,
 SUM(PD.VATAmount) AS VAT,
 SUM(PD.LineTotal) AS LineTotal,
 P.CompanyId,
@@ -2254,11 +2261,12 @@ ORDER BY LineTotal DESC";
                             query = @"
 SELECT 
 P.Code AS PurchaseOrderCode,
-P.OrderDate,
-P.DeliveryDateTime,
+FORMAT(P.OrderDate,'dd-MMM-yyyy') AS OrderDate,
+FORMAT(P.DeliveryDateTime,'dd-MMM-yyyy') AS DeliveryDateTime,
 S.Name AS SupplierName,
 SUM(PD.Quantity) AS Quantity,
 SUM(PD.SubTotal) AS SubTotal,
+SUM(PD.SDAmount) AS SD,
 SUM(PD.VATAmount) AS VAT,
 SUM(PD.LineTotal) AS LineTotal,
 P.CompanyId,
@@ -2291,15 +2299,66 @@ P.DeliveryDateTime,
 P.OrderDate";
                             break;
 
+
+                        case "Purchase Order List":
+                            query = @"
+SELECT 
+P.Code AS PurchaseOrderCode,
+FORMAT(P.OrderDate,'dd-MMM-yyyy') AS OrderDate,
+FORMAT(P.DeliveryDateTime,'dd-MMM-yyyy') AS DeliveryDateTime,
+S.Name AS SupplierName,
+PR.Name AS ProductName,
+SUM(PD.Quantity) AS Quantity,
+SUM(PD.SubTotal) AS SubTotal,
+SUM(PD.SDAmount) AS SD,
+SUM(PD.VATAmount) AS VAT,
+SUM(PD.LineTotal) AS LineTotal,
+P.CompanyId,
+P.BranchId,
+Co.CompanyName,
+B.Name AS BranchName
+FROM PurchaseOrders P
+INNER JOIN Suppliers S ON P.SupplierId = S.Id
+INNER JOIN PurchaseOrderDetails PD ON P.Id = PD.PurchaseOrderId
+INNER JOIN Products PR ON PD.ProductId = PR.Id
+INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
+INNER JOIN BranchProfiles B ON P.BranchId = B.Id
+WHERE 1=1
+AND P.OrderDate >= @fromDate
+AND P.OrderDate <= @toDate
+AND P.DeliveryDateTime >= @deliveryFromDate
+AND P.DeliveryDateTime <= @deliveryToDate
+AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+GROUP BY 
+P.Code,
+P.OrderDate,
+P.DeliveryDateTime,
+S.Name,
+PR.Name,
+P.CompanyId,
+P.BranchId,
+Co.CompanyName,
+B.Name
+ORDER BY 
+P.DeliveryDateTime,
+P.OrderDate";
+                            break;
+
+
+
+
+
                         default:
                             query = @"
 SELECT 
 P.Code AS PurchaseOrderCode,
-P.OrderDate,
-P.DeliveryDateTime,
+FORMAT(P.OrderDate,'dd-MMM-yyyy') AS OrderDate,
+FORMAT(P.DeliveryDateTime,'dd-MMM-yyyy') AS DeliveryDateTime,
 S.Name AS SupplierName,
 SUM(PD.Quantity) AS Quantity,
 SUM(PD.SubTotal) AS SubTotal,
+SUM(PD.SDAmount) AS SD,
 SUM(PD.VATAmount) AS VAT,
 SUM(PD.LineTotal) AS LineTotal,
 P.CompanyId,
@@ -2335,12 +2394,13 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                         case "Day Wise":
                             query = @"
 SELECT 
-CAST(P.OrderDate AS DATE) AS OrderDate,
-CAST(P.DeliveryDateTime AS DATE) AS DeliveryDateTime,
+FORMAT(CAST(P.OrderDate AS DATE),'dd-MMM-yyyy') AS OrderDate,
+FORMAT(CAST(P.DeliveryDateTime AS DATE),'dd-MMM-yyyy') AS DeliveryDateTime,
 P.Id AS PurchaseOrderId,
 P.Code AS PurchaseOrderCode,
 PD.Quantity,
 PD.SubTotal,
+PD.SDAmount,
 PD.VATAmount,
 PD.LineTotal,
 P.CompanyId AS CompanyId,
@@ -2369,9 +2429,11 @@ SELECT
 DATENAME(MONTH, P.OrderDate) + '-' + CAST(YEAR(P.OrderDate) AS VARCHAR(4)) AS MonthYear,
 P.Id AS PurchaseOrderId,
 P.Code AS PurchaseOrderCode,
-P.OrderDate,
-P.DeliveryDateTime,
+FORMAT(P.OrderDate,'dd-MMM-yyyy') AS OrderDate,
+FORMAT(P.DeliveryDateTime,'dd-MMM-yyyy') AS DeliveryDateTime,
 PD.Quantity,
+PD.SDAmount,
+PD.VATAmount,
 PD.LineTotal,
 P.CompanyId AS CompanyId,
 P.BranchId AS BranchId,
@@ -2407,12 +2469,14 @@ SELECT
 S.Id,
 P.Code AS PurchaseOrderCode,
 S.Name AS SupplierName,
-FORMAT(P.OrderDate, 'dd/MM/yyyy') AS OrderDate,
-FORMAT(P.DeliveryDateTime, 'dd/MM/yyyy') AS DeliveryDateTime,
+FORMAT(P.OrderDate,'dd-MMM-yyyy') AS OrderDate,
+FORMAT(P.DeliveryDateTime,'dd-MMM-yyyy') AS DeliveryDateTime,
 PD.Quantity,
 PD.UnitPrice AS UnitRate,
 PD.SubTotal,
+PD.SDAmount,
 PD.VATAmount,
+
 PD.LineTotal,
 P.CompanyId,
 P.BranchId,
@@ -2438,12 +2502,14 @@ SELECT
 PR.Id,
 PR.Name AS ProductName,
 P.Code AS PurchaseOrderCode,
-FORMAT(P.OrderDate, 'dd/MM/yyyy') AS OrderDate,
-FORMAT(P.DeliveryDateTime, 'dd/MM/yyyy') AS DeliveryDateTime,
+FORMAT(P.OrderDate,'dd-MMM-yyyy') AS OrderDate,
+FORMAT(P.DeliveryDateTime,'dd-MMM-yyyy') AS DeliveryDateTime,
 PD.Quantity,
 PD.UnitPrice AS UnitRate,
 PD.SubTotal,
+PD.SDAmount,
 PD.VATAmount,
+
 PD.LineTotal,
 P.CompanyId,
 P.BranchId,
@@ -2467,14 +2533,16 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                             query = @"
 SELECT 
 P.Code AS PurchaseOrderCode,
-FORMAT(P.OrderDate, 'dd/MM/yyyy') AS OrderDate,
-FORMAT(P.DeliveryDateTime, 'dd/MM/yyyy') AS DeliveryDateTime,
+FORMAT(P.OrderDate,'dd-MMM-yyyy') AS OrderDate,
+FORMAT(P.DeliveryDateTime,'dd-MMM-yyyy') AS DeliveryDateTime,
 S.Name AS SupplierName,
 PR.Name AS ProductName,
 PD.Quantity,
 PD.UnitPrice AS UnitRate,
 PD.SubTotal,
+PD.SDAmount,
 PD.VATAmount,
+
 PD.LineTotal,
 P.CompanyId,
 P.BranchId,
@@ -2495,13 +2563,77 @@ AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
 AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                             break;
 
+
+                        case "Purchase Order List":
+                            query = @"
+SELECT
+P.Code AS PurchaseOrderCode,
+
+FORMAT(P.OrderDate,'dd-MMM-yyyy') AS OrderDate,
+FORMAT(P.DeliveryDateTime,'dd-MMM-yyyy') AS DeliveryDateTime,
+
+S.Name AS SupplierName,
+PR.Name AS ProductName,
+
+PD.Quantity,
+PD.UnitPrice,
+
+PD.SubTotal,
+
+PD.SDAmount,
+
+PD.VATAmount,
+
+PD.LineTotal,
+
+P.CompanyId,
+P.BranchId,
+
+Co.CompanyName,
+B.Name AS BranchName
+
+FROM PurchaseOrders P
+
+INNER JOIN Suppliers S
+    ON P.SupplierId = S.Id
+
+INNER JOIN PurchaseOrderDetails PD
+    ON P.Id = PD.PurchaseOrderId
+
+INNER JOIN Products PR
+    ON PD.ProductId = PR.Id
+
+INNER JOIN CompanyProfiles Co
+    ON P.CompanyId = Co.Id
+
+INNER JOIN BranchProfiles B
+    ON P.BranchId = B.Id
+
+WHERE 1 = 1
+AND P.OrderDate >= @fromDate
+AND P.OrderDate <= @toDate
+
+AND P.DeliveryDateTime >= @deliveryFromDate
+AND P.DeliveryDateTime <= @deliveryToDate
+
+AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+
+ORDER BY
+P.OrderDate,
+P.Code";
+                            break;
+
+
+
+
                         case "Details":
                             query = @"
 SELECT 
 P.Id AS PurchaseOrderId,
 P.Code AS PurchaseOrderCode,
-P.OrderDate,
-P.DeliveryDateTime,
+FORMAT(P.OrderDate,'dd-MMM-yyyy') AS OrderDate,
+FORMAT(P.DeliveryDateTime,'dd-MMM-yyyy') AS DeliveryDateTime,
 CAST(P.OrderDate AS DATE) AS OrderDate,
 CAST(P.DeliveryDateTime AS DATE) AS DeliveryDateTime,
 S.Id AS SupplierId,
@@ -2511,7 +2643,9 @@ PR.Name AS ProductName,
 PD.Quantity,
 PD.UnitPrice AS UnitRate,
 PD.SubTotal,
+PD.SDAmount,
 PD.VATAmount,
+
 PD.LineTotal,
 P.CompanyId,
 P.BranchId,
@@ -2536,12 +2670,14 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                             query = @"
 SELECT 
 P.Code AS PurchaseOrderCode,
-P.OrderDate,
-P.DeliveryDateTime,
+FORMAT(P.OrderDate,'dd-MMM-yyyy') AS OrderDate,
+FORMAT(P.DeliveryDateTime,'dd-MMM-yyyy') AS DeliveryDateTime,
 S.Name AS SupplierName,
 PD.Quantity,
 PD.SubTotal,
+PD.SDAmount,
 PD.VATAmount,
+
 PD.LineTotal,
 P.CompanyId,
 P.BranchId,
