@@ -2585,7 +2585,7 @@ WHERE 1 = 1
 
 
         public async Task<ResultVM> ReportList(string[] conditionalFields, string[] conditionalValues, PurchaseReportVM vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
-        {
+         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
@@ -2611,11 +2611,12 @@ WHERE 1 = 1
                         case "Day Wise": // Day-wise Summary
                             query = @"
 SELECT 
-CAST(P.InvoiceDateTime AS DATE) AS InvoiceDateTime,
-CAST(P.PurchaseDate AS DATE) AS PurchaseDate,
+FORMAT(CAST(P.InvoiceDateTime AS DATE),'dd-MMM-yyyy') AS InvoiceDateTime,
+FORMAT(CAST(P.PurchaseDate AS DATE),'dd-MMM-yyyy') AS PurchaseDate,
 COUNT(DISTINCT P.Id) AS TotalInvoice,
 SUM(PD.Quantity) AS Quantity,
 SUM(PD.SubTotal) AS SubTotal,
+SUM(PD.SDAmount) AS SD,
 SUM(PD.VATAmount) AS VAT,
 SUM(PD.LineTotal) AS LineTotal,
 P.BranchId AS BranchId,
@@ -2647,26 +2648,28 @@ CAST(P.InvoiceDateTime AS DATE)";
 
                         case "Monthly": // Monthly Summary
                             query = @"
-SELECT 
-DATENAME(MONTH, P.InvoiceDateTime) + '-' + 
+SELECT
+DATENAME(MONTH, P.InvoiceDateTime) + '-' +
 CAST(YEAR(P.InvoiceDateTime) AS VARCHAR(4)) AS MonthYear,
-P.InvoiceDateTime,
-P.PurchaseDate,
+
 COUNT(DISTINCT P.Id) AS TotalInvoice,
+
 SUM(PD.Quantity) AS Quantity,
+SUM(PD.SubTotal) AS SubTotal,
+SUM(PD.SDAmount) AS SD,
+SUM(PD.VATAmount) AS VAT,
 SUM(PD.LineTotal) AS LineTotal,
-P.CompanyId AS CompanyId,
-P.BranchId AS BranchId,
+
+P.CompanyId,
+P.BranchId,
 C.CompanyName,
-S.Name AS SupplierName,
-PR.Name AS ProductName,
 B.Name AS BranchName
+
 FROM Purchases P
 INNER JOIN PurchaseDetails PD ON P.Id = PD.PurchaseId
-INNER JOIN Suppliers S ON P.SupplierId = S.Id
-INNER JOIN Products PR ON PD.ProductId = PR.Id
-INNER JOIN CompanyProfiles C ON P.CompanyId = C.Id 
-INNER JOIN BranchProfiles B ON P.BranchId = B.Id 
+INNER JOIN CompanyProfiles C ON P.CompanyId = C.Id
+INNER JOIN BranchProfiles B ON P.BranchId = B.Id
+
 WHERE 1=1
 AND P.InvoiceDateTime >= @fromDate
 AND P.InvoiceDateTime <= @toDate
@@ -2674,21 +2677,19 @@ AND P.PurchaseDate >= @purchaseFromDate
 AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
 AND (@ProductId = 0 OR PD.ProductId = @ProductId)
-GROUP BY 
+
+GROUP BY
 YEAR(P.InvoiceDateTime),
 MONTH(P.InvoiceDateTime),
 DATENAME(MONTH, P.InvoiceDateTime),
-P.InvoiceDateTime,
-P.PurchaseDate,
 P.CompanyId,
 P.BranchId,
 C.CompanyName,
-S.Name,
-PR.Name,
 B.Name
-ORDER BY 
-P.PurchaseDate,
-P.InvoiceDateTime";
+
+ORDER BY
+YEAR(P.InvoiceDateTime),
+MONTH(P.InvoiceDateTime)";
                             break;
 
                         case "Supplier Wise": // Supplier-wise Summary
@@ -2696,10 +2697,13 @@ P.InvoiceDateTime";
 SELECT 
 S.Id,
 S.Name AS SupplierName,
-P.InvoiceDateTime,
-P.PurchaseDate,
+FORMAT(P.InvoiceDateTime,'dd-MMM-yyyy') AS InvoiceDateTime,
+FORMAT(P.PurchaseDate,'dd-MMM-yyyy') AS PurchaseDate,
 COUNT(DISTINCT P.Id) AS TotalInvoice,
 SUM(PD.Quantity) AS Quantity,
+SUM(PD.SubTotal) AS SubTotal,
+SUM(PD.SDAmount) AS SD,
+SUM(PD.VATAmount) AS VAT,
 SUM(PD.LineTotal) AS LineTotal,
 P.CompanyId AS CompanyId,
 P.BranchId AS BranchId,
@@ -2734,10 +2738,11 @@ ORDER BY LineTotal DESC";
 SELECT 
 PR.Id,
 PR.Name AS ProductName,
-P.InvoiceDateTime,
-P.PurchaseDate,
+FORMAT(P.InvoiceDateTime,'dd-MMM-yyyy') AS InvoiceDateTime,
+FORMAT(P.PurchaseDate,'dd-MMM-yyyy') AS PurchaseDate,
 SUM(PD.Quantity) AS Quantity,
 SUM(PD.SubTotal) AS SubTotal,
+SUM(PD.SDAmount) AS SD,
 SUM(PD.VATAmount) AS VAT,
 SUM(PD.LineTotal) AS LineTotal,
 P.CompanyId AS CompanyId,
@@ -2772,11 +2777,12 @@ ORDER BY LineTotal DESC";
                             query = @"
 SELECT 
 P.Code AS PurchaseCode,
-P.InvoiceDateTime,
-P.PurchaseDate,
+FORMAT(P.InvoiceDateTime,'dd-MMM-yyyy') AS InvoiceDateTime,
+FORMAT(P.PurchaseDate,'dd-MMM-yyyy') AS PurchaseDate,
 S.Name AS SupplierName,
 SUM(PD.Quantity) AS Quantity,
 SUM(PD.SubTotal) AS SubTotal,
+SUM(PD.SDAmount) AS SD,
 SUM(PD.VATAmount) AS VAT,
 SUM(PD.LineTotal) AS LineTotal,
 P.CompanyId AS CompanyId,
@@ -2809,15 +2815,83 @@ P.PurchaseDate,
 P.InvoiceDateTime";
                             break;
 
+
+                        case "Purchase List":
+                            query = @"
+SELECT 
+P.Code AS PurchaseCode,
+FORMAT(P.InvoiceDateTime,'dd-MMM-yyyy') AS InvoiceDateTime,
+FORMAT(P.PurchaseDate,'dd-MMM-yyyy') AS PurchaseDate,
+S.Name AS SupplierName,
+PR.Name AS ProductName,
+
+SUM(PD.Quantity) AS Quantity,
+SUM(PD.SubTotal) AS SubTotal,
+SUM(PD.SDAmount) AS SD,
+SUM(PD.VATAmount) AS VAT,
+SUM(PD.LineTotal) AS LineTotal,
+
+P.CompanyId AS CompanyId,
+P.BranchId AS BranchId,
+
+Co.CompanyName,
+B.Name AS BranchName
+
+FROM Purchases P
+
+INNER JOIN Suppliers S
+    ON P.SupplierId = S.Id
+
+INNER JOIN PurchaseDetails PD
+    ON P.Id = PD.PurchaseId
+
+INNER JOIN Products PR
+    ON PD.ProductId = PR.Id
+
+INNER JOIN CompanyProfiles Co
+    ON P.CompanyId = Co.Id
+
+INNER JOIN BranchProfiles B
+    ON P.BranchId = B.Id
+
+WHERE 1=1
+AND P.InvoiceDateTime >= @fromDate
+AND P.InvoiceDateTime <= @toDate
+AND P.PurchaseDate >= @purchaseFromDate
+AND P.PurchaseDate <= @purchaseToDate
+AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+
+GROUP BY
+P.Code,
+P.InvoiceDateTime,
+P.PurchaseDate,
+S.Name,
+PR.Name,
+P.CompanyId,
+P.BranchId,
+Co.CompanyName,
+B.Name
+
+ORDER BY
+P.PurchaseDate,
+P.InvoiceDateTime";
+                            break;
+
+
+
+
+
                         default:
                             query = @"
 SELECT 
 P.Code AS PurchaseCode,
-P.InvoiceDateTime,
-P.PurchaseDate,
+FORMAT(P.InvoiceDateTime,'dd-MMM-yyyy') AS InvoiceDateTime,
+FORMAT(P.PurchaseDate,'dd-MMM-yyyy') AS PurchaseDate,
 S.Name AS SupplierName,
 SUM(PD.Quantity) AS Quantity,
 SUM(PD.SubTotal) AS SubTotal,
+SUM(PD.SDAmount) AS SD,
 SUM(PD.VATAmount) AS VAT,
 SUM(PD.LineTotal) AS LineTotal,
 P.CompanyId AS CompanyId,
@@ -2866,12 +2940,13 @@ P.InvoiceDateTime";
                         case "Day Wise": // Day-wise Details
                             query = @"
 SELECT 
-CAST(P.InvoiceDateTime AS DATE) AS InvoiceDateTime ,
-CAST(P.PurchaseDate AS DATE) AS PurchaseDate,
+FORMAT(P.InvoiceDateTime,'dd-MMM-yyyy') AS InvoiceDateTime,
+FORMAT(P.PurchaseDate,'dd-MMM-yyyy') AS PurchaseDate,
 P.Id AS PurchaseId,
 P.Code AS PurchaseCode,
 PD.Quantity,
 PD.SubTotal,
+PD.SDAmount,
 PD.VATAmount,
 PD.LineTotal,
 P.CompanyId AS CompanyId,
@@ -2901,9 +2976,12 @@ DATENAME(MONTH, P.InvoiceDateTime) + '-' +
 CAST(YEAR(P.InvoiceDateTime) AS VARCHAR(4)) AS MonthYear,
 P.Id AS PurchaseId,
 P.Code AS PurchaseCode,
-P.InvoiceDateTime,
-P.PurchaseDate,
+FORMAT(P.InvoiceDateTime,'dd-MMM-yyyy') AS InvoiceDateTime,
+FORMAT(P.PurchaseDate,'dd-MMM-yyyy') AS PurchaseDate,
 PD.Quantity,
+PD.SubTotal,
+PD.SDAmount,
+PD.VATAmount,
 PD.LineTotal,
 P.CompanyId AS CompanyId,
 P.BranchId AS BranchId,
@@ -2931,11 +3009,12 @@ SELECT
 S.Id,
 P.Code AS PurchaseCode,
 S.Name AS SupplierName,
-FORMAT(P.InvoiceDateTime, 'dd/MM/yyyy') AS InvoiceDateTime,
-FORMAT(P.PurchaseDate, 'dd/MM/yyyy') AS PurchaseDate,
+FORMAT(P.InvoiceDateTime, 'dd-MMM-yyyy') AS InvoiceDateTime,
+FORMAT(P.PurchaseDate, 'dd-MMM-yyyy') AS PurchaseDate,
 PD.Quantity,
 PD.UnitPrice,
 PD.SubTotal,
+PD.SDAmount,
 PD.VATAmount,
 PD.LineTotal,
 P.CompanyId AS CompanyId,
@@ -2962,11 +3041,12 @@ SELECT
 PR.Id,
 PR.Name AS ProductName,
 P.Code AS PurchaseCode,
-FORMAT(P.InvoiceDateTime, 'dd/MM/yyyy') AS InvoiceDateTime,
-FORMAT(P.PurchaseDate, 'dd/MM/yyyy') AS PurchaseDate,
+FORMAT(P.InvoiceDateTime, 'dd-MMM-yyyy') AS InvoiceDateTime,
+FORMAT(P.PurchaseDate, 'dd-MMM-yyyy') AS PurchaseDate,
 PD.Quantity,
 PD.UnitPrice,
 PD.SubTotal,
+PD.SDAmount,
 PD.VATAmount,
 PD.LineTotal,
 P.CompanyId AS CompanyId,
@@ -2991,13 +3071,14 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                             query = @"
 SELECT 
 P.Code AS PurchaseCode,
-FORMAT(P.InvoiceDateTime, 'dd/MM/yyyy') AS InvoiceDateTime,
-FORMAT(P.PurchaseDate, 'dd/MM/yyyy') AS PurchaseDate,
+FORMAT(P.InvoiceDateTime, 'dd-MMM-yyyy') AS InvoiceDateTime,
+FORMAT(P.PurchaseDate, 'dd-MMM-yyyy') AS PurchaseDate,
 S.Name AS SupplierName,
 PR.Name AS ProductName,
 PD.Quantity,
 PD.UnitPrice,
 PD.SubTotal,
+PD.SDAmount,
 PD.VATAmount,
 PD.LineTotal,
 P.CompanyId AS CompanyId,
@@ -3019,15 +3100,49 @@ AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
 AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                             break;
 
+
+                        case "Purchase List": // Purchase Details
+                            query = @"
+SELECT 
+P.Code AS PurchaseCode,
+FORMAT(P.InvoiceDateTime,'dd-MMM-yyyy') AS InvoiceDateTime,
+FORMAT(P.PurchaseDate,'dd-MMM-yyyy') AS PurchaseDate,
+S.Name AS SupplierName,
+PD.Quantity,
+PD.UnitPrice,
+PD.SubTotal,
+PD.SDAmount,
+PD.VATAmount,
+PD.LineTotal,
+P.CompanyId AS CompanyId,
+P.BranchId AS BranchId,
+Co.CompanyName,  
+B.Name AS BranchName,
+PR.Name AS ProductName
+FROM Purchases P
+INNER JOIN Suppliers S ON P.SupplierId = S.Id
+INNER JOIN PurchaseDetails PD ON P.Id = PD.PurchaseId
+INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
+INNER JOIN BranchProfiles B ON P.BranchId = B.Id
+INNER JOIN Products PR ON PD.ProductId = PR.Id 
+WHERE P.InvoiceDateTime >= @fromDate
+AND P.InvoiceDateTime <= @toDate
+AND P.PurchaseDate >= @purchaseFromDate
+AND P.PurchaseDate <= @purchaseToDate
+AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
+                            break;
+
+
+
+
                         case "Details": // Details All
                             query = @"
 SELECT 
 P.Id AS PurchaseId,
 P.Code AS PurchaseCode,
-P.InvoiceDateTime,
-P.PurchaseDate,
-CAST(P.InvoiceDateTime AS DATE) AS InvoiceDateTime,
-CAST(P.PurchaseDate AS DATE) AS PurchaseDate,
+FORMAT(P.InvoiceDateTime,'dd-MMM-yyyy') AS InvoiceDateTime,
+FORMAT(P.PurchaseDate,'dd-MMM-yyyy') AS PurchaseDate,
 S.Id AS SupplierId,
 S.Name AS SupplierName,
 PR.Id AS ProductId,
@@ -3035,6 +3150,7 @@ PR.Name AS ProductName,
 PD.Quantity,
 PD.UnitPrice,
 PD.SubTotal,
+PD.SDAmount,
 PD.VATAmount,
 PD.LineTotal,
 P.CompanyId AS CompanyId,
@@ -3060,11 +3176,13 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                             query = @"
 SELECT 
 P.Code AS PurchaseCode,
-P.InvoiceDateTime,
-P.PurchaseDate,
+FORMAT(P.InvoiceDateTime,'dd-MMM-yyyy') AS InvoiceDateTime,
+FORMAT(P.PurchaseDate,'dd-MMM-yyyy') AS PurchaseDate,
 S.Name AS SupplierName,
 PD.Quantity,
+PD.UnitPrice,
 PD.SubTotal,
+PD.SDAmount,
 PD.VATAmount,
 PD.LineTotal,
 P.CompanyId AS CompanyId,
@@ -3187,14 +3305,15 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                                     LineTotal = dataTable.Columns.Contains("LineTotal")
                         ? row.Field<decimal?>("LineTotal") ?? 0.0m
                         : 0.0m,
+                                        MonthYear = dataTable.Columns.Contains("MonthYear")
+                        ? row["MonthYear"]?.ToString()
+                        : "",
 
-                                    InvoiceDateTime = dataTable.Columns.Contains("InvoiceDateTime")
+                                        InvoiceDateTime = dataTable.Columns.Contains("InvoiceDateTime")
                         ? row["InvoiceDateTime"]?.ToString()
-                        : dataTable.Columns.Contains("MonthYear")
-                            ? row["MonthYear"]?.ToString()
-                            : "",
+                        : "",
 
-                                    PurchaseDate = dataTable.Columns.Contains("PurchaseDate")
+                                        PurchaseDate = dataTable.Columns.Contains("PurchaseDate")
                         ? row["PurchaseDate"]?.ToString()
                         : ""
                 }).ToList();

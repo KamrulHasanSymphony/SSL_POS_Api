@@ -1877,6 +1877,7 @@ CAST(P.PurchaseDate AS DATE) AS PurchaseDate,
 COUNT(DISTINCT P.Id) AS TotalInvoice,
 SUM(PD.Quantity) AS Quantity,
 SUM(PD.SubTotal) AS SubTotal,
+SUM(PD.SDAmount) AS SD,
 SUM(PD.VATAmount) AS VAT,
 SUM(PD.LineTotal) AS LineTotal,
 P.BranchId AS BranchId,
@@ -1961,6 +1962,9 @@ P.InvoiceDateTime,
 P.PurchaseDate,
 COUNT(DISTINCT P.Id) AS TotalInvoice,
 SUM(PD.Quantity) AS Quantity,
+SUM(PD.SubTotal) AS SubTotal,
+SUM(PD.SDAmount) AS SD,
+SUM(PD.VATAmount) AS VAT,
 SUM(PD.LineTotal) AS LineTotal,
 P.CompanyId AS CompanyId,
 P.BranchId AS BranchId,
@@ -1999,6 +2003,7 @@ P.InvoiceDateTime,
 P.PurchaseDate,
 SUM(PD.Quantity) AS Quantity,
 SUM(PD.SubTotal) AS SubTotal,
+SUM(PD.SDAmount) AS SD,
 SUM(PD.VATAmount) AS VAT,
 SUM(PD.LineTotal) AS LineTotal,
 P.CompanyId AS CompanyId,
@@ -2038,6 +2043,7 @@ P.PurchaseDate,
 S.Name AS SupplierName,
 SUM(PD.Quantity) AS Quantity,
 SUM(PD.SubTotal) AS SubTotal,
+SUM(PD.SDAmount) AS SD,
 SUM(PD.VATAmount) AS VAT,
 SUM(PD.LineTotal) AS LineTotal,
 P.CompanyId AS CompanyId,
@@ -2070,6 +2076,56 @@ P.PurchaseDate,
 P.InvoiceDateTime";
                             break;
 
+
+
+                        case "Purchase Return List":
+                            query = @"
+SELECT 
+    P.Code AS PurchaseCode,
+FORMAT(P.InvoiceDateTime,'dd-MMM-yyyy') AS InvoiceDateTime,
+FORMAT(P.PurchaseDate,'dd-MMM-yyyy') AS PurchaseDate,
+    S.Name AS SupplierName,
+    PR.Name AS ProductName,
+    SUM(PD.Quantity) AS Quantity,
+    SUM(PD.SubTotal) AS SubTotal,
+    SUM(PD.SDAmount) AS SD,
+    SUM(PD.VATAmount) AS VAT,
+    SUM(PD.LineTotal) AS LineTotal,
+    P.CompanyId AS CompanyId,
+    P.BranchId AS BranchId,
+    Co.CompanyName,  
+    B.Name AS BranchName
+FROM PurchasesReturn P
+INNER JOIN Suppliers S ON P.SupplierId = S.Id
+INNER JOIN PurchaseReturnDetails PD ON PD.PurchasesReturnId = P.Id
+INNER JOIN Products PR ON PD.ProductId = PR.Id
+INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
+INNER JOIN BranchProfiles B ON P.BranchId = B.Id
+WHERE 1=1
+    AND P.InvoiceDateTime >= @fromDate
+    AND P.InvoiceDateTime <= @toDate
+    AND P.PurchaseDate >= @purchaseFromDate
+    AND P.PurchaseDate <= @purchaseToDate
+    AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
+    AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+GROUP BY 
+    P.Code,
+    P.InvoiceDateTime,
+    P.PurchaseDate,
+    S.Name,
+    PR.Name,
+    P.CompanyId,
+    P.BranchId,
+    Co.CompanyName,
+    B.Name
+ORDER BY 
+    P.PurchaseDate,
+    P.InvoiceDateTime,
+    PR.Name";
+                            break;
+
+
+
                         default:
                             query = @"
 SELECT 
@@ -2079,6 +2135,7 @@ P.PurchaseDate,
 S.Name AS SupplierName,
 SUM(PD.Quantity) AS Quantity,
 SUM(PD.SubTotal) AS SubTotal,
+SUM(PD.SDAmount) AS SD,
 SUM(PD.VATAmount) AS VAT,
 SUM(PD.LineTotal) AS LineTotal,
 P.CompanyId AS CompanyId,
@@ -2133,6 +2190,7 @@ P.Id AS PurchaseId,
 P.Code AS PurchaseCode,
 PD.Quantity,
 PD.SubTotal,
+PD.SDAmount,
 PD.VATAmount,
 PD.LineTotal,
 P.CompanyId AS CompanyId,
@@ -2165,6 +2223,9 @@ P.Code AS PurchaseCode,
 P.InvoiceDateTime,
 P.PurchaseDate,
 PD.Quantity,
+PD.SubTotal,
+PD.SDAmount,
+PD.VATAmount,
 PD.LineTotal,
 P.CompanyId AS CompanyId,
 P.BranchId AS BranchId,
@@ -2197,6 +2258,7 @@ FORMAT(P.PurchaseDate, 'dd/MM/yyyy') AS PurchaseDate,
 PD.Quantity,
 PD.UnitPrice,
 PD.SubTotal,
+PD.SDAmount,
 PD.VATAmount,
 PD.LineTotal,
 P.CompanyId AS CompanyId,
@@ -2228,6 +2290,7 @@ FORMAT(P.PurchaseDate, 'dd/MM/yyyy') AS PurchaseDate,
 PD.Quantity,
 PD.UnitPrice,
 PD.SubTotal,
+PD.SDAmount,
 PD.VATAmount,
 PD.LineTotal,
 P.CompanyId AS CompanyId,
@@ -2259,6 +2322,7 @@ PR.Name AS ProductName,
 PD.Quantity,
 PD.UnitPrice,
 PD.SubTotal,
+PD.SDAmount,
 PD.VATAmount,
 PD.LineTotal,
 P.CompanyId AS CompanyId,
@@ -2280,6 +2344,42 @@ AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
 AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                             break;
 
+                        case "Purchase Return List": // Invoice-wise Details
+                            query = @"
+SELECT 
+    P.Code AS PurchaseCode,
+FORMAT(P.InvoiceDateTime,'dd-MMM-yyyy') AS InvoiceDateTime,
+FORMAT(P.PurchaseDate,'dd-MMM-yyyy') AS PurchaseDate,
+    S.Name AS SupplierName,
+    PR.Name AS ProductName,
+    PD.Quantity,
+    PD.UnitPrice,
+    PD.SubTotal,
+    PD.SDAmount,
+    PD.VATAmount,
+    PD.LineTotal,
+    P.CompanyId AS CompanyId,
+    P.BranchId AS BranchId,
+    Co.CompanyName,  
+    B.Name AS BranchName
+FROM PurchasesReturn P
+INNER JOIN Suppliers S ON P.SupplierId = S.Id
+INNER JOIN PurchaseReturnDetails PD ON PD.PurchasesReturnId = P.Id
+INNER JOIN Products PR ON PD.ProductId = PR.Id
+INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
+INNER JOIN BranchProfiles B ON P.BranchId = B.Id
+WHERE 1=1
+    AND (@fromDate IS NULL OR P.InvoiceDateTime >= @fromDate)
+    AND (@toDate IS NULL OR P.InvoiceDateTime <= @toDate)
+    AND (@purchaseFromDate IS NULL OR P.PurchaseDate >= @purchaseFromDate)
+    AND (@purchaseToDate IS NULL OR P.PurchaseDate <= @purchaseToDate)
+    AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
+    AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+ORDER BY P.InvoiceDateTime, P.Code, PD.Line";
+                            break;
+
+
+
                         case "Details": // Details All
                             query = @"
 SELECT 
@@ -2296,6 +2396,7 @@ PR.Name AS ProductName,
 PD.Quantity,
 PD.UnitPrice,
 PD.SubTotal,
+PD.SDAmount,
 PD.VATAmount,
 PD.LineTotal,
 P.CompanyId AS CompanyId,
@@ -2375,7 +2476,7 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                 objComm.Fill(dataTable);
 
 
-                var modelList = dataTable.AsEnumerable().Select(row => new PurchaseReportVM
+                var modelList = dataTable.AsEnumerable().Select(row => new PurchaseReturnReportVM
                 {
                     //Id = row.Field<int>("Id"),
                     Id = dataTable.Columns.Contains("PurchaseId")
@@ -2454,7 +2555,9 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                         : dataTable.Columns.Contains("MonthYear")
                             ? row["MonthYear"]?.ToString()
                             : "",
-
+                    MonthYear = dataTable.Columns.Contains("MonthYear")
+                        ? row["MonthYear"]?.ToString()
+                        : "",
                     PurchaseDate = dataTable.Columns.Contains("PurchaseDate")
                         ? row["PurchaseDate"]?.ToString()
                         : ""
