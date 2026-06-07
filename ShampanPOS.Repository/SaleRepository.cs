@@ -3078,10 +3078,11 @@ WHERE 1 = 1
                         case "Day Wise": // Day-wise Summary
                             query = @"
 SELECT 
-CAST(S.InvoiceDateTime AS DATE) AS InvoiceDateTime,
+FORMAT(CAST(S.InvoiceDateTime AS DATE), 'dd-MMM-yyyy') AS InvoiceDateTime,
 COUNT(DISTINCT S.Id) AS TotalInvoice,
 SUM(SD.Quantity) AS Quantity,
 SUM(SD.SubTotal) AS SubTotal,
+SUM(SD.SDAmount) AS SD,
 SUM(SD.VATAmount) AS VAT,
 SUM(SD.LineTotal) AS LineTotal,
 S.BranchId AS BranchId,
@@ -3146,26 +3147,35 @@ MONTH(S.InvoiceDateTime)";
                         case "Customer Wise": // Customer-wise Summary
                             query = @"
 SELECT 
-C.Id,
-C.Name AS CustomerName,
-COUNT(DISTINCT S.Id) AS TotalInvoice,
-SUM(SD.Quantity) AS Quantity,
-SUM(SD.LineTotal) AS LineTotal,
-S.CompanyId AS CompanyId,
-S.BranchId AS BranchId,
-Co.CompanyName,  
-B.Name AS BranchName
+    C.Id,
+    C.Name AS CustomerName,
+    COUNT(DISTINCT S.Id) AS TotalInvoice,
+    SUM(SD.Quantity) AS Quantity,
+    SUM(SD.SubTotal) AS SubTotal,
+    SUM(SD.SDAmount) AS SDAmount,
+    SUM(SD.VATAmount) AS VATAmount,
+    SUM(SD.LineTotal) AS LineTotal,
+    S.CompanyId AS CompanyId,
+    S.BranchId AS BranchId,
+    Co.CompanyName,  
+    B.Name AS BranchName
 FROM Customers C
 INNER JOIN Sales S ON C.Id = S.CustomerId
 INNER JOIN SaleDetails SD ON S.Id = SD.SaleId
 INNER JOIN CompanyProfiles Co ON S.CompanyId = Co.Id
 INNER JOIN BranchProfiles B ON S.BranchId = B.Id
 WHERE 1=1
-AND S.InvoiceDateTime >= @fromDate
-AND S.InvoiceDateTime <= @toDate
-AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId)
-GROUP BY C.Id, C.Name, S.CompanyId, S.BranchId, Co.CompanyName, B.Name
+    AND S.InvoiceDateTime >= @fromDate
+    AND S.InvoiceDateTime <= @toDate
+    AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+    AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+GROUP BY 
+    C.Id, 
+    C.Name, 
+    S.CompanyId, 
+    S.BranchId, 
+    Co.CompanyName, 
+    B.Name
 ORDER BY LineTotal DESC";
                             break;
 
@@ -3176,6 +3186,7 @@ P.Id,
 P.Name AS ProductName,
 SUM(SD.Quantity) AS Quantity,
 SUM(SD.SubTotal) AS SubTotal,
+SUM(SD.SDAmount) AS SDAmount,
 SUM(SD.VATAmount) AS VAT,
 SUM(SD.LineTotal) AS LineTotal,
 S.CompanyId AS CompanyId,
@@ -3200,10 +3211,11 @@ ORDER BY LineTotal DESC";
                             query = @"
 SELECT 
 S.Code AS SaleCode,
-S.InvoiceDateTime,
+FORMAT(S.InvoiceDateTime, 'dd-MMM-yyyy') AS InvoiceDateTime,
 C.Name AS CustomerName,
 SUM(SD.Quantity) AS Quantity,
 SUM(SD.SubTotal) AS SubTotal,
+SUM(SD.SDAmount) AS SDAmount,
 SUM(SD.VATAmount) AS VAT,
 SUM(SD.LineTotal) AS LineTotal,
 S.CompanyId AS CompanyId,
@@ -3224,14 +3236,57 @@ GROUP BY S.Code, S.InvoiceDateTime, C.Name, S.CompanyId, S.BranchId, Co.CompanyN
 ORDER BY S.InvoiceDateTime";
                             break;
 
+
+                        case "Sale List": // ✅ Sale List Summary (FIXED)
+                            query = @"
+SELECT 
+    S.Code AS SaleCode,
+    FORMAT(S.InvoiceDateTime, 'dd-MMM-yyyy') AS InvoiceDateTime,
+    C.Name AS CustomerName,
+    P.Name AS ProductName,
+    SUM(SD.Quantity) AS Quantity,
+    SUM(SD.SubTotal) AS SubTotal,
+    SUM(SD.VATAmount) AS VAT,
+    SUM(SD.LineTotal) AS LineTotal,
+    S.CompanyId AS CompanyId,
+    S.BranchId AS BranchId,
+    Co.CompanyName,  
+    B.Name AS BranchName
+FROM Sales S
+INNER JOIN Customers C ON S.CustomerId = C.Id
+INNER JOIN SaleDetails SD ON S.Id = SD.SaleId
+INNER JOIN Products P ON SD.ProductId = P.Id
+INNER JOIN CompanyProfiles Co ON S.CompanyId = Co.Id
+INNER JOIN BranchProfiles B ON S.BranchId = B.Id
+WHERE 1=1
+    AND S.InvoiceDateTime >= @fromDate
+    AND S.InvoiceDateTime <= @toDate
+    AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+    AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+GROUP BY 
+    S.Code, 
+    S.InvoiceDateTime, 
+    C.Name,
+    P.Name,
+    S.CompanyId, 
+    S.BranchId, 
+    Co.CompanyName, 
+    B.Name
+ORDER BY S.InvoiceDateTime";
+                            break;
+
+
+
+
                         default:
                             query = @"
 SELECT 
 S.Code AS SaleCode,
-S.InvoiceDateTime,
+FORMAT(S.InvoiceDateTime, 'dd-MMM-yyyy') AS InvoiceDateTime,
 C.Name AS CustomerName,
 SUM(SD.Quantity) AS Quantity,
 SUM(SD.SubTotal) AS SubTotal,
+SUM(SD.SDAmount) AS SDAmount,
 SUM(SD.VATAmount) AS VAT,
 SUM(SD.LineTotal) AS LineTotal,
 S.CompanyId AS CompanyId,
@@ -3267,11 +3322,12 @@ ORDER BY S.InvoiceDateTime";
                         case "Day Wise": // Day-wise Details
                             query = @"
 SELECT 
-CAST(S.InvoiceDateTime AS DATE) AS InvoiceDateTime,
+FORMAT(CAST(S.InvoiceDateTime AS DATE), 'dd-MMM-yyyy') AS InvoiceDateTime,
 S.Id AS SaleId,
 S.Code AS SaleCode,
 SD.Quantity,
 SD.SubTotal,
+SD.SDAmount,
 SD.VATAmount,
 SD.LineTotal,
 S.CompanyId AS CompanyId,
@@ -3297,7 +3353,7 @@ DATENAME(MONTH, S.InvoiceDateTime) + '-' +
 CAST(YEAR(S.InvoiceDateTime) AS VARCHAR(4)) AS MonthYear,
 S.Id AS SaleId,
 S.Code AS SaleCode,
-S.InvoiceDateTime,
+FORMAT(S.InvoiceDateTime, 'dd-MMM-yyyy') AS InvoiceDateTime, 
 SD.Quantity,
 SD.LineTotal,
 S.CompanyId AS CompanyId,
@@ -3326,10 +3382,11 @@ SELECT
 C.Id,
 S.Code AS SaleCode,
 C.Name AS CustomerName,
-FORMAT(S.InvoiceDateTime, 'dd/MM/yyyy') AS InvoiceDateTime,
+FORMAT(CAST(S.InvoiceDateTime AS DATE), 'dd-MMM-yyyy') AS InvoiceDateTime,
 SD.Quantity,
 SD.UnitRate,
 SD.SubTotal,
+SD.SDAmount,
 SD.VATAmount,
 SD.LineTotal,
 S.CompanyId AS CompanyId,
@@ -3355,10 +3412,11 @@ SELECT
 P.Id,
 P.Name AS ProductName,
 S.Code AS SaleCode,
-FORMAT(S.InvoiceDateTime, 'dd/MM/yyyy') AS InvoiceDateTime,
+FORMAT(CAST(S.InvoiceDateTime AS DATE), 'dd-MMM-yyyy') AS InvoiceDateTime,
 SD.Quantity,
 SD.UnitRate,
 SD.SubTotal,
+SD.SDAmount,
 SD.VATAmount,
 SD.LineTotal,
 S.CompanyId AS CompanyId,
@@ -3381,12 +3439,13 @@ AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
                             query = @"
 SELECT 
 S.Code AS SaleCode,
-FORMAT(S.InvoiceDateTime, 'dd/MM/yyyy') AS InvoiceDateTime,
+FORMAT(CAST(S.InvoiceDateTime AS DATE), 'dd-MMM-yyyy') AS InvoiceDateTime,
 C.Name AS CustomerName,
 P.Name AS ProductName,
 SD.Quantity,
 SD.UnitRate,
 SD.SubTotal,
+SD.SDAmount,
 SD.VATAmount,
 SD.LineTotal,
 S.CompanyId AS CompanyId,
@@ -3407,6 +3466,40 @@ AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
                             break;
 
 
+                        case "Sale List": // Sale List
+                            query = @"
+SELECT 
+    S.Code AS SaleCode,
+    FORMAT(S.InvoiceDateTime, 'dd-MMM-yyyy') AS InvoiceDateTime, 
+    C.Code AS CustomerCode,
+    C.Name AS CustomerName,
+    P.Code AS ProductCode,
+    P.Name AS ProductName,
+    SD.Quantity,
+    SD.UnitRate,
+    SD.SubTotal,
+    SD.SDAmount,
+    SD.VATAmount,
+    SD.LineTotal,
+    S.CompanyId AS CompanyId,
+    S.BranchId AS BranchId,
+    Co.CompanyName,  
+    B.Name AS BranchName,
+    S.TransactionType
+FROM Sales S
+INNER JOIN Customers C ON S.CustomerId = C.Id
+INNER JOIN SaleDetails SD ON S.Id = SD.SaleId
+INNER JOIN Products P ON SD.ProductId = P.Id
+INNER JOIN CompanyProfiles Co ON S.CompanyId = Co.Id
+INNER JOIN BranchProfiles B ON S.BranchId = B.Id
+WHERE 1=1
+    AND S.InvoiceDateTime >= @fromDate
+    AND S.InvoiceDateTime <= @toDate
+    AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+    AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+ORDER BY S.InvoiceDateTime, S.Code, SD.Id";
+                            break;
+
 
                         case "Details": // Details All
                             query = @"
@@ -3414,7 +3507,7 @@ SELECT
 S.Id AS SaleId,
 S.Code AS SaleCode,
 S.InvoiceDateTime,
-CAST(S.InvoiceDateTime AS DATE) AS InvoiceDate,
+FORMAT(CAST(S.InvoiceDateTime AS DATE), 'dd-MMM-yyyy') AS InvoiceDateTime,
 C.Id AS CustomerId,
 C.Name AS CustomerName,
 P.Id AS ProductId,
@@ -3422,6 +3515,7 @@ P.Name AS ProductName,
 SD.Quantity,
 SD.UnitRate,
 SD.SubTotal,
+SD.SDAmount,
 SD.VATAmount,
 SD.LineTotal,
 S.CompanyId AS CompanyId,
@@ -3445,10 +3539,11 @@ AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
                             query = @"
 SELECT 
 S.Code AS SaleCode,
-S.InvoiceDateTime,
+FORMAT(S.InvoiceDateTime, 'dd-MMM-yyyy') AS InvoiceDateTime,
 C.Name AS CustomerName,
 SD.Quantity,
 SD.SubTotal,
+SD.SDAmount,
 SD.VATAmount,
 SD.LineTotal,
 S.CompanyId AS CompanyId,

@@ -2653,10 +2653,11 @@ SELECT
                         case "Day Wise": // Day-wise Summary
                             query = @"
 SELECT 
-CAST(S.OrderDate AS DATE) AS OrderDate,
+FORMAT(CAST(S.OrderDate AS DATE), 'dd-MMM-yyyy') AS OrderDate,
 COUNT(DISTINCT S.Id) AS TotalInvoice,
 SUM(SD.Quantity) AS Quantity,
 SUM(SD.SubTotal) AS SubTotal,
+SUM(SD.SDAmount) AS SDAmount,
 SUM(SD.VATAmount) AS VAT,
 SUM(SD.LineTotal) AS LineTotal,
 S.BranchId AS BranchId,
@@ -2714,27 +2715,38 @@ MONTH(S.OrderDate)";
                         case "Customer Wise": // Customer-wise Summary
                             query = @"
 SELECT 
-C.Id,
-C.Name AS CustomerName,
-COUNT(DISTINCT S.Id) AS TotalInvoice,
-SUM(SD.Quantity) AS Quantity,
-SUM(SD.LineTotal) AS LineTotal,
-S.CompanyId AS CompanyId,
-S.BranchId AS BranchId,
-Co.CompanyName,  
-B.Name AS BranchName
+    C.Id,
+    C.Name AS CustomerName,
+    FORMAT(CAST(S.OrderDate AS DATE), 'dd-MMM-yyyy') AS OrderDate,
+    COUNT(DISTINCT S.Id) AS TotalInvoice,
+    SUM(SD.Quantity) AS Quantity,
+    SUM(SD.SubTotal) AS SubTotal,
+    SUM(SD.SDAmount) AS SDAmount,
+    SUM(SD.VATAmount) AS VATAmount,
+    SUM(SD.LineTotal) AS LineTotal,
+    S.CompanyId AS CompanyId,
+    S.BranchId AS BranchId,
+    Co.CompanyName,  
+    B.Name AS BranchName
 FROM Customers C
 INNER JOIN SaleOrders S ON C.Id = S.CustomerId
 INNER JOIN SaleOrderDetails SD ON S.Id = SD.SaleOrderId
 INNER JOIN CompanyProfiles Co ON S.CompanyId = Co.Id
 INNER JOIN BranchProfiles B ON S.BranchId = B.Id
 WHERE 1=1
-AND S.OrderDate >= @fromDate
-AND S.OrderDate <= @toDate
-AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId)
-GROUP BY C.Id, C.Name, S.CompanyId, S.BranchId, Co.CompanyName, B.Name
-ORDER BY LineTotal DESC";
+    AND S.OrderDate >= @fromDate
+    AND S.OrderDate <= @toDate
+    AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+    AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+GROUP BY 
+    C.Id, 
+    C.Name, 
+    CAST(S.OrderDate AS DATE),
+    S.CompanyId, 
+    S.BranchId, 
+    Co.CompanyName, 
+    B.Name
+ORDER BY CAST(S.OrderDate AS DATE)";
                             break;
 
                         case "Product Wise": // Product-wise Summary
@@ -2745,6 +2757,7 @@ P.Id,
 P.Name AS ProductName,
 SUM(SD.Quantity) AS Quantity,
 SUM(SD.SubTotal) AS SubTotal,
+SUM(SD.SDAmount) AS SDAmount,
 SUM(SD.VATAmount) AS VAT,
 SUM(SD.LineTotal) AS LineTotal,
 S.CompanyId AS CompanyId,
@@ -2769,10 +2782,11 @@ ORDER BY LineTotal DESC";
                             query = @"
 SELECT 
 S.Code AS SaleOrderCode,
-S.OrderDate,
+FORMAT(S.OrderDate, 'dd-MMM-yyyy') AS OrderDate,
 C.Name AS CustomerName,
 SUM(SD.Quantity) AS Quantity,
 SUM(SD.SubTotal) AS SubTotal,
+SUM(SD.SDAmount) AS SDAmount,
 SUM(SD.VATAmount) AS VAT,
 SUM(SD.LineTotal) AS LineTotal,
 S.CompanyId AS CompanyId,
@@ -2793,14 +2807,54 @@ GROUP BY S.Code, S.OrderDate, C.Name, S.CompanyId, S.BranchId, Co.CompanyName, B
 ORDER BY S.OrderDate";
                             break;
 
+                        case "Sale Order List": // ✅ Sale Order List Summary (FIXED)
+                            query = @"
+SELECT 
+    S.Code AS SaleOrderCode,
+    FORMAT(S.OrderDate, 'dd-MMM-yyyy') AS OrderDate,
+    C.Name AS CustomerName,
+    P.Name AS ProductName,
+    SUM(SD.Quantity) AS Quantity,
+    SUM(SD.SubTotal) AS SubTotal,
+    SUM(SD.SDAmount) AS SDAmount,
+    SUM(SD.VATAmount) AS VAT,
+    SUM(SD.LineTotal) AS LineTotal,
+    S.CompanyId AS CompanyId,
+    S.BranchId AS BranchId,
+    Co.CompanyName,  
+    B.Name AS BranchName
+FROM SaleOrders S
+INNER JOIN Customers C ON S.CustomerId = C.Id
+INNER JOIN SaleOrderDetails SD ON S.Id = SD.SaleOrderId
+INNER JOIN Products P ON SD.ProductId = P.Id
+INNER JOIN CompanyProfiles Co ON S.CompanyId = Co.Id
+INNER JOIN BranchProfiles B ON S.BranchId = B.Id
+WHERE 1=1
+    AND S.OrderDate >= @fromDate
+    AND S.OrderDate <= @toDate
+    AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+    AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+GROUP BY 
+    S.Code, 
+    S.OrderDate, 
+    C.Name,
+    P.Name,
+    S.CompanyId, 
+    S.BranchId, 
+    Co.CompanyName, 
+    B.Name
+ORDER BY S.OrderDate";
+                            break;
+
                         default:
                             query = @"
 SELECT 
 S.Code AS SaleOrderCode,
-S.OrderDate,
+FORMAT(S.OrderDate, 'dd-MMM-yyyy') AS OrderDate,
 C.Name AS CustomerName,
 SUM(SD.Quantity) AS Quantity,
 SUM(SD.SubTotal) AS SubTotal,
+SUM(SD.SDAmount) AS SD,
 SUM(SD.VATAmount) AS VAT,
 SUM(SD.LineTotal) AS LineTotal,
 S.CompanyId AS CompanyId,
@@ -2836,11 +2890,12 @@ ORDER BY S.OrderDate";
                         case "Day Wise": // Day-wise Details
                             query = @"
 SELECT 
-CAST(S.OrderDate AS DATE) AS OrderDate,
+FORMAT(CAST(S.OrderDate AS DATE), 'dd-MMM-yyyy') AS OrderDate,
 S.Id AS SaleOrderId,
 S.Code AS SaleOrderCode,
 SD.Quantity,
 SD.SubTotal,
+SD.SDAmount,
 SD.VATAmount,
 SD.LineTotal,
 S.CompanyId AS CompanyId,
@@ -2895,10 +2950,11 @@ SELECT
 C.Id,
 S.Code AS SaleOrderCode,
 C.Name AS CustomerName,
-FORMAT(S.OrderDate, 'dd/MM/yyyy') AS OrderDate,
+FORMAT(S.OrderDate, 'dd-MMM-yyyy') AS OrderDate,
 SD.Quantity,
 SD.UnitRate,
 SD.SubTotal,
+SD.SDAmount,
 SD.VATAmount,
 SD.LineTotal,
 S.CompanyId AS CompanyId,
@@ -2924,10 +2980,11 @@ SELECT
 P.Id,
 P.Name AS ProductName,
 S.Code AS SaleOrderCode,
-FORMAT(S.OrderDate, 'dd/MM/yyyy') AS OrderDate,
+FORMAT(S.OrderDate, 'dd-MMM-yyyy') AS OrderDate,
 SD.Quantity,
 SD.UnitRate,
 SD.SubTotal,
+SD.SDAmount,
 SD.VATAmount,
 SD.LineTotal,
 S.CompanyId AS CompanyId,
@@ -2950,12 +3007,13 @@ AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
                             query = @"
 SELECT 
 S.Code AS SaleOrderCode,
-FORMAT(S.OrderDate, 'dd/MM/yyyy') AS OrderDate,
+FORMAT(S.OrderDate, 'dd-MMM-yyyy') AS OrderDate,
 C.Name AS CustomerName,
 P.Name AS ProductName,
 SD.Quantity,
 SD.UnitRate,
 SD.SubTotal,
+SD.SDAmount,
 SD.VATAmount,
 SD.LineTotal,
 S.CompanyId AS CompanyId,
@@ -2975,14 +3033,46 @@ AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
 AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
                             break;
 
-
+                        case "Sale Order List": // Sale Order List Details
+                            query = @"
+SELECT 
+    S.Code AS SaleOrderCode,
+    FORMAT(S.OrderDate, 'dd-MMM-yyyy') AS OrderDate,
+    S.DeliveryDate AS ExpectedDeliveryDate,
+    C.Code AS CustomerCode,
+    C.Name AS CustomerName,
+    P.Code AS ProductCode,
+    P.Name AS ProductName,
+    SD.Quantity,
+    SD.UnitRate,
+    SD.SubTotal,
+    SD.SDAmount,
+    SD.VATAmount,
+    SD.LineTotal,
+    S.CompanyId AS CompanyId,
+    S.BranchId AS BranchId,
+    Co.CompanyName,  
+    B.Name AS BranchName
+FROM SaleOrders S
+INNER JOIN Customers C ON S.CustomerId = C.Id
+INNER JOIN SaleOrderDetails SD ON S.Id = SD.SaleOrderId
+INNER JOIN Products P ON SD.ProductId = P.Id
+INNER JOIN CompanyProfiles Co ON S.CompanyId = Co.Id
+INNER JOIN BranchProfiles B ON S.BranchId = B.Id
+WHERE 1=1
+    AND S.OrderDate >= @fromDate
+    AND S.OrderDate <= @toDate
+    AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
+    AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+ORDER BY S.OrderDate, S.Code, SD.Line";
+                            break;
 
                         case "Details": // Details All
                             query = @"
 SELECT 
 S.Id AS SaleOrderId,
 S.Code AS SaleOrderCode,
-S.OrderDate,
+FORMAT(S.OrderDate, 'dd-MMM-yyyy') AS OrderDate,
 CAST(S.OrderDate AS DATE) AS OrderDate,
 C.Id AS CustomerId,
 C.Name AS CustomerName,
@@ -2991,6 +3081,7 @@ P.Name AS ProductName,
 SD.Quantity,
 SD.UnitRate,
 SD.SubTotal,
+SD.SDAmount,
 SD.VATAmount,
 SD.LineTotal,
 S.CompanyId AS CompanyId,
@@ -3014,10 +3105,11 @@ AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
                             query = @"
 SELECT 
 S.Code AS SaleOrderCode,
-S.OrderDate,
+FORMAT(S.OrderDate, 'dd-MMM-yyyy') AS OrderDate,
 C.Name AS CustomerName,
 SD.Quantity,
 SD.SubTotal,
+SD.SDAmount,
 SD.VATAmount,
 SD.LineTotal,
 S.CompanyId AS CompanyId,

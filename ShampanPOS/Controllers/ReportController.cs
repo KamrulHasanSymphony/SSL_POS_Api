@@ -856,6 +856,31 @@ namespace ShampanPOS.Controllers
         }
 
 
+        [HttpPost("GetPurchaseOrdervsPurchaseByList")]
+        public async Task<ResultVM> GetPurchaseOrdervsPurchaseByList(PurchaseReportVM purchase)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+
+            try
+            {
+                PurchaseService _service = new PurchaseService();
+
+                resultVM = await _service.PurchaseOrdervsPurchaseReportList(purchase);
+
+
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message
+                };
+            }
+        }
+
 
     }
 }
