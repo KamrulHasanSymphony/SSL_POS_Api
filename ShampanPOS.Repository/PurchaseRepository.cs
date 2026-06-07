@@ -3339,7 +3339,128 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
         }
 
 
+        public async Task<ResultVM> PurchaseOrdervsPurchaseReportList(string?[] IDs, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
 
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                Id = "0",
+                DataVM = null
+            };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = @"
+SELECT 
+    Pur.Id AS PurchaseId,
+    Pur.Code AS PurchaseNo,
+    po.Code AS PurchaseOrderNo,
+    s.Code AS SupplierCode,
+    s.Name AS SupplierName,
+    p.Code AS ProductCode,
+    p.Name AS ProductName,
+    Pur.InvoiceDateTime,
+    Pur.PurchaseDate,
+    po.OrderDate,
+    PD.Quantity,
+    PD.UnitPrice,
+    PD.SubTotal,
+    PD.SD,
+    PD.VATAmount AS VATAmount,
+    PD.LineTotal,
+    Pur.CompanyId,
+    Pur.BranchId,
+    Co.CompanyName,
+    B.Name AS BranchName
+FROM PurchaseDetails PD
+INNER JOIN Purchases Pur ON Pur.Id = PD.PurchaseId
+INNER JOIN PurchaseOrderDetails pod ON PD.PurchaseOrderId = pod.PurchaseOrderId
+INNER JOIN PurchaseOrders po ON po.Id = pod.PurchaseOrderId
+INNER JOIN CompanyProfiles Co ON Pur.CompanyId = Co.Id
+INNER JOIN BranchProfiles B ON Pur.BranchId = B.Id
+INNER JOIN Products p ON p.Id = PD.ProductId
+INNER JOIN Suppliers s ON s.Id = Pur.SupplierId
+WHERE 1 = 1
+";
+
+                // ✅ FIX: safe null check
+                if (IDs != null && IDs.Length > 0)
+                {
+                    string inClause = string.Join(", ", IDs.Select((id, index) => $"@Id{index}"));
+                    query += $" AND Pur.Id IN ({inClause}) ";
+                }
+
+                using (SqlDataAdapter adapter = new SqlDataAdapter(query, conn))
+                {
+                    if (transaction != null)
+                        adapter.SelectCommand.Transaction = transaction;
+
+                    if (IDs != null && IDs.Length > 0)
+                    {
+                        for (int i = 0; i < IDs.Length; i++)
+                        {
+                            adapter.SelectCommand.Parameters.AddWithValue($"@Id{i}", IDs[i]);
+                        }
+                    }
+
+                    adapter.Fill(dataTable);
+                }
+
+                var lst = new List<PurchaseReportVM>();
+
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    lst.Add(new PurchaseReportVM
+                    {
+                        PurchaseId = row.Field<int>("PurchaseId"),
+                        Code = row.Field<string>("PurchaseNo"),
+                        SupplierCode = row.Field<string>("SupplierCode"),
+                        SupplierName = row.Field<string>("SupplierName"),
+                        ProductCode = row.Field<string>("ProductCode"),
+                        ProductName = row.Field<string>("ProductName"),
+
+                        InvoiceDateTime = row.Field<DateTime>("InvoiceDateTime").ToString("yyyy-MM-dd"),
+                        PurchaseDate = row.Field<DateTime>("PurchaseDate").ToString("yyyy-MM-dd"),
+
+                        BranchId = row.Field<int>("BranchId"),
+                        CompanyId = row.Field<int>("CompanyId"),
+
+                        Quantity = row.Field<decimal>("Quantity"),
+                        UnitPrice = row.Field<decimal>("UnitPrice"),
+                        SubTotal = row.Field<decimal>("SubTotal"),
+                        VATAmount = row.Field<decimal>("VATAmount"),
+                        LineTotal = row.Field<decimal>("LineTotal"),
+
+                        CompanyName = row.Field<string>("CompanyName"),
+                        BranchName = row.Field<string>("BranchName")
+                    });
+                }
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully";
+                result.DataVM = lst;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+        }
 
 
 
