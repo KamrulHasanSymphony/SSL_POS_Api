@@ -4,11 +4,14 @@ using ShampanPOS.ViewModel.KendoCommon;
 using ShampanPOS.ViewModel.Utility;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace ShampanPOS.Repository
 {
@@ -2352,20 +2355,21 @@ P.OrderDate";
                         default:
                             query = @"
 SELECT 
-P.Code AS PurchaseOrderCode,
-FORMAT(P.OrderDate,'dd-MMM-yyyy') AS OrderDate,
-FORMAT(P.DeliveryDateTime,'dd-MMM-yyyy') AS DeliveryDateTime,
-S.Name AS SupplierName,
-SUM(PD.Quantity) AS Quantity,
-SUM(PD.SubTotal) AS SubTotal,
-SUM(PD.SDAmount) AS SDAmount,
-SUM(PD.VATAmount) AS VAT,
-SUM(PD.LineTotal) AS LineTotal,
-P.CompanyId,
-P.BranchId,
-Co.CompanyName,
-B.Name AS BranchName,
-PR.Name AS ProductName
+    P.Code AS PurchaseOrderCode,
+    FORMAT(P.OrderDate,'dd-MMM-yyyy') AS OrderDate,
+    FORMAT(P.DeliveryDateTime,'dd-MMM-yyyy') AS DeliveryDateTime,
+    S.Name AS SupplierName,
+    PR.Name AS ProductName,
+    PD.Quantity,
+    PD.UnitPrice,
+    PD.SubTotal,
+    PD.SDAmount,
+    PD.VATAmount,
+    PD.LineTotal,
+    P.CompanyId,
+    P.BranchId,
+    Co.CompanyName,
+    B.Name AS BranchName
 FROM PurchaseOrders P
 INNER JOIN Suppliers S ON P.SupplierId = S.Id
 INNER JOIN PurchaseOrderDetails PD ON P.Id = PD.PurchaseOrderId
@@ -2373,12 +2377,13 @@ INNER JOIN Products PR ON PD.ProductId = PR.Id
 INNER JOIN CompanyProfiles Co ON P.CompanyId = Co.Id
 INNER JOIN BranchProfiles B ON P.BranchId = B.Id
 WHERE 1=1
-AND P.OrderDate >= @fromDate
-AND P.OrderDate <= @toDate
-AND P.DeliveryDateTime >= @deliveryFromDate
-AND P.DeliveryDateTime <= @deliveryToDate
-AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
+    AND P.OrderDate >= @fromDate
+    AND P.OrderDate <= @toDate
+    AND P.DeliveryDateTime >= @deliveryFromDate
+    AND P.DeliveryDateTime <= @deliveryToDate
+    AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
+    AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+ORDER BY P.OrderDate, P.Code, PD.Line";
                             break;
                     }
                 }
@@ -2472,7 +2477,7 @@ S.Name AS SupplierName,
 FORMAT(P.OrderDate,'dd-MMM-yyyy') AS OrderDate,
 FORMAT(P.DeliveryDateTime,'dd-MMM-yyyy') AS DeliveryDateTime,
 PD.Quantity,
-PD.UnitPrice AS UnitRate,
+PD.UnitPrice AS UnitPrice,
 PD.SubTotal,
 PD.SDAmount,
 PD.VATAmount,
@@ -2669,21 +2674,21 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                         default:
                             query = @"
 SELECT 
-P.Code AS PurchaseOrderCode,
-FORMAT(P.OrderDate,'dd-MMM-yyyy') AS OrderDate,
-FORMAT(P.DeliveryDateTime,'dd-MMM-yyyy') AS DeliveryDateTime,
-S.Name AS SupplierName,
-PD.Quantity,
-PD.SubTotal,
-PD.SDAmount,
-PD.VATAmount,
-
-PD.LineTotal,
-P.CompanyId,
-P.BranchId,
-Co.CompanyName,
-B.Name AS BranchName,
-PR.Name AS ProductName
+    P.Code AS PurchaseOrderCode,
+    FORMAT(P.OrderDate,'dd-MMM-yyyy') AS OrderDate,
+    FORMAT(P.DeliveryDateTime,'dd-MMM-yyyy') AS DeliveryDateTime,
+    S.Name AS SupplierName,
+    PR.Name AS ProductName,
+    PD.Quantity,
+    PD.UnitPrice,
+    PD.SubTotal,
+    PD.SDAmount,
+    PD.VATAmount,
+    PD.LineTotal,
+    P.CompanyId,
+    P.BranchId,
+    Co.CompanyName,
+    B.Name AS BranchName
 FROM PurchaseOrders P
 INNER JOIN Suppliers S ON P.SupplierId = S.Id
 INNER JOIN PurchaseOrderDetails PD ON P.Id = PD.PurchaseOrderId
@@ -2696,7 +2701,8 @@ AND P.OrderDate <= @toDate
 AND P.DeliveryDateTime >= @deliveryFromDate
 AND P.DeliveryDateTime <= @deliveryToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+ORDER BY P.OrderDate, P.Code, PD.Line";
                             break;
                     }
                 }

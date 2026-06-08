@@ -800,5 +800,67 @@ namespace ShampanPOS.Service
         }
 
 
+
+        public async Task<ResultVM> ReportList(SupplierProductReportVM vm = null)
+        {
+            SupplierProductRepository _repo = new SupplierProductRepository();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            bool isNewConnection = false;
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+
+            try
+            {
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+
+                transaction = conn.BeginTransaction();
+
+                // SUMMARY / DETAILS
+                if (vm != null)
+                {
+                    vm.Operation = vm.IsSummary ? "SUMMARY" : "DETAILS";
+                }
+
+                // CALL REPOSITORY
+                result = await _repo.ReportList(null, null, vm, conn, transaction);
+
+                if (result.Status == "Success")
+                {
+                    transaction.Commit();
+                }
+                else
+                {
+                    throw new Exception(result.Message);
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection)
+                {
+                    transaction.Rollback();
+                }
+
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
+
+
+
+
     }
 }
