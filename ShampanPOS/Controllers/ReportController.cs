@@ -911,5 +911,27 @@ namespace ShampanPOS.Controllers
 
 
 
+
+        [HttpPost("GetBankTransactionReportList")]
+        public async Task<ResultVM> GetBankTransactionReportList(BankTransactionReportVM vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+            try
+            {
+                ReportsService _service = new ReportsService();
+                resultVM = await _service.BankTransactionReportList(vm);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message
+                };
+            }
+        }
+
     }
 }
