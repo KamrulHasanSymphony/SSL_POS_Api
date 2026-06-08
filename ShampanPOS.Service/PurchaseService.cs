@@ -1427,6 +1427,64 @@ namespace ShampanPOS.Service
             }
         }
 
+        //public async Task<ResultVM> GetPurchaseReport(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
+        //{
+        //    PurchaseRepository _repo = new PurchaseRepository();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
+
+        //        transaction = conn.BeginTransaction();
+
+        //        result = await _repo.GetPurchaseReport(conditionalFields, conditionalValues, vm, conn, transaction);
+
+        //        var lst = new List<PurchaseVM>();
+
+        //        string data = JsonConvert.SerializeObject(result.DataVM);
+        //        lst = JsonConvert.DeserializeObject<List<PurchaseVM>>(data);
+
+        //        var detailsDataList = await _repo.DetailsList(new[] { "D.PurchaseId" }, conditionalValues, vm, conn, transaction);
+
+        //        if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
+        //        {
+        //            string json = JsonConvert.SerializeObject(dt);
+        //            var details = JsonConvert.DeserializeObject<List<PurchaseDetailVM>>(json);
+
+        //            lst.FirstOrDefault().purchaseDetailList = details;
+        //            lst.FirstOrDefault().PurchaseOrderId = details.FirstOrDefault().PurchaseOrderId;
+        //            result.DataVM = lst;
+        //        }
+
+        //        if (isNewConnection && result.Status == "Success")
+        //        {
+        //            transaction.Commit();
+        //        }
+        //        else
+        //        {
+        //            throw new Exception(result.Message);
+        //        }
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+        //        result.Message = ex.Message.ToString();
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //}
+
         public async Task<ResultVM> GetPurchaseReport(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
         {
             PurchaseRepository _repo = new PurchaseRepository();
@@ -1445,21 +1503,37 @@ namespace ShampanPOS.Service
 
                 result = await _repo.GetPurchaseReport(conditionalFields, conditionalValues, vm, conn, transaction);
 
-                var lst = new List<PurchaseVM>();
-
-                string data = JsonConvert.SerializeObject(result.DataVM);
-                lst = JsonConvert.DeserializeObject<List<PurchaseVM>>(data);
-
-                var detailsDataList = await _repo.DetailsList(new[] { "D.PurchaseId" }, conditionalValues, vm, conn, transaction);
-
-                if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
+                if (result.Status == "Success" && result.DataVM != null)
                 {
-                    string json = JsonConvert.SerializeObject(dt);
-                    var details = JsonConvert.DeserializeObject<List<PurchaseDetailVM>>(json);
+                    var lst = new List<PurchaseVM>();
+                    string data = JsonConvert.SerializeObject(result.DataVM);
+                    lst = JsonConvert.DeserializeObject<List<PurchaseVM>>(data);
 
-                    lst.FirstOrDefault().purchaseDetailList = details;
-                    lst.FirstOrDefault().PurchaseOrderId = details.FirstOrDefault().PurchaseOrderId;
-                    result.DataVM = lst;
+                    if (lst != null && lst.Count > 0)
+                    {
+                        var firstInvoice = lst.FirstOrDefault();
+
+                        var detailsDataList = await _repo.DetailsList(new[] { "D.PurchaseId" }, conditionalValues, vm, conn, transaction);
+                        if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dtDetails)
+                        {
+                            string jsonDetails = JsonConvert.SerializeObject(dtDetails);
+                            firstInvoice.purchaseDetailList = JsonConvert.DeserializeObject<List<PurchaseDetailVM>>(jsonDetails);
+
+                            if (firstInvoice.purchaseDetailList.Count > 0)
+                            {
+                                firstInvoice.PurchaseOrderId = firstInvoice.purchaseDetailList.FirstOrDefault().PurchaseOrderId;
+                            }
+                        }
+
+                        var paymentDataList = await _repo.PaymentHistoryList(new[] { "PAYD.PurchaseId" }, conditionalValues, vm, conn, transaction);
+                        if (paymentDataList.Status == "Success" && paymentDataList.DataVM is DataTable dtPayments)
+                        {
+                            string jsonPayments = JsonConvert.SerializeObject(dtPayments);
+                            firstInvoice.purchasePaymentList = JsonConvert.DeserializeObject<List<PurchasePaymentVM>>(jsonPayments);
+                        }
+
+                        result.DataVM = lst;
+                    }
                 }
 
                 if (isNewConnection && result.Status == "Success")
@@ -1479,13 +1553,12 @@ namespace ShampanPOS.Service
                 {
                     transaction.Rollback();
                 }
-                result.Message = ex.Message.ToString();
+                result.Message = ex.Message;
                 result.ExMessage = ex.ToString();
+                result.Status = "Fail";
                 return result;
             }
         }
-
-
 
 
 

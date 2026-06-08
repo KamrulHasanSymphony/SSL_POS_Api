@@ -7,9 +7,13 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO.Compression;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace ShampanPOS.Repository
 {
@@ -782,6 +786,186 @@ WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
             }
         }
 
+
+        public async Task<ResultVM> ReportList(
+            string[] conditionalFields,
+            string[] conditionalValues,
+            SupplierProductReportVM vm = null,
+            SqlConnection conn = null,
+            SqlTransaction transaction = null,
+            bool productWiseSupplier = true)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = "";
+
+                if (productWiseSupplier)
+                {
+                    if (vm.IsSummary)
+                    {
+                        query = @"
+SELECT 
+PG.Name AS ProductGroupName,
+U.Name AS UOMName,
+P.Code AS ProductCode,
+P.Name AS ProductName,
+P.SDRate,
+P.VATRate,
+P.PurchasePrice,
+STRING_AGG(SG.Name, ', ') AS SupplierGroupName,
+STRING_AGG(S.Name, ', ') AS SupplierName,
+STRING_AGG(S.Code, ', ') AS SupplierCode,
+STRING_AGG(S.TelephoneNo, ', ') AS TelephoneNo,
+STRING_AGG(S.Address, ', ') AS SupplierAddress
+FROM SupplierProduct SP
+INNER JOIN Products P ON SP.ProductId = P.Id
+INNER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+INNER JOIN UOMs U ON P.UOMId = U.Id
+INNER JOIN Suppliers S ON SP.SupplierId = S.Id
+INNER JOIN SupplierGroups SG ON S.SupplierGroupId = SG.Id
+WHERE SP.IsActive = 1 AND SP.IsArchive = 0
+GROUP BY PG.Name, U.Name, P.Code, P.Name, P.SDRate, P.VATRate, P.PurchasePrice
+ORDER BY PG.Name, P.Name;";
+                    }
+                    else
+                    {
+                        query = @"
+SELECT 
+PG.Name AS ProductGroupName,
+U.Name AS UOMName,
+P.Code AS ProductCode,
+P.Name AS ProductName,
+P.SDRate,
+P.VATRate,
+P.PurchasePrice,
+SG.Name AS SupplierGroupName,
+S.Name AS SupplierName,
+S.Code AS SupplierCode,
+S.TelephoneNo,
+S.Address AS SupplierAddress
+FROM SupplierProduct SP
+INNER JOIN Products P ON SP.ProductId = P.Id
+INNER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+INNER JOIN UOMs U ON P.UOMId = U.Id
+INNER JOIN Suppliers S ON SP.SupplierId = S.Id
+INNER JOIN SupplierGroups SG ON S.SupplierGroupId = SG.Id
+WHERE SP.IsActive = 1 AND SP.IsArchive = 0
+ORDER BY PG.Name, P.Name, S.Name;";
+                    }
+                }
+                else
+                {
+                    if (vm.IsSummary)
+                    {
+                        query = @"
+SELECT 
+SG.Name AS SupplierGroupName,
+S.Name AS SupplierName,
+S.Code AS SupplierCode,
+S.TelephoneNo,
+S.Address AS SupplierAddress,
+STRING_AGG(PG.Name, ', ') AS ProductGroupName,
+STRING_AGG(P.Code, ', ') AS ProductCode,
+STRING_AGG(P.Name, ', ') AS ProductName,
+STRING_AGG(CAST(P.SDRate AS varchar), ', ') AS SDRate,
+STRING_AGG(CAST(P.VATRate AS varchar), ', ') AS VATRate,
+STRING_AGG(CAST(P.PurchasePrice AS varchar), ', ') AS PurchasePrice
+FROM SupplierProduct SP
+INNER JOIN Suppliers S ON SP.SupplierId = S.Id
+INNER JOIN SupplierGroups SG ON S.SupplierGroupId = SG.Id
+INNER JOIN Products P ON SP.ProductId = P.Id
+INNER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+WHERE SP.IsActive = 1 AND SP.IsArchive = 0
+GROUP BY SG.Name, S.Name, S.Code, S.TelephoneNo, S.Address
+ORDER BY SG.Name, S.Name;";
+                    }
+                    else
+                    {
+                        query = @"
+SELECT 
+SG.Name AS SupplierGroupName,
+S.Name AS SupplierName,
+S.Code AS SupplierCode,
+S.TelephoneNo,
+S.Address AS SupplierAddress,
+PG.Name AS ProductGroupName,
+P.Code AS ProductCode,
+P.Name AS ProductName,
+P.SDRate,
+P.VATRate,
+P.PurchasePrice
+FROM SupplierProduct SP
+INNER JOIN Suppliers S ON SP.SupplierId = S.Id
+INNER JOIN SupplierGroups SG ON S.SupplierGroupId = SG.Id
+INNER JOIN Products P ON SP.ProductId = P.Id
+INNER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+WHERE SP.IsActive = 1 AND SP.IsArchive = 0
+ORDER BY SG.Name, S.Name, P.Name;";
+                    }
+                }
+
+                // Apply additional conditions
+                if (!query.ToUpper().Contains("WHERE"))
+                {
+                    query += " WHERE 1=1 ";
+                }
+                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                // Optional: filter by ProductId or SupplierId if sent in vm
+                objComm.SelectCommand.Parameters.AddWithValue("@ProductId", vm.ProductId);
+                objComm.SelectCommand.Parameters.AddWithValue("@SupplierId", vm.SupplierId);
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new SupplierProductReportVM
+                {
+                    Id = 0, // no PurchaseId here
+                    ProductName = dataTable.Columns.Contains("ProductName") ? row["ProductName"]?.ToString() : "",
+                    SupplierName = dataTable.Columns.Contains("SupplierName") ? row["SupplierName"]?.ToString() : "",
+                    ProductGroupName = dataTable.Columns.Contains("ProductGroupName") ? row["ProductGroupName"]?.ToString() : "",
+                    SupplierGroupName = dataTable.Columns.Contains("SupplierGroupName") ? row["SupplierGroupName"]?.ToString() : "",
+                    ProductCode = dataTable.Columns.Contains("ProductCode") ? row["ProductCode"]?.ToString() : "",
+                    SupplierCode = dataTable.Columns.Contains("SupplierCode") ? row["SupplierCode"]?.ToString() : "",
+                    TelephoneNo = dataTable.Columns.Contains("TelephoneNo") ? row["TelephoneNo"]?.ToString() : "",
+                    SupplierAddress = dataTable.Columns.Contains("SupplierAddress") ? row["SupplierAddress"]?.ToString() : "",
+                    SDRate = dataTable.Columns.Contains("SDRate") ? Convert.ToDecimal(row["SDRate"]) : 0,
+                    VATRate = dataTable.Columns.Contains("VATRate") ? Convert.ToDecimal(row["VATRate"]) : 0,
+                    //PurchasePrice = dataTable.Columns.Contains("PurchasePrice") ? Convert.ToDecimal(row["PurchasePrice"]) : 0
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Message = ex.Message;
+                result.ExMessage = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
 
 
     }

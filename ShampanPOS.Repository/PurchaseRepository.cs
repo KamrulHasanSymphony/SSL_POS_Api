@@ -763,6 +763,59 @@ WHERE 1 = 1 ";
             }
         }
 
+        public async Task<ResultVM> PaymentHistoryList(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = @"
+            SELECT 
+                ISNULL(PAY.Code, '') AS MoneyReceiptNo,
+                ISNULL(FORMAT(PAY.TransactionDate, 'yyyy-MM-dd'), '1900-01-01') AS PaymentDate,
+                ISNULL(PAY.IsCash, 0) AS IsCashTransaction,
+                ISNULL(PAYD.PaymentAmount, 0) AS AmountPaidThisVoucher,
+                ISNULL(BI.Name, '') AS PaidBankName,
+                ISNULL(BA.AccountNo, '') AS PaidBankAccountNo
+            FROM PaymentDetails PAYD
+            INNER JOIN Payments PAY ON PAYD.PaymentId = PAY.Id
+            LEFT OUTER JOIN BankAccounts BA ON PAY.BankAccountId = BA.Id
+            LEFT OUTER JOIN BankInformations BI ON BA.BankId = BI.Id
+            WHERE 1 = 1 ";
+
+                query = ApplyConditions(query, conditionalFields, conditionalValue, false);
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValue);
+
+                objComm.Fill(dataTable);
+
+                result.Status = "Success";
+                result.Message = "Payments Data retrieved successfully.";
+                result.DataVM = dataTable;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null) conn.Close();
+            }
+        }
+
 
         //Add
         public async Task<ResultVM> ExportDetailsList(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)

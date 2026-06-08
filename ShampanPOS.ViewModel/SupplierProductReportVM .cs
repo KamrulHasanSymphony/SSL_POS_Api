@@ -1,0 +1,119 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ShampanPOS.ViewModel
+{
+    public class SupplierProductReportVM
+    {
+        public int Id { get; set; }
+
+        [Display(Name = "Supplier")]
+        [Required(ErrorMessage = "Supplier is required.")]
+        public int SupplierId { get; set; }
+        public string? UserId { get; set; }
+
+        [Display(Name = "Master Supplier")]
+        public int? MasterSupplierId { get; set; }
+        public string? SupplierName { get; set; }
+        public string? SupplierCode { get; set; }
+        public string? SupplierAddress { get; set; }
+        public string? ProductCode { get; set; }
+        public string? SupplierEmail { get; set; }
+        public string? SupplierTelephoneNo { get; set; }
+        public string? SupplierCity { get; set; }
+
+        public bool IsSummary { get; set; }
+        public string? BranchName { get; set; }
+        public string? ReportType { get; set; }
+        public string? CompanyName { get; set; }
+
+
+        [Display(Name = "Product")]
+        public int ProductId { get; set; }
+
+        public string? ProductName { get; set; }
+        public int? CompanyId { get; set; }
+
+        [Display(Name = "Product Group")]
+        public int ProductGroupId { get; set; }
+
+        public string? ProductGroupDescription { get; set; }
+
+        public string? ProductGroupCode { get; set; }
+
+        public string? ProductGroupName { get; set; }
+
+
+        public decimal SDRate { get; set; }
+        public decimal SDAmount { get; set; }
+        public decimal VATRate { get; set; }
+        public decimal VATAmount { get; set; }
+
+        [Display(Name = "Supplier Group ID")]
+        public int? SupplierGroupId { get; set; }
+        public string? SupplierGroupName { get; set; }
+
+        [Display(Name = "Archived")]
+        public bool IsArchive { get; set; }
+
+        [Display(Name = "Created By")]
+        public string? CreatedBy { get; set; }
+
+        [Display(Name = "Created On")]
+        public string? CreatedOn { get; set; }
+
+        [Display(Name = "Last Modified By")]
+        public string? LastModifiedBy { get; set; }
+
+        [Display(Name = "Last Modified On")]
+        public string? LastModifiedOn { get; set; }
+
+        [Display(Name = "Operation")]
+        public string? Operation { get; set; }
+
+        [Display(Name = "IsActive")]
+        public bool IsActive { get; set; }
+
+        [Display(Name = "CreatedFrom")]
+        public string? CreatedFrom { get; set; }
+
+        [Display(Name = "Last Update From")]
+        public string? LastUpdateFrom { get; set; }
+        public string? Status { get; set; }
+
+        public string?[] IDs { get; set; }
+
+        [Display(Name = "UOM")]
+        public int? UOMId { get; set; }
+
+        [Display(Name = "HS Code No.")]
+        public string? HSCodeNo { get; set; }
+
+        [Display(Name = "Bangla Name")]
+        public string? BanglaName { get; set; }
+
+        [Display(Name = "Telephone No")]
+        public string? TelephoneNo { get; set; }
+
+        public int? MasterSupplierGroupId { get; set; }
+        public string? MasterSupplierGroupName { get; set; }
+        public string? MasterSupplierGroupCode { get; set; }
+
+        public PeramModel PeramModel { get; set; }
+
+        public List<MasterItemVM> MasterItemList { get; set; }
+
+
+        public SupplierProductReportVM()
+        {
+            PeramModel = new PeramModel();
+            MasterItemList = new List<MasterItemVM>();
+        }
+
+    }
+}
+
