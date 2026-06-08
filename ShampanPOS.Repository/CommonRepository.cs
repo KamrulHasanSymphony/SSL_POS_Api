@@ -5324,6 +5324,164 @@ LEFT JOIN PurchaseOrderDetails D
         }
 
 
+        public async Task<ResultVM> GetBankAccountModal(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+        {
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error" };
+            try
+            {
+                if (conn == null) throw new Exception("Database connection fail!");
+
+                string query = @"
+            SELECT
+                ISNULL(ba.Id, 0)          AS Id,
+                ISNULL(ba.AccountNo, '')  AS AccountNo,
+                ISNULL(ba.AccountName,'') AS AccountName,
+                ISNULL(bi.Id, 0)          AS BankId,
+                ISNULL(bi.Name, '')       AS BankName,
+                ISNULL(bi.Code, '')       AS BankCode
+            FROM BankAccounts ba
+            LEFT JOIN BankInformations bi ON ba.BankId = bi.Id
+            WHERE ba.IsActive = 1 AND ba.IsArchive = 0
+        ";
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new BankAccountDataVM
+                {
+                    Id = row.Field<int>("Id"),
+                    AccountNo = row.Field<string>("AccountNo"),
+                    AccountName = row.Field<string>("AccountName"),
+                    BankId = row.Field<int>("BankId"),
+                    BankName = row.Field<string>("BankName"),
+                    BankCode = row.Field<string>("BankCode")
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+        }
+
+        public async Task<ResultVM> GetDepositModal(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+        {
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error" };
+            try
+            {
+                if (conn == null) throw new Exception("Database connection fail!");
+
+                string query = @"
+            SELECT
+                ISNULL(d.Id, 0)                    AS Id,
+                ISNULL(d.Code, '')                 AS Code,
+                d.TransactionDate                  AS TransactionDate,
+                ISNULL(d.TotalDepositAmount, 0)    AS TotalDepositAmount,
+                ISNULL(d.ToBankAccountId, 0)       AS ToBankAccountId,
+                ISNULL(ba.AccountNo, '')            AS AccountNo,
+                ISNULL(ba.AccountName, '')          AS AccountName,
+                ISNULL(bi.Name, '')                 AS BankName,
+                ISNULL(d.Reference, '')             AS Reference
+            FROM Deposits d
+            LEFT JOIN BankAccounts ba ON d.ToBankAccountId = ba.Id
+            LEFT JOIN BankInformations bi ON ba.BankId = bi.Id
+            WHERE d.IsActive = 1 AND d.IsArchive = 0
+            ORDER BY d.TransactionDate DESC
+        ";
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new DepositDataVM
+                {
+                    Id = row.Field<int>("Id"),
+                    Code = row.Field<string>("Code"),
+                    TransactionDate = dataTable.Columns.Contains("TransactionDate") ? row["TransactionDate"]?.ToString() : "",
+                    TotalDepositAmount = row.Field<decimal>("TotalDepositAmount"),
+                    ToBankAccountId = row.Field<int>("ToBankAccountId"),
+                    AccountNo = row.Field<string>("AccountNo"),
+                    AccountName = row.Field<string>("AccountName"),
+                    BankName = row.Field<string>("BankName"),
+                    Reference = row.Field<string>("Reference")
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+        }
+
+        public async Task<ResultVM> GetWithdrawalModal(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+        {
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error" };
+            try
+            {
+                if (conn == null) throw new Exception("Database connection fail!");
+
+                string query = @"
+            SELECT
+                ISNULL(w.Id, 0)                    AS Id,
+                ISNULL(w.Code, '')                 AS Code,
+                w.TransactionDate                  AS TransactionDate,
+                ISNULL(w.TotalDepositAmount, 0)    AS TotalDepositAmount,
+                ISNULL(w.FromBankAccountId, 0)     AS FromBankAccountId,
+                ISNULL(ba.AccountNo, '')            AS AccountNo,
+                ISNULL(ba.AccountName, '')          AS AccountName,
+                ISNULL(bi.Name, '')                 AS BankName,
+                ISNULL(w.Reference, '')             AS Reference
+            FROM Withdrawals w
+            LEFT JOIN BankAccounts ba ON w.FromBankAccountId = ba.Id
+            LEFT JOIN BankInformations bi ON ba.BankId = bi.Id
+            WHERE w.IsActive = 1 AND w.IsArchive = 0
+            ORDER BY w.TransactionDate DESC
+        ";
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new WithdrawalDataVM
+                {
+                    Id = row.Field<int>("Id"),
+                    Code = row.Field<string>("Code"),
+                    TransactionDate = dataTable.Columns.Contains("TransactionDate") ? row["TransactionDate"]?.ToString() : "",
+                    TotalDepositAmount = row.Field<decimal>("TotalDepositAmount"),
+                    FromBankAccountId = row.Field<int>("FromBankAccountId"),
+                    AccountNo = row.Field<string>("AccountNo"),
+                    AccountName = row.Field<string>("AccountName"),
+                    BankName = row.Field<string>("BankName"),
+                    Reference = row.Field<string>("Reference")
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+        }
+
+
     }
 
 }

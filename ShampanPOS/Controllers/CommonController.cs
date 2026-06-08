@@ -1494,5 +1494,55 @@ namespace ShampanPOS.Controllers
             }
         }
 
+
+
+        [HttpPost("GetBankAccountModal")]
+        public async Task<ResultVM> GetBankAccountModal(CommonVM vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+            try
+            {
+                CommonService _commonService = new CommonService();
+                resultVM = await _commonService.GetBankAccountModal(new[] { "" }, new[] { "" }, null);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM { Status = "Fail", Message = "Data not fetched.", ExMessage = ex.Message };
+            }
+        }
+
+        [HttpPost("GetDepositModal")]
+        public async Task<ResultVM> GetDepositModal(CommonVM vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+            try
+            {
+                CommonService _commonService = new CommonService();
+                resultVM = await _commonService.GetDepositModal(new[] { "" }, new[] { "" }, null);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM { Status = "Fail", Message = "Data not fetched.", ExMessage = ex.Message };
+            }
+        }
+
+        [HttpPost("GetWithdrawalModal")]
+        public async Task<ResultVM> GetWithdrawalModal(CommonVM vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+            try
+            {
+                CommonService _commonService = new CommonService();
+                resultVM = await _commonService.GetWithdrawalModal(new[] { "" }, new[] { "" }, null);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM { Status = "Fail", Message = "Data not fetched.", ExMessage = ex.Message };
+            }
+        }
+
     }
 }
