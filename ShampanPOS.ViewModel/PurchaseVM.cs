@@ -125,15 +125,27 @@ namespace ShampanPOS.ViewModel
 
         public PeramModel PeramModel { get; set; }
         public List<PurchaseDetailVM> purchaseDetailList { get; set; }
-        //public List<PurchaseDetailExportVM> purchaseDetailExportList { get; set; }
+        public List<PurchasePaymentVM> purchasePaymentList { get; set; }
+
+        // Constructor update korun class er ekdom niche:
         public PurchaseVM()
         {
             purchaseDetailList = new List<PurchaseDetailVM>();
+            purchasePaymentList = new List<PurchasePaymentVM>(); 
             PeramModel = new PeramModel();
-            //purchaseDetailExportList = new List<PurchaseDetailExportVM>();
         }
 
 
+    }
+
+    public class PurchasePaymentVM
+    {
+        public string? MoneyReceiptNo { get; set; }
+        public string? PaymentDate { get; set; }
+        public bool IsCashTransaction { get; set; }
+        public decimal AmountPaidThisVoucher { get; set; }
+        public string? PaidBankName { get; set; }
+        public string? PaidBankAccountNo { get; set; }
     }
 
 }
