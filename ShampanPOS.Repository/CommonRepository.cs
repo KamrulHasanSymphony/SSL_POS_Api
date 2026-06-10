@@ -5342,7 +5342,8 @@ LEFT JOIN PurchaseOrderDetails D
                 ISNULL(bi.Code, '')       AS BankCode
             FROM BankAccounts ba
             LEFT JOIN BankInformations bi ON ba.BankId = bi.Id
-            WHERE ba.IsActive = 1 AND ba.IsArchive = 0
+            --WHERE ba.IsActive = 1 AND ba.IsArchive = 0
+            WHERE 1=1
         ";
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
