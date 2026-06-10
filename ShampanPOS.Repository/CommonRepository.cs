@@ -5499,25 +5499,23 @@ LEFT JOIN PurchaseOrderDetails D
 SELECT 
     ISNULL(M.Id, 0) AS Id,
     ISNULL(M.Code, '') AS Code,
-    ISNULL(M.PurchaseOrderId, 0) AS PurchaseOrderId,
+    ISNULL(D.PurchasesReturnId, 0) AS PurchasesReturnId,
     ISNULL(M.SupplierId, 0) AS SupplierId,
-    ISNULL(M.SubTotal, 0) AS SubTotal,
-    ISNULL(M.GrandTotal, 0) AS GrandTotal,
-    ISNULL(CONVERT(varchar(10), M.InvoiceDateTime, 23), '1900-01-01') AS InvoiceDateTime,
-    ISNULL(CONVERT(varchar(10), M.PurchaseDate, 23), '1900-01-01') AS PurchaseDate,
     ISNULL(S.Name, '') AS SupplierName,
     ISNULL(D.Quantity, 0) AS Quantity,
-    ISNULL(D.UnitPrice, 0) AS UnitPrice
+    ISNULL(D.UnitPrice, 0) AS UnitPrice,
+	ISNULL(CONVERT(varchar(10), M.InvoiceDateTime, 23), '1900-01-01') AS InvoiceDateTime,
+    ISNULL(CONVERT(varchar(10), M.PurchaseDate, 23), '1900-01-01') AS PurchaseDate,
+    ISNULL(D.SubTotal, 0) AS SubTotal,
+    ISNULL(D.LineTotal, 0) AS LineTotal
 
 
-FROM Purchases M
+FROM PurchasesReturn M
 LEFT JOIN Suppliers S 
     ON M.SupplierId = S.Id
 
-LEFT JOIN PurchaseDetails D 
-    ON M.Id = D.PurchaseId
-	WHERE 1 = 1;
-";
+LEFT JOIN PurchaseReturnDetails D ON M.Id = D.PurchasesReturnId
+	WHERE 1 = 1;";
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
