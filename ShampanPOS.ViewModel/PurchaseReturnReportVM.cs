@@ -71,7 +71,7 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Supplier Name")]
         public string? SupplierName { get; set; }
         public string? BranchName { get; set; }
-
+        public int? PurchasesReturnId { get; set; }
         public int? Line { get; set; }
         public string? PurchaseReturnDate { get; set; }
         public string? SupplierCode { get; set; }
