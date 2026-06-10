@@ -5482,6 +5482,81 @@ LEFT JOIN PurchaseOrderDetails D
             }
         }
 
+        public async Task<ResultVM> GetPurchaseReturnModal(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+        {
+            DataTable dataTable = new DataTable();
+
+            ResultVM result = new ResultVM
+            { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    throw new Exception("Database connection fail!");
+                }
+
+                string query = @"
+SELECT 
+    ISNULL(M.Id, 0) AS Id,
+    ISNULL(M.Code, '') AS Code,
+    ISNULL(M.PurchaseOrderId, 0) AS PurchaseOrderId,
+    ISNULL(M.SupplierId, 0) AS SupplierId,
+    ISNULL(M.SubTotal, 0) AS SubTotal,
+    ISNULL(M.GrandTotal, 0) AS GrandTotal,
+    ISNULL(CONVERT(varchar(10), M.InvoiceDateTime, 23), '1900-01-01') AS InvoiceDateTime,
+    ISNULL(CONVERT(varchar(10), M.PurchaseDate, 23), '1900-01-01') AS PurchaseDate,
+    ISNULL(S.Name, '') AS SupplierName,
+    ISNULL(D.Quantity, 0) AS Quantity,
+    ISNULL(D.UnitPrice, 0) AS UnitPrice
+
+
+FROM Purchases M
+LEFT JOIN Suppliers S 
+    ON M.SupplierId = S.Id
+
+LEFT JOIN PurchaseDetails D 
+    ON M.Id = D.PurchaseId
+	WHERE 1 = 1;
+";
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                // optional filters (same pattern as ProductModal)
+                objComm.SelectCommand =
+                    ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new PurchaseReturnReportVM
+                {
+                    // =========================
+                    // 🔥 HEADER (M = Purchases)
+                    // =========================
+                    Id = row.Field<int>("Id"),
+                    Code = row.Field<string>("Code"),
+                    PurchasesReturnId = row.Field<int?>("PurchasesReturnId"),
+                    SupplierId = row.Field<int?>("SupplierId"),
+                    SupplierName = row.Field<string>("SupplierName"),
+                    SubTotal = row.Field<decimal?>("SubTotal") ?? 0,
+                    Quantity = row.Field<decimal?>("Quantity") ?? 0,
+                    UnitPrice = row.Field<decimal?>("UnitPrice") ?? 0,
+                    PurchaseDate = row.Field<string>("PurchaseDate"),
+                    InvoiceDateTime = row.Field<string>("InvoiceDateTime"),
+
+                }).ToList(); result.Status = "Success";
+                result.Message = "Purchase modal data retrieved successfully.";
+                result.DataVM = modelList;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+        }
 
     }
 
