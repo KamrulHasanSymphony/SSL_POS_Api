@@ -125,13 +125,235 @@ namespace ShampanPOS.Repository
                 WHERE 1=1
             ");
                 }
+                else if (vm?.TransactionType == "Statement")
+                {
+                    query = new StringBuilder(@"
+        SELECT * FROM (
+
+    -- Sales (Credit Card) → IN
+    SELECT
+        'SaleCard' AS TransactionType,
+        'Sale' AS SourceTable,
+        'In' AS InOut,
+        SLS.Id AS TransactionId,
+        CAST(SLS.Code AS NVARCHAR(50)) AS TransactionCode,
+        CAST(SLS.InvoiceDateTime AS DATE) AS TransactionDate,
+        SCC.Cardtotal AS Amount,
+        BA.Id AS AccountId,
+        BA.AccountNo,
+        BA.AccountName,
+        BI.Id AS BankId,
+        BI.Name AS BankName,
+        BI.Code AS BankCode,
+        NULL AS Reference,
+        NULL AS Comments,
+        0 AS BranchId,
+        CAST(0 AS BIT) AS IsCash,       -- Added missing column
+        NULL AS ChequeNo,              -- Added missing column
+        NULL AS ChequeBankName,        -- Added missing column
+        NULL AS ChequeDate,            -- Added missing column
+        NULL AS CreatedBy,             -- Added missing column
+        NULL AS CreatedOn              -- Added missing column
+    FROM SaleCreditCards SCC
+    LEFT JOIN Sales SLS ON SCC.SaleId = SLS.Id
+    LEFT JOIN BankAccounts BA ON SCC.CreditCardId = BA.Id
+    LEFT JOIN BankInformations BI ON BA.BankId = BI.Id
+
+    UNION ALL
+
+    -- Collections → IN
+    SELECT
+        'Collection' AS TransactionType,
+        'Collection' AS SourceTable,
+        'In' AS InOut,
+        CLC.Id AS TransactionId,
+        CLC.Code AS TransactionCode,
+        CLC.TransactionDate,
+        CLC.TotalCollectAmount AS Amount,
+        BA.Id AS AccountId,
+        BA.AccountNo,
+        BA.AccountName,
+        BI.Id AS BankId,
+        BI.Name AS BankName,
+        BI.Code AS BankCode,
+        NULL AS Reference,
+        NULL AS Comments,
+        0 AS BranchId,
+        CAST(0 AS BIT) AS IsCash,       -- Added missing column
+        NULL AS ChequeNo,              -- Added missing column
+        NULL AS ChequeBankName,        -- Added missing column
+        NULL AS ChequeDate,            -- Added missing column
+        NULL AS CreatedBy,             -- Added missing column
+        NULL AS CreatedOn              -- Added missing column
+    FROM Collections CLC
+    LEFT JOIN BankAccounts BA ON CLC.BankAccountId = BA.Id
+    LEFT JOIN BankInformations BI ON BA.BankId = BI.Id
+
+    UNION ALL
+
+    -- Payments → OUT
+    SELECT
+        'Payment' AS TransactionType,
+        'Payment' AS SourceTable,
+        'Out' AS InOut,
+        PYM.Id AS TransactionId,
+        PYM.Code AS TransactionCode,
+        PYM.TransactionDate,
+        PYM.TotalPaymentAmount AS Amount,
+        BA.Id AS AccountId,
+        BA.AccountNo,
+        BA.AccountName,
+        BI.Id AS BankId,
+        BI.Name AS BankName,
+        BI.Code AS BankCode,
+        NULL AS Reference,
+        NULL AS Comments,
+        PYM.BranchId,
+        CAST(0 AS BIT) AS IsCash,       -- Added missing column
+        NULL AS ChequeNo,              -- Added missing column
+        NULL AS ChequeBankName,        -- Added missing column
+        NULL AS ChequeDate,            -- Added missing column
+        NULL AS CreatedBy,             -- Added missing column
+        NULL AS CreatedOn              -- Added missing column
+    FROM Payments PYM
+    LEFT JOIN BankAccounts BA ON PYM.BankAccountId = BA.Id
+    LEFT JOIN BankInformations BI ON BA.BankId = BI.Id
+
+    UNION ALL
+
+    -- Deposits FromBankAccount → IN
+    SELECT
+        'Deposit' AS TransactionType,
+        'Deposit' AS SourceTable,
+        'In' AS InOut,
+        DPS.Id AS TransactionId,
+        DPS.Code AS TransactionCode,
+        DPS.TransactionDate,
+        DPS.TotalDepositAmount AS Amount,
+        BA.Id AS AccountId,
+        BA.AccountNo,
+        BA.AccountName,
+        BI.Id AS BankId,
+        BI.Name AS BankName,
+        BI.Code AS BankCode,
+        DPS.Reference,
+        DPS.Comments,
+        DPS.BranchId,
+        CAST(0 AS BIT) AS IsCash,       -- Added missing column
+        NULL AS ChequeNo,              -- Added missing column
+        NULL AS ChequeBankName,        -- Added missing column
+        NULL AS ChequeDate,            -- Added missing column
+        NULL AS CreatedBy,             -- Added missing column
+        NULL AS CreatedOn              -- Added missing column
+    FROM Deposits DPS
+    LEFT JOIN BankAccounts BA ON DPS.FromBankAccountId = BA.Id
+    LEFT JOIN BankInformations BI ON BA.BankId = BI.Id
+    WHERE DPS.IsActive = 1 AND DPS.IsArchive = 0
+
+    UNION ALL
+
+    -- Deposits ToBankAccount → OUT
+    SELECT
+        'Deposit' AS TransactionType,
+        'Deposit' AS SourceTable,
+        'Out' AS InOut,
+        DPS.Id AS TransactionId,
+        DPS.Code AS TransactionCode,
+        DPS.TransactionDate,
+        DPS.TotalDepositAmount AS Amount,
+        BA.Id AS AccountId,
+        BA.AccountNo,
+        BA.AccountName,
+        BI.Id AS BankId,
+        BI.Name AS BankName,
+        BI.Code AS BankCode,
+        DPS.Reference,
+        DPS.Comments,
+        DPS.BranchId,
+        CAST(0 AS BIT) AS IsCash,       -- Added missing column
+        NULL AS ChequeNo,              -- Added missing column
+        NULL AS ChequeBankName,        -- Added missing column
+        NULL AS ChequeDate,            -- Added missing column
+        NULL AS CreatedBy,             -- Added missing column
+        NULL AS CreatedOn              -- Added missing column
+    FROM Deposits DPS
+    LEFT JOIN BankAccounts BA ON DPS.ToBankAccountId = BA.Id
+    LEFT JOIN BankInformations BI ON BA.BankId = BI.Id
+    WHERE DPS.IsActive = 1 AND DPS.IsArchive = 0
+
+    UNION ALL
+
+    -- Withdrawals FromBankAccount → OUT
+    SELECT
+        'Withdrawal' AS TransactionType,
+        'Withdrawal' AS SourceTable,
+        'Out' AS InOut,
+        WDL.Id AS TransactionId,
+        WDL.Code AS TransactionCode,
+        WDL.TransactionDate,
+        WDL.TotalDepositAmount AS Amount,
+        BA.Id AS AccountId,
+        BA.AccountNo,
+        BA.AccountName,
+        BI.Id AS BankId,
+        BI.Name AS BankName,
+        BI.Code AS BankCode,
+        WDL.Reference,
+        WDL.Comments,
+        WDL.BranchId,
+        CAST(0 AS BIT) AS IsCash,       -- Added missing column
+        NULL AS ChequeNo,              -- Added missing column
+        NULL AS ChequeBankName,        -- Added missing column
+        NULL AS ChequeDate,            -- Added missing column
+        NULL AS CreatedBy,             -- Added missing column
+        NULL AS CreatedOn              -- Added missing column
+    FROM Withdrawals WDL
+    LEFT JOIN BankAccounts BA ON WDL.FromBankAccountId = BA.Id
+    LEFT JOIN BankInformations BI ON BA.BankId = BI.Id
+    WHERE WDL.IsActive = 1 AND WDL.IsArchive = 0
+
+    UNION ALL
+
+    -- Withdrawals ToBankAccount → IN
+    SELECT
+        'Withdrawal' AS TransactionType,
+        'Withdrawal' AS SourceTable,
+        'In' AS InOut,
+        WDL.Id AS TransactionId,
+        WDL.Code AS TransactionCode,
+        WDL.TransactionDate,
+        WDL.TotalDepositAmount AS Amount,
+        BA.Id AS AccountId,
+        BA.AccountNo,
+        BA.AccountName,
+        BI.Id AS BankId,
+        BI.Name AS BankName,
+        BI.Code AS BankCode,
+        WDL.Reference,
+        WDL.Comments,
+        WDL.BranchId,
+        CAST(0 AS BIT) AS IsCash,       -- Added missing column
+        NULL AS ChequeNo,              -- Added missing column
+        NULL AS ChequeBankName,        -- Added missing column
+        NULL AS ChequeDate,            -- Added missing column
+        NULL AS CreatedBy,             -- Added missing column
+        NULL AS CreatedOn              -- Added missing column
+    FROM Withdrawals WDL
+    LEFT JOIN BankAccounts BA ON WDL.ToBankAccountId = BA.Id
+    LEFT JOIN BankInformations BI ON BA.BankId = BI.Id
+    WHERE WDL.IsActive = 1 AND WDL.IsArchive = 0
+
+) AS StatementReport
+WHERE 1=1
+    ");
+                }
                 else
                 {
                     query = new StringBuilder(@"
-                SELECT * FROM (
-                    SELECT
-                        'Deposit' AS TransactionType,
-                        d.Id AS TransactionId,
+            SELECT * FROM (
+                SELECT
+                    'Deposit' AS TransactionType,
+                    d.Id AS TransactionId,
                         d.Code AS TransactionCode,
                         d.TransactionDate,
                         d.Reference,
@@ -215,14 +437,17 @@ namespace ShampanPOS.Repository
                 if ((vm?.BranchId ?? 0) > 0)
                     query.Append(" AND BranchId = @BranchId");
 
-                if ((vm?.DepositId ?? 0) > 0)
-                    query.Append(" AND (TransactionType = 'Deposit' AND TransactionId = @DepositId)");
+                if (vm?.TransactionType != "Statement")
+                {
+                    if ((vm?.DepositId ?? 0) > 0)
+                        query.Append(" AND (TransactionType = 'Deposit' AND TransactionId = @DepositId)");
 
-                if ((vm?.WithdrawalId ?? 0) > 0)
-                    query.Append(" AND (TransactionType = 'Withdrawal' AND TransactionId = @WithdrawalId)");
+                    if ((vm?.WithdrawalId ?? 0) > 0)
+                        query.Append(" AND (TransactionType = 'Withdrawal' AND TransactionId = @WithdrawalId)");
 
-                if (!string.IsNullOrWhiteSpace(vm?.TransactionType))
-                    query.Append(" AND TransactionType = @TransactionType");
+                    if (!string.IsNullOrWhiteSpace(vm?.TransactionType))
+                        query.Append(" AND TransactionType = @TransactionType");
+                }
 
                 query.Append(" ORDER BY TransactionDate DESC, TransactionId DESC");
 
@@ -289,7 +514,9 @@ namespace ShampanPOS.Repository
                     BankCode = row.Field<string>("BankCode") ?? "",
                     BranchId = row.Field<int?>("BranchId") ?? 0,
                     CreatedBy = row.Field<string>("CreatedBy") ?? "",
-                    CreatedOn = dataTable.Columns.Contains("CreatedOn") ? row["CreatedOn"]?.ToString() : ""
+                    CreatedOn = dataTable.Columns.Contains("CreatedOn") ? row["CreatedOn"]?.ToString() : "",
+                    InOut = dataTable.Columns.Contains("InOut") ? row.Field<string>("InOut") ?? "" : "",
+                    SourceTable = dataTable.Columns.Contains("SourceTable") ? row.Field<string>("SourceTable") ?? "" : ""
                 }).ToList();
 
                 result.Status = "Success";
