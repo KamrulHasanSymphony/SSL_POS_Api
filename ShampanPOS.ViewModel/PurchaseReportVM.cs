@@ -23,6 +23,7 @@ namespace ShampanPOS.ViewModel
         public string? PurchaseCode { get; set; }
         public string? PurchaseNo { get; set; }
         public string? PurchaseOrderNo { get; set; }
+        public string? PurchaseReturnNo { get; set; }
 
         public string? UserId { get; set; }
 
@@ -105,6 +106,7 @@ namespace ShampanPOS.ViewModel
         public decimal? TotalInvoice { get; set; }
         public string? ProductCode { get; set; }
         public string? SupplierCode { get; set; }
+        public int? PurchasesReturnId { get; set; }
 
     }
 }
