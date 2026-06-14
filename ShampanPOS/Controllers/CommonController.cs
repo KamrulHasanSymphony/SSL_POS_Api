@@ -866,31 +866,6 @@ namespace ShampanPOS.Controllers
 
 
 
-        [HttpPost("BankIdList")]
-        public async Task<ResultVM> BankIdList(CommonVM Vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                CommonService _commonService = new CommonService();
-                resultVM = await _commonService.BankIdList(new[] { "" }, new[] { "" }, null);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = "Data not fetched.",
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
-
-
-
-
         [HttpPost("GetSectionList")]
         public async Task<ResultVM> GetSectionList(CommonVM Vm)
         {
@@ -1495,6 +1470,28 @@ namespace ShampanPOS.Controllers
         }
 
 
+        [HttpPost("BankIdList")]
+        public async Task<ResultVM> BankIdList(CommonVM Vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            try
+            {
+                CommonService _commonService = new CommonService();
+                resultVM = await _commonService.BankIdList(new[] { "" }, new[] { "" }, null);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
+
 
         [HttpPost("GetBankAccountModal")]
         public async Task<ResultVM> GetBankAccountModal(CommonVM vm)
@@ -1503,7 +1500,14 @@ namespace ShampanPOS.Controllers
             try
             {
                 CommonService _commonService = new CommonService();
-                resultVM = await _commonService.GetBankAccountModal(new[] { "" }, new[] { "" }, null);
+                var fields = new List<string>();
+                var values = new List<string>();
+                if (!string.IsNullOrEmpty(vm.Value))
+                {
+                    fields.Add("BankId");
+                    values.Add(vm.Value);
+                }
+                resultVM = await _commonService.GetBankAccountModal(fields.ToArray(), values.ToArray(), null);
                 return resultVM;
             }
             catch (Exception ex)
@@ -1519,7 +1523,19 @@ namespace ShampanPOS.Controllers
             try
             {
                 CommonService _commonService = new CommonService();
-                resultVM = await _commonService.GetDepositModal(new[] { "" }, new[] { "" }, null);
+                var fields = new List<string>();
+                var values = new List<string>();
+                if (!string.IsNullOrEmpty(vm.Value))
+                {
+                    fields.Add("BankId");
+                    values.Add(vm.Value);
+                }
+                if (!string.IsNullOrEmpty(vm.Value2))
+                {
+                    fields.Add("BankAccountId");
+                    values.Add(vm.Value2);
+                }
+                resultVM = await _commonService.GetDepositModal(fields.ToArray(), values.ToArray(), null);
                 return resultVM;
             }
             catch (Exception ex)
@@ -1535,7 +1551,19 @@ namespace ShampanPOS.Controllers
             try
             {
                 CommonService _commonService = new CommonService();
-                resultVM = await _commonService.GetWithdrawalModal(new[] { "" }, new[] { "" }, null);
+                var fields = new List<string>();
+                var values = new List<string>();
+                if (!string.IsNullOrEmpty(vm.Value))
+                {
+                    fields.Add("BankId");
+                    values.Add(vm.Value);
+                }
+                if (!string.IsNullOrEmpty(vm.Value2))
+                {
+                    fields.Add("BankAccountId");
+                    values.Add(vm.Value2);
+                }
+                resultVM = await _commonService.GetWithdrawalModal(fields.ToArray(), values.ToArray(), null);
                 return resultVM;
             }
             catch (Exception ex)
