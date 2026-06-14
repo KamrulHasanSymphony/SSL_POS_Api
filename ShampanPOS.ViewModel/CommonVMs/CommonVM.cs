@@ -33,6 +33,7 @@ namespace ShampanPOS.ViewModel.CommonVMs
         public string? EnumType { get; set; }
         public string? Group { get; set; }
         public string? Value { get; set; }
+        public string? Value2 { get; set; }
         public string[] ConditionalFields { get; set; } = Array.Empty<string>();
         public string[] ConditionalValues { get; set; } = Array.Empty<string>();
 

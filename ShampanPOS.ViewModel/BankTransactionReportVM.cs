@@ -16,6 +16,8 @@ namespace ShampanPOS.ViewModel
         public string? TransactionType { get; set; } // "Deposit", "Withdrawal", or null (All)
         public string? InOut { get; set; }
         public string? SourceTable { get; set; }
+        public string? PartyName { get; set; }
+        public string? BankBranchName { get; set; }
         public decimal? OpeningBalance { get; set; }
         public decimal? RunningBalance { get; set; }
         public string? FromDate { get; set; }

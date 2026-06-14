@@ -347,6 +347,164 @@ namespace ShampanPOS.Repository
 WHERE 1=1
     ");
                 }
+                else if (vm?.TransactionType == "OutstandingBalance")
+                {
+                    query = new StringBuilder(@"
+        SELECT
+            BA.Id AS AccountId,
+            BA.AccountNo,
+            BA.AccountName,
+            BI.Id AS BankId,
+            BI.Name AS BankName,
+            BI.Code AS BankCode,
+            ISNULL(SUM(CASE WHEN T.InOut = 'In' THEN T.Amount ELSE -T.Amount END), 0) AS Amount,
+            NULL AS TransactionId,
+            NULL AS TransactionCode,
+            NULL AS TransactionDate,
+            NULL AS Reference,
+            NULL AS Comments,
+            0 AS BranchId,
+            CAST(0 AS BIT) AS IsCash,
+            NULL AS ChequeNo,
+            NULL AS ChequeBankName,
+            NULL AS ChequeDate,
+            NULL AS CreatedBy,
+            NULL AS CreatedOn,
+            NULL AS InOut,
+            NULL AS SourceTable,
+            NULL AS PartyName,
+            NULL AS BranchName,
+            'OutstandingBalance' AS TransactionType
+        FROM BankAccounts BA
+        LEFT JOIN BankInformations BI ON BA.BankId = BI.Id
+        LEFT JOIN (
+
+            -- Sales Credit Card → IN
+            SELECT SCC.CreditCardId AS BankAccountId, 'In' AS InOut, SCC.Cardtotal AS Amount
+            FROM SaleCreditCards SCC
+            LEFT JOIN Sales SLS ON SCC.SaleId = SLS.Id
+
+            UNION ALL
+
+            -- Collections → IN
+            SELECT CLC.BankAccountId, 'In' AS InOut, CLC.TotalCollectAmount AS Amount
+            FROM Collections CLC
+
+            UNION ALL
+
+            -- Payments → OUT
+            SELECT PYM.BankAccountId, 'Out' AS InOut, PYM.TotalPaymentAmount AS Amount
+            FROM Payments PYM
+
+            UNION ALL
+
+            -- Deposits FromBankAccount → OUT
+            SELECT DPS.FromBankAccountId AS BankAccountId, 'Out' AS InOut, DPS.TotalDepositAmount AS Amount
+            FROM Deposits DPS
+            WHERE DPS.IsActive = 1 AND DPS.IsArchive = 0
+
+            UNION ALL
+
+            -- Deposits ToBankAccount → IN
+            SELECT DPS.ToBankAccountId AS BankAccountId, 'In' AS InOut, DPS.TotalDepositAmount AS Amount
+            FROM Deposits DPS
+            WHERE DPS.IsActive = 1 AND DPS.IsArchive = 0
+
+            UNION ALL
+
+            -- Withdrawals FromBankAccount → OUT
+            SELECT WDL.FromBankAccountId AS BankAccountId, 'Out' AS InOut, WDL.TotalDepositAmount AS Amount
+            FROM Withdrawals WDL
+            WHERE WDL.IsActive = 1 AND WDL.IsArchive = 0
+
+            UNION ALL
+
+            -- Withdrawals ToBankAccount → IN
+            SELECT WDL.ToBankAccountId AS BankAccountId, 'In' AS InOut, WDL.TotalDepositAmount AS Amount
+            FROM Withdrawals WDL
+            WHERE WDL.IsActive = 1 AND WDL.IsArchive = 0
+
+        ) AS T ON T.BankAccountId = BA.Id
+        WHERE BA.IsActive = 1
+        GROUP BY BA.Id, BA.AccountNo, BA.AccountName, BI.Id, BI.Name, BI.Code
+    ");
+                }
+                else if (vm?.TransactionType == "Payment")
+                {
+                    query = new StringBuilder(@"
+        SELECT * FROM (
+            SELECT
+                'Payment' AS TransactionType,
+                NULL AS SourceTable,
+                P.Id AS TransactionId,
+                P.Code AS TransactionCode,
+                P.TransactionDate,
+                P.TotalPaymentAmount AS Amount,
+                B.Id AS BankId,
+                B.Name AS BankName,
+                B.Code AS BankCode,
+                A.Id AS AccountId,
+                A.AccountName,
+                A.AccountNo,
+                A.BranchName,
+                S.Id AS SupplierId,
+                S.Name AS PartyName,
+                NULL AS Reference,
+                NULL AS Comments,
+                P.BranchId,
+                CAST(0 AS BIT) AS IsCash,
+                NULL AS ChequeNo,
+                NULL AS ChequeBankName,
+                NULL AS ChequeDate,
+                NULL AS CreatedBy,
+                NULL AS CreatedOn,
+                NULL AS InOut
+            FROM Payments P
+            LEFT JOIN BankAccounts A ON P.BankAccountId = A.Id
+            LEFT JOIN BankInformations B ON A.BankId = B.Id
+            LEFT JOIN Suppliers S ON P.SupplierId = S.Id
+        ) AS PaymentReport
+        WHERE 1=1
+    ");
+                }
+                else if (vm?.TransactionType == "Collection")
+                {
+                    query = new StringBuilder(@"
+        SELECT * FROM (
+            SELECT
+                'Collection' AS TransactionType,
+                NULL AS SourceTable,
+                C.Id AS TransactionId,
+                C.Code AS TransactionCode,
+                C.TransactionDate,
+                C.TotalCollectAmount AS Amount,
+                B.Id AS BankId,
+                B.Name AS BankName,
+                B.Code AS BankCode,
+                A.Id AS AccountId,
+                A.AccountName,
+                A.AccountNo,
+                A.BranchName,
+                Cust.Id AS SupplierId,
+                Cust.Name AS PartyName,
+                NULL AS Reference,
+                NULL AS Comments,
+                0 AS BranchId,
+                CAST(0 AS BIT) AS IsCash,
+                NULL AS ChequeNo,
+                NULL AS ChequeBankName,
+                NULL AS ChequeDate,
+                NULL AS CreatedBy,
+                NULL AS CreatedOn,
+                NULL AS InOut
+            FROM Collections C
+            LEFT JOIN BankAccounts A ON C.BankAccountId = A.Id
+            LEFT JOIN BankInformations B ON A.BankId = B.Id
+            LEFT JOIN Customers Cust ON C.CustomerId = Cust.Id
+        ) AS CollectionReport
+        WHERE 1=1
+    ");
+                }
                 else
                 {
                     query = new StringBuilder(@"
@@ -419,25 +577,45 @@ WHERE 1=1
 
                 #region Dynamic Filters
 
-                if (!string.IsNullOrWhiteSpace(vm?.FromDate))
-                    query.Append(" AND TransactionDate >= @FromDate");
+                if (vm?.TransactionType != "OutstandingBalance")
+                {
+                    if (!string.IsNullOrWhiteSpace(vm?.FromDate))
+                        query.Append(" AND TransactionDate >= @FromDate");
 
-                if (!string.IsNullOrWhiteSpace(vm?.ToDate))
-                    query.Append(" AND TransactionDate <= @ToDate");
+                    if (!string.IsNullOrWhiteSpace(vm?.ToDate))
+                        query.Append(" AND TransactionDate <= @ToDate");
 
-                if ((vm?.BankId ?? 0) > 0)
-                    query.Append(" AND BankId = @BankId");
+                    if ((vm?.TransactionId ?? 0) > 0)
+                        query.Append(" AND TransactionId = @TransactionId");
 
-                if ((vm?.BankAccountId ?? 0) > 0)
-                    query.Append(" AND AccountId = @BankAccountId");
+                    if ((vm?.BranchId ?? 0) > 0)
+                        query.Append(" AND BranchId = @BranchId");
+                }
 
-                if ((vm?.TransactionId ?? 0) > 0)
-                    query.Append(" AND TransactionId = @TransactionId");
+                // OutstandingBalance এ BankId/AccountId HAVING এ filter হবে
+                if (vm?.TransactionType == "OutstandingBalance")
+                {
+                    if ((vm?.BankId ?? 0) > 0)
+                        query.Append(" HAVING BI.Id = @BankId");
 
-                if ((vm?.BranchId ?? 0) > 0)
-                    query.Append(" AND BranchId = @BranchId");
+                    if ((vm?.BankAccountId ?? 0) > 0)
+                        query.Append((vm?.BankId ?? 0) > 0
+                            ? " AND BA.Id = @BankAccountId"
+                            : " HAVING BA.Id = @BankAccountId");
+                }
+                else
+                {
+                    if ((vm?.BankId ?? 0) > 0)
+                        query.Append(" AND BankId = @BankId");
 
-                if (vm?.TransactionType != "Statement")
+                    if ((vm?.BankAccountId ?? 0) > 0)
+                        query.Append(" AND AccountId = @BankAccountId");
+                }
+
+                if (vm?.TransactionType != "Statement"
+                    && vm?.TransactionType != "Payment"
+                    && vm?.TransactionType != "Collection"
+                    && vm?.TransactionType != "OutstandingBalance")
                 {
                     if ((vm?.DepositId ?? 0) > 0)
                         query.Append(" AND (TransactionType = 'Deposit' AND TransactionId = @DepositId)");
@@ -449,7 +627,10 @@ WHERE 1=1
                         query.Append(" AND TransactionType = @TransactionType");
                 }
 
-                query.Append(" ORDER BY TransactionDate ASC, TransactionId ASC");
+                if (vm?.TransactionType == "OutstandingBalance")
+                    query.Append(" ORDER BY BI.Name ASC, BA.AccountName ASC");
+                else
+                    query.Append(" ORDER BY TransactionDate ASC, TransactionId ASC");
 
                 #endregion
 
@@ -462,8 +643,11 @@ WHERE 1=1
                     objComm.SelectCommand, conditionalFields, conditionalValues);
 
                 #region Parameters
-                if (!string.IsNullOrWhiteSpace(vm?.FromDate)) objComm.SelectCommand.Parameters.AddWithValue("@FromDate", DateTime.Parse(vm.FromDate));
-                if (!string.IsNullOrWhiteSpace(vm?.ToDate)) objComm.SelectCommand.Parameters.AddWithValue("@ToDate", DateTime.Parse(vm.ToDate));
+                if (vm?.TransactionType != "OutstandingBalance")
+                {
+                    if (!string.IsNullOrWhiteSpace(vm?.FromDate)) objComm.SelectCommand.Parameters.AddWithValue("@FromDate", DateTime.Parse(vm.FromDate));
+                    if (!string.IsNullOrWhiteSpace(vm?.ToDate)) objComm.SelectCommand.Parameters.AddWithValue("@ToDate", DateTime.Parse(vm.ToDate));
+                }
 
                 if ((vm?.BankId ?? 0) > 0)
                     objComm.SelectCommand.Parameters.AddWithValue("@BankId", vm.BankId);
@@ -483,11 +667,17 @@ WHERE 1=1
                 if ((vm?.WithdrawalId ?? 0) > 0)
                     objComm.SelectCommand.Parameters.AddWithValue("@WithdrawalId", vm.WithdrawalId);
 
-                // Always pass TransactionType (NULL if not set)
-                objComm.SelectCommand.Parameters.AddWithValue("@TransactionType",
-                    string.IsNullOrWhiteSpace(vm?.TransactionType)
-                        ? (object)DBNull.Value
-                        : vm.TransactionType);
+                // OutstandingBalance / Payment / Collection / Statement এ @TransactionType parameter নেই
+                if (vm?.TransactionType != "Statement"
+                    && vm?.TransactionType != "OutstandingBalance"
+                    && vm?.TransactionType != "Payment"
+                    && vm?.TransactionType != "Collection")
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@TransactionType",
+                        string.IsNullOrWhiteSpace(vm?.TransactionType)
+                            ? (object)DBNull.Value
+                            : vm.TransactionType);
+                }
 
                 // Statement Opening Balance
                 if (vm?.TransactionType == "Statement" && !string.IsNullOrWhiteSpace(vm?.FromDate))
@@ -609,8 +799,19 @@ WHERE 1=1
                     CreatedBy = row.Field<string>("CreatedBy") ?? "",
                     CreatedOn = dataTable.Columns.Contains("CreatedOn") ? row["CreatedOn"]?.ToString() : "",
                     InOut = dataTable.Columns.Contains("InOut") ? row.Field<string>("InOut") ?? "" : "",
-                    SourceTable = dataTable.Columns.Contains("SourceTable") ? row.Field<string>("SourceTable") ?? "" : ""
+                    SourceTable = dataTable.Columns.Contains("SourceTable") ? row.Field<string>("SourceTable") ?? "" : "",
+                    PartyName = dataTable.Columns.Contains("PartyName") ? row.Field<string>("PartyName") ?? "" : "",
+                    BankBranchName = dataTable.Columns.Contains("BranchName") ? row.Field<string>("BranchName") ?? "" : ""
                 }).ToList();
+
+                // Outstanding Balance — Amount itself is the balance
+                if (vm?.TransactionType == "OutstandingBalance")
+                {
+                    foreach (var item in modelList)
+                    {
+                        item.RunningBalance = item.Amount;
+                    }
+                }
 
                 // Running Balance for Statement
                 if (vm?.TransactionType == "Statement")
