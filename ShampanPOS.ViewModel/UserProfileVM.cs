@@ -11,6 +11,7 @@ namespace ShampanPOS.ViewModel
     public class UserProfileVM
     {
         public string? Id { get; set; }
+        public string? UserId { get; set; }
 
         [Required]
         [Display(Name = "User Name")]
@@ -43,6 +44,26 @@ namespace ShampanPOS.ViewModel
         public string? Operation { get; set; }
         public string? Mode { get; set; }
         public bool? IsAdmin { get; set; }
+
+
+        [Display(Name = "Email as Login ID")]
+        [StringLength(200, ErrorMessage = "Email cannot exceed 200 characters.")]
+        [EmailAddress(ErrorMessage = "Invalid Email Address.")]
+        public string? EmailAsLoginId { get; set; }
+
+        [Required(ErrorMessage = "Company Name is required.")]
+        [Display(Name = "Company Name")]
+        [StringLength(200, ErrorMessage = "Company Name cannot exceed 200 characters.")]
+        public string? CompanyName { get; set; }
+
+        [Display(Name = "Company Legal Name")]
+        [StringLength(200, ErrorMessage = "Company Legal Name cannot exceed 200 characters.")]
+        public string? CompanyLegalName { get; set; }
+
+        [Display(Name = "Company Address")]
+        [StringLength(200, ErrorMessage = "Company Address cannot exceed 200 characters.")]
+        public string? CompanyAddress { get; set; }
+
         //public int? SalePersonId { get; set; }
         //public bool IsSalePerson { get; set; }
         //public bool IsHeadOffice { get; set; }
@@ -64,6 +85,10 @@ namespace ShampanPOS.ViewModel
         [Display(Name = "Last Modified On")]
         public string? LastModifiedOn { get; set; }
         public string? ImagePath { get; set; }
+        public bool? IsRegistration { get; set; }
+        public int? BranchId { get; set; }
+
+        public int? CompanyId { get; set; }
 
     }
 

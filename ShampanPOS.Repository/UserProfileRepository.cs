@@ -13,8 +13,275 @@ namespace ShampanPOS.Repository
         // Insert Method
         public async Task<ResultVM> Insert(UserProfileVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
         {
-            throw new NotImplementedException();
+            bool isNewConnection = false;
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                if (transaction == null)
+                {
+                    transaction = conn.BeginTransaction();
+                }
+
+                string query = @"
+                INSERT INTO UserInformations
+                (
+                    UserName,
+                    RoleId,
+                    FullName,
+                    PhoneNumber,
+                    Email,
+                    BranchId,
+                    CompanyId,
+                    CreatedBy,
+                    CreatedAt,
+                    CreatedFrom
+                )
+                VALUES
+                (
+                    @UserName,
+                    @RoleId,
+                    @FullName,
+                    @PhoneNumber,
+                    @Email,
+                    @BranchId,
+                    @CompanyId,
+                    @CreatedBy,
+                    @CreatedAt,
+                    @CreatedFrom
+                );
+                SELECT SCOPE_IDENTITY();";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
+                {
+                    //cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@UserName", vm.UserName);
+                    cmd.Parameters.AddWithValue("@RoleId", vm.RoleId ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@FullName", vm.FullName);
+
+                    cmd.Parameters.AddWithValue("@PhoneNumber", vm.PhoneNumber ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Email", vm.Email ?? (object)DBNull.Value);
+
+                    cmd.Parameters.AddWithValue("@BranchId", vm.BranchId ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId ?? (object)DBNull.Value);
+
+                    cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@CreatedAt", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom ?? (object)DBNull.Value);
+
+                    //vm.Id = Convert.ToInt32(cmd.ExecuteScalar());
+                    vm.Id = cmd.ExecuteScalar()?.ToString();
+
+                    result.Status = "Success";
+                    result.Message = "Data inserted successfully.";
+                    result.Id = vm.Id.ToString();
+                    result.DataVM = vm;
+
+
+                    if (isNewConnection)
+                    {
+                        transaction.Commit();
+                    }
+
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection)
+                {
+                    transaction.Rollback();
+                }
+
+                result.ExMessage = ex.Message;
+                result.Message = "Error in Insert.";
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
         }
+
+
+
+        //        public async Task<ResultVM> Insert(UserProfileVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
+        //        {
+        //            bool isNewConnection = false;
+        //            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+        //            try
+        //            {
+        //                if (conn == null)
+        //                {
+        //                    conn = new SqlConnection(DatabaseHelper.GetAuthConnectionString());
+        //                    conn.Open();
+        //                    isNewConnection = true;
+        //                }
+
+        //                if (transaction == null)
+        //                {
+        //                    transaction = conn.BeginTransaction();
+        //                }
+
+        //                string query = @"
+        //INSERT INTO AspNetUsers
+        //(
+        //    Id,
+        //    UserName,
+        //    FullName,
+        //    NormalizedName,
+        //    NormalizedUserName,
+        //    LockoutEnd,
+        //    NormalizedEmail,
+        //    NormalizedPassword,
+        //    Email,
+        //    IsHeadOffice,
+        //    IsSalePerson,
+        //    SalePersonId,
+        //    EmailConfirmed,
+        //    PasswordHash,
+        //    SecurityStamp,
+        //    ConcurrencyStamp,
+        //    PhoneNumber,
+        //    PhoneNumberConfirmed,
+        //    TwoFactorEnabled,
+        //    LockoutEnabled,
+        //    AccessFailedCount,
+        //    ImagePath
+        //)
+        //VALUES
+        //(
+        //    @Id,
+        //    @UserName,
+        //    @FullName,
+        //    @NormalizedName,
+        //    @NormalizedUserName,
+        //    @LockoutEnd,
+        //    @NormalizedEmail,
+        //    @NormalizedPassword,
+        //    @Email,
+        //    @IsHeadOffice,
+        //    @IsSalePerson,
+        //    @SalePersonId,
+        //    @EmailConfirmed,
+        //    @PasswordHash,
+        //    @SecurityStamp,
+        //    @ConcurrencyStamp,
+        //    @PhoneNumber,
+        //    @PhoneNumberConfirmed,
+        //    @TwoFactorEnabled,
+        //    @LockoutEnabled,
+        //    @AccessFailedCount,
+        //    @ImagePath
+        //);
+
+        //SELECT SCOPE_IDENTITY();";
+
+        //                using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
+        //                {
+        //                    cmd.Parameters.AddWithValue("@Id", Guid.NewGuid().ToString());
+
+        //                    cmd.Parameters.AddWithValue("@UserName", vm.Email ?? (object)DBNull.Value);
+        //                    cmd.Parameters.AddWithValue("@FullName", vm.FullName ?? (object)DBNull.Value);
+
+        //                    cmd.Parameters.AddWithValue("@NormalizedName",
+        //                        vm.Email?.ToUpper() ?? (object)DBNull.Value);
+
+        //                    cmd.Parameters.AddWithValue("@NormalizedUserName",
+        //                        vm.Email?.ToUpper() ?? (object)DBNull.Value);
+
+        //                    cmd.Parameters.AddWithValue("@LockoutEnd", DBNull.Value);
+
+        //                    cmd.Parameters.AddWithValue("@NormalizedEmail",
+        //                        vm.Email?.ToUpper() ?? (object)DBNull.Value);
+
+        //                    cmd.Parameters.AddWithValue("@NormalizedPassword",
+        //                        vm.NormalizedPassword ?? (object)DBNull.Value);
+
+        //                    cmd.Parameters.AddWithValue("@Email",
+        //                        vm.Email ?? (object)DBNull.Value);
+
+        //                    cmd.Parameters.AddWithValue("@IsHeadOffice", false);
+        //                    cmd.Parameters.AddWithValue("@IsSalePerson", false);
+
+        //                    cmd.Parameters.AddWithValue("@SalePersonId", DBNull.Value);
+
+        //                    cmd.Parameters.AddWithValue("@EmailConfirmed", false);
+
+        //                    cmd.Parameters.AddWithValue("@PasswordHash",
+        //                        vm.NormalizedPassword ?? (object)DBNull.Value);
+
+        //                    cmd.Parameters.AddWithValue("@SecurityStamp",
+        //                        Guid.NewGuid().ToString());
+
+        //                    cmd.Parameters.AddWithValue("@ConcurrencyStamp",
+        //                        Guid.NewGuid().ToString());
+
+        //                    cmd.Parameters.AddWithValue("@PhoneNumber",
+        //                        vm.PhoneNumber ?? (object)DBNull.Value);
+
+        //                    cmd.Parameters.AddWithValue("@PhoneNumberConfirmed", false);
+        //                    cmd.Parameters.AddWithValue("@TwoFactorEnabled", false);
+        //                    cmd.Parameters.AddWithValue("@LockoutEnabled", false);
+        //                    cmd.Parameters.AddWithValue("@AccessFailedCount", 0);
+
+        //                    cmd.Parameters.AddWithValue("@ImagePath", DBNull.Value);
+
+        //                    cmd.ExecuteNonQuery();
+        //                }
+
+        //                if (isNewConnection)
+        //                {
+        //                    transaction.Commit();
+        //                }
+
+        //                return result;
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                if (transaction != null && isNewConnection)
+        //                {
+        //                    transaction.Rollback();
+        //                }
+
+        //                result.ExMessage = ex.Message;
+        //                result.Message = "Error in Insert.";
+        //                return result;
+        //            }
+        //            finally
+        //            {
+        //                if (isNewConnection && conn != null)
+        //                {
+        //                    conn.Close();
+        //                }
+        //            }
+        //        }
+
+
+
+
+
+
+        //public async Task<ResultVM> Insert(UserProfileVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
+        //{
+        //    ResultVM result = new ResultVM();
+        //    result.Status = "Success";
+        //    result.Message = "User Insert Success";
+
+        //    return result;
+        //}
+
 
         // Update Method
         public async Task<ResultVM> Update(UserProfileVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
