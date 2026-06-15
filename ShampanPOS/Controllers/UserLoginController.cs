@@ -39,6 +39,8 @@ namespace ShampanPOS.Controllers
         public async Task<ResultVM> CreateEditAsync(UserProfileVM model)
         {
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            RegistrationService _RegistrationService = new RegistrationService();
+
             try
             {
                 var claims = new List<Claim>
@@ -124,7 +126,7 @@ namespace ShampanPOS.Controllers
                         return resultVM;
                     }
 
-                    var _user = new ApplicationUser { UserName = model.UserName, FullName = model.FullName, PhoneNumber = model.PhoneNumber, Email = model.Email, EmailConfirmed = false, PhoneNumberConfirmed  = false, TwoFactorEnabled  = false,LockoutEnabled  =false, AccessFailedCount = 0, NormalizedName = model.UserName, NormalizedUserName = model.UserName , NormalizedEmail = model.Email, NormalizedPassword  = model.Password, /*IsHeadOffice = model.IsHeadOffice,IsSalePerson = model.IsSalePerson ,SalePersonId = model.SalePersonId*/ };
+                    var _user = new ApplicationUser { UserName = model.UserName, FullName = model.FullName, PhoneNumber = model.PhoneNumber, Email = model.Email, EmailConfirmed = false, PhoneNumberConfirmed = false, TwoFactorEnabled = false, LockoutEnabled = false, AccessFailedCount = 0, NormalizedName = model.UserName, NormalizedUserName = model.UserName, NormalizedEmail = model.Email, NormalizedPassword = model.Password, /*IsHeadOffice = model.IsHeadOffice,IsSalePerson = model.IsSalePerson ,SalePersonId = model.SalePersonId*/ };
 
                     var _result = await _userManager.CreateAsync(_user, model.Password);
 
@@ -136,6 +138,27 @@ namespace ShampanPOS.Controllers
                             return resultVM;
                         }
                     }
+                    if (model.IsRegistration == true)
+                    {
+                        var registrationVM = new RegistrationVM
+                        {
+
+                            FullName = model.FullName,
+                            EmailAsLoginId = model.Email,
+                            PhoneNumber = model.PhoneNumber,
+                            Password = model.Password,
+                            ConfirmPassword = model.ConfirmPassword,
+                            CreatedBy = model.CreatedBy,
+                            CreatedFrom = model.CreatedFrom,
+                            CompanyName = model.CompanyName,
+                            CompanyAddress = model.CompanyAddress,
+                        };
+
+                        resultVM = await _RegistrationService.Insert(registrationVM);
+
+                        return resultVM;
+                    }
+
                     var userClaimsresult = await _userManager.AddClaimsAsync(_user, claims);
 
                     if (!userClaimsresult.Succeeded)

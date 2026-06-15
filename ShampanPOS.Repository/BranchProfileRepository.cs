@@ -47,7 +47,7 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@DistributorCode", vm.DistributorCode);
                     cmd.Parameters.AddWithValue("@Name", vm.Name);
-                    cmd.Parameters.AddWithValue("@BanglaName", vm.BanglaName);
+                    cmd.Parameters.AddWithValue("@BanglaName", vm.BanglaName??"-");
                     cmd.Parameters.AddWithValue("@TelephoneNo", vm.TelephoneNo ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Email", vm.Email ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@VATRegistrationNo", vm.VATRegistrationNo ?? (object)DBNull.Value);
@@ -60,7 +60,7 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
                     cmd.Parameters.AddWithValue("@IsActive", vm.IsActive);
-                    cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy);
+                    cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy??"-");
                     //cmd.Parameters.AddWithValue("@LastModifiedBy", vm.LastModifiedBy ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
                     //cmd.Parameters.AddWithValue("@LastModifiedOn", DateTime.Now);
