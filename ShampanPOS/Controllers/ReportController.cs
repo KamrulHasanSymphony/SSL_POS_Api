@@ -911,5 +911,53 @@ namespace ShampanPOS.Controllers
 
 
 
+
+        [HttpPost("GetBankTransactionReportList")]
+        public async Task<ResultVM> GetBankTransactionReportList(BankTransactionReportVM vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+            try
+            {
+                ReportsService _service = new ReportsService();
+                resultVM = await _service.BankTransactionReportList(vm);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message
+                };
+            }
+        }
+
+        [HttpPost("PurchaseReturnvsPurchaseReportList")]
+        public async Task<ResultVM> PurchaseReturnvsPurchaseReportList(PurchaseReportVM purchase)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+
+            try
+            {
+                PurchaseService _service = new PurchaseService();
+
+                resultVM = await _service.PurchaseReturnvsPurchaseReportList(purchase);
+
+
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message
+                };
+            }
+        }
+
+
     }
 }

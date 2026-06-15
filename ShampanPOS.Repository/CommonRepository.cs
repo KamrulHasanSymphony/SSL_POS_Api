@@ -3190,81 +3190,6 @@ WHERE 1 = 1";
         }
 
 
-        public async Task<ResultVM> BankIdList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
-        {
-            bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
-
-            try
-            {
-                if (conn == null)
-                {
-                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                    conn.Open();
-                    isNewConnection = true;
-                }
-
-                string query = @"
-                SELECT
-                    ISNULL(M.Id, 0) AS Id,
-                    ISNULL(M.Code, '') AS Code,
-                    ISNULL(M.Name, '') AS Name,
-                    ISNULL(M.BanglaName, '') AS BanglaName,
-                    ISNULL(M.Address, '') AS Address
-
-                FROM BankInformations M
-                WHERE 1 = 1";
-
-
-                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
-
-                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
-
-                // SET additional conditions param
-                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
-
-
-
-                objComm.Fill(dataTable);
-
-                var modelList = dataTable.AsEnumerable().Select(row => new BankInformationVM
-                {
-                    Id = Convert.ToInt32(row["Id"]),
-                    Name = row["Name"]?.ToString(),
-                    BanglaName = row["BanglaName"]?.ToString(),
-                    Address = row["Address"]?.ToString(),
-                    Code = row["Code"]?.ToString(),
-
-
-
-                }).ToList();
-
-
-                result.Status = "Success";
-                result.Message = "Data retrieved successfully.";
-                result.DataVM = modelList;
-                return result;
-            }
-            catch (Exception ex)
-            {
-                result.ExMessage = ex.Message;
-                result.Message = ex.Message;
-                return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
-        }
-
-
-
-
-
         public async Task<ResultVM> GetSectionList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
@@ -5323,6 +5248,364 @@ LEFT JOIN PurchaseOrderDetails D
             }
         }
 
+
+        public async Task<ResultVM> BankIdList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                string query = @"
+                SELECT
+                    ISNULL(M.Id, 0) AS Id,
+                    ISNULL(M.Code, '') AS Code,
+                    ISNULL(M.Name, '') AS Name,
+                    ISNULL(M.BanglaName, '') AS BanglaName,
+                    ISNULL(M.Address, '') AS Address
+
+                FROM BankInformations M
+                WHERE 1 = 1";
+
+
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                // SET additional conditions param
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new BankInformationVM
+                {
+                    Id = Convert.ToInt32(row["Id"]),
+                    Name = row["Name"]?.ToString(),
+                    BanglaName = row["BanglaName"]?.ToString(),
+                    Address = row["Address"]?.ToString(),
+                    Code = row["Code"]?.ToString(),
+
+
+
+                }).ToList();
+
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
+        }
+
+
+        public async Task<ResultVM> GetBankAccountModal(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+        {
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error" };
+            try
+            {
+                if (conn == null) throw new Exception("Database connection fail!");
+
+                string query = @"
+            SELECT
+                ISNULL(ba.Id, 0)          AS Id,
+                ISNULL(ba.AccountNo, '')  AS AccountNo,
+                ISNULL(ba.AccountName,'') AS AccountName,
+                ISNULL(bi.Id, 0)          AS BankId,
+                ISNULL(bi.Name, '')       AS BankName,
+                ISNULL(bi.Code, '')       AS BankCode
+            FROM BankAccounts ba
+            LEFT JOIN BankInformations bi ON ba.BankId = bi.Id
+            WHERE 1=1";
+
+                int bankIdIndex = Array.IndexOf(conditionalFields, "BankId");
+                if (bankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[bankIdIndex]))
+                {
+                    query += " AND bi.Id = @BankId";
+                }
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                if (bankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[bankIdIndex]))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@BankId", int.Parse(conditionalValues[bankIdIndex]));
+                }
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new BankAccountDataVM
+                {
+                    Id = row.Field<int>("Id"),
+                    AccountNo = row.Field<string>("AccountNo"),
+                    AccountName = row.Field<string>("AccountName"),
+                    BankId = row.Field<int>("BankId"),
+                    BankName = row.Field<string>("BankName"),
+                    BankCode = row.Field<string>("BankCode")
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+        }
+
+        public async Task<ResultVM> GetDepositModal(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+        {
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error" };
+            try
+            {
+                if (conn == null) throw new Exception("Database connection fail!");
+
+                string query = @"
+            SELECT
+                ISNULL(d.Id, 0)                    AS Id,
+                ISNULL(d.Code, '')                 AS Code,
+                d.TransactionDate                  AS TransactionDate,
+                ISNULL(d.TotalDepositAmount, 0)    AS TotalDepositAmount,
+                ISNULL(d.ToBankAccountId, 0)       AS ToBankAccountId,
+                ISNULL(ba.AccountNo, '')            AS AccountNo,
+                ISNULL(ba.AccountName, '')          AS AccountName,
+                ISNULL(bi.Name, '')                 AS BankName,
+                ISNULL(d.Reference, '')             AS Reference
+            FROM Deposits d
+            LEFT JOIN BankAccounts ba ON d.ToBankAccountId = ba.Id
+            LEFT JOIN BankInformations bi ON ba.BankId = bi.Id
+            WHERE d.IsActive = 1 AND d.IsArchive = 0";
+
+                int depBankIdIndex = Array.IndexOf(conditionalFields, "BankId");
+                if (depBankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[depBankIdIndex]))
+                {
+                    query += " AND bi.Id = @BankId";
+                }
+
+                int depAccountIdIndex = Array.IndexOf(conditionalFields, "BankAccountId");
+                if (depAccountIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[depAccountIdIndex]))
+                {
+                    query += " AND d.ToBankAccountId = @BankAccountId";
+                }
+
+                query += " ORDER BY d.TransactionDate DESC";
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                if (depBankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[depBankIdIndex]))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@BankId", int.Parse(conditionalValues[depBankIdIndex]));
+                }
+                if (depAccountIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[depAccountIdIndex]))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@BankAccountId", int.Parse(conditionalValues[depAccountIdIndex]));
+                }
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new DepositDataVM
+                {
+                    Id = row.Field<int>("Id"),
+                    Code = row.Field<string>("Code"),
+                    TransactionDate = dataTable.Columns.Contains("TransactionDate") ? row["TransactionDate"]?.ToString() : "",
+                    TotalDepositAmount = row.Field<decimal>("TotalDepositAmount"),
+                    ToBankAccountId = row.Field<int>("ToBankAccountId"),
+                    AccountNo = row.Field<string>("AccountNo"),
+                    AccountName = row.Field<string>("AccountName"),
+                    BankName = row.Field<string>("BankName"),
+                    Reference = row.Field<string>("Reference")
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+        }
+
+        public async Task<ResultVM> GetWithdrawalModal(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+        {
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error" };
+            try
+            {
+                if (conn == null) throw new Exception("Database connection fail!");
+
+                string query = @"
+            SELECT
+                ISNULL(w.Id, 0)                    AS Id,
+                ISNULL(w.Code, '')                 AS Code,
+                w.TransactionDate                  AS TransactionDate,
+                ISNULL(w.TotalDepositAmount, 0)    AS TotalDepositAmount,
+                ISNULL(w.FromBankAccountId, 0)     AS FromBankAccountId,
+                ISNULL(ba.AccountNo, '')            AS AccountNo,
+                ISNULL(ba.AccountName, '')          AS AccountName,
+                ISNULL(bi.Name, '')                 AS BankName,
+                ISNULL(w.Reference, '')             AS Reference
+            FROM Withdrawals w
+            LEFT JOIN BankAccounts ba ON w.FromBankAccountId = ba.Id
+            LEFT JOIN BankInformations bi ON ba.BankId = bi.Id
+            WHERE w.IsActive = 1 AND w.IsArchive = 0";
+
+                int wdBankIdIndex = Array.IndexOf(conditionalFields, "BankId");
+                if (wdBankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[wdBankIdIndex]))
+                {
+                    query += " AND bi.Id = @BankId";
+                }
+
+                int wdAccountIdIndex = Array.IndexOf(conditionalFields, "BankAccountId");
+                if (wdAccountIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[wdAccountIdIndex]))
+                {
+                    query += " AND w.FromBankAccountId = @BankAccountId";
+                }
+
+                query += " ORDER BY w.TransactionDate DESC";
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                if (wdBankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[wdBankIdIndex]))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@BankId", int.Parse(conditionalValues[wdBankIdIndex]));
+                }
+                if (wdAccountIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[wdAccountIdIndex]))
+                {
+                    objComm.SelectCommand.Parameters.AddWithValue("@BankAccountId", int.Parse(conditionalValues[wdAccountIdIndex]));
+                }
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new WithdrawalDataVM
+                {
+                    Id = row.Field<int>("Id"),
+                    Code = row.Field<string>("Code"),
+                    TransactionDate = dataTable.Columns.Contains("TransactionDate") ? row["TransactionDate"]?.ToString() : "",
+                    TotalDepositAmount = row.Field<decimal>("TotalDepositAmount"),
+                    FromBankAccountId = row.Field<int>("FromBankAccountId"),
+                    AccountNo = row.Field<string>("AccountNo"),
+                    AccountName = row.Field<string>("AccountName"),
+                    BankName = row.Field<string>("BankName"),
+                    Reference = row.Field<string>("Reference")
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+        }
+
+        public async Task<ResultVM> GetPurchaseReturnModal(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+        {
+            DataTable dataTable = new DataTable();
+
+            ResultVM result = new ResultVM
+            { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+            try
+            {
+                if (conn == null)
+                {
+                    throw new Exception("Database connection fail!");
+                }
+
+                string query = @"
+SELECT 
+    ISNULL(M.Id, 0) AS Id,
+    ISNULL(M.Code, '') AS Code,
+    ISNULL(D.PurchasesReturnId, 0) AS PurchasesReturnId,
+    ISNULL(M.SupplierId, 0) AS SupplierId,
+    ISNULL(S.Name, '') AS SupplierName,
+    ISNULL(D.Quantity, 0) AS Quantity,
+    ISNULL(D.UnitPrice, 0) AS UnitPrice,
+	ISNULL(CONVERT(varchar(10), M.InvoiceDateTime, 23), '1900-01-01') AS InvoiceDateTime,
+    ISNULL(CONVERT(varchar(10), M.PurchaseDate, 23), '1900-01-01') AS PurchaseDate,
+    ISNULL(D.SubTotal, 0) AS SubTotal,
+    ISNULL(D.LineTotal, 0) AS LineTotal
+
+
+FROM PurchasesReturn M
+LEFT JOIN Suppliers S 
+    ON M.SupplierId = S.Id
+
+LEFT JOIN PurchaseReturnDetails D ON M.Id = D.PurchasesReturnId
+	WHERE 1 = 1;";
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                // optional filters (same pattern as ProductModal)
+                objComm.SelectCommand =
+                    ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new PurchaseReturnReportVM
+                {
+                    // =========================
+                    // 🔥 HEADER (M = Purchases)
+                    // =========================
+                    Id = row.Field<int>("Id"),
+                    Code = row.Field<string>("Code"),
+                    PurchasesReturnId = row.Field<int?>("PurchasesReturnId"),
+                    SupplierId = row.Field<int?>("SupplierId"),
+                    SupplierName = row.Field<string>("SupplierName"),
+                    SubTotal = row.Field<decimal?>("SubTotal") ?? 0,
+                    Quantity = row.Field<decimal?>("Quantity") ?? 0,
+                    UnitPrice = row.Field<decimal?>("UnitPrice") ?? 0,
+                    PurchaseDate = row.Field<string>("PurchaseDate"),
+                    InvoiceDateTime = row.Field<string>("InvoiceDateTime"),
+
+                }).ToList(); result.Status = "Success";
+                result.Message = "Purchase modal data retrieved successfully.";
+                result.DataVM = modelList;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+        }
 
     }
 

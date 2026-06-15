@@ -1723,11 +1723,19 @@ namespace ShampanPOS.Service
         public async Task<ResultVM> PurchaseOrdervsPurchaseReportList(PurchaseReportVM vm = null)
         {
             PurchaseRepository _repo = new PurchaseRepository();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
-            bool isNewConnection = false;
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                Id = "0",
+                DataVM = null
+            };
+
             SqlConnection conn = null;
             SqlTransaction transaction = null;
+            bool isNewConnection = false;
 
             try
             {
@@ -1737,14 +1745,14 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                // SUMMARY / DETAILS
+                // set mode
                 if (vm != null)
                 {
                     vm.Operation = vm.IsSummary ? "SUMMARY" : "DETAILS";
                 }
 
-                // CALL REPOSITORY
-                result = await _repo.PurchaseOrdervsPurchaseReportList(null, conn, transaction);
+                // ✅ FIXED CALL
+                result = await _repo.PurchaseOrdervsPurchaseReportList(null, null, vm, conn, transaction);
 
                 if (result.Status == "Success")
                 {
@@ -1752,7 +1760,7 @@ namespace ShampanPOS.Service
                 }
                 else
                 {
-                    throw new Exception(result.Message);
+                    transaction.Rollback();
                 }
 
                 return result;
@@ -1765,81 +1773,76 @@ namespace ShampanPOS.Service
                 }
 
                 result.ExMessage = ex.ToString();
+                result.Message = ex.Message;
                 return result;
+            }
+            finally
+            {
+                if (conn != null && isNewConnection)
+                {
+                    conn.Close();
+                    conn.Dispose();
+                }
             }
         }
 
-        //public async Task<ResultVM> PurchaseOrdervsPurchaseReportList(PurchaseReportVM vm = null)
-        //{
-        //    PurchaseRepository _repo = new PurchaseRepository();
+        public async Task<ResultVM> PurchaseReturnvsPurchaseReportList(PurchaseReportVM vm = null)
+        {
+            PurchaseRepository _repo = new PurchaseRepository();
 
-        //    ResultVM result = new ResultVM
-        //    {
-        //        Status = "Fail",
-        //        Message = "Error",
-        //        ExMessage = null,
-        //        Id = "0",
-        //        DataVM = null
-        //    };
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                Id = "0",
+                DataVM = null
+            };
 
-        //    bool isNewConnection = false;
-        //    SqlConnection conn = null;
-        //    SqlTransaction transaction = null;
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+            bool isNewConnection = false;
 
-        //    try
-        //    {
-        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-        //        conn.Open();
-        //        isNewConnection = true;
+            try
+            {
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
 
-        //        transaction = conn.BeginTransaction();
+                transaction = conn.BeginTransaction();
 
-        //        // =========================
-        //        // SUMMARY / DETAILS FLAG
-        //        // =========================
-        //        if (vm != null)
-        //        {
-        //            vm.Operation = vm.IsSummary ? "SUMMARY" : "DETAILS";
-        //        }
+                // set mode
+                if (vm != null)
+                {
+                    vm.Operation = vm.IsSummary ? "SUMMARY" : "DETAILS";
+                }
 
-        //        // =========================
-        //        // CALL REPOSITORY
-        //        // =========================
-        //        result = await _repo.PurchaseOrdervsPurchaseReportList(null, conn, transaction);
+                // ✅ FIXED CALL
+                result = await _repo.PurchaseReturnvsPurchaseReportList(null, null, vm, conn, transaction);
 
-        //        if (result.Status == "Success")
-        //        {
-        //            transaction.Commit();
-        //        }
-        //        else
-        //        {
-        //            throw new Exception(result.Message);
-        //        }
+                if (result.Status == "Success")
+                {
+                    transaction.Commit();
+                }
+                else
+                {
+                    transaction.Rollback();
+                }
 
-        //        return result;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        if (transaction != null)
-        //        {
-        //            transaction.Rollback();
-        //        }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection)
+                {
+                    transaction.Rollback();
+                }
 
-        //        result.Status = "Fail";
-        //        result.Message = ex.Message;
-        //        result.ExMessage = ex.ToString();
-
-        //        return result;
-        //    }
-        //    finally
-        //    {
-        //        if (isNewConnection && conn != null)
-        //        {
-        //            conn.Close();
-        //        }
-        //    }
-        //}
-
+                result.ExMessage = ex.ToString();
+                result.Message = ex.Message;
+                return result;
+            }
+        }
 
 
     }
