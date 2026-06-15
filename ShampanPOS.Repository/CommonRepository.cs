@@ -5533,6 +5533,111 @@ LEFT JOIN PurchaseOrderDetails D
             }
         }
 
+        public async Task<ResultVM> GetCustomerModal(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+        {
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error" };
+            try
+            {
+                if (conn == null) throw new Exception("Database connection fail!");
+
+                string query = @"
+            SELECT
+                ISNULL(c.Id, 0)             AS Id,
+                ISNULL(c.Code, '')          AS Code,
+                ISNULL(c.Name, '')          AS Name,
+                ISNULL(cg.Id, 0)            AS CustomerGroupId,
+                ISNULL(cg.Name, '')         AS GroupName
+            FROM Customers c
+            LEFT JOIN CustomerGroups cg ON c.CustomerGroupId = cg.Id
+            WHERE 1=1";
+
+                int groupIdIndex = Array.IndexOf(conditionalFields, "CustomerGroupId");
+                if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
+                    query += " AND cg.Id = @CustomerGroupId";
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
+                    objComm.SelectCommand.Parameters.AddWithValue("@CustomerGroupId", int.Parse(conditionalValues[groupIdIndex]));
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new CustomerVM
+                {
+                    Id = row.Field<int>("Id"),
+                    Code = row.Field<string>("Code"),
+                    Name = row.Field<string>("Name"),
+                    CustomerGroupId = row.Field<int>("CustomerGroupId"),
+                    CustomerGroupName = row.Field<string>("GroupName")
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+        }
+
+        public async Task<ResultVM> GetSupplierModal(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+        {
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error" };
+            try
+            {
+                if (conn == null) throw new Exception("Database connection fail!");
+
+                string query = @"
+            SELECT
+                ISNULL(s.Id, 0)             AS Id,
+                ISNULL(s.Code, '')          AS Code,
+                ISNULL(s.Name, '')          AS Name,
+                ISNULL(sg.Id, 0)            AS SupplierGroupId,
+                ISNULL(sg.Name, '')         AS GroupName
+            FROM Suppliers s
+            LEFT JOIN SupplierGroups sg ON s.SupplierGroupId = sg.Id
+            WHERE 1=1";
+
+                int groupIdIndex = Array.IndexOf(conditionalFields, "SupplierGroupId");
+                if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
+                    query += " AND sg.Id = @SupplierGroupId";
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
+                    objComm.SelectCommand.Parameters.AddWithValue("@SupplierGroupId", int.Parse(conditionalValues[groupIdIndex]));
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new SupplierVM
+                {
+                    Id = row.Field<int>("Id"),
+                    Code = row.Field<string>("Code"),
+                    Name = row.Field<string>("Name"),
+                    SupplierGroupId = row.Field<int>("SupplierGroupId"),
+                    GroupName = row.Field<string>("GroupName")
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+        }
+
+
         public async Task<ResultVM> GetPurchaseReturnModal(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
         {
             DataTable dataTable = new DataTable();

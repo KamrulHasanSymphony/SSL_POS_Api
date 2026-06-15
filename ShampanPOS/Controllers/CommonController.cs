@@ -1572,6 +1572,53 @@ namespace ShampanPOS.Controllers
             }
         }
 
+        [HttpPost("GetCustomerModal")]
+        public async Task<ResultVM> GetCustomerModal(CommonVM vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+            try
+            {
+                CommonService _commonService = new CommonService();
+                var fields = new List<string>();
+                var values = new List<string>();
+                if (!string.IsNullOrEmpty(vm.Value))
+                {
+                    fields.Add("CustomerGroupId");
+                    values.Add(vm.Value);
+                }
+                resultVM = await _commonService.GetCustomerModal(fields.ToArray(), values.ToArray(), null);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM { Status = "Fail", Message = "Data not fetched.", ExMessage = ex.Message };
+            }
+        }
+
+        [HttpPost("GetSupplierModal")]
+        public async Task<ResultVM> GetSupplierModal(CommonVM vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+            try
+            {
+                CommonService _commonService = new CommonService();
+                var fields = new List<string>();
+                var values = new List<string>();
+                if (!string.IsNullOrEmpty(vm.Value))
+                {
+                    fields.Add("SupplierGroupId");
+                    values.Add(vm.Value);
+                }
+                resultVM = await _commonService.GetSupplierModal(fields.ToArray(), values.ToArray(), null);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM { Status = "Fail", Message = "Data not fetched.", ExMessage = ex.Message };
+            }
+        }
+
+
         [HttpPost("GetPurchaseReturnModal")]
         public async Task<ResultVM> GetPurchaseReturnModal(CommonVM Vm)
         {
