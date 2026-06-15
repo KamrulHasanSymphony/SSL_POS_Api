@@ -62,6 +62,11 @@ namespace ShampanPOS.ViewModel
         public string? DepositCode { get; set; }
 
         public int? WithdrawalId { get; set; }
+        public int? CustomerId { get; set; }
+        public int? SupplierId { get; set; }
+        public int? TransactionCount { get; set; }
+        public string? LastTransactionDate { get; set; }
+        public string? SupplierCode { get; set; }
         public string? WithdrawalCode { get; set; }
     }
 

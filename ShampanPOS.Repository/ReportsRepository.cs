@@ -46,7 +46,85 @@ namespace ShampanPOS.Repository
 
                 #region Base Query
 
-                if (vm?.IsSummary == true)
+                if (vm?.IsSummary == true && vm?.TransactionType == "Payment")
+                {
+                    query = new StringBuilder(@"
+                SELECT
+                    S.Id AS SupplierId,
+                    S.Code AS SupplierCode,
+                    S.Name AS PartyName,
+                    ISNULL(SUM(P.TotalPaymentAmount), 0) AS Amount,
+                    COUNT(P.Id) AS TransactionCount,
+                    MAX(P.TransactionDate) AS LastTransactionDate,
+                    NULL AS TransactionId,
+                    NULL AS TransactionCode,
+                    NULL AS TransactionDate,
+                    NULL AS Reference,
+                    NULL AS Comments,
+                    NULL AS AccountId,
+                    NULL AS AccountNo,
+                    NULL AS AccountName,
+                    NULL AS BankId,
+                    NULL AS BankName,
+                    NULL AS BankCode,
+                    0 AS BranchId,
+                    CAST(0 AS BIT) AS IsCash,
+                    NULL AS ChequeNo,
+                    NULL AS ChequeBankName,
+                    NULL AS ChequeDate,
+                    NULL AS CreatedBy,
+                    NULL AS CreatedOn,
+                    'Payment' AS TransactionType,
+                    NULL AS SourceTable,
+                    NULL AS InOut,
+                    NULL AS BranchName
+                FROM Payments P
+                LEFT JOIN Suppliers S ON P.SupplierId = S.Id
+                LEFT JOIN BankAccounts A ON P.BankAccountId = A.Id
+                LEFT JOIN BankInformations B ON A.BankId = B.Id
+                WHERE 1=1
+            ");
+                }
+                else if (vm?.IsSummary == true && vm?.TransactionType == "Collection")
+                {
+                    query = new StringBuilder(@"
+                SELECT
+                    C2.Id AS SupplierId,
+                    C2.Code AS SupplierCode,
+                    C2.Name AS PartyName,
+                    ISNULL(SUM(C.TotalCollectAmount), 0) AS Amount,
+                    COUNT(C.Id) AS TransactionCount,
+                    MAX(C.TransactionDate) AS LastTransactionDate,
+                    NULL AS TransactionId,
+                    NULL AS TransactionCode,
+                    NULL AS TransactionDate,
+                    NULL AS Reference,
+                    NULL AS Comments,
+                    NULL AS AccountId,
+                    NULL AS AccountNo,
+                    NULL AS AccountName,
+                    NULL AS BankId,
+                    NULL AS BankName,
+                    NULL AS BankCode,
+                    0 AS BranchId,
+                    CAST(0 AS BIT) AS IsCash,
+                    NULL AS ChequeNo,
+                    NULL AS ChequeBankName,
+                    NULL AS ChequeDate,
+                    NULL AS CreatedBy,
+                    NULL AS CreatedOn,
+                    'Collection' AS TransactionType,
+                    NULL AS SourceTable,
+                    NULL AS InOut,
+                    NULL AS BranchName
+                FROM Collections C
+                LEFT JOIN Customers C2 ON C.CustomerId = C2.Id
+                LEFT JOIN BankAccounts A ON C.BankAccountId = A.Id
+                LEFT JOIN BankInformations B ON A.BankId = B.Id
+                WHERE 1=1
+            ");
+                }
+                else if (vm?.IsSummary == true)
                 {
                     query = new StringBuilder(@"
                 SELECT * FROM (
@@ -577,7 +655,38 @@ WHERE 1=1
 
                 #region Dynamic Filters
 
-                if (vm?.TransactionType != "OutstandingBalance")
+                // Payment/Collection Summary এর জন্য আলাদা date filter column name
+                if (vm?.IsSummary == true && vm?.TransactionType == "Payment")
+                {
+                    if (!string.IsNullOrWhiteSpace(vm?.FromDate))
+                        query.Append(" AND P.TransactionDate >= @FromDate");
+                    if (!string.IsNullOrWhiteSpace(vm?.ToDate))
+                        query.Append(" AND P.TransactionDate <= @ToDate");
+                    if ((vm?.BankId ?? 0) > 0)
+                        query.Append(" AND B.Id = @BankId");
+                    if ((vm?.BankAccountId ?? 0) > 0)
+                        query.Append(" AND A.Id = @BankAccountId");
+                    if ((vm?.SupplierId ?? 0) > 0)
+                        query.Append(" AND P.SupplierId = @SupplierId");
+                    query.Append(" GROUP BY S.Id, S.Code, S.Name");
+                    query.Append(" ORDER BY S.Name ASC");
+                }
+                else if (vm?.IsSummary == true && vm?.TransactionType == "Collection")
+                {
+                    if (!string.IsNullOrWhiteSpace(vm?.FromDate))
+                        query.Append(" AND C.TransactionDate >= @FromDate");
+                    if (!string.IsNullOrWhiteSpace(vm?.ToDate))
+                        query.Append(" AND C.TransactionDate <= @ToDate");
+                    if ((vm?.BankId ?? 0) > 0)
+                        query.Append(" AND B.Id = @BankId");
+                    if ((vm?.BankAccountId ?? 0) > 0)
+                        query.Append(" AND A.Id = @BankAccountId");
+                    if ((vm?.CustomerId ?? 0) > 0)
+                        query.Append(" AND C.CustomerId = @CustomerId");
+                    query.Append(" GROUP BY C2.Id, C2.Code, C2.Name");
+                    query.Append(" ORDER BY C2.Name ASC");
+                }
+                else if (vm?.TransactionType != "OutstandingBalance")
                 {
                     if (!string.IsNullOrWhiteSpace(vm?.FromDate))
                         query.Append(" AND TransactionDate >= @FromDate");
@@ -593,45 +702,55 @@ WHERE 1=1
                 }
 
                 // OutstandingBalance এ BankId/AccountId HAVING এ filter হবে
-                if (vm?.TransactionType == "OutstandingBalance")
+                if (vm?.IsSummary != true || (vm?.TransactionType != "Payment" && vm?.TransactionType != "Collection"))
                 {
-                    if ((vm?.BankId ?? 0) > 0)
-                        query.Append(" HAVING BI.Id = @BankId");
+                    if (vm?.TransactionType == "OutstandingBalance")
+                    {
+                        if ((vm?.BankId ?? 0) > 0)
+                            query.Append(" HAVING BI.Id = @BankId");
 
-                    if ((vm?.BankAccountId ?? 0) > 0)
-                        query.Append((vm?.BankId ?? 0) > 0
-                            ? " AND BA.Id = @BankAccountId"
-                            : " HAVING BA.Id = @BankAccountId");
+                        if ((vm?.BankAccountId ?? 0) > 0)
+                            query.Append((vm?.BankId ?? 0) > 0
+                                ? " AND BA.Id = @BankAccountId"
+                                : " HAVING BA.Id = @BankAccountId");
+                    }
+                    else
+                    {
+                        if ((vm?.BankId ?? 0) > 0)
+                            query.Append(" AND BankId = @BankId");
+
+                        if ((vm?.BankAccountId ?? 0) > 0)
+                            query.Append(" AND AccountId = @BankAccountId");
+                    }
+
+                    if (vm?.TransactionType != "Statement"
+                        && vm?.TransactionType != "Payment"
+                        && vm?.TransactionType != "Collection"
+                        && vm?.TransactionType != "OutstandingBalance")
+                    {
+                        if ((vm?.DepositId ?? 0) > 0)
+                            query.Append(" AND (TransactionType = 'Deposit' AND TransactionId = @DepositId)");
+
+                        if ((vm?.WithdrawalId ?? 0) > 0)
+                            query.Append(" AND (TransactionType = 'Withdrawal' AND TransactionId = @WithdrawalId)");
+
+                        if (!string.IsNullOrWhiteSpace(vm?.TransactionType))
+                            query.Append(" AND TransactionType = @TransactionType");
+                    }
+
+                    // Collection → CustomerId filter
+                    if (vm?.TransactionType == "Collection" && (vm?.CustomerId ?? 0) > 0)
+                        query.Append(" AND SupplierId = @CustomerId");
+
+                    // Payment → SupplierId filter
+                    if (vm?.TransactionType == "Payment" && (vm?.SupplierId ?? 0) > 0)
+                        query.Append(" AND SupplierId = @SupplierId");
+
+                    if (vm?.TransactionType == "OutstandingBalance")
+                        query.Append(" ORDER BY BI.Name ASC, BA.AccountName ASC");
+                    else
+                        query.Append(" ORDER BY TransactionDate ASC, TransactionId ASC");
                 }
-                else
-                {
-                    if ((vm?.BankId ?? 0) > 0)
-                        query.Append(" AND BankId = @BankId");
-
-                    if ((vm?.BankAccountId ?? 0) > 0)
-                        query.Append(" AND AccountId = @BankAccountId");
-                }
-
-                if (vm?.TransactionType != "Statement"
-                    && vm?.TransactionType != "Payment"
-                    && vm?.TransactionType != "Collection"
-                    && vm?.TransactionType != "OutstandingBalance")
-                {
-                    if ((vm?.DepositId ?? 0) > 0)
-                        query.Append(" AND (TransactionType = 'Deposit' AND TransactionId = @DepositId)");
-
-                    if ((vm?.WithdrawalId ?? 0) > 0)
-                        query.Append(" AND (TransactionType = 'Withdrawal' AND TransactionId = @WithdrawalId)");
-
-                    if (!string.IsNullOrWhiteSpace(vm?.TransactionType))
-                        query.Append(" AND TransactionType = @TransactionType");
-                }
-
-                if (vm?.TransactionType == "OutstandingBalance")
-                    query.Append(" ORDER BY BI.Name ASC, BA.AccountName ASC");
-                else
-                    query.Append(" ORDER BY TransactionDate ASC, TransactionId ASC");
-
                 #endregion
 
                 query = new StringBuilder(ApplyConditions(
@@ -643,40 +762,67 @@ WHERE 1=1
                     objComm.SelectCommand, conditionalFields, conditionalValues);
 
                 #region Parameters
+
+                bool isSummaryPaymentOrCollection = vm?.IsSummary == true
+                    && (vm?.TransactionType == "Payment" || vm?.TransactionType == "Collection");
+
+                // FromDate / ToDate
                 if (vm?.TransactionType != "OutstandingBalance")
                 {
-                    if (!string.IsNullOrWhiteSpace(vm?.FromDate)) objComm.SelectCommand.Parameters.AddWithValue("@FromDate", DateTime.Parse(vm.FromDate));
-                    if (!string.IsNullOrWhiteSpace(vm?.ToDate)) objComm.SelectCommand.Parameters.AddWithValue("@ToDate", DateTime.Parse(vm.ToDate));
+                    if (!string.IsNullOrWhiteSpace(vm?.FromDate))
+                        objComm.SelectCommand.Parameters.AddWithValue("@FromDate", DateTime.Parse(vm.FromDate));
+                    if (!string.IsNullOrWhiteSpace(vm?.ToDate))
+                        objComm.SelectCommand.Parameters.AddWithValue("@ToDate", DateTime.Parse(vm.ToDate));
                 }
 
+                // BankId / BankAccountId
                 if ((vm?.BankId ?? 0) > 0)
                     objComm.SelectCommand.Parameters.AddWithValue("@BankId", vm.BankId);
 
                 if ((vm?.BankAccountId ?? 0) > 0)
                     objComm.SelectCommand.Parameters.AddWithValue("@BankAccountId", vm.BankAccountId);
 
-                if ((vm?.TransactionId ?? 0) > 0)
-                    objComm.SelectCommand.Parameters.AddWithValue("@TransactionId", vm.TransactionId);
-
-                if ((vm?.BranchId ?? 0) > 0)
-                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
-                // In Parameters region — add after TransactionId parameter:
-                if ((vm?.DepositId ?? 0) > 0)
-                    objComm.SelectCommand.Parameters.AddWithValue("@DepositId", vm.DepositId);
-
-                if ((vm?.WithdrawalId ?? 0) > 0)
-                    objComm.SelectCommand.Parameters.AddWithValue("@WithdrawalId", vm.WithdrawalId);
-
-                // OutstandingBalance / Payment / Collection / Statement এ @TransactionType parameter নেই
-                if (vm?.TransactionType != "Statement"
-                    && vm?.TransactionType != "OutstandingBalance"
-                    && vm?.TransactionType != "Payment"
-                    && vm?.TransactionType != "Collection")
+                // Summary Payment/Collection specific
+                if (isSummaryPaymentOrCollection)
                 {
-                    objComm.SelectCommand.Parameters.AddWithValue("@TransactionType",
-                        string.IsNullOrWhiteSpace(vm?.TransactionType)
-                            ? (object)DBNull.Value
-                            : vm.TransactionType);
+                    if (vm?.TransactionType == "Payment" && (vm?.SupplierId ?? 0) > 0)
+                        objComm.SelectCommand.Parameters.AddWithValue("@SupplierId", vm.SupplierId);
+
+                    if (vm?.TransactionType == "Collection" && (vm?.CustomerId ?? 0) > 0)
+                        objComm.SelectCommand.Parameters.AddWithValue("@CustomerId", vm.CustomerId);
+                }
+                else
+                {
+                    // Details mode only
+                    if ((vm?.TransactionId ?? 0) > 0)
+                        objComm.SelectCommand.Parameters.AddWithValue("@TransactionId", vm.TransactionId);
+
+                    if ((vm?.BranchId ?? 0) > 0)
+                        objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
+
+                    if ((vm?.DepositId ?? 0) > 0)
+                        objComm.SelectCommand.Parameters.AddWithValue("@DepositId", vm.DepositId);
+
+                    if ((vm?.WithdrawalId ?? 0) > 0)
+                        objComm.SelectCommand.Parameters.AddWithValue("@WithdrawalId", vm.WithdrawalId);
+
+                    if (vm?.TransactionType == "Collection" && (vm?.CustomerId ?? 0) > 0)
+                        objComm.SelectCommand.Parameters.AddWithValue("@CustomerId", vm.CustomerId);
+
+                    if (vm?.TransactionType == "Payment" && (vm?.SupplierId ?? 0) > 0)
+                        objComm.SelectCommand.Parameters.AddWithValue("@SupplierId", vm.SupplierId);
+
+                    // @TransactionType parameter শুধু Deposit/Withdrawal/All এর জন্য
+                    if (vm?.TransactionType != "Statement"
+                        && vm?.TransactionType != "OutstandingBalance"
+                        && vm?.TransactionType != "Payment"
+                        && vm?.TransactionType != "Collection")
+                    {
+                        objComm.SelectCommand.Parameters.AddWithValue("@TransactionType",
+                            string.IsNullOrWhiteSpace(vm?.TransactionType)
+                                ? (object)DBNull.Value
+                                : vm.TransactionType);
+                    }
                 }
 
                 // Statement Opening Balance
@@ -778,6 +924,9 @@ WHERE 1=1
 
                 var modelList = dataTable.AsEnumerable().Select(row => new BankTransactionReportVM
                 {
+                    TransactionCount = dataTable.Columns.Contains("TransactionCount") && row["TransactionCount"] != DBNull.Value ? Convert.ToInt32(row["TransactionCount"]) : 0,
+                    LastTransactionDate = dataTable.Columns.Contains("LastTransactionDate") && row["LastTransactionDate"] != DBNull.Value ? Convert.ToDateTime(row["LastTransactionDate"]).ToString("dd-MMM-yyyy") : "",
+                    SupplierCode = dataTable.Columns.Contains("SupplierCode") ? row.Field<string>("SupplierCode") ?? "" : "",
                     TransactionId = row.Field<int?>("TransactionId") ?? 0,
                     TransactionCode = row.Field<string>("TransactionCode") ?? "",
                     TransactionType = row.Field<string>("TransactionType") ?? "",
@@ -850,6 +999,828 @@ WHERE 1=1
                 }
             }
         }
+
+
+        ////    public async Task<ResultVM> CustomerSaleCollectionReportList(
+        ////CustomerSaleCollectionReportVM vm = null,
+        ////SqlConnection conn = null,
+        ////SqlTransaction transaction = null)
+        ////    {
+        ////        bool isNewConnection = false;
+        ////        DataTable dataTable = new DataTable();
+        ////        ResultVM result = new ResultVM
+        ////        {
+        ////            Status = "Fail",
+        ////            Message = "Error",
+        ////            ExMessage = null,
+        ////            DataVM = null
+        ////        };
+
+        ////        try
+        ////        {
+        ////            if (conn == null)
+        ////            {
+        ////                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        ////                conn.Open();
+        ////                isNewConnection = true;
+        ////            }
+
+        ////            StringBuilder query;
+        ////            SqlDataAdapter objComm;
+
+        ////            if (vm?.IsSummary == true)
+        ////            {
+        ////                // ── SUMMARY QUERY ──
+        ////                query = new StringBuilder(@"
+        ////            SELECT
+        ////                C.Id          AS CustomerId,
+        ////                C.Code        AS CustomerCode,
+        ////                C.Name        AS CustomerName,
+
+        ////                COUNT(DISTINCT S.Id)                          AS SaleCount,
+        ////                ISNULL(SUM(DISTINCT S.GrandTotal), 0)         AS TotalSaleAmount,
+
+        ////                COUNT(DISTINCT COL.Id)                        AS CollectionCount,
+        ////                ISNULL(SUM(DISTINCT COL.TotalCollectAmount),0) AS TotalCollectionAmount,
+
+        ////                ISNULL(SUM(DISTINCT S.GrandTotal), 0)
+        ////                    - ISNULL(SUM(DISTINCT COL.TotalCollectAmount), 0)
+        ////                                                              AS OutstandingAmount,
+
+        ////                MAX(COL.TransactionDate)                      AS LastCollectionDate,
+
+        ////                (
+        ////                    SELECT TOP 1 CD2.CollectionAmount
+        ////                    FROM CollectionDetails CD2
+        ////                    INNER JOIN Collections COL2 ON CD2.CollectionId = COL2.Id
+        ////                    WHERE CD2.CustomerId = C.Id
+        ////                    ORDER BY COL2.TransactionDate DESC, COL2.Id DESC
+        ////                )                                             AS LastCollectionAmount
+
+        ////            FROM Customers C
+        ////            LEFT JOIN Sales S
+        ////                ON S.CustomerId = C.Id
+        ////                AND S.IsPost = 1
+        ////            LEFT JOIN Collections COL
+        ////                ON COL.CustomerId = C.Id
+        ////                AND COL.IsActive = 1 AND COL.IsArchive = 0
+        ////            WHERE 1=1
+        ////        ");
+
+        ////                if ((vm?.CustomerId ?? 0) > 0)
+        ////                    query.Append(" AND C.Id = @CustomerId");
+
+        ////                if (!string.IsNullOrWhiteSpace(vm?.FromDate))
+        ////                    query.Append(" AND (S.InvoiceDateTime >= @FromDate OR COL.TransactionDate >= @FromDate)");
+
+        ////                if (!string.IsNullOrWhiteSpace(vm?.ToDate))
+        ////                    query.Append(" AND (S.InvoiceDateTime <= @ToDate OR COL.TransactionDate <= @ToDate)");
+
+        ////                query.Append(@"
+        ////            GROUP BY C.Id, C.Code, C.Name
+        ////            ORDER BY C.Name ASC
+        ////        ");
+        ////            }
+        ////            else
+        ////            {
+        ////                // ── DETAILS QUERY ──
+        ////                // Sale rows + Collection rows UNION ALL
+        ////                query = new StringBuilder(@"
+        ////            SELECT * FROM (
+
+        ////                -- Sales
+        ////                SELECT
+        ////                    'Sale'                  AS TransactionType,
+        ////                    C.Id                    AS CustomerId,
+        ////                    C.Code                  AS CustomerCode,
+        ////                    C.Name                  AS CustomerName,
+        ////                    S.Id                    AS SaleId,
+        ////                    S.Code                  AS SaleCode,
+        ////                    CAST(S.InvoiceDateTime AS DATE) AS InvoiceDate,
+        ////                    S.GrandTotal            AS SaleAmount,
+        ////                    S.PaidAmount,
+        ////                    NULL                    AS CollectionId,
+        ////                    NULL                    AS CollectionCode,
+        ////                    NULL                    AS CollectionDate,
+        ////                    0                       AS CollectionAmount
+        ////                FROM Sales S
+        ////                INNER JOIN Customers C ON S.CustomerId = C.Id
+        ////                WHERE S.IsPost = 1
+
+        ////                UNION ALL
+
+        ////                -- Collections (with CollectionDetails link)
+        ////                SELECT
+        ////                    'Collection'            AS TransactionType,
+        ////                    C.Id                    AS CustomerId,
+        ////                    C.Code                  AS CustomerCode,
+        ////                    C.Name                  AS CustomerName,
+        ////                    CD.SaleId               AS SaleId,
+        ////                    S2.Code                 AS SaleCode,
+        ////                    NULL                    AS InvoiceDate,
+        ////                    0                       AS SaleAmount,
+        ////                    0                       AS PaidAmount,
+        ////                    COL.Id                  AS CollectionId,
+        ////                    COL.Code                AS CollectionCode,
+        ////                    COL.TransactionDate     AS CollectionDate,
+        ////                    CD.CollectionAmount
+        ////                FROM CollectionDetails CD
+        ////                INNER JOIN Collections COL ON CD.CollectionId = COL.Id
+        ////                INNER JOIN Customers C   ON CD.CustomerId = C.Id
+        ////                LEFT  JOIN Sales S2      ON CD.SaleId = S2.Id
+        ////                WHERE COL.IsActive = 1 AND COL.IsArchive = 0
+
+        ////            ) AS ReportData
+        ////            WHERE 1=1
+        ////        ");
+
+        ////                if ((vm?.CustomerId ?? 0) > 0)
+        ////                    query.Append(" AND CustomerId = @CustomerId");
+
+        ////                if (!string.IsNullOrWhiteSpace(vm?.FromDate))
+        ////                    query.Append(" AND (InvoiceDate >= @FromDate OR CollectionDate >= @FromDate)");
+
+        ////                if (!string.IsNullOrWhiteSpace(vm?.ToDate))
+        ////                    query.Append(" AND (InvoiceDate <= @ToDate OR CollectionDate <= @ToDate)");
+
+        ////                query.Append(" ORDER BY CustomerName ASC, SaleId ASC, TransactionType ASC");
+        ////            }
+
+        ////            objComm = new SqlDataAdapter(query.ToString(), conn);
+        ////            if (transaction != null)
+        ////                objComm.SelectCommand.Transaction = transaction;
+
+        ////            // Parameters
+        ////            if ((vm?.CustomerId ?? 0) > 0)
+        ////                objComm.SelectCommand.Parameters.AddWithValue("@CustomerId", vm.CustomerId);
+
+        ////            if (!string.IsNullOrWhiteSpace(vm?.FromDate))
+        ////                objComm.SelectCommand.Parameters.AddWithValue("@FromDate", DateTime.Parse(vm.FromDate));
+
+        ////            if (!string.IsNullOrWhiteSpace(vm?.ToDate))
+        ////                objComm.SelectCommand.Parameters.AddWithValue("@ToDate", DateTime.Parse(vm.ToDate));
+
+        ////            objComm.Fill(dataTable);
+
+        ////            List<CustomerSaleCollectionReportVM> modelList;
+
+        ////            if (vm?.IsSummary == true)
+        ////            {
+        ////                modelList = dataTable.AsEnumerable().Select(row =>
+        ////                    new CustomerSaleCollectionReportVM
+        ////                    {
+        ////                        CustomerId = row.Field<int>("CustomerId"),
+        ////                        CustomerCode = row.Field<string>("CustomerCode") ?? "",
+        ////                        CustomerName = row.Field<string>("CustomerName") ?? "",
+        ////                        SaleCount = row.Field<int>("SaleCount"),
+        ////                        TotalSaleAmount = row.Field<decimal?>("TotalSaleAmount") ?? 0,
+        ////                        CollectionCount = row.Field<int>("CollectionCount"),
+        ////                        TotalCollectionAmount = row.Field<decimal?>("TotalCollectionAmount") ?? 0,
+        ////                        OutstandingAmount = row.Field<decimal?>("OutstandingAmount") ?? 0,
+        ////                        LastCollectionDate = row["LastCollectionDate"] != DBNull.Value
+        ////                                                    ? Convert.ToDateTime(row["LastCollectionDate"])
+        ////                                                             .ToString("dd-MMM-yyyy")
+        ////                                                    : "",
+        ////                        LastCollectionAmount = row["LastCollectionAmount"] != DBNull.Value
+        ////                                                    ? Convert.ToDecimal(row["LastCollectionAmount"])
+        ////                                                    : 0
+        ////                    }).ToList();
+        ////            }
+        ////            else
+        ////            {
+        ////                modelList = dataTable.AsEnumerable().Select(row =>
+        ////                    new CustomerSaleCollectionReportVM
+        ////                    {
+        ////                        TransactionType = row.Field<string>("TransactionType") ?? "",
+        ////                        CustomerId = row.Field<int>("CustomerId"),
+        ////                        CustomerCode = row.Field<string>("CustomerCode") ?? "",
+        ////                        CustomerName = row.Field<string>("CustomerName") ?? "",
+        ////                        SaleId = row.Field<int?>("SaleId") ?? 0,
+        ////                        SaleCode = row.Field<string>("SaleCode") ?? "",
+        ////                        InvoiceDate = row["InvoiceDate"] != DBNull.Value
+        ////                                               ? Convert.ToDateTime(row["InvoiceDate"])
+        ////                                                        .ToString("dd-MMM-yyyy")
+        ////                                               : "",
+        ////                        SaleAmount = row.Field<decimal?>("SaleAmount") ?? 0,
+        ////                        PaidAmount = row.Field<decimal?>("PaidAmount") ?? 0,
+        ////                        CollectionId = row.Field<int?>("CollectionId") ?? 0,
+        ////                        CollectionCode = row.Field<string>("CollectionCode") ?? "",
+        ////                        CollectionDate = row["CollectionDate"] != DBNull.Value
+        ////                                               ? Convert.ToDateTime(row["CollectionDate"])
+        ////                                                        .ToString("dd-MMM-yyyy")
+        ////                                               : "",
+        ////                        CollectionAmount = row.Field<decimal?>("CollectionAmount") ?? 0
+        ////                    }).ToList();
+        ////            }
+
+        ////            result.Status = "Success";
+        ////            result.Message = "Data retrieved successfully";
+        ////            result.DataVM = modelList;
+        ////            return result;
+        ////        }
+        ////        catch (Exception ex)
+        ////        {
+        ////            result.Status = "Fail";
+        ////            result.Message = ex.Message;
+        ////            result.ExMessage = ex.ToString();
+        ////            return result;
+        ////        }
+        ////        finally
+        ////        {
+        ////            if (isNewConnection && conn != null)
+        ////            {
+        ////                conn.Close();
+        ////                conn.Dispose();
+        ////            }
+        ////        }
+        ////    }
+
+
+
+        public async Task<ResultVM> CustomerSaleCollectionReportList(
+    CustomerSaleCollectionReportVM vm = null,
+    SqlConnection conn = null,
+    SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                DataVM = null
+            };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                StringBuilder query;
+                SqlDataAdapter objComm;
+
+                if (vm?.IsSummary == true)
+                {
+                    // ── SUMMARY QUERY (Fixed using CTE & Unified Logic Streams) ──
+                    query = new StringBuilder(@"
+                WITH RawSales AS (
+                    SELECT 
+                        CustomerId, 
+                        Id AS SaleId, 
+                        GrandTotal,
+                        InvoiceDateTime
+                    FROM Sales 
+                    WHERE IsPost = 1
+                ),
+                RawCollections AS (
+                    SELECT 
+                        CustomerId, 
+                        Id AS CollId, 
+                        TotalCollectAmount AS Amount, 
+                        TransactionDate AS TxDate
+                    FROM Collections 
+                    WHERE IsActive = 1 AND IsArchive = 0
+                    
+                    UNION ALL
+                    
+                    SELECT 
+                        S_CC.CustomerId, 
+                        SCC.Id AS CollId, 
+                        SCC.CardTotal AS Amount, 
+                        CAST(S_CC.InvoiceDateTime AS DATE) AS TxDate
+                    FROM SaleCreditCards SCC
+                    INNER JOIN Sales S_CC ON SCC.SaleId = S_CC.Id
+                    WHERE S_CC.IsPost = 1
+                ),
+                LatestCollection AS (
+                    SELECT 
+                        CustomerId,
+                        TxDate,
+                        Amount,
+                        ROW_NUMBER() OVER (PARTITION BY CustomerId ORDER BY TxDate DESC, CollId DESC) AS RowSeq
+                    FROM RawCollections
+                )
+                SELECT 
+                    C.Id AS CustomerId,
+                    C.Code AS CustomerCode,
+                    C.Name AS CustomerName,
+                    ISNULL(S.SaleCount, 0) AS SaleCount,
+                    ISNULL(S.TotalSaleAmount, 0) AS TotalSaleAmount,
+                    ISNULL(COL.CollectionCount, 0) AS CollectionCount,
+                    ISNULL(COL.TotalCollectionAmount, 0) AS TotalCollectionAmount,
+                    (ISNULL(S.TotalSaleAmount, 0) - ISNULL(COL.TotalCollectionAmount, 0)) AS OutstandingAmount,
+                    LC.TxDate AS LastCollectionDate,
+                    ISNULL(LC.Amount, 0) AS LastCollectionAmount
+                FROM Customers C
+                LEFT JOIN (
+                    SELECT 
+                        CustomerId,
+                        COUNT(DISTINCT SaleId) AS SaleCount,
+                        SUM(GrandTotal) AS TotalSaleAmount
+                    FROM RawSales
+                    WHERE 1=1
+            ");
+
+                    if (!string.IsNullOrWhiteSpace(vm?.FromDate))
+                        query.Append(" AND InvoiceDateTime >= @FromDate");
+
+                    if (!string.IsNullOrWhiteSpace(vm?.ToDate))
+                        query.Append(" AND InvoiceDateTime <= @ToDate");
+
+                    query.Append(@"
+                    GROUP BY CustomerId
+                ) S ON C.Id = S.CustomerId
+                LEFT JOIN (
+                    SELECT 
+                        CustomerId,
+                        COUNT(DISTINCT CollId) AS CollectionCount,
+                        SUM(Amount) AS TotalCollectionAmount
+                    FROM RawCollections
+                    WHERE 1=1
+            ");
+
+                    if (!string.IsNullOrWhiteSpace(vm?.FromDate))
+                        query.Append(" AND TxDate >= @FromDate");
+
+                    if (!string.IsNullOrWhiteSpace(vm?.ToDate))
+                        query.Append(" AND TxDate <= @ToDate");
+
+                    query.Append(@"
+                    GROUP BY CustomerId
+                ) COL ON C.Id = COL.CustomerId
+                LEFT JOIN LatestCollection LC ON C.Id = LC.CustomerId AND LC.RowSeq = 1
+                WHERE 1=1
+            ");
+
+                    if ((vm?.CustomerId ?? 0) > 0)
+                        query.Append(" AND C.Id = @CustomerId");
+
+                    // Filter logic matching active parameters inside CTE timelines
+                    if (!string.IsNullOrWhiteSpace(vm?.FromDate))
+                        query.Append(" AND (S.CustomerId IS NOT NULL OR COL.CustomerId IS NOT NULL)");
+
+                    query.Append(" ORDER BY C.Name ASC");
+                }
+                else
+                {
+                    // ── DETAILS QUERY (Working Cleanly) ──
+                    query = new StringBuilder(@"
+                SELECT * FROM (
+
+                    -- Sales
+                    SELECT
+                        'Sale'                  AS TransactionType,
+                        C.Id                    AS CustomerId,
+                        C.Code                  AS CustomerCode,
+                        C.Name                  AS CustomerName,
+                        S.Id                    AS SaleId,
+                        S.Code                  AS SaleCode,
+                        CAST(S.InvoiceDateTime AS DATE) AS InvoiceDate,
+                        S.GrandTotal            AS SaleAmount,
+                        S.PaidAmount,
+                        NULL                    AS CollectionId,
+                        NULL                    AS CollectionCode,
+                        NULL                    AS CollectionDate,
+                        0                       AS CollectionAmount
+                    FROM Sales S
+                    INNER JOIN Customers C ON S.CustomerId = C.Id
+                    WHERE S.IsPost = 1
+
+                    UNION ALL
+
+                    -- Standard Collections
+                    SELECT
+                        'Collection'            AS TransactionType,
+                        C.Id                    AS CustomerId,
+                        C.Code                  AS CustomerCode,
+                        C.Name                  AS CustomerName,
+                        CD.SaleId               AS SaleId,
+                        S2.Code                 AS SaleCode,
+                        NULL                    AS InvoiceDate,
+                        0                       AS SaleAmount,
+                        0                       AS PaidAmount,
+                        COL.Id                  AS CollectionId,
+                        COL.Code                AS CollectionCode,
+                        COL.TransactionDate     AS CollectionDate,
+                        CD.CollectionAmount
+                    FROM CollectionDetails CD
+                    INNER JOIN Collections COL ON CD.CollectionId = COL.Id
+                    INNER JOIN Customers C   ON CD.CustomerId = C.Id
+                    LEFT  JOIN Sales S2      ON CD.SaleId = S2.Id
+                    WHERE COL.IsActive = 1 AND COL.IsArchive = 0
+
+                    UNION ALL
+
+                    -- Credit Card Payments
+                    SELECT
+                        'Collection'            AS TransactionType,
+                        C.Id                    AS CustomerId,
+                        C.Code                  AS CustomerCode,
+                        C.Name                  AS CustomerName,
+                        S3.Id                   AS SaleId,
+                        S3.Code                 AS SaleCode,
+                        NULL                    AS InvoiceDate,
+                        0                       AS SaleAmount,
+                        0                       AS PaidAmount,
+                        SCC.Id                  AS CollectionId,
+                        'CC-' + S3.Code         AS CollectionCode,
+                        CAST(S3.InvoiceDateTime AS DATE) AS CollectionDate,
+                        SCC.CardTotal           AS CollectionAmount
+                    FROM SaleCreditCards SCC
+                    INNER JOIN Sales S3      ON SCC.SaleId = S3.Id
+                    INNER JOIN Customers C   ON S3.CustomerId = C.Id
+                    WHERE S3.IsPost = 1
+
+                ) AS ReportData
+                WHERE 1=1
+            ");
+
+                    if ((vm?.CustomerId ?? 0) > 0)
+                        query.Append(" AND CustomerId = @CustomerId");
+
+                    if (!string.IsNullOrWhiteSpace(vm?.FromDate))
+                        query.Append(" AND (InvoiceDate >= @FromDate OR CollectionDate >= @FromDate)");
+
+                    if (!string.IsNullOrWhiteSpace(vm?.ToDate))
+                        query.Append(" AND (InvoiceDate <= @ToDate OR CollectionDate <= @ToDate)");
+
+                    query.Append(" ORDER BY CustomerName ASC, SaleId ASC, TransactionType ASC");
+                }
+
+                objComm = new SqlDataAdapter(query.ToString(), conn);
+                if (transaction != null)
+                    objComm.SelectCommand.Transaction = transaction;
+
+                // Parameters Assignment
+                if ((vm?.CustomerId ?? 0) > 0)
+                    objComm.SelectCommand.Parameters.AddWithValue("@CustomerId", vm.CustomerId);
+
+                if (!string.IsNullOrWhiteSpace(vm?.FromDate))
+                    objComm.SelectCommand.Parameters.AddWithValue("@FromDate", DateTime.Parse(vm.FromDate));
+
+                if (!string.IsNullOrWhiteSpace(vm?.ToDate))
+                    objComm.SelectCommand.Parameters.AddWithValue("@ToDate", DateTime.Parse(vm.ToDate));
+
+                objComm.Fill(dataTable);
+
+                List<CustomerSaleCollectionReportVM> modelList;
+
+                if (vm?.IsSummary == true)
+                {
+                    modelList = dataTable.AsEnumerable().Select(row =>
+                        new CustomerSaleCollectionReportVM
+                        {
+                            CustomerId = row.Field<int>("CustomerId"),
+                            CustomerCode = row.Field<string>("CustomerCode") ?? "",
+                            CustomerName = row.Field<string>("CustomerName") ?? "",
+                            SaleCount = row.Field<int>("SaleCount"),
+                            TotalSaleAmount = row.Field<decimal?>("TotalSaleAmount") ?? 0,
+                            CollectionCount = row.Field<int>("CollectionCount"),
+                            TotalCollectionAmount = row.Field<decimal?>("TotalCollectionAmount") ?? 0,
+                            OutstandingAmount = row.Field<decimal?>("OutstandingAmount") ?? 0,
+                            LastCollectionDate = row["LastCollectionDate"] != DBNull.Value
+                                                        ? Convert.ToDateTime(row["LastCollectionDate"])
+                                                                 .ToString("dd-MMM-yyyy")
+                                                        : "",
+                            LastCollectionAmount = row["LastCollectionAmount"] != DBNull.Value
+                                                        ? Convert.ToDecimal(row["LastCollectionAmount"])
+                                                        : 0
+                        }).ToList();
+                }
+                else
+                {
+                    modelList = dataTable.AsEnumerable().Select(row =>
+                        new CustomerSaleCollectionReportVM
+                        {
+                            TransactionType = row.Field<string>("TransactionType") ?? "",
+                            CustomerId = row.Field<int>("CustomerId"),
+                            CustomerCode = row.Field<string>("CustomerCode") ?? "",
+                            CustomerName = row.Field<string>("CustomerName") ?? "",
+                            SaleId = row.Field<int?>("SaleId") ?? 0,
+                            SaleCode = row.Field<string>("SaleCode") ?? "",
+                            InvoiceDate = row["InvoiceDate"] != DBNull.Value
+                                                   ? Convert.ToDateTime(row["InvoiceDate"])
+                                                            .ToString("dd-MMM-yyyy")
+                                                   : "",
+                            SaleAmount = row.Field<decimal?>("SaleAmount") ?? 0,
+                            PaidAmount = row.Field<decimal?>("PaidAmount") ?? 0,
+                            CollectionId = row.Field<int?>("CollectionId") ?? 0,
+                            CollectionCode = row.Field<string>("CollectionCode") ?? "",
+                            CollectionDate = row["CollectionDate"] != DBNull.Value
+                                                   ? Convert.ToDateTime(row["CollectionDate"])
+                                                            .ToString("dd-MMM-yyyy")
+                                                   : "",
+                            CollectionAmount = row.Field<decimal?>("CollectionAmount") ?? 0
+                        }).ToList();
+                }
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Status = "Fail";
+                result.Message = ex.Message;
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                    conn.Dispose();
+                }
+            }
+        }
+
+
+    //    public async Task<ResultVM> CustomerSaleCollectionReportList(
+    //CustomerSaleCollectionReportVM vm = null,
+    //SqlConnection conn = null,
+    //SqlTransaction transaction = null)
+    //    {
+    //        bool isNewConnection = false;
+    //        DataTable dataTable = new DataTable();
+    //        ResultVM result = new ResultVM
+    //        {
+    //            Status = "Fail",
+    //            Message = "Error",
+    //            ExMessage = null,
+    //            DataVM = null
+    //        };
+
+    //        try
+    //        {
+    //            if (conn == null)
+    //            {
+    //                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+    //                conn.Open();
+    //                isNewConnection = true;
+    //            }
+
+    //            StringBuilder query;
+    //            SqlDataAdapter objComm;
+
+    //            if (vm?.IsSummary == true)
+    //            {
+    //                // ── SUMMARY QUERY (Unified Standard & Credit Card Collections) ──
+    //                query = new StringBuilder(@"
+    //            SELECT
+    //                C.Id          AS CustomerId,
+    //                C.Code        AS CustomerCode,
+    //                C.Name        AS CustomerName,
+
+    //                COUNT(DISTINCT S.Id)                                    AS SaleCount,
+    //                ISNULL(SUM(DISTINCT S.GrandTotal), 0)                   AS TotalSaleAmount,
+
+    //                ISNULL(CollSummary.TotalCollCount, 0)                   AS CollectionCount,
+    //                ISNULL(CollSummary.TotalCollAmount, 0)                  AS TotalCollectionAmount,
+
+    //                ISNULL(SUM(DISTINCT S.GrandTotal), 0) 
+    //                    - ISNULL(CollSummary.TotalCollAmount, 0)            AS OutstandingAmount,
+
+    //                CollSummary.MaxCollDate                                 AS LastCollectionDate,
+    //                CollSummary.LastCollAmount                              AS LastCollectionAmount
+    //            FROM Customers C
+    //            LEFT JOIN Sales S
+    //                ON S.CustomerId = C.Id
+    //                AND S.IsPost = 1
+    //            LEFT JOIN (
+    //                -- Combined Metrics from Standard Collections & Credit Cards to avoid duplication bugs
+    //                SELECT 
+    //                    CustomerId,
+    //                    SUM(Src.CollCount) AS TotalCollCount,
+    //                    SUM(Src.Amount) AS TotalCollAmount,
+    //                    MAX(Src.TxDate) AS MaxCollDate,
+    //                    ISNULL(MAX(CASE WHEN Src.RowSeq = 1 THEN Src.AmountItem END), 0) AS LastCollAmount
+    //                FROM (
+    //                    SELECT 
+    //                        CustomerId, 
+    //                        COUNT(DISTINCT Id) AS CollCount, 
+    //                        SUM(TotalCollectAmount) AS Amount, 
+    //                        MAX(TransactionDate) AS TxDate,
+    //                        NULL AS AmountItem,
+    //                        ROW_NUMBER() OVER(PARTITION BY CustomerId ORDER BY MAX(TransactionDate) DESC, MAX(Id) DESC) as RowSeq
+    //                    FROM Collections 
+    //                    WHERE IsActive = 1 AND IsArchive = 0
+    //                    GROUP BY CustomerId
+                        
+    //                    UNION ALL
+                        
+    //                    SELECT 
+    //                        S_CC.CustomerId,
+    //                        COUNT(DISTINCT SCC.Id) AS CollCount,
+    //                        SUM(SCC.CardTotal) AS Amount,
+    //                        MAX(S_CC.InvoiceDateTime) AS TxDate,
+    //                        NULL AS AmountItem,
+    //                        ROW_NUMBER() OVER(PARTITION BY S_CC.CustomerId ORDER BY MAX(S_CC.InvoiceDateTime) DESC, MAX(SCC.Id) DESC) as RowSeq
+    //                    FROM SaleCreditCards SCC
+    //                    INNER JOIN Sales S_CC ON SCC.SaleId = S_CC.Id
+    //                    WHERE S_CC.IsPost = 1
+    //                    GROUP BY S_CC.CustomerId
+    //                ) Src
+    //                GROUP BY CustomerId, RowSeq
+    //            ) CollSummary ON CollSummary.CustomerId = C.Id
+    //            WHERE 1=1
+    //        ");
+
+    //                if ((vm?.CustomerId ?? 0) > 0)
+    //                    query.Append(" AND C.Id = @CustomerId");
+
+    //                if (!string.IsNullOrWhiteSpace(vm?.FromDate))
+    //                    query.Append(" AND (S.InvoiceDateTime >= @FromDate OR CollSummary.MaxCollDate >= @FromDate)");
+
+    //                if (!string.IsNullOrWhiteSpace(vm?.ToDate))
+    //                    query.Append(" AND (S.InvoiceDateTime <= @ToDate OR CollSummary.MaxCollDate <= @ToDate)");
+
+    //                query.Append(@"
+    //            GROUP BY C.Id, C.Code, C.Name, CollSummary.TotalCollCount, CollSummary.TotalCollAmount, CollSummary.MaxCollDate, CollSummary.LastCollAmount
+    //            ORDER BY C.Name ASC
+    //        ");
+    //            }
+    //            else
+    //            {
+    //                // ── DETAILS QUERY ──
+    //                // Sale rows + Standard Collection rows + Credit Card Payment rows UNION ALL
+    //                query = new StringBuilder(@"
+    //            SELECT * FROM (
+
+    //                -- Sales
+    //                SELECT
+    //                    'Sale'                  AS TransactionType,
+    //                    C.Id                    AS CustomerId,
+    //                    C.Code                  AS CustomerCode,
+    //                    C.Name                  AS CustomerName,
+    //                    S.Id                    AS SaleId,
+    //                    S.Code                  AS SaleCode,
+    //                    CAST(S.InvoiceDateTime AS DATE) AS InvoiceDate,
+    //                    S.GrandTotal            AS SaleAmount,
+    //                    S.PaidAmount,
+    //                    NULL                    AS CollectionId,
+    //                    NULL                    AS CollectionCode,
+    //                    NULL                    AS CollectionDate,
+    //                    0                       AS CollectionAmount
+    //                FROM Sales S
+    //                INNER JOIN Customers C ON S.CustomerId = C.Id
+    //                WHERE S.IsPost = 1
+
+    //                UNION ALL
+
+    //                -- Standard Collections (with CollectionDetails link)
+    //                SELECT
+    //                    'Collection'            AS TransactionType,
+    //                    C.Id                    AS CustomerId,
+    //                    C.Code                  AS CustomerCode,
+    //                    C.Name                  AS CustomerName,
+    //                    CD.SaleId               AS SaleId,
+    //                    S2.Code                 AS SaleCode,
+    //                    NULL                    AS InvoiceDate,
+    //                    0                       AS SaleAmount,
+    //                    0                       AS PaidAmount,
+    //                    COL.Id                  AS CollectionId,
+    //                    COL.Code                AS CollectionCode,
+    //                    COL.TransactionDate     AS CollectionDate,
+    //                    CD.CollectionAmount
+    //                FROM CollectionDetails CD
+    //                INNER JOIN Collections COL ON CD.CollectionId = COL.Id
+    //                INNER JOIN Customers C   ON CD.CustomerId = C.Id
+    //                LEFT  JOIN Sales S2      ON CD.SaleId = S2.Id
+    //                WHERE COL.IsActive = 1 AND COL.IsArchive = 0
+
+    //                UNION ALL
+
+    //                -- Credit Card Payments processed as Collections
+    //                SELECT
+    //                    'Collection'            AS TransactionType,
+    //                    C.Id                    AS CustomerId,
+    //                    C.Code                  AS CustomerCode,
+    //                    C.Name                  AS CustomerName,
+    //                    S3.Id                   AS SaleId,
+    //                    S3.Code                 AS SaleCode,
+    //                    NULL                    AS InvoiceDate,
+    //                    0                       AS SaleAmount,
+    //                    0                       AS PaidAmount,
+    //                    SCC.Id                  AS CollectionId,
+    //                    'CC-' + S3.Code         AS CollectionCode,
+    //                    CAST(S3.InvoiceDateTime AS DATE) AS CollectionDate,
+    //                    SCC.CardTotal           AS CollectionAmount
+    //                FROM SaleCreditCards SCC
+    //                INNER JOIN Sales S3      ON SCC.SaleId = S3.Id
+    //                INNER JOIN Customers C   ON S3.CustomerId = C.Id
+    //                WHERE S3.IsPost = 1
+
+    //            ) AS ReportData
+    //            WHERE 1=1
+    //        ");
+
+    //                if ((vm?.CustomerId ?? 0) > 0)
+    //                    query.Append(" AND CustomerId = @CustomerId");
+
+    //                if (!string.IsNullOrWhiteSpace(vm?.FromDate))
+    //                    query.Append(" AND (InvoiceDate >= @FromDate OR CollectionDate >= @FromDate)");
+
+    //                if (!string.IsNullOrWhiteSpace(vm?.ToDate))
+    //                    query.Append(" AND (InvoiceDate <= @ToDate OR CollectionDate <= @ToDate)");
+
+    //                query.Append(" ORDER BY CustomerName ASC, SaleId ASC, TransactionType ASC");
+    //            }
+
+    //            objComm = new SqlDataAdapter(query.ToString(), conn);
+    //            if (transaction != null)
+    //                objComm.SelectCommand.Transaction = transaction;
+
+    //            // Parameters Assignment
+    //            if ((vm?.CustomerId ?? 0) > 0)
+    //                objComm.SelectCommand.Parameters.AddWithValue("@CustomerId", vm.CustomerId);
+
+    //            if (!string.IsNullOrWhiteSpace(vm?.FromDate))
+    //                objComm.SelectCommand.Parameters.AddWithValue("@FromDate", DateTime.Parse(vm.FromDate));
+
+    //            if (!string.IsNullOrWhiteSpace(vm?.ToDate))
+    //                objComm.SelectCommand.Parameters.AddWithValue("@ToDate", DateTime.Parse(vm.ToDate));
+
+    //            objComm.Fill(dataTable);
+
+    //            List<CustomerSaleCollectionReportVM> modelList;
+
+    //            if (vm?.IsSummary == true)
+    //            {
+    //                modelList = dataTable.AsEnumerable().Select(row =>
+    //                    new CustomerSaleCollectionReportVM
+    //                    {
+    //                        CustomerId = row.Field<int>("CustomerId"),
+    //                        CustomerCode = row.Field<string>("CustomerCode") ?? "",
+    //                        CustomerName = row.Field<string>("CustomerName") ?? "",
+    //                        SaleCount = row.Field<int>("SaleCount"),
+    //                        TotalSaleAmount = row.Field<decimal?>("TotalSaleAmount") ?? 0,
+    //                        CollectionCount = row.Field<int>("CollectionCount"),
+    //                        TotalCollectionAmount = row.Field<decimal?>("TotalCollectionAmount") ?? 0,
+    //                        OutstandingAmount = row.Field<decimal?>("OutstandingAmount") ?? 0,
+    //                        LastCollectionDate = row["LastCollectionDate"] != DBNull.Value
+    //                                                    ? Convert.ToDateTime(row["LastCollectionDate"])
+    //                                                             .ToString("dd-MMM-yyyy")
+    //                                                    : "",
+    //                        LastCollectionAmount = row["LastCollectionAmount"] != DBNull.Value
+    //                                                    ? Convert.ToDecimal(row["LastCollectionAmount"])
+    //                                                    : 0
+    //                    }).ToList();
+    //            }
+    //            else
+    //            {
+    //                modelList = dataTable.AsEnumerable().Select(row =>
+    //                    new CustomerSaleCollectionReportVM
+    //                    {
+    //                        TransactionType = row.Field<string>("TransactionType") ?? "",
+    //                        CustomerId = row.Field<int>("CustomerId"),
+    //                        CustomerCode = row.Field<string>("CustomerCode") ?? "",
+    //                        CustomerName = row.Field<string>("CustomerName") ?? "",
+    //                        SaleId = row.Field<int?>("SaleId") ?? 0,
+    //                        SaleCode = row.Field<string>("SaleCode") ?? "",
+    //                        InvoiceDate = row["InvoiceDate"] != DBNull.Value
+    //                                               ? Convert.ToDateTime(row["InvoiceDate"])
+    //                                                        .ToString("dd-MMM-yyyy")
+    //                                               : "",
+    //                        SaleAmount = row.Field<decimal?>("SaleAmount") ?? 0,
+    //                        PaidAmount = row.Field<decimal?>("PaidAmount") ?? 0,
+    //                        CollectionId = row.Field<int?>("CollectionId") ?? 0,
+    //                        CollectionCode = row.Field<string>("CollectionCode") ?? "",
+    //                        CollectionDate = row["CollectionDate"] != DBNull.Value
+    //                                               ? Convert.ToDateTime(row["CollectionDate"])
+    //                                                        .ToString("dd-MMM-yyyy")
+    //                                               : "",
+    //                        CollectionAmount = row.Field<decimal?>("CollectionAmount") ?? 0
+    //                    }).ToList();
+    //            }
+
+    //            result.Status = "Success";
+    //            result.Message = "Data retrieved successfully";
+    //            result.DataVM = modelList;
+    //            return result;
+    //        }
+    //        catch (Exception ex)
+    //        {
+    //            result.Status = "Fail";
+    //            result.Message = ex.Message;
+    //            result.ExMessage = ex.ToString();
+    //            return result;
+    //        }
+    //        finally
+    //        {
+    //            if (isNewConnection && conn != null)
+    //            {
+    //                conn.Close();
+    //                conn.Dispose();
+    //            }
+    //        }
+    //    }
 
 
         protected SqlDataAdapter CreateAdapter(string query, SqlConnection context, SqlTransaction transaction)
