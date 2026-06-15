@@ -5,6 +5,7 @@ using ShampanPOS.ViewModel.KendoCommon;
 using ShampanPOS.ViewModel.Utility;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
@@ -3757,8 +3758,14 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                     p.Name,
                     PD.Quantity,
                     PD.UnitPrice,
+                    PD.SubTotal,
+                    PD.SD,
+                    PD.VATAmount,
+                    PD.LineTotal,
                     Pur.CompanyId,
-                    Pur.BranchId
+                    Pur.BranchId,
+                    Co.CompanyName,
+                    B.Name
             ");
                 }
 
@@ -3856,7 +3863,6 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                 return result;
             }
         }
-
 
     }
 

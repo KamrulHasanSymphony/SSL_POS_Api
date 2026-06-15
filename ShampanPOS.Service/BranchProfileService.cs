@@ -16,7 +16,7 @@ namespace ShampanPOS.Service
     public class BranchProfileService
     {
         CommonRepository _commonRepo = new CommonRepository();
-        public async Task<ResultVM> Insert(BranchProfileVM branchAdvance)
+        public async Task<ResultVM> Insert(BranchProfileVM branchVm)
         {
             string CodeGroup = "BranchProfile";
             string CodeName = "BranchProfile";
@@ -38,7 +38,7 @@ namespace ShampanPOS.Service
 
                 #region Check Exist Data
                 string[] conditionField = { "Name" };
-                string[] conditionValue = { branchAdvance.Name.Trim() };
+                string[] conditionValue = { branchVm.Name.Trim() };
 
                 bool exist = _commonRepo.CheckExists("BranchProfiles", conditionField, conditionValue, conn, transaction);
 
@@ -54,9 +54,9 @@ namespace ShampanPOS.Service
 
                 if (!string.IsNullOrEmpty(code))
                 {
-                    branchAdvance.Code = code;
+                    branchVm.Code = code;
 
-                    result = await _repo.Insert(branchAdvance, conn, transaction);
+                    result = await _repo.Insert(branchVm, conn, transaction);
 
                     DataTable productLists = await _repo.GetProductList(conn, transaction);
                     DataTable purchaseLists = await _repo.GetPurchaseList(conn, transaction);
@@ -81,9 +81,9 @@ namespace ShampanPOS.Service
                                 foreach (DataColumn col in row.Table.Columns)
                                     newRow[col.ColumnName] = row[col.ColumnName];
 
-                                newRow["BranchId"] = branchAdvance.Id;
-                                newRow["CreatedBy"] = branchAdvance.CreatedBy;
-                                newRow["CreatedFrom"] = branchAdvance.CreatedFrom;
+                                newRow["BranchId"] = branchVm.Id;
+                                newRow["CreatedBy"] = branchVm.CreatedBy;
+                                newRow["CreatedFrom"] = branchVm.CreatedFrom;
 
                                 tempTable.Rows.Add(newRow);
 
@@ -111,9 +111,9 @@ namespace ShampanPOS.Service
                                 foreach (DataColumn col in row.Table.Columns)
                                     newRow[col.ColumnName] = row[col.ColumnName];
 
-                                newRow["BranchId"] = branchAdvance.Id;
-                                newRow["CreatedBy"] = branchAdvance.CreatedBy;
-                                newRow["CreatedFrom"] = branchAdvance.CreatedFrom;
+                                newRow["BranchId"] = branchVm.Id;
+                                newRow["CreatedBy"] = branchVm.CreatedBy;
+                                newRow["CreatedFrom"] = branchVm.CreatedFrom;
 
                                 tempTable.Rows.Add(newRow);
 
