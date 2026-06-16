@@ -3448,7 +3448,7 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
         INNER JOIN Suppliers S ON S.Id = Pur.SupplierId
         INNER JOIN CompanyProfiles Co ON Co.Id = Pur.CompanyId
         INNER JOIN BranchProfiles B ON B.Id = Pur.BranchId
-        WHERE 1 = 1
+        WHERE Pur.CompanyId=@CompanyId
             ");
                 }
 
@@ -3484,7 +3484,7 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
             INNER JOIN Suppliers S ON S.Id = Pur.SupplierId
             INNER JOIN CompanyProfiles Co ON Co.Id = Pur.CompanyId
             INNER JOIN BranchProfiles B ON B.Id = Pur.BranchId
-            WHERE 1 = 1
+            WHERE Pur.CompanyId=@CompanyId
             ");
                 }
 
@@ -3535,13 +3535,8 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                 #endregion
 
                 query = new StringBuilder(ApplyConditions(query.ToString(),conditionalFields,conditionalValues,true));
-
                 objComm = CreateAdapter(query.ToString(),conn,transaction);
-
-                objComm.SelectCommand = ApplyParameters(
-                    objComm.SelectCommand,
-                    conditionalFields,
-                    conditionalValues);
+                objComm.SelectCommand = ApplyParameters( objComm.SelectCommand,  conditionalFields, conditionalValues);
 
                 #region Parameters
 
@@ -3553,6 +3548,8 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                 if ((vm?.ProductId ?? 0) > 0) objComm.SelectCommand.Parameters.AddWithValue("@ProductId", vm.ProductId);
                 if ((vm?.PurchaseId ?? 0) > 0) objComm.SelectCommand.Parameters.AddWithValue("@PurchaseId", vm.PurchaseId);
                 if ((vm?.PurchaseOrderId ?? 0) > 0) objComm.SelectCommand.Parameters.AddWithValue("@PurchaseOrderId", vm.PurchaseOrderId);
+                if ((vm?.CompanyId ?? 0) > 0) {objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", vm.CompanyId);}
+                //objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
 
                 #endregion
 
@@ -3675,12 +3672,11 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                     p.Name AS ProductName,
                     Pur.InvoiceDateTime,
                     Pur.PurchaseDate,
-                    PD.Quantity,
-                    PD.UnitPrice,
-                    PD.SubTotal,
-                    PD.SD,
-                    PD.VATAmount,
-                    PD.LineTotal,
+            	    PD.UnitPrice,
+                    PD.Quantity AS PurchaseQty,
+                    PD.LineTotal AS PurchaseTotalAmount,
+            	    prd.Quantity AS PurchaseReturnQty,
+                    prd.LineTotal AS PurchaseReturnTotalAmount,
                     Pur.CompanyId,
                     Pur.BranchId,
                     Co.CompanyName,
@@ -3688,44 +3684,45 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                 FROM PurchaseDetails PD
                 LEFT OUTER JOIN Purchases Pur ON Pur.Id = PD.PurchaseId
                 LEFT OUTER JOIN PurchasesReturn pr ON pr.PurchaseId = Pur.Id
+                LEFT OUTER JOIN PurchaseReturnDetails PRD ON PRD.PurchasesReturnId = pr.Id
                 LEFT OUTER JOIN CompanyProfiles Co ON Pur.CompanyId = Co.Id
                 LEFT OUTER JOIN BranchProfiles B ON Pur.BranchId = B.Id
                 LEFT OUTER JOIN Products p ON p.Id = PD.ProductId
                 LEFT OUTER JOIN Suppliers s ON s.Id = Pur.SupplierId
-                WHERE 1 = 1            ");
+                WHERE Pur.CompanyId=@CompanyId
+");
                 }
                 else
                 {
                     query = new StringBuilder(@"
                 SELECT
-                    Pur.Id AS PurchaseId,
-                    Pur.Code AS PurchaseNo,
-                    pr.Code AS PurchaseReturnNo,
-                    s.Code AS SupplierCode,
-                    s.Name AS SupplierName,
-                    p.Code AS ProductCode,
-                    p.Name AS ProductName,
-                    Pur.InvoiceDateTime,
-                    Pur.PurchaseDate,
-                    PD.Quantity,
-                    PD.UnitPrice,
-                    PD.SubTotal,
-                    PD.SD,
-                    PD.VATAmount,
-                    PD.LineTotal,
-                    Pur.CompanyId,
-                    Pur.BranchId,
-                    Co.CompanyName,
-                    B.Name AS BranchName
-                FROM PurchaseDetails PD
-                LEFT OUTER JOIN Purchases Pur ON Pur.Id = PD.PurchaseId
-                LEFT OUTER JOIN PurchasesReturn pr ON pr.PurchaseId = Pur.Id
-				LEFT OUTER JOIN PurchaseReturnDetails prd ON prd.PurchasesReturnId = pr.Id
-                LEFT OUTER JOIN CompanyProfiles Co ON Pur.CompanyId = Co.Id
-                LEFT OUTER JOIN BranchProfiles B ON Pur.BranchId = B.Id
-                LEFT OUTER JOIN Products p ON p.Id = PD.ProductId
-                LEFT OUTER JOIN Suppliers s ON s.Id = Pur.SupplierId
-                WHERE 1 = 1
+                 Pur.Id AS PurchaseId,
+                 Pur.Code AS PurchaseNo,
+                 pr.Code AS PurchaseReturnNo,
+                 s.Code AS SupplierCode,
+                 s.Name AS SupplierName,
+                 p.Code AS ProductCode,
+                 p.Name AS ProductName,
+                 Pur.InvoiceDateTime,
+                 Pur.PurchaseDate,
+            	 PD.UnitPrice,
+                 PD.Quantity AS PurchaseQty,
+                 PD.LineTotal AS PurchaseTotalAmount,
+            	 prd.Quantity AS PurchaseReturnQty,
+                 prd.LineTotal AS PurchaseReturnTotalAmount,
+                 Pur.CompanyId,
+                 Pur.BranchId,
+                 Co.CompanyName,
+                 B.Name AS BranchName
+             FROM PurchaseDetails PD
+             LEFT OUTER JOIN Purchases Pur ON Pur.Id = PD.PurchaseId
+             LEFT OUTER JOIN PurchasesReturn pr ON pr.PurchaseId = Pur.Id
+             LEFT OUTER JOIN PurchaseReturnDetails PRD ON PRD.PurchasesReturnId = pr.Id
+             LEFT OUTER JOIN CompanyProfiles Co ON Pur.CompanyId = Co.Id
+             LEFT OUTER JOIN BranchProfiles B ON Pur.BranchId = B.Id
+             LEFT OUTER JOIN Products p ON p.Id = PD.ProductId
+             LEFT OUTER JOIN Suppliers s ON s.Id = Pur.SupplierId
+             WHERE Pur.CompanyId=@CompanyId
             ");
                 }
 
@@ -3768,10 +3765,9 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                     p.Name,
                     PD.Quantity,
                     PD.UnitPrice,
-                    PD.SubTotal,
-                    PD.SD,
-                    PD.VATAmount,
                     PD.LineTotal,
+                    prd.Quantity,
+                    prd.LineTotal,
                     Pur.CompanyId,
                     Pur.BranchId,
                     Co.CompanyName,
@@ -3800,11 +3796,11 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                 if ((vm?.ProductId ?? 0) > 0) objComm.SelectCommand.Parameters.AddWithValue("@ProductId", vm.ProductId);
                 if ((vm?.PurchaseId ?? 0) > 0) objComm.SelectCommand.Parameters.AddWithValue("@PurchaseId", vm.PurchaseId);
                 if ((vm?.PurchasesReturnId ?? 0) > 0) objComm.SelectCommand.Parameters.AddWithValue("@PurchasesReturnId", vm.PurchasesReturnId);
+                if ((vm?.CompanyId ?? 0) > 0) { objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", vm.CompanyId); }
 
                 #endregion
 
                 objComm.Fill(dataTable);
-
                 var modelList = dataTable.AsEnumerable().Select(row => new PurchaseReportVM
                 {
                     PurchaseId = row.Field<int?>("PurchaseId") ?? 0,
@@ -3813,51 +3809,29 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                     PurchaseReturnNo = row.Field<string>("PurchaseReturnNo") ?? "",
                     SupplierCode = row.Field<string>("SupplierCode") ?? "",
                     SupplierName = row.Field<string>("SupplierName") ?? "",
-                    ProductCode = dataTable.Columns.Contains("ProductCode")
-                    ? row["ProductCode"]?.ToString()
-                    : "",
-                    ProductName = dataTable.Columns.Contains("ProductName")
-                    ? row["ProductName"]?.ToString()
-                    : "",
-                    Quantity = dataTable.Columns.Contains("Quantity")
-                    ? row.Field<decimal?>("Quantity") ?? 0
-                    : 0,
-                    UnitPrice = dataTable.Columns.Contains("UnitPrice")
-                    ? row.Field<decimal?>("UnitPrice") ?? 0
-                    : 0,
 
-                    SubTotal = dataTable.Columns.Contains("SubTotal")
-                    ? row.Field<decimal?>("SubTotal") ?? 0
-                    : 0,
-                    SD = row.Field<decimal?>("SD") ?? 0,
-                    VATAmount = dataTable.Columns.Contains("VATAmount")
-                    ? row.Field<decimal?>("VATAmount") ?? 0
-                    : 0,
-                    LineTotal = row.Field<decimal?>("LineTotal") ?? 0,
-                    BranchId = dataTable.Columns.Contains("BranchId")
-                        ? Convert.ToInt32(row["BranchId"])
-                        : 0,
+                    ProductCode = row.Field<string>("ProductCode") ?? "",
+                    ProductName = row.Field<string>("ProductName") ?? "",
 
-                    CompanyId = dataTable.Columns.Contains("CompanyId")
-                        ? Convert.ToInt32(row["CompanyId"])
-                        : 0,
+                    //Quantity = row.Field<decimal?>("Quantity") ?? 0,
+                    UnitPrice = row.Field<decimal?>("UnitPrice") ?? 0,
 
-                    BranchName = dataTable.Columns.Contains("BranchName")
-                        ? row["BranchName"]?.ToString()
-                        : "",
+                    PurchaseQty = row.Field<decimal?>("PurchaseQty") ?? 0,
+                    PurchaseTotalAmount = row.Field<decimal?>("PurchaseTotalAmount") ?? 0,
 
-                    CompanyName = dataTable.Columns.Contains("CompanyName")
-                        ? row["CompanyName"]?.ToString()
-                        : "",
-                    InvoiceDateTime = dataTable.Columns.Contains("InvoiceDateTime")
-                        ? row["InvoiceDateTime"]?.ToString()
-                        : "",
+                    PurchaseReturnQty = row.Field<decimal?>("PurchaseReturnQty") ?? 0,
+                    PurchaseReturnTotalAmount = row.Field<decimal?>("PurchaseReturnTotalAmount") ?? 0,
 
-                    PurchaseDate = dataTable.Columns.Contains("PurchaseDate")
-                        ? row["PurchaseDate"]?.ToString()
-                        : ""
+                    CompanyId = row.Field<int?>("CompanyId") ?? 0,
+                    BranchId = row.Field<int?>("BranchId") ?? 0,
+
+                    CompanyName = row.Field<string>("CompanyName") ?? "",
+                    BranchName = row.Field<string>("BranchName") ?? "",
+
+                    InvoiceDateTime = row.Field<DateTime?>("InvoiceDateTime")?.ToString() ?? "",
+                    PurchaseDate = row.Field<DateTime?>("PurchaseDate")?.ToString() ?? ""
                 })
-                    .ToList();
+                .ToList();
 
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully";
