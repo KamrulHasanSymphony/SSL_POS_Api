@@ -1399,19 +1399,17 @@ WHERE 1=1
                         C.Id                    AS CustomerId,
                         C.Code                  AS CustomerCode,
                         C.Name                  AS CustomerName,
-                        CD.SaleId               AS SaleId,
-                        S2.Code                 AS SaleCode,
+                        NULL                    AS SaleId,
+                        NULL                    AS SaleCode,
                         NULL                    AS InvoiceDate,
                         0                       AS SaleAmount,
                         0                       AS PaidAmount,
                         COL.Id                  AS CollectionId,
                         COL.Code                AS CollectionCode,
                         COL.TransactionDate     AS CollectionDate,
-                        CD.CollectionAmount
-                    FROM CollectionDetails CD
-                    INNER JOIN Collections COL ON CD.CollectionId = COL.Id
-                    INNER JOIN Customers C   ON CD.CustomerId = C.Id
-                    LEFT  JOIN Sales S2      ON CD.SaleId = S2.Id
+                        COL.TotalCollectAmount  AS CollectionAmount
+                    FROM Collections COL
+                    INNER JOIN Customers C ON COL.CustomerId = C.Id
                     WHERE COL.IsActive = 1 AND COL.IsArchive = 0
 
                     UNION ALL
