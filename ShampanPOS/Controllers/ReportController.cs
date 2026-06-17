@@ -1005,5 +1005,26 @@ namespace ShampanPOS.Controllers
             }
         }
 
+        [HttpPost("GetSupplierPaymentDueList")]
+        public async Task<ResultVM> GetSupplierPaymentDueList(SupplierPaymentDueVM vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+            try
+            {
+                ReportsService _service = new ReportsService();
+                resultVM = await _service.GetSupplierPaymentDueList(vm);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message
+                };
+            }
+        }
+
     }
 }

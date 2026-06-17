@@ -1518,6 +1518,111 @@ WHERE 1=1
         }
 
 
+
+
+        public async Task<ResultVM> GetSupplierPaymentDueList(
+    string[] conditionalFields,
+    string[] conditionalValues,
+    SupplierPaymentDueVM vm = null,
+    SqlConnection conn = null,
+    SqlTransaction transaction = null)
+        {
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                DataVM = null
+            };
+
+            try
+            {
+                StringBuilder query = new StringBuilder(@"
+            SELECT
+                S.Id                                             AS SupplierId,
+                S.Code                                           AS SupplierCode,
+                S.Name                                           AS SupplierName,
+                ISNULL(SUM(PUR.GrandTotal), 0)                   AS PurchaseAmount,
+                COUNT(DISTINCT PUR.Id)                           AS PurchaseCount,
+                ISNULL(SUM(PAY.TotalPaymentAmount), 0)           AS TotalPaymentAmount,
+                COUNT(DISTINCT PAY.Id)                           AS PaymentCount,
+                ISNULL(MAX(PAY.TotalPaymentAmount), 0)           AS LastPaymentAmount,
+                ISNULL(SUM(PUR.GrandTotal), 0)
+                    - ISNULL(SUM(PAY.TotalPaymentAmount), 0)     AS DueAmount
+            FROM Suppliers S
+            LEFT JOIN Purchases PUR
+                ON PUR.SupplierId = S.Id
+                AND PUR.BranchId  = @BranchId
+                AND PUR.IsPost    = 1
+            LEFT JOIN Payments PAY
+                ON PAY.SupplierId = S.Id
+                AND PAY.BranchId  = @BranchId
+                AND PAY.IsActive  = 1
+                AND PAY.IsArchive = 0
+            WHERE S.IsActive  = 1
+                AND S.IsArchive = 0
+                AND S.BranchId  = @BranchId
+        ");
+
+                if ((vm?.SupplierId ?? 0) > 0)
+                    query.Append(" AND S.Id = @SupplierId");
+
+                query = new StringBuilder(ApplyConditions(query.ToString(), conditionalFields, conditionalValues, false));
+
+
+                query.Append(" GROUP BY S.Id, S.Code, S.Name");
+
+                if ((vm?.SupplierId ?? 0) == 0)
+                {
+                    query.Append(@"
+                HAVING (ISNULL(SUM(PUR.GrandTotal), 0)
+                    - ISNULL(SUM(PAY.TotalPaymentAmount), 0)) != 0
+            ");
+                }
+
+                query.Append(" ORDER BY S.Name ASC");
+
+
+                SqlDataAdapter objComm = CreateAdapter(query.ToString(), conn, transaction);
+
+                objComm.SelectCommand = ApplyParameters( objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
+
+                if ((vm?.SupplierId ?? 0) > 0)
+                    objComm.SelectCommand.Parameters.AddWithValue("@SupplierId", vm.SupplierId);
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new SupplierPaymentDueVM
+                {
+                    SupplierId = row.Field<int>("SupplierId"),
+                    SupplierCode = row.Field<string>("SupplierCode") ?? "",
+                    SupplierName = row.Field<string>("SupplierName") ?? "",
+                    PurchaseAmount = row.Field<decimal>("PurchaseAmount"),
+                    PurchaseCount = row.Field<int>("PurchaseCount"),
+                    TotalPaymentAmount = row.Field<decimal>("TotalPaymentAmount"),
+                    PaymentCount = row.Field<int>("PaymentCount"),
+                    LastPaymentAmount = row.Field<decimal>("LastPaymentAmount"),
+                    DueAmount = row.Field<decimal>("DueAmount")
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully";
+                result.DataVM = modelList;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Status = "Fail";
+                result.Message = ex.Message;
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+        }
+
         protected SqlDataAdapter CreateAdapter(string query, SqlConnection context, SqlTransaction transaction)
         {
             var cmd = new SqlCommand(query, context, transaction);

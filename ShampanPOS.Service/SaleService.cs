@@ -861,7 +861,6 @@ namespace ShampanPOS.Service
                 isNewConnection = true;
 
                 transaction = conn.BeginTransaction();
-
                 result = await _repo.List(conditionalFields, conditionalValues, vm, conn, transaction);
 
                 if (isNewConnection && result.Status == "Success")
