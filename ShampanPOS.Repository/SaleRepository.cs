@@ -4248,68 +4248,74 @@ AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
                 if (vm?.IsSummary == true)
                 {
                     query = new StringBuilder(@"
-                SELECT
-                    ISNULL(SD.SaleId, 0) AS SaleId,
-                    S.Code AS SaleNo,
-                    C.Code AS CustomerCode,
-                    C.Name AS CustomerName,
-                    P.Code AS ProductCode,
-                    P.Name AS ProductName,
-                    SR.Code AS SaleReturnNo,
-                    SUM(SD.Quantity) AS SaleQty,
-                    SUM(SD.LineTotal) AS SaleAmount,
-                    SUM(ISNULL(SRD.Quantity,0)) AS SaleReturnQty,
-                    SUM(ISNULL(SRD.LineTotal,0)) AS SaleReturnAmount,
-                    S.CompanyId,
-                    S.BranchId,
-                    Co.CompanyName,
-                    B.Name AS BranchName
+SELECT
+    S.Id AS SaleId,
+    S.Code AS SaleNo,
+    S.CustomerId,
+    C.Code AS CustomerCode,
+    C.Name AS CustomerName,
+    SD.ProductId,
+    P.Code AS ProductCode,
+    P.Name AS ProductName,
+    SD.Quantity AS SaleQty,
+    SD.LineTotal AS SaleAmount,
+    ISNULL(SRD.Quantity, 0) AS ReturnQty,
+    ISNULL(SRD.LineTotal, 0) AS ReturnAmount,
+    SR.Code AS SaleReturnNo,
+    S.CompanyId,
+    S.BranchId,
+    Co.CompanyName,
+    B.Name AS BranchName
 
-                FROM SaleDetails SD
 
-                INNER JOIN Sales S ON S.Id = SD.SaleId
-                LEFT JOIN SaleReturns SR ON SR.CustomerId = S.CustomerId
-                LEFT JOIN SaleReturnDetails SRD ON SRD.SaleReturnId = SR.Id AND SRD.ProductId = SD.ProductId
-                INNER JOIN Products P ON P.Id = SD.ProductId
-                INNER JOIN Customers C ON C.Id = S.CustomerId
-                INNER JOIN CompanyProfiles Co ON Co.Id = S.CompanyId
-                INNER JOIN BranchProfiles B ON B.Id = S.BranchId
+FROM Sales S
 
-                WHERE S.CompanyId=@CompanyId
+INNER JOIN SaleDetails SD ON SD.SaleId = S.Id
+LEFT JOIN Customers C ON C.Id = S.CustomerId
+LEFT OUTER JOIN Products P ON P.Id = SD.ProductId
+LEFT OUTER JOIN SaleReturns SR ON SR.CustomerId = S.CustomerId
+LEFT JOIN SaleReturnDetails SRD ON SRD.SaleReturnId = SR.Id
+LEFT OUTER JOIN CompanyProfiles Co ON Co.Id = S.CompanyId
+LEFT OUTER JOIN BranchProfiles B ON B.Id = S.BranchId
+
+WHERE S.CompanyId=@CompanyId
             ");
                 }
                 else
                 {
                     query = new StringBuilder(@"
-                SELECT
-                    ISNULL(SD.SaleId, 0) AS SaleId,
-                    S.Code AS SaleNo,
-                    SR.Code AS SaleReturnNo,
-                    C.Code AS CustomerCode,
-                    C.Name AS CustomerName,
-                    P.Code AS ProductCode,
-                    P.Name AS ProductName,
-                    CONVERT(date, S.InvoiceDateTime) AS InvoiceDateTime,
-                    SD.UnitRate AS UnitPrice,
-                    SD.Quantity AS SaleQty,
-                    SD.LineTotal AS SaleAmount,
-                    ISNULL(SRD.Quantity,0) AS SaleReturnQty,
-                    ISNULL(SRD.LineTotal,0) AS SaleReturnAmount,
-                    S.CompanyId,
-                    S.BranchId,
-                    Co.CompanyName,
-                    B.Name AS BranchName
+              SELECT
+                S.Id AS SaleId,
+                S.Code AS SaleNo,
+                S.CustomerId,
+                C.Code AS CustomerCode,
+                C.Name AS CustomerName,
+                SD.ProductId,
+                P.Code AS ProductCode,
+                P.Name AS ProductName,
+	            CONVERT(date, S.InvoiceDateTime) AS InvoiceDateTime,
+	            SD.UnitRate AS UnitPrice,
+                SD.Quantity AS SaleQty,
+                SD.LineTotal AS SaleAmount,
+                ISNULL(SRD.Quantity, 0) AS ReturnQty,
+                ISNULL(SRD.LineTotal, 0) AS ReturnAmount,
+                SR.Code AS SaleReturnNo,
+                S.CompanyId,
+                S.BranchId,
+                Co.CompanyName,
+                B.Name AS BranchName
 
-                FROM SaleDetails SD
-                INNER JOIN Sales S ON S.Id = SD.SaleId
-                LEFT JOIN SaleReturns SR ON SR.CustomerId = S.CustomerId
-                LEFT JOIN SaleReturnDetails SRD ON SRD.SaleReturnId = SR.Id AND SRD.ProductId = SD.ProductId
-                INNER JOIN Products P ON P.Id = SD.ProductId
-                INNER JOIN Customers C ON C.Id = S.CustomerId
-                INNER JOIN CompanyProfiles Co ON Co.Id = S.CompanyId
-                INNER JOIN BranchProfiles B ON B.Id = S.BranchId
 
-                WHERE S.CompanyId=@CompanyId
+             FROM Sales S
+             
+             INNER JOIN SaleDetails SD ON SD.SaleId = S.Id
+             LEFT JOIN Customers C ON C.Id = S.CustomerId
+             LEFT OUTER JOIN Products P ON P.Id = SD.ProductId
+             LEFT OUTER JOIN SaleReturns SR ON SR.CustomerId = S.CustomerId
+             LEFT JOIN SaleReturnDetails SRD ON SRD.SaleReturnId = SR.Id
+             LEFT OUTER JOIN CompanyProfiles Co ON Co.Id = S.CompanyId
+             LEFT OUTER JOIN BranchProfiles B ON B.Id = S.BranchId
+             WHERE S.CompanyId=@CompanyId
             ");
                 }
 
@@ -4318,19 +4324,19 @@ AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
                 #region Filters
 
                 if (!string.IsNullOrWhiteSpace(vm?.InvoiceFromDate))
-                    query.Append(" AND Sa.InvoiceDateTime >= @FromDate");
+                    query.Append(" AND S.InvoiceDateTime >= @FromDate");
 
                 if (!string.IsNullOrWhiteSpace(vm?.InvoiceToDate))
-                    query.Append(" AND Sa.InvoiceDateTime <= @ToDate");
+                    query.Append(" AND S.InvoiceDateTime <= @ToDate");
 
                 if ((vm?.CustomerId ?? 0) > 0)
-                    query.Append(" AND Sa.CustomerId = @CustomerId");
+                    query.Append(" AND S.CustomerId = @CustomerId");
 
                 if ((vm?.ProductId ?? 0) > 0)
                     query.Append(" AND SD.ProductId = @ProductId");
 
                 if ((vm?.SaleId ?? 0) > 0)
-                    query.Append(" AND Sa.Id = @SaleId");
+                    query.Append(" AND S.Id = @SaleId");
 
                 #endregion
 
@@ -4339,17 +4345,24 @@ AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
                 if (vm?.IsSummary == true)
                 {
                     query.Append(@"
-                GROUP BY
-                S.Code,
-                SR.Code,
-                C.Code,
-                C.Name,
-                P.Code,
-                P.Name,
-                S.CompanyId,
-                S.BranchId,
-                Co.CompanyName,
-                B.Name
+GROUP BY
+    S.Id,
+    S.Code,
+    S.CustomerId,
+    SD.ProductId,
+    SR.Code,
+    C.Code,
+    C.Name,
+    P.Code,
+    P.Name,
+SD.Quantity,
+SD.LineTotal,
+SRD.Quantity,
+SRD.LineTotal,
+    S.CompanyId,
+    S.BranchId,
+    Co.CompanyName,
+    B.Name
             ");
                 }
 
