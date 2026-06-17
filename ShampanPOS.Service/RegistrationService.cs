@@ -82,8 +82,10 @@ namespace ShampanPOS.Service
 
                         result = await _companyProfileRepo.Insert(companyVm,conn,transaction);
 
+                        int companyId = 0;
                         if (result.Status == "Success")
                         {
+                            companyId = Convert.ToInt32(result.Id);
 
                             BranchProfileVM branchVm = new BranchProfileVM();
                             BranchProfileRepository _branchProfileRepo = new BranchProfileRepository();
@@ -98,20 +100,27 @@ namespace ShampanPOS.Service
                             branchVm.DistributorCode = code;
                             branchVm.CreatedBy = registration.CreatedBy;
                             branchVm.CreatedFrom = registration.CreatedFrom;
+                            branchVm.CompanyId = companyId;
 
                             result = await _branchProfileRepo.Insert(branchVm,conn,transaction);
 
+                            int branchId = 0;
+
                             if (result.Status == "Success")
                             {
+                                branchId = Convert.ToInt32(result.Id);
+
                                 UserProfileVM userVm = new UserProfileVM();
                                 UserProfileRepository _userProfileRepo = new UserProfileRepository();
 
+                                userVm.UserId = registration.UserId;
                                 userVm.UserName = registration.EmailAsLoginId;
                                 userVm.Email = registration.EmailAsLoginId;
                                 userVm.NormalizedPassword = registration.Password;
                                 userVm.PhoneNumber = registration.PhoneNumber;
                                 userVm.FullName = registration.FullName;
-
+                                userVm.CompanyId = companyId;
+                                userVm.BranchId = branchId;
                                 userVm.CreatedBy = registration.CreatedBy;
                                 userVm.CreatedFrom = registration.CreatedFrom;
                                 result = await _userProfileRepo.Insert(userVm, conn, transaction);

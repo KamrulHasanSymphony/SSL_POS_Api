@@ -142,7 +142,7 @@ namespace ShampanPOS.Controllers
                     {
                         var registrationVM = new RegistrationVM
                         {
-
+                            UserId = _user.Id,
                             FullName = model.FullName,
                             EmailAsLoginId = model.Email,
                             PhoneNumber = model.PhoneNumber,

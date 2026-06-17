@@ -434,7 +434,6 @@ SELECT
     ,ISNULL(H.DistributorCode, '') AS DistributorCode
     ,ISNULL(H.Name, '') AS Name
     ,ISNULL(H.BanglaName, '') AS BanglaName
-    ,ISNULL(H.AreaId, 0) AS AreaId
 	
     ,ISNULL(H.TelephoneNo, '') AS TelephoneNo
     ,ISNULL(H.Address, '') AS Address

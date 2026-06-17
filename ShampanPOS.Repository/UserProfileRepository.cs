@@ -2,6 +2,7 @@
 using ShampanPOS.ViewModel.CommonVMs;
 using ShampanPOS.ViewModel.KendoCommon;
 using ShampanPOS.ViewModel.Utility;
+using System.ComponentModel.Design;
 using System.Data;
 using System.Data.SqlClient;
 using System.Text.Json;
@@ -33,6 +34,7 @@ namespace ShampanPOS.Repository
                 string query = @"
                 INSERT INTO UserInformations
                 (
+                    UserId,
                     UserName,
                     RoleId,
                     FullName,
@@ -46,6 +48,7 @@ namespace ShampanPOS.Repository
                 )
                 VALUES
                 (
+                    @UserId,
                     @UserName,
                     @RoleId,
                     @FullName,
@@ -61,7 +64,7 @@ namespace ShampanPOS.Repository
 
                 using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
                 {
-                    //cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@UserId", vm.UserId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@UserName", vm.UserName);
                     cmd.Parameters.AddWithValue("@RoleId", vm.RoleId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@FullName", vm.FullName);
@@ -379,29 +382,45 @@ namespace ShampanPOS.Repository
                 }
 
 
+                //// CompanyId from vm
+                //int companyId = 0;
+
+                //if (vm != null && !string.IsNullOrEmpty(vm.CompanyId))
+                //{
+                //    companyId = Convert.ToInt32(vm.CompanyId);
+                //}
+
                 string query = $@"
-SELECT 
- U.Id 
-,U.UserName
-,U.ImagePath
-,U.FullName
-,U.Email
-,U.PhoneNumber
-,U.PasswordHash
-,U.NormalizedPassword
-,ISNULL(U.IsHeadOffice,0) IsHeadOffice
---,ISNULL(U.IsSalePerson,0) IsSalePerson
+SELECT DISTINCT
+    U.Id,
+    U.UserName,
+    U.ImagePath,
+    U.FullName,
+    U.Email,
+    U.PhoneNumber,
+    U.PasswordHash,
+    U.NormalizedPassword,
+    ISNULL(U.IsHeadOffice, 0) AS IsHeadOffice,
 
---,ISNULL(U.SalePersonId,0) SalePersonId
---,ISNULL(SP.Name,'') SalePersonName
---,ISNULL(SP.Code,'') SalePersonCode
+    ISNULL(UI.CompanyId, 0) AS CompanyId,
+    ISNULL(CP.CompanyName, '') AS CompanyName,
 
+    ISNULL(UI.BranchId, 0) AS BranchId,
+    ISNULL(BP.Name, '') AS BranchName
 
-FROM 
-[{DatabaseHelper.AuthDbName()}].[dbo].AspNetUsers AS U
---LEFT OUTER JOIN [{DatabaseHelper.DBName()}].[dbo].SalesPersons SP ON ISNULL(U.SalePersonId,0) = ISNULL(SP.Id,0)
+FROM [Auth_Pos].[dbo].[AspNetUsers] U
 
-WHERE 1 = 1 ";
+LEFT JOIN [ShampanPOS_DB].[dbo].[UserInformations] UI
+    ON UI.UserName = U.UserName
+
+LEFT JOIN [ShampanPOS_DB].[dbo].[CompanyProfiles] CP
+    ON CP.Id = UI.CompanyId
+
+LEFT JOIN [ShampanPOS_DB].[dbo].[BranchProfiles] BP
+    ON BP.Id = UI.BranchId
+
+WHERE 1 = 1
+";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
                 {
@@ -415,6 +434,9 @@ WHERE 1 = 1 ";
 
                 // SET additional conditions param
                 objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+
+                //objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", companyId);
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
                 {
@@ -440,6 +462,17 @@ WHERE 1 = 1 ";
                     ConfirmPassword = row["NormalizedPassword"].ToString(),
                     CurrentPassword = row["NormalizedPassword"].ToString(),
                     NormalizedPassword = row["NormalizedPassword"].ToString(),
+
+                    CompanyId = row["CompanyId"] == DBNull.Value
+                    ? 0
+                    : Convert.ToInt32(row["CompanyId"]),
+
+                    CompanyName = row["CompanyName"].ToString(),
+                    BranchId = row["BranchId"] == DBNull.Value
+                    ? 0
+                    : Convert.ToInt32(row["BranchId"]),
+
+                    BranchName = row["BranchName"].ToString(),
                 }).ToList();
 
                 result.Status = "Success";
