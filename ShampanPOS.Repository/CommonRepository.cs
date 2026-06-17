@@ -4769,7 +4769,11 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
                 {
                     throw new Exception("Database connection fail!");
                 }
+                string companyId = "0";
 
+                // ✅ Get CompanyId
+                if (conditionalValues != null && conditionalValues.Length > 0)
+                    companyId = conditionalValues[0] ?? "0";
                 string sql = @"
         SELECT 
             DATENAME(MONTH, s.InvoiceDateTime) + ' ' + CAST(YEAR(s.InvoiceDateTime) AS VARCHAR) AS MonthYear,
@@ -4781,6 +4785,7 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
         WHERE 
             s.InvoiceDateTime >= DATEADD(MONTH, -3, GETDATE())  -- Get sales from the last 3 months
             AND sd.LineTotal > 0
+            AND (@CompanyId = '0' OR s.CompanyId = @CompanyId)
         GROUP BY 
             DATENAME(MONTH, s.InvoiceDateTime) + ' ' + CAST(YEAR(s.InvoiceDateTime) AS VARCHAR), 
             YEAR(s.InvoiceDateTime), MONTH(s.InvoiceDateTime)
@@ -4790,6 +4795,9 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
 
                 SqlDataAdapter objComm = new SqlDataAdapter(sql, conn);
                 objComm.SelectCommand.Transaction = transaction;
+
+                objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", companyId);
+
 
                 objComm.Fill(dataTable);
 
@@ -4973,6 +4981,15 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
                     throw new Exception("Database connection fail!");
                 }
 
+
+                string companyId = "0";
+
+                // ✅ Get CompanyId
+                if (conditionalValues != null && conditionalValues.Length > 0)
+                    companyId = conditionalValues[0] ?? "0";
+
+
+
                 // SQL query to fetch total purchases for the last 3 months filtered by CompanyId
                 string sql = @"SELECT 
             DATENAME(MONTH, p.PurchaseDate) + ' ' + CAST(YEAR(p.PurchaseDate) AS VARCHAR) AS MonthYear,
@@ -4981,7 +4998,7 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
             Purchases p
         WHERE 
             p.PurchaseDate >= DATEADD(MONTH, -3, GETDATE())  -- Get purchases from the last 3 months
-            AND p.CompanyId = @CompanyId  -- Filter by CompanyId
+             AND (@CompanyId = '0' OR p.CompanyId = @CompanyId)  -- Filter by CompanyId
         GROUP BY 
             DATENAME(MONTH, p.PurchaseDate) + ' ' + CAST(YEAR(p.PurchaseDate) AS VARCHAR), 
             YEAR(p.PurchaseDate), MONTH(p.PurchaseDate)
@@ -4992,8 +5009,8 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
 
                 // Create and execute the SqlDataAdapter to fetch data from the database
                 SqlDataAdapter objComm = new SqlDataAdapter(sql, conn);
-                objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", conditionalValues[1]); // Use the CompanyId passed in conditionalValues
-
+                //objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", conditionalValues[1]); 
+                objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", companyId);
                 objComm.SelectCommand.Transaction = transaction;
 
                 // Fill the dataTable with the query result
@@ -5022,7 +5039,7 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
                 result.ExMessage = ex.Message;
                 return result;
             }
-        }
+        }               
 
 
 
@@ -5039,21 +5056,26 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
                 {
                     throw new Exception("Database connection fail!");
                 }
+                string companyId = "0";
 
+                // ✅ Get CompanyId
+                if (conditionalValues != null && conditionalValues.Length > 0)
+                    companyId = conditionalValues[0] ?? "0";
                 // SQL query to fetch total purchases for the last 3 months filtered by CompanyId
-                    string sql = @"        
+                string sql = @"        
                     SELECT 
                         COUNT(CASE WHEN sod.RemainQty <= 0 THEN so.Code END) AS Completed,
                         COUNT(CASE WHEN sod.RemainQty > 0 THEN so.Code END) AS Pending
                     FROM SaleOrderDetails sod
                     JOIN SaleOrders so ON sod.SaleOrderId = so.Id
-                    WHERE so.CompanyId = 1
+                    WHERE  (@CompanyId = '0' OR so.CompanyId = @CompanyId)
         
                 ";
 
                 // Create and execute the SqlDataAdapter to fetch data from the database
                 SqlDataAdapter objComm = new SqlDataAdapter(sql, conn);
-                objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", conditionalValues[1]); // Use the CompanyId passed in conditionalValues
+                //objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", conditionalValues[1]); // Use the CompanyId passed in conditionalValues
+                objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", companyId); // Use the CompanyId passed in conditionalValues
 
                 objComm.SelectCommand.Transaction = transaction;
 

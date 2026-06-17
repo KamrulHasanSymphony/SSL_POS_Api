@@ -158,12 +158,20 @@ namespace ShampanPOS.ViewModel
         public string? SaleOrderCode { get; set; }
 
         public string? CompanyAddress { get; set; }
-
         public string? CompanyTelephoneNo { get; set; }
 
         public string? CompanyEmail { get; set; }
 
         public string? ByGroup { get; set; }
+        public string? SaleReturnNo { get; set; }
+        public string? CustomerCode { get; set; }
+        public string? ProductCode { get; set; }
+        public decimal? SaleQty { get; set; }
+        public decimal? SaleAmount { get; set; }
+        public decimal? SaleReturnQty { get; set; }
+        public decimal? SaleReturnAmount { get; set; }
+
+        public int? SaleId { get; set; }
 
         public List<SaleDetailVM> saleDetailsList { get; set; }
         public List<SaleCreditCardVM> SaleCreditCardList { get; set; }

@@ -88,6 +88,8 @@ namespace ShampanPOS.ViewModel
         public bool? IsRegistration { get; set; }
         public int? BranchId { get; set; }
 
+        [Display(Name = "Branch Name")]
+        public string? BranchName { get; set; }
         public int? CompanyId { get; set; }
 
     }
