@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Globalization;
+using System.Text;
 using System.Text.Json;
 
 namespace ShampanPOS.Repository
@@ -4222,8 +4223,247 @@ AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
         //        }
         //    }
         //}
+        public async Task<ResultVM> SalevsSaleReturnReportList( string[] conditionalFields, string[] conditionalValues, SaleReportVM vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dataTable = new DataTable();
 
+            ResultVM result = new ResultVM
+            { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
 
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                StringBuilder query;
+                SqlDataAdapter objComm;
+
+                #region Base Query
+
+                if (vm?.IsSummary == true)
+                {
+                    query = new StringBuilder(@"
+                SELECT
+                    ISNULL(SD.SaleId, 0) AS SaleId,
+                    S.Code AS SaleNo,
+                    C.Code AS CustomerCode,
+                    C.Name AS CustomerName,
+                    P.Code AS ProductCode,
+                    P.Name AS ProductName,
+                    SR.Code AS SaleReturnNo,
+                    SUM(SD.Quantity) AS SaleQty,
+                    SUM(SD.LineTotal) AS SaleAmount,
+                    SUM(ISNULL(SRD.Quantity,0)) AS SaleReturnQty,
+                    SUM(ISNULL(SRD.LineTotal,0)) AS SaleReturnAmount,
+                    S.CompanyId,
+                    S.BranchId,
+                    Co.CompanyName,
+                    B.Name AS BranchName
+
+                FROM SaleDetails SD
+
+                INNER JOIN Sales S ON S.Id = SD.SaleId
+                LEFT JOIN SaleReturns SR ON SR.CustomerId = S.CustomerId
+                LEFT JOIN SaleReturnDetails SRD ON SRD.SaleReturnId = SR.Id AND SRD.ProductId = SD.ProductId
+                INNER JOIN Products P ON P.Id = SD.ProductId
+                INNER JOIN Customers C ON C.Id = S.CustomerId
+                INNER JOIN CompanyProfiles Co ON Co.Id = S.CompanyId
+                INNER JOIN BranchProfiles B ON B.Id = S.BranchId
+
+                WHERE S.CompanyId=@CompanyId
+            ");
+                }
+                else
+                {
+                    query = new StringBuilder(@"
+                SELECT
+                    ISNULL(SD.SaleId, 0) AS SaleId,
+                    S.Code AS SaleNo,
+                    SR.Code AS SaleReturnNo,
+                    C.Code AS CustomerCode,
+                    C.Name AS CustomerName,
+                    P.Code AS ProductCode,
+                    P.Name AS ProductName,
+                    CONVERT(date, S.InvoiceDateTime) AS InvoiceDateTime,
+                    SD.UnitRate AS UnitPrice,
+                    SD.Quantity AS SaleQty,
+                    SD.LineTotal AS SaleAmount,
+                    ISNULL(SRD.Quantity,0) AS SaleReturnQty,
+                    ISNULL(SRD.LineTotal,0) AS SaleReturnAmount,
+                    S.CompanyId,
+                    S.BranchId,
+                    Co.CompanyName,
+                    B.Name AS BranchName
+
+                FROM SaleDetails SD
+                INNER JOIN Sales S ON S.Id = SD.SaleId
+                LEFT JOIN SaleReturns SR ON SR.CustomerId = S.CustomerId
+                LEFT JOIN SaleReturnDetails SRD ON SRD.SaleReturnId = SR.Id AND SRD.ProductId = SD.ProductId
+                INNER JOIN Products P ON P.Id = SD.ProductId
+                INNER JOIN Customers C ON C.Id = S.CustomerId
+                INNER JOIN CompanyProfiles Co ON Co.Id = S.CompanyId
+                INNER JOIN BranchProfiles B ON B.Id = S.BranchId
+
+                WHERE S.CompanyId=@CompanyId
+            ");
+                }
+
+                #endregion
+
+                #region Filters
+
+                if (!string.IsNullOrWhiteSpace(vm?.InvoiceFromDate))
+                    query.Append(" AND Sa.InvoiceDateTime >= @FromDate");
+
+                if (!string.IsNullOrWhiteSpace(vm?.InvoiceToDate))
+                    query.Append(" AND Sa.InvoiceDateTime <= @ToDate");
+
+                if ((vm?.CustomerId ?? 0) > 0)
+                    query.Append(" AND Sa.CustomerId = @CustomerId");
+
+                if ((vm?.ProductId ?? 0) > 0)
+                    query.Append(" AND SD.ProductId = @ProductId");
+
+                if ((vm?.SaleId ?? 0) > 0)
+                    query.Append(" AND Sa.Id = @SaleId");
+
+                #endregion
+
+                #region Summary Group By
+
+                if (vm?.IsSummary == true)
+                {
+                    query.Append(@"
+                GROUP BY
+                S.Code,
+                SR.Code,
+                C.Code,
+                C.Name,
+                P.Code,
+                P.Name,
+                S.CompanyId,
+                S.BranchId,
+                Co.CompanyName,
+                B.Name
+            ");
+                }
+
+                #endregion
+
+                query = new StringBuilder(
+                    ApplyConditions(
+                        query.ToString(),
+                        conditionalFields,
+                        conditionalValues,
+                        true));
+
+                objComm = CreateAdapter(query.ToString(), conn, transaction);
+
+                objComm.SelectCommand =
+                    ApplyParameters(
+                        objComm.SelectCommand,
+                        conditionalFields,
+                        conditionalValues);
+
+                #region Parameters
+
+                if (!string.IsNullOrWhiteSpace(vm?.InvoiceFromDate))
+                    objComm.SelectCommand.Parameters.AddWithValue(
+                        "@FromDate",
+                        DateTime.Parse(vm.InvoiceFromDate));
+
+                if (!string.IsNullOrWhiteSpace(vm?.InvoiceToDate))
+                    objComm.SelectCommand.Parameters.AddWithValue(
+                        "@ToDate",
+                        DateTime.Parse(vm.InvoiceToDate));
+
+                if ((vm?.CustomerId ?? 0) > 0)
+                    objComm.SelectCommand.Parameters.AddWithValue(
+                        "@CustomerId",
+                        vm.CustomerId);
+
+                if ((vm?.ProductId ?? 0) > 0)
+                    objComm.SelectCommand.Parameters.AddWithValue(
+                        "@ProductId",
+                        vm.ProductId);
+
+                if ((vm?.SaleId ?? 0) > 0)
+                    objComm.SelectCommand.Parameters.AddWithValue(
+                        "@SaleId",
+                        vm.SaleId);
+
+                if ((vm?.CompanyId ?? 0) > 0)
+                    objComm.SelectCommand.Parameters.AddWithValue(
+                        "@CompanyId",
+                        vm.CompanyId);
+
+                #endregion
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable()
+                    .Select(row => new SaleReportVM
+                    {
+                        Code = row["SaleNo"]?.ToString(),
+
+                        SaleReturnNo = row["SaleReturnNo"]?.ToString(),
+
+                        CustomerCode = row["CustomerCode"]?.ToString(),
+                        CustomerName = row["CustomerName"]?.ToString(),
+
+                        ProductCode = row["ProductCode"]?.ToString(),
+                        ProductName = row["ProductName"]?.ToString(),
+
+                        SaleQty = dataTable.Columns.Contains("SaleQty")
+                            ? Convert.ToDecimal(row["SaleQty"])
+                            : 0,
+
+                        SaleAmount = dataTable.Columns.Contains("SaleAmount")
+                            ? Convert.ToDecimal(row["SaleAmount"])
+                            : 0,
+
+                        SaleReturnQty = dataTable.Columns.Contains("SaleReturnQty")
+                            ? Convert.ToDecimal(row["SaleReturnQty"])
+                            : 0,
+
+                        SaleReturnAmount = dataTable.Columns.Contains("SaleReturnAmount")
+                            ? Convert.ToDecimal(row["SaleReturnAmount"])
+                            : 0,
+
+                        BranchId = dataTable.Columns.Contains("BranchId")
+                            ? Convert.ToInt32(row["BranchId"])
+                            : 0,
+
+                        CompanyId = dataTable.Columns.Contains("CompanyId")
+                            ? Convert.ToInt32(row["CompanyId"])
+                            : 0,
+
+                        BranchName = row["BranchName"]?.ToString(),
+                        CompanyName = row["CompanyName"]?.ToString(),
+
+                        InvoiceDateTime = row["InvoiceDateTime"]?.ToString()
+                    })
+                    .ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully";
+                result.DataVM = modelList;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Status = "Fail";
+                result.Message = ex.Message;
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+        }
 
     }
 

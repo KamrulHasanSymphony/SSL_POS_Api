@@ -107,6 +107,14 @@ namespace ShampanPOS.ViewModel
         public string? ProductCode { get; set; }
         public string? SupplierCode { get; set; }
         public int? PurchasesReturnId { get; set; }
+        public decimal PurchaseQty { get; set; }
+        public decimal RemainQty { get; set; }
+        public decimal PurchaseOrderQty { get; set; }
+        public decimal PurchaseTotalAmount { get; set; }
+        public decimal PurchaseOrderTotalAmount { get; set; }
+        public decimal PurchaseReturnQty { get; set; }
+        public decimal PurchaseReturnTotalAmount { get; set; }
+
 
     }
 }

@@ -959,5 +959,76 @@ namespace ShampanPOS.Controllers
         }
 
 
+
+        [HttpPost("GetCustomerSaleCollectionReportList")]
+        public async Task<ResultVM> GetCustomerSaleCollectionReportList(
+    CustomerSaleCollectionReportVM vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+            try
+            {
+                ReportsService _service = new ReportsService();
+                resultVM = await _service.CustomerSaleCollectionReportList(vm);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message
+                };
+            }
+        }
+
+
+        [HttpPost("GetSupplierPurchasePaymentReportList")]
+        public async Task<ResultVM> GetSupplierPurchasePaymentReportList(
+    SupplierPurchasePaymentReportVM vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+            try
+            {
+                ReportsService _service = new ReportsService();
+                resultVM = await _service.SupplierPurchasePaymentReportList(vm);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message
+                };
+            }
+        }
+
+        [HttpPost("SalevsSaleReturnReportList")]
+        public async Task<ResultVM> SalevsSaleReturnReportList(SaleReportVM sale)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+
+            try
+            {
+                SaleService _service = new SaleService();
+
+                resultVM = await _service.SalevsSaleReturnReportList(sale);
+
+
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message
+                };
+            }
+        }
+
     }
 }

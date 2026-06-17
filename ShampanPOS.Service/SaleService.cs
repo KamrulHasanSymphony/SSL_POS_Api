@@ -2209,6 +2209,63 @@ namespace ShampanPOS.Service
         //        }
         //    }
         //}
+        public async Task<ResultVM> SalevsSaleReturnReportList(SaleReportVM vm = null)
+        {
+            SaleRepository _repo = new SaleRepository();
+
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                Id = "0",
+                DataVM = null
+            };
+
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+            bool isNewConnection = false;
+
+            try
+            {
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+
+                transaction = conn.BeginTransaction();
+
+                // set mode
+                if (vm != null)
+                {
+                    vm.Operation = vm.IsSummary ? "SUMMARY" : "DETAILS";
+                }
+
+                // ✅ FIXED CALL
+                result = await _repo.SalevsSaleReturnReportList(null, null, vm, conn, transaction);
+
+                if (result.Status == "Success")
+                {
+                    transaction.Commit();
+                }
+                else
+                {
+                    transaction.Rollback();
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection)
+                {
+                    transaction.Rollback();
+                }
+
+                result.ExMessage = ex.ToString();
+                result.Message = ex.Message;
+                return result;
+            }
+        }
 
 
     }
