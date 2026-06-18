@@ -5,6 +5,7 @@ using ShampanPOS.ViewModel.CommonVMs;
 using ShampanPOS.ViewModel.KendoCommon;
 using ShampanPOS.ViewModel.Utility;
 using System;
+using System.ComponentModel.Design;
 using System.Data;
 using System.Data.SqlClient;
 using System.Text.Json;
@@ -38,12 +39,12 @@ namespace ShampanPOS.Repository
                 string query = @"
         INSERT INTO Products
         (
-            Code, Name,BranchId,CompanyId,UserId, ProductGroupId, BanglaName, Description, UOMId, HSCodeNo,VATRate,SDRate,PurchasePrice,SalePrice, 
+            Code, Name,BarCode,BranchId,CompanyId,UserId, ProductGroupId, BanglaName, Description, UOMId, HSCodeNo,VATRate,SDRate,PurchasePrice,SalePrice, 
             IsArchive, IsActive, CreatedBy,CreatedFrom, CreatedOn,ImagePath
         )
         VALUES
         (
-            @Code, @Name,@BranchId,@CompanyId,@UserId, @ProductGroupId, @BanglaName, @Description, @UOMId, @HSCodeNo,@VATRate,@SDRate,@PurchasePrice,@SalePrice,
+            @Code, @Name,@BarCode,@BranchId,@CompanyId,@UserId, @ProductGroupId, @BanglaName, @Description, @UOMId, @HSCodeNo,@VATRate,@SDRate,@PurchasePrice,@SalePrice,
             @IsArchive, @IsActive, @CreatedBy, @CreatedFrom,@CreatedOn,@ImagePath
         );
         SELECT SCOPE_IDENTITY();";
@@ -52,6 +53,8 @@ namespace ShampanPOS.Repository
                 {
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Name", vm.Name ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@BarCode", vm.BarCode ?? (object)DBNull.Value);
+
                     cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
                     //cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
                     cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId ?? (object)DBNull.Value);
@@ -181,7 +184,7 @@ namespace ShampanPOS.Repository
                 string query = @"
         UPDATE Products
         SET
-            Code = @Code, Name = @Name,BranchId = @BranchId,CompanyId = @CompanyId, ProductGroupId = @ProductGroupId, BanglaName = @BanglaName, VATRate= @VATRate,SDRate= @SDRate,PurchasePrice=@PurchasePrice,SalePrice= @SalePrice,
+            Code = @Code, Name = @Name,BarCode=@BarCode, BranchId = @BranchId,CompanyId = @CompanyId, ProductGroupId = @ProductGroupId, BanglaName = @BanglaName, VATRate= @VATRate,SDRate= @SDRate,PurchasePrice=@PurchasePrice,SalePrice= @SalePrice,
             Description = @Description, UOMId = @UOMId, HSCodeNo = @HSCodeNo,
             IsArchive = @IsArchive, IsActive = @IsActive, LastModifiedBy = @LastModifiedBy, LastUpdateFrom=@LastUpdateFrom,
             LastModifiedOn = GETDATE(),ImagePath = @ImagePath
@@ -192,6 +195,7 @@ namespace ShampanPOS.Repository
                     cmd.Parameters.AddWithValue("@Id", vm.Id);
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Name", vm.Name ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@BarCode", vm.BarCode ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
                     //cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
                     cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId ?? (object)DBNull.Value);
@@ -345,6 +349,7 @@ namespace ShampanPOS.Repository
                 ISNULL(M.Id, 0) Id,
                 ISNULL(M.Code, '') Code,
                 ISNULL(M.Name, '') Name,
+                ISNULL(M.BarCode, '') BarCode,
                 ISNULL(M.ProductGroupId, 0) ProductGroupId,
                 ISNULL(PG.Name, 0) ProductGroupName ,
                 ISNULL(M.BanglaName, '') BanglaName,
@@ -397,6 +402,7 @@ namespace ShampanPOS.Repository
                     Id = row.Field<int>("Id"),
                     Code = row.Field<string>("Code"),
                     Name = row.Field<string>("Name"),
+                    BarCode = row.Field<string>("BarCode"),
                     ProductGroupId = row.Field<int>("ProductGroupId"),
                     ProductGroupName = row.Field<string>("ProductGroupName"),
                     BanglaName = row.Field<string>("BanglaName"),
@@ -456,7 +462,7 @@ namespace ShampanPOS.Repository
 
                 string query = @"
 SELECT
-    Id, Code, Name, ProductGroupId, BanglaName, Description, UOMId, HSCodeNo, 
+    Id, Code, Name,BarCode, ProductGroupId, BanglaName, Description, UOMId, HSCodeNo, 
     IsArchive, IsActive, CreatedBy, CreatedOn, 
     LastModifiedBy, LastModifiedOn
 FROM Products WHERE 1 = 1";
@@ -557,252 +563,394 @@ ORDER BY Name";
         }
 
         // GetProductModalData Method
-//        public async Task<ResultVM> GetProductModalData(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
-//        {
-//            bool isNewConnection = false;
-//            DataTable dataTable = new DataTable();
-//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+        //        public async Task<ResultVM> GetProductModalData(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        //        {
+        //            bool isNewConnection = false;
+        //            DataTable dataTable = new DataTable();
+        //            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
 
-//            try
-//            {
-//                if (conn == null)
-//                {
-//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-//                    conn.Open();
-//                    isNewConnection = true;
-//                }
+        //            try
+        //            {
+        //                if (conn == null)
+        //                {
+        //                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //                    conn.Open();
+        //                    isNewConnection = true;
+        //                }
 
-//                string query = @"
-//SELECT 
-//ISNULL(P.Id,0)ProductId , 
-//ISNULL(P.Name,'') ProductName,
-//ISNULL(P.BanglaName,'') BanglaName, 
-//ISNULL(P.Code,'') ProductCode, 
-//ISNULL(P.HSCodeNo,'') HSCodeNo,
-//ISNULL(P.ProductGroupId,0) ProductGroupId,
-//ISNULL(PG.Name,'') ProductGroupName,
-//ISNULL(P.UOMId,0) UOMId,
-//ISNULL(UOM.Name,'') UOMName,
-//ISNULL(PBH.CostPrice,0) CostPrice , 
-//ISNULL(PBH.SalesPrice,0) SalesPrice , 
-//ISNULL(PBH.PurchasePrice,0) PurchasePrice , 
-//ISNULL(PBH.SD,0) SD , 
-//ISNULL(PBH.VATRate,0) VATRate , 
+        //                string query = @"
+        //SELECT 
+        //ISNULL(P.Id,0)ProductId , 
+        //ISNULL(P.Name,'') ProductName,
+        //ISNULL(P.BanglaName,'') BanglaName, 
+        //ISNULL(P.Code,'') ProductCode, 
+        //ISNULL(P.HSCodeNo,'') HSCodeNo,
+        //ISNULL(P.ProductGroupId,0) ProductGroupId,
+        //ISNULL(PG.Name,'') ProductGroupName,
+        //ISNULL(P.UOMId,0) UOMId,
+        //ISNULL(UOM.Name,'') UOMName,
+        //ISNULL(PBH.CostPrice,0) CostPrice , 
+        //ISNULL(PBH.SalesPrice,0) SalesPrice , 
+        //ISNULL(PBH.PurchasePrice,0) PurchasePrice , 
+        //ISNULL(PBH.SD,0) SD , 
+        //ISNULL(PBH.VATRate,0) VATRate , 
 
-//CASE WHEN P.IsActive = 1 THEN 'Active' ELSE 'Inactive' END Status
+        //CASE WHEN P.IsActive = 1 THEN 'Active' ELSE 'Inactive' END Status
 
-//FROM Products P
-//LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
-//LEFT OUTER JOIN ProductSalePriceBatchHistories PBH ON P.Id = PBH.ProductId AND PBH.BranchId = @BranchId
-//LEFT OUTER JOIN UOMs uom ON P.UOMId = uom.Id
+        //FROM Products P
+        //LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+        //LEFT OUTER JOIN ProductSalePriceBatchHistories PBH ON P.Id = PBH.ProductId AND PBH.BranchId = @BranchId
+        //LEFT OUTER JOIN UOMs uom ON P.UOMId = uom.Id
 
-//WHERE P.IsActive = 1 
-//";
+        //WHERE P.IsActive = 1 
+        //";
 
-//                // Apply additional conditions
-//                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
-//                query += @"  ORDER BY " + vm.OrderName + "  " + vm.orderDir;
-//                query += @" OFFSET  " + vm.startRec + @" ROWS FETCH NEXT " + vm.pageSize + " ROWS ONLY";
+        //                // Apply additional conditions
+        //                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
+        //                query += @"  ORDER BY " + vm.OrderName + "  " + vm.orderDir;
+        //                query += @" OFFSET  " + vm.startRec + @" ROWS FETCH NEXT " + vm.pageSize + " ROWS ONLY";
 
-//                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+        //                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
-//                // SET additional conditions param
-//                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+        //                // SET additional conditions param
+        //                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
-//                if (vm != null && !string.IsNullOrEmpty(vm.BranchId))
-//                {
-//                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
-//                }
+        //                if (vm != null && !string.IsNullOrEmpty(vm.BranchId))
+        //                {
+        //                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
+        //                }
 
-//                objComm.Fill(dataTable);
+        //                objComm.Fill(dataTable);
 
-//                var modelList = dataTable.AsEnumerable().Select(row => new ProductDataVM
-//                {
-//                    ProductId = row.Field<int>("ProductId"),
-//                    ProductName = row.Field<string>("ProductName"),
-//                    BanglaName = row.Field<string>("BanglaName"),
-//                    ProductCode = row.Field<string>("ProductCode"),
-//                    HSCodeNo = row.Field<string>("HSCodeNo"),
-//                    ProductGroupId = row.Field<int>("ProductGroupId"),
-//                    SDRate = row.Field<decimal>("SD"),
-//                    VATRate = row.Field<decimal>("VATRate"),
-//                    CostPrice = row.Field<decimal>("CostPrice"),
-//                    SalesPrice = row.Field<decimal>("SalesPrice"),
-//                    PurchasePrice = row.Field<decimal>("PurchasePrice"),
-//                    ProductGroupName = row.Field<string>("ProductGroupName"),
-//                    UOMId = row.Field<int>("UOMId"),  
-//                    UOMName = row.Field<string>("UOMName"),
-//                    Status = row.Field<string>("Status")
+        //                var modelList = dataTable.AsEnumerable().Select(row => new ProductDataVM
+        //                {
+        //                    ProductId = row.Field<int>("ProductId"),
+        //                    ProductName = row.Field<string>("ProductName"),
+        //                    BanglaName = row.Field<string>("BanglaName"),
+        //                    ProductCode = row.Field<string>("ProductCode"),
+        //                    HSCodeNo = row.Field<string>("HSCodeNo"),
+        //                    ProductGroupId = row.Field<int>("ProductGroupId"),
+        //                    SDRate = row.Field<decimal>("SD"),
+        //                    VATRate = row.Field<decimal>("VATRate"),
+        //                    CostPrice = row.Field<decimal>("CostPrice"),
+        //                    SalesPrice = row.Field<decimal>("SalesPrice"),
+        //                    PurchasePrice = row.Field<decimal>("PurchasePrice"),
+        //                    ProductGroupName = row.Field<string>("ProductGroupName"),
+        //                    UOMId = row.Field<int>("UOMId"),  
+        //                    UOMName = row.Field<string>("UOMName"),
+        //                    Status = row.Field<string>("Status")
 
-//                }).ToList();
+        //                }).ToList();
 
 
-//                result.Status = "Success";
-//                result.Message = "Data retrieved successfully.";
-//                result.DataVM = modelList;
-//                return result;
-//            }
-//            catch (Exception ex)
-//            {
-//                result.ExMessage = ex.Message;
-//                result.Message = ex.Message;
-//                return result;
-//            }
-//            finally
-//            {
-//                if (isNewConnection && conn != null)
-//                {
-//                    conn.Close();
-//                }
-//            }
-//        }
+        //                result.Status = "Success";
+        //                result.Message = "Data retrieved successfully.";
+        //                result.DataVM = modelList;
+        //                return result;
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                result.ExMessage = ex.Message;
+        //                result.Message = ex.Message;
+        //                return result;
+        //            }
+        //            finally
+        //            {
+        //                if (isNewConnection && conn != null)
+        //                {
+        //                    conn.Close();
+        //                }
+        //            }
+        //        }
 
         // GetProductModalCountData Method
-//        public async Task<ResultVM> GetProductModalCountData(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
-//        {
-//            bool isNewConnection = false;
-//            DataTable dataTable = new DataTable();
-//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+        //        public async Task<ResultVM> GetProductModalCountData(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        //        {
+        //            bool isNewConnection = false;
+        //            DataTable dataTable = new DataTable();
+        //            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
 
-//            try
-//            {
-//                if (conn == null)
-//                {
-//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-//                    conn.Open();
-//                    isNewConnection = true;
-//                }
+        //            try
+        //            {
+        //                if (conn == null)
+        //                {
+        //                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //                    conn.Open();
+        //                    isNewConnection = true;
+        //                }
 
-//                string query = @"
-//SELECT
+        //                string query = @"
+        //SELECT
 
-//COALESCE(COUNT(P.Id), 0) AS FilteredCount
+        //COALESCE(COUNT(P.Id), 0) AS FilteredCount
 
-//FROM Products P
-//LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
-//LEFT OUTER JOIN ProductSalePriceBatchHistories PBH ON P.Id = PBH.ProductId AND PBH.BranchId = @BranchId
-//LEFT OUTER JOIN UOMs uom ON P.UOMId = uom.Id
+        //FROM Products P
+        //LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+        //LEFT OUTER JOIN ProductSalePriceBatchHistories PBH ON P.Id = PBH.ProductId AND PBH.BranchId = @BranchId
+        //LEFT OUTER JOIN UOMs uom ON P.UOMId = uom.Id
 
-//WHERE P.IsActive = 1 
-//";
+        //WHERE P.IsActive = 1 
+        //";
 
-//                // Apply additional conditions
-//                query = ApplyConditions(query, conditionalFields, conditionalValues, true);                
+        //                // Apply additional conditions
+        //                query = ApplyConditions(query, conditionalFields, conditionalValues, true);                
 
-//                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+        //                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
-//                // SET additional conditions param
-//                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+        //                // SET additional conditions param
+        //                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
-//                if (vm != null && !string.IsNullOrEmpty(vm.BranchId))
-//                {
-//                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
-//                }
+        //                if (vm != null && !string.IsNullOrEmpty(vm.BranchId))
+        //                {
+        //                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
+        //                }
 
-//                objComm.Fill(dataTable);
+        //                objComm.Fill(dataTable);
 
-//                result.Status = "Success";
-//                result.Message = "Data retrieved successfully.";
-//                result.Count = Convert.ToInt32(dataTable.Rows[0][0]);
-//                return result;
-//            }
-//            catch (Exception ex)
-//            {
-//                result.ExMessage = ex.Message;
-//                result.Message = ex.Message;
-//                return result;
-//            }
-//            finally
-//            {
-//                if (isNewConnection && conn != null)
-//                {
-//                    conn.Close();
-//                }
-//            }
-//        }
+        //                result.Status = "Success";
+        //                result.Message = "Data retrieved successfully.";
+        //                result.Count = Convert.ToInt32(dataTable.Rows[0][0]);
+        //                return result;
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                result.ExMessage = ex.Message;
+        //                result.Message = ex.Message;
+        //                return result;
+        //            }
+        //            finally
+        //            {
+        //                if (isNewConnection && conn != null)
+        //                {
+        //                    conn.Close();
+        //                }
+        //            }
+        //        }
 
         // GetUOMFromNameData Method
 
 
         // GetProductGroupModalData Method
-//        public async Task<ResultVM> GetProductGroupModalData(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
-//        {
-//            bool isNewConnection = false;
-//            DataTable dataTable = new DataTable();
-//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+        //        public async Task<ResultVM> GetProductGroupModalData(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        //        {
+        //            bool isNewConnection = false;
+        //            DataTable dataTable = new DataTable();
+        //            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
 
-//            try
-//            {
-//                if (conn == null)
-//                {
-//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-//                    conn.Open();
-//                    isNewConnection = true;
-//                }
+        //            try
+        //            {
+        //                if (conn == null)
+        //                {
+        //                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //                    conn.Open();
+        //                    isNewConnection = true;
+        //                }
 
-//                string query = @"
-//SELECT DISTINCT
-//ISNULL(P.Id,0) ProductGroupId , 
-//ISNULL(P.Name,'') ProductGroupName,
-//ISNULL(P.Code,'') ProductGroupCode, 
-//CASE WHEN P.IsActive = 1 THEN 'Active' ELSE 'Inactive' END Status
+        //                string query = @"
+        //SELECT DISTINCT
+        //ISNULL(P.Id,0) ProductGroupId , 
+        //ISNULL(P.Name,'') ProductGroupName,
+        //ISNULL(P.Code,'') ProductGroupCode, 
+        //CASE WHEN P.IsActive = 1 THEN 'Active' ELSE 'Inactive' END Status
 
-//FROM ProductGroups P
+        //FROM ProductGroups P
 
-//WHERE P.IsActive = 1 
+        //WHERE P.IsActive = 1 
 
-//";
+        //";
 
-//                // Apply additional conditions
-//                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
+        //                // Apply additional conditions
+        //                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
 
-//                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+        //                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
-//                // SET additional conditions param
-//                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+        //                // SET additional conditions param
+        //                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
-//                objComm.Fill(dataTable);
+        //                objComm.Fill(dataTable);
 
-//                var modelList = dataTable.AsEnumerable().Select(row => new ProductDataVM
-//                {
-//                    ProductGroupId = row.Field<int>("ProductGroupId"),
-//                    ProductGroupName = row.Field<string>("ProductGroupName"),
-//                    ProductGroupCode = row.Field<string>("ProductGroupCode"),
-//                    Status = row.Field<string>("Status")
+        //                var modelList = dataTable.AsEnumerable().Select(row => new ProductDataVM
+        //                {
+        //                    ProductGroupId = row.Field<int>("ProductGroupId"),
+        //                    ProductGroupName = row.Field<string>("ProductGroupName"),
+        //                    ProductGroupCode = row.Field<string>("ProductGroupCode"),
+        //                    Status = row.Field<string>("Status")
 
-//                }).ToList();
-
-
-//                result.Status = "Success";
-//                result.Message = "Data retrieved successfully.";
-//                result.DataVM = modelList;
-//                return result;
-//            }
-//            catch (Exception ex)
-//            {
-//                result.ExMessage = ex.Message;
-//                result.Message = ex.Message;
-//                return result;
-//            }
-//            finally
-//            {
-//                if (isNewConnection && conn != null)
-//                {
-//                    conn.Close();
-//                }
-//            }
-//        }
+        //                }).ToList();
 
 
-        // GetGridData Method
-        public async Task<ResultVM> GetGridData(GridOptions options, SqlConnection conn = null, SqlTransaction transaction = null)
+        //                result.Status = "Success";
+        //                result.Message = "Data retrieved successfully.";
+        //                result.DataVM = modelList;
+        //                return result;
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                result.ExMessage = ex.Message;
+        //                result.Message = ex.Message;
+        //                return result;
+        //            }
+        //            finally
+        //            {
+        //                if (isNewConnection && conn != null)
+        //                {
+        //                    conn.Close();
+        //                }
+        //            }
+        //        }
+
+
+
+
+
+
+        //        public async Task<ResultVM> GetGridData(GridOptions options, SqlConnection conn = null, SqlTransaction transaction = null)
+        //        {
+        //            bool isNewConnection = false;
+        //            DataTable dataTable = new DataTable();
+        //            ResultVM result = new ResultVM
+        //            {
+        //                Status = "Fail",
+        //                Message = "Error",
+        //                ExMessage = null,
+        //                Id = "0",
+        //                DataVM = null
+        //            };
+
+        //            try
+        //            {
+        //                if (conn == null)
+        //                {
+        //                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //                    conn.Open();
+        //                    isNewConnection = true;
+        //                }
+
+        //                var data = new GridEntity<ProductVM>();
+
+        //                string sqlQuery = @"
+        //        -- Count query
+        //        SELECT COUNT(DISTINCT H.Id) AS totalcount
+        //      FROM Products H
+        //LEFT OUTER JOIN ProductGroups PG ON H.ProductGroupId = PG.Id
+        //LEFT OUTER JOIN UOMs uom ON H.UOMId = uom.Id
+
+        //-- 🔥 NEW JOINS
+        //LEFT OUTER JOIN CompanyProfiles C ON H.CompanyId = C.Id
+        //LEFT OUTER JOIN BranchProfiles B ON H.BranchId = B.Id
+
+        //WHERE H.IsArchive != 1
+        //        AND H.CompanyId = " + options.CompanyId + @"
+        //        " + (options.filter.Filters.Count > 0
+        //                    ? " AND (" + GridQueryBuilder<ProductVM>.FilterCondition(options.filter) + ")"
+        //                    : "") + @"
+
+        //        -- Data query with pagination and sorting
+        //        SELECT *
+        //        FROM (
+        //            SELECT
+        //                ROW_NUMBER() OVER(
+        //                    ORDER BY " + (options.sort.Count > 0
+        //                                ? options.sort[0].field + " " + options.sort[0].dir
+        //                                : "H.Id DESC") + @"
+        //                ) AS rowindex,
+        //ISNULL(H.Id, 0) AS Id,
+        //ISNULL(H.Code, '') AS Code,
+        //ISNULL(H.Name, '') AS Name,
+        //ISNULL(H.BarCode, '') AS BarCode,
+        //ISNULL(H.Description, '') AS Description,
+        //ISNULL(H.IsArchive, 0) AS IsArchive,
+
+        //CASE WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Yes' ELSE 'No' END AS Status,
+
+        //ISNULL(H.CreatedBy, '') AS CreatedBy,
+        //ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
+
+        //ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS CreatedOn,
+        //ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS LastModifiedOn,
+
+        //ISNULL(H.ProductGroupId, 0) AS ProductGroupId,
+        //ISNULL(PG.Name, '') AS ProductGroupName,
+
+        //ISNULL(H.UOMId, 0) AS UOMId,
+        //ISNULL(H.VATRate, 0) AS VATRate,
+        //ISNULL(H.SDRate, 0) AS SDRate,
+        //ISNULL(H.PurchasePrice, 0) AS PurchasePrice,
+        //ISNULL(H.SalePrice, 0) AS SalePrice,
+
+        //-- 🔥 NEW FIELDS
+        //ISNULL(H.CompanyId, 0) AS CompanyId,
+        //ISNULL(C.CompanyName, '') AS CompanyName,
+
+        //ISNULL(H.BranchId, 0) AS BranchId,
+        //ISNULL(B.Name, '') AS BranchName
+
+        //FROM Products H
+        //LEFT OUTER JOIN ProductGroups PG ON H.ProductGroupId = PG.Id
+        //LEFT OUTER JOIN UOMs uom ON H.UOMId = uom.Id
+
+        //-- 🔥 NEW JOINS
+        //LEFT OUTER JOIN CompanyProfiles C ON H.CompanyId = C.Id
+        //LEFT OUTER JOIN BranchProfiles B ON H.BranchId = B.Id
+
+        //WHERE H.IsArchive != 1 
+        //            AND H.CompanyId = " + options.CompanyId + @"
+        //            " + (options.filter.Filters.Count > 0
+        //                        ? " AND (" + GridQueryBuilder<ProductVM>.FilterCondition(options.filter) + ")"
+        //                        : "") + @"
+
+        //        ) AS a
+
+        //        WHERE rowindex > " + options.skip + @"
+        //        AND (" + options.take + @" = 0 OR rowindex <= " + options.take + @")
+        //        ";
+
+        //                data = KendoGrid<ProductVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+
+        //                result.Status = "Success";
+        //                result.Message = "Data retrieved successfully.";
+        //                result.DataVM = data;
+
+        //                return result;
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                result.ExMessage = ex.Message;
+        //                result.Message = ex.Message;
+        //                return result;
+        //            }
+        //            finally
+        //            {
+        //                if (isNewConnection && conn != null)
+        //                {
+        //                    conn.Close();
+        //                }
+        //            }
+        //        }
+
+
+
+        public async Task<ResultVM> GetGridData(
+    GridOptions options,
+    SqlConnection conn = null,
+    SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                Id = "0",
+                DataVM = null
+            };
 
             try
             {
+                
+                int companyId = Convert.ToInt32(options.vm.CompanyId); //this
+
                 if (conn == null)
                 {
                     conn = new SqlConnection(DatabaseHelper.GetConnectionString());
@@ -810,53 +958,95 @@ ORDER BY Name";
                     isNewConnection = true;
                 }
 
-                var data = new GridEntity<ProductVM>();
+                string filterCondition = "";
+                if (options?.filter?.Filters != null && options.filter.Filters.Count > 0)
+                {
+                    filterCondition = " AND (" +
+                        GridQueryBuilder<ProductVM>.FilterCondition(options.filter) +
+                        ")";
+                }
 
-                // Define your SQL query string
-                string sqlQuery = @"
-            -- Count query
-            SELECT COUNT(DISTINCT H.Id) AS totalcount
-            FROM Products H
-            LEFT OUTER JOIN ProductGroups PG ON H.ProductGroupId = PG.Id
-            LEFT OUTER JOIN UOMs uom ON H.UOMId = uom.Id
-            WHERE H.IsArchive != 1
-            -- Add the filter condition
-            " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<ProductVM>.FilterCondition(options.filter) + ")" : "") + @"
+                string sortExpression = "H.Id DESC";
+                if (options?.sort != null && options.sort.Count > 0)
+                {
+                    sortExpression = options.sort[0].field + " " + options.sort[0].dir;
+                }
 
-            -- Data query with pagination and sorting
-            SELECT * 
-            FROM (
-                SELECT 
-                ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC ") + @") AS rowindex,
-                ISNULL(H.Id, 0) AS Id,
-                ISNULL(H.Code, '') AS Code,
-                ISNULL(H.Name, '') AS Name,
-                ISNULL(H.Description, '') AS Description,
-                ISNULL(H.IsArchive, 0) AS IsArchive,                
-                CASE WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Yes' ELSE 'No' END AS Status,
-                ISNULL(H.CreatedBy, '') AS CreatedBy,
-                ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
-                ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS CreatedOn,
-                ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS LastModifiedOn,
-                ISNULL(H.ProductGroupId, 0) AS ProductGroupId,
-                ISNULL(PG.Name, '') AS ProductGroupName,
-                ISNULL(H.UOMId, 0) AS UOMId,
-				ISNULL(H.VATRate, 0) AS VATRate,
-				ISNULL(H.SDRate, 0) AS SDRate,
-				ISNULL(H.PurchasePrice, 0) AS PurchasePrice,
-				ISNULL(H.SalePrice, 0) AS SalePrice
-            FROM Products H
-            LEFT OUTER JOIN ProductGroups PG ON H.ProductGroupId = PG.Id
-            LEFT OUTER JOIN UOMs uom ON H.UOMId = uom.Id
-            WHERE H.IsArchive != 1
-            -- Add the filter condition
-            " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<ProductVM>.FilterCondition(options.filter) + ")" : "") + @"
+                // 🔥 FIX: inject companyId directly
+                string companyCondition = $" AND H.CompanyId = {companyId} "; //this
 
-            ) AS a
-            WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
-        ";
+                string sqlQuery = $@"
 
-                data = KendoGrid<ProductVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+-- =========================
+-- COUNT QUERY
+-- =========================
+SELECT COUNT(DISTINCT H.Id) AS totalcount
+FROM Products H
+LEFT OUTER JOIN ProductGroups PG ON H.ProductGroupId = PG.Id
+LEFT OUTER JOIN UOMs UOM ON H.UOMId = UOM.Id
+LEFT OUTER JOIN CompanyProfiles C ON H.CompanyId = C.Id
+LEFT OUTER JOIN BranchProfiles B ON H.BranchId = B.Id
+
+WHERE H.IsArchive <> 1
+{companyCondition}
+{filterCondition}
+
+
+-- =========================
+-- DATA QUERY
+-- =========================
+SELECT *
+FROM
+(
+    SELECT
+        ROW_NUMBER() OVER(ORDER BY {sortExpression}) AS rowindex,
+
+        ISNULL(H.Id, 0) AS Id,
+        ISNULL(H.Code, '') AS Code,
+        ISNULL(H.Name, '') AS Name,
+        ISNULL(H.BarCode, '') AS BarCode,
+        ISNULL(H.Description, '') AS Description,
+        ISNULL(H.IsArchive, 0) AS IsArchive,
+
+        CASE WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Yes' ELSE 'No' END AS Status,
+
+        ISNULL(H.CreatedBy, '') AS CreatedBy,
+        ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
+
+        ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS CreatedOn,
+        ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS LastModifiedOn,
+
+        ISNULL(H.ProductGroupId, 0) AS ProductGroupId,
+        ISNULL(PG.Name, '') AS ProductGroupName,
+
+        ISNULL(H.UOMId, 0) AS UOMId,
+        ISNULL(H.VATRate, 0) AS VATRate,
+        ISNULL(H.SDRate, 0) AS SDRate,
+        ISNULL(H.PurchasePrice, 0) AS PurchasePrice,
+        ISNULL(H.SalePrice, 0) AS SalePrice,
+
+        ISNULL(H.CompanyId, 0) AS CompanyId,
+        ISNULL(C.CompanyName, '') AS CompanyName,
+
+        ISNULL(H.BranchId, 0) AS BranchId,
+        ISNULL(B.Name, '') AS BranchName
+
+    FROM Products H
+    LEFT OUTER JOIN ProductGroups PG ON H.ProductGroupId = PG.Id
+    LEFT OUTER JOIN UOMs UOM ON H.UOMId = UOM.Id
+    LEFT OUTER JOIN CompanyProfiles C ON H.CompanyId = C.Id
+    LEFT OUTER JOIN BranchProfiles B ON H.BranchId = B.Id
+
+    WHERE H.IsArchive <> 1
+    {companyCondition}
+    {filterCondition}
+
+) A
+WHERE A.rowindex > @skip
+AND (@take = 0 OR A.rowindex <= @take);
+";
+
+                var data = KendoGrid<ProductVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
 
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";
@@ -866,8 +1056,9 @@ ORDER BY Name";
             }
             catch (Exception ex)
             {
-                result.ExMessage = ex.Message;
+                result.Status = "Fail";
                 result.Message = ex.Message;
+                result.ExMessage = ex.ToString();
                 return result;
             }
             finally
@@ -875,9 +1066,102 @@ ORDER BY Name";
                 if (isNewConnection && conn != null)
                 {
                     conn.Close();
+                    conn.Dispose();
                 }
             }
         }
+
+
+
+
+        //// GetGridData Method
+        //public async Task<ResultVM> GetGridData(GridOptions options, SqlConnection conn = null, SqlTransaction transaction = null)
+        //{
+        //    bool isNewConnection = false;
+        //    DataTable dataTable = new DataTable();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+        //    try
+        //    {
+        //        if (conn == null)
+        //        {
+        //            conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //            conn.Open();
+        //            isNewConnection = true;
+        //        }
+
+        //        var data = new GridEntity<ProductVM>();
+
+        //        // Define your SQL query string
+        //        string sqlQuery = @"
+        //        -- Count query
+        //        SELECT COUNT(DISTINCT H.Id) AS totalcount
+        //        FROM Products H
+        //        LEFT OUTER JOIN ProductGroups PG ON H.ProductGroupId = PG.Id
+        //        LEFT OUTER JOIN UOMs uom ON H.UOMId = uom.Id
+        //        WHERE H.IsArchive != 1
+        //        -- Add the filter condition
+        //        " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<ProductVM>.FilterCondition(options.filter) + ")" : "") + @"
+
+        //        -- Data query with pagination and sorting
+        //        SELECT * 
+        //        FROM (
+        //            SELECT 
+        //            ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC ") + @") AS rowindex,
+        //            ISNULL(H.Id, 0) AS Id,
+        //            ISNULL(H.Code, '') AS Code,
+        //            ISNULL(H.Name, '') AS Name,
+        //            ISNULL(H.BarCode, '') AS BarCode,
+        //            ISNULL(H.Description, '') AS Description,
+        //            ISNULL(H.IsArchive, 0) AS IsArchive,                
+        //            CASE WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Yes' ELSE 'No' END AS Status,
+        //            ISNULL(H.CreatedBy, '') AS CreatedBy,
+        //            ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
+        //            ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS CreatedOn,
+        //            ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS LastModifiedOn,
+        //            ISNULL(H.ProductGroupId, 0) AS ProductGroupId,
+        //            ISNULL(PG.Name, '') AS ProductGroupName,
+        //            ISNULL(H.UOMId, 0) AS UOMId,
+        //ISNULL(H.VATRate, 0) AS VATRate,
+        //ISNULL(H.SDRate, 0) AS SDRate,
+        //ISNULL(H.PurchasePrice, 0) AS PurchasePrice,
+        //ISNULL(H.SalePrice, 0) AS SalePrice
+        //        FROM Products H
+        //        LEFT OUTER JOIN ProductGroups PG ON H.ProductGroupId = PG.Id
+        //        LEFT OUTER JOIN UOMs uom ON H.UOMId = uom.Id
+        //        WHERE H.IsArchive != 1
+        //        -- Add the filter condition
+        //        " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<ProductVM>.FilterCondition(options.filter) + ")" : "") + @"
+
+        //        ) AS a
+        //        WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
+        //    ";
+
+        //        data = KendoGrid<ProductVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+
+        //        result.Status = "Success";
+        //        result.Message = "Data retrieved successfully.";
+        //        result.DataVM = data;
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        result.ExMessage = ex.Message;
+        //        result.Message = ex.Message;
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
+
+
+
 
         public async Task<ResultVM> ReportPreview(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {
@@ -1430,6 +1714,7 @@ WHERE 1 = 1 ";
                 ISNULL(M.Id, 0) Id,
                 ISNULL(M.Code, '') Code,
                 ISNULL(M.Name, '') Name,
+                ISNULL(M.BarCode, '') BarCode,
                 ISNULL(M.ProductGroupId, 0) ProductGroupId,
                 ISNULL(PG.Name, 0) ProductGroupName ,
                 ISNULL(M.BanglaName, '') BanglaName,
@@ -1481,6 +1766,7 @@ WHERE 1 = 1 ";
                     Id = row.Field<int>("Id"),
                     Code = row.Field<string>("Code"),
                     Name = row.Field<string>("Name"),
+                    BarCode = row.Field<string>("BarCode"),
                     ProductGroupId = row.Field<int>("ProductGroupId"),
                     ProductGroupName = row.Field<string>("ProductGroupName"),
                     BanglaName = row.Field<string>("BanglaName"),
@@ -1575,6 +1861,7 @@ WHERE 1 = 1 ";
             ISNULL(M.Id, 0) Id,
             ISNULL(M.Code, '') Code,
             ISNULL(M.Name, '') Name,
+            ISNULL(M.BarCode, '') BarCode,
             ISNULL(M.ProductGroupId, 0) ProductGroupId,
             ISNULL(PG.Name, '') ProductGroupName,
             ISNULL(M.BanglaName, '') BanglaName,
@@ -1638,6 +1925,7 @@ WHERE 1 = 1 ";
                     Id = row.Field<int>("Id"),
                     Code = row.Field<string>("Code"),
                     Name = row.Field<string>("Name"),
+                    BarCode = row.Field<string>("BarCode"),
                     ProductGroupId = row.Field<int>("ProductGroupId"),
                     ProductGroupName = row.Field<string>("ProductGroupName"),
                     BanglaName = row.Field<string>("BanglaName"),
