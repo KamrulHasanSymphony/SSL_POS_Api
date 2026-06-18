@@ -1731,7 +1731,138 @@ WHERE 1=1
                 return result;
             }
         }
+        public async Task<ResultVM> GetSaleOrderStatusList(
+    string[] conditionalFields,
+    string[] conditionalValues,
+    SaleOrderStatusVM vm = null,
+    SqlConnection conn = null,
+    SqlTransaction transaction = null)
+        {
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                DataVM = null
+            };
 
+            try
+            {
+                StringBuilder query = new StringBuilder(@"
+            SELECT
+                SO.Id                                                       AS OrderId,
+                SO.Code                                                     AS OrderCode,
+                CONVERT(varchar, SO.OrderDate,    23)                       AS OrderDate,
+                CONVERT(varchar, SO.DeliveryDate, 23)                       AS DeliveryDate,
+                C.Code                                                      AS CustomerCode,
+                C.Name                                                      AS CustomerName,
+                SOD.Id                                                      AS DetailId,
+                P.Code                                                      AS ProductCode,
+                P.Name                                                      AS ProductName,
+                SOD.Quantity                                                AS OrderedQty,
+                SOD.CompletedQty                                            AS CompletedQty,
+                ISNULL(SOD.RemainQty, SOD.Quantity - SOD.CompletedQty)      AS RemainQty,
+                SOD.UnitRate                                                AS UnitRate,
+                SOD.LineTotal                                               AS LineTotal,
+                ISNULL(SOD.IsCompleted, 0)                                  AS IsCompleted,
+                BR.Name                                                     AS BranchName,
+                ISNULL(BR.Address, '')                                      AS BranchAddress,
+                ISNULL(CO.CompanyName, '')                                  AS CompanyName
+            FROM SaleOrders SO
+            INNER JOIN Customers C
+                ON C.Id = SO.CustomerId
+            INNER JOIN SaleOrderDetails SOD
+                ON SOD.SaleOrderId = SO.Id
+            INNER JOIN Products P
+                ON P.Id = SOD.ProductId
+            INNER JOIN BranchProfiles BR
+                ON BR.Id = SO.BranchId
+            LEFT JOIN CompanyProfiles CO
+                ON CO.Id = SO.CompanyId
+            WHERE SO.IsPost   = 1
+                AND SO.BranchId = @BranchId
+        ");
+
+                if ((vm?.CustomerId ?? 0) > 0)
+                    query.Append(" AND SO.CustomerId  = @CustomerId");
+
+                if ((vm?.ProductId ?? 0) > 0)
+                    query.Append(" AND SOD.ProductId  = @ProductId");
+
+                if ((vm?.SaleOrderId ?? 0) > 0)
+                    query.Append(" AND SO.Id          = @SaleOrderId");
+
+                if (!string.IsNullOrEmpty(vm?.FromDate))
+                    query.Append(" AND CAST(SO.OrderDate AS DATE) >= @FromDate");
+
+                if (!string.IsNullOrEmpty(vm?.ToDate))
+                    query.Append(" AND CAST(SO.OrderDate AS DATE) <= @ToDate");
+
+                if (vm?.StatusFilter == "Completed")
+                    query.Append(" AND ISNULL(SOD.IsCompleted, 0) = 1");
+                else if (vm?.StatusFilter == "Remaining")
+                    query.Append(" AND ISNULL(SOD.IsCompleted, 0) = 0 AND ISNULL(SOD.RemainQty, SOD.Quantity - SOD.CompletedQty) > 0");
+
+                query.Append(" ORDER BY SO.OrderDate DESC, SO.Code, P.Name");
+
+                SqlDataAdapter objComm = CreateAdapter(query.ToString(), conn, transaction);
+
+                objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
+
+                if ((vm?.CustomerId ?? 0) > 0)
+                    objComm.SelectCommand.Parameters.AddWithValue("@CustomerId", vm.CustomerId);
+
+                if ((vm?.ProductId ?? 0) > 0)
+                    objComm.SelectCommand.Parameters.AddWithValue("@ProductId", vm.ProductId);
+
+                if ((vm?.SaleOrderId ?? 0) > 0)
+                    objComm.SelectCommand.Parameters.AddWithValue("@SaleOrderId", vm.SaleOrderId);
+
+                if (!string.IsNullOrEmpty(vm?.FromDate))
+                    objComm.SelectCommand.Parameters.AddWithValue("@FromDate", vm.FromDate);
+
+                if (!string.IsNullOrEmpty(vm?.ToDate))
+                    objComm.SelectCommand.Parameters.AddWithValue("@ToDate", vm.ToDate);
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new SaleOrderStatusVM
+                {
+                    OrderId = row.Field<int>("OrderId"),
+                    OrderCode = row.Field<string>("OrderCode") ?? "",
+                    OrderDate = row.Field<string>("OrderDate") ?? "",
+                    DeliveryDate = row.Field<string>("DeliveryDate") ?? "",
+                    CustomerCode = row.Field<string>("CustomerCode") ?? "",
+                    CustomerName = row.Field<string>("CustomerName") ?? "",
+                    DetailId = row.Field<int>("DetailId"),
+                    ProductCode = row.Field<string>("ProductCode") ?? "",
+                    ProductName = row.Field<string>("ProductName") ?? "",
+                    OrderedQty = row.Field<decimal>("OrderedQty"),
+                    CompletedQty = row.Field<decimal>("CompletedQty"),
+                    RemainQty = row.Field<decimal>("RemainQty"),
+                    UnitRate = row.Field<decimal>("UnitRate"),
+                    LineTotal = row.Field<decimal>("LineTotal"),
+                    IsCompleted = row.Field<bool>("IsCompleted"),
+                    BranchName = row.Field<string>("BranchName") ?? "",
+                    BranchAddress = row.Field<string>("BranchAddress") ?? "",
+                    CompanyName = row.Field<string>("CompanyName") ?? ""
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully";
+                result.DataVM = modelList;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Status = "Fail";
+                result.Message = ex.Message;
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+        }
         protected SqlDataAdapter CreateAdapter(string query, SqlConnection context, SqlTransaction transaction)
         {
             var cmd = new SqlCommand(query, context, transaction);
