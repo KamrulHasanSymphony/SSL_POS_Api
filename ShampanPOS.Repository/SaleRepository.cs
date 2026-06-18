@@ -4338,11 +4338,6 @@ WHERE S.CompanyId=@CompanyId
                 if ((vm?.SaleId ?? 0) > 0)
                     query.Append(" AND S.Id = @SaleId");
 
-                if ((vm?.CompanyId ?? 0) > 0)
-                {
-                    query.Append(" AND S.CompanyId = @CompanyId");
-                }
-
                 #endregion
 
                 #region Summary Group By
@@ -4382,12 +4377,7 @@ SRD.LineTotal,
 
                 objComm = CreateAdapter(query.ToString(), conn, transaction);
 
-                objComm.SelectCommand =
-                    ApplyParameters(
-                        objComm.SelectCommand,
-                        conditionalFields,
-                        conditionalValues);
-
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
                 #region Parameters
 
                 if (!string.IsNullOrWhiteSpace(vm?.InvoiceFromDate))
@@ -4415,7 +4405,7 @@ SRD.LineTotal,
                         "@SaleId",
                         vm.SaleId);
 
-                if ((vm?.CompanyId ?? 0) > 0) objComm.SelectCommand.Parameters.AddWithValue( "@CompanyId", vm.CompanyId);
+                if ((vm?.CompanyId ?? 0) > 0) { objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", vm.CompanyId); }
 
                 #endregion
 
@@ -4452,7 +4442,7 @@ SRD.LineTotal,
 
                         BranchId = dataTable.Columns.Contains("BranchId") ? Convert.ToInt32(row["BranchId"]) : 0,
 
-                        CompanyId = dataTable.Columns.Contains("CompanyId") ? Convert.ToInt32(row["CompanyId"]) : 0,
+                        CompanyId = row.Field<int?>("CompanyId") ?? 0,
 
                         BranchName = row["BranchName"]?.ToString(),
                         CompanyName = row["CompanyName"]?.ToString(),
@@ -4464,6 +4454,203 @@ SRD.LineTotal,
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully";
                 result.DataVM = modelList;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Status = "Fail";
+                result.Message = ex.Message;
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+        }
+
+        public async Task<ResultVM> SaleOrdervsSaleReportList( string[] conditionalFields, string[] conditionalValues, SaleReportVM vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        {
+            bool isNewConnection = false;
+            DataTable dt = new DataTable();
+
+            ResultVM result = new ResultVM
+            { Status = "Fail",    Message = "Error" };
+
+            try
+            {
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
+
+                StringBuilder query;
+
+                #region QUERY
+
+                if (vm?.IsSummary == true)
+                {
+                    query = new StringBuilder(@"
+ S.Code AS SaleNo,
+    SO.Code AS SaleOrderNo,
+    C.Code AS CustomerCode,
+    C.Name AS CustomerName,
+    P.Code AS ProductCode,
+    P.Name AS ProductName,
+	CONVERT(date, SO.OrderDate) AS OrderDate,
+    CONVERT(date, S.InvoiceDateTime) AS InvoiceDate,
+	SD.UnitRate,
+    SUM(SOD.Quantity) AS SaleOrderQty,
+    SUM(SOD.LineTotal) AS SaleOrderAmount,
+
+    SUM(SD.Quantity) AS SaleQty,
+    SUM(SD.LineTotal) AS SaleAmount,
+
+    SUM(SOD.Quantity) - SUM(SD.Quantity) AS RemainQty,
+	S.CompanyId,
+    S.BranchId,
+    Co.CompanyName,
+    B.Name 
+
+FROM SaleDetails SD
+
+INNER JOIN Sales S ON S.Id = SD.SaleId
+LEFT OUTER JOIN SaleOrders SO ON SO.Id = S.SaleOrderId
+LEFT OUTER JOIN SaleOrderDetails SOD ON SOD.Id = SD.SaleOrderDetailId
+LEFT OUTER JOIN Products P ON P.Id = SD.ProductId
+LEFT OUTER JOIN Customers C ON C.Id = S.CustomerId
+LEFT OUTER JOIN CompanyProfiles Co ON Co.Id = S.CompanyId
+LEFT OUTER JOIN BranchProfiles B ON B.Id = S.BranchId
+WHERE SO.CompanyId = @CompanyId
+");
+                }
+                else
+                {
+                    query = new StringBuilder(@"
+SELECT
+    S.Code AS SaleNo,
+    SO.Code AS SaleOrderNo,
+    C.Code AS CustomerCode,
+    C.Name AS CustomerName,
+    P.Code AS ProductCode,
+    P.Name AS ProductName,
+	CONVERT(date, SO.OrderDate) AS OrderDate,
+    CONVERT(date, S.InvoiceDateTime) AS InvoiceDate,
+    SD.UnitRate,
+    SUM(SOD.Quantity) AS SaleOrderQty,
+    SUM(SOD.LineTotal) AS SaleOrderAmount,
+
+    SUM(SD.Quantity) AS SaleQty,
+    SUM(SD.LineTotal) AS SaleAmount,
+
+    SUM(SOD.Quantity) - SUM(SD.Quantity) AS RemainQty,
+	S.CompanyId,
+    S.BranchId,
+    Co.CompanyName,
+    B.Name 
+
+FROM SaleDetails SD
+
+INNER JOIN Sales S ON S.Id = SD.SaleId
+LEFT OUTER JOIN SaleOrders SO ON SO.Id = S.SaleOrderId
+LEFT OUTER JOIN SaleOrderDetails SOD ON SOD.Id = SD.SaleOrderDetailId
+LEFT OUTER JOIN Products P ON P.Id = SD.ProductId
+LEFT OUTER JOIN Customers C ON C.Id = S.CustomerId
+LEFT OUTER JOIN CompanyProfiles Co ON Co.Id = S.CompanyId
+LEFT OUTER JOIN BranchProfiles B ON B.Id = S.BranchId
+WHERE SO.CompanyId = @CompanyId
+");
+                }
+
+                #endregion
+
+                #region FILTERS
+                if (!string.IsNullOrWhiteSpace(vm?.InvoiceFromDate))
+                    query.Append(" AND S.InvoiceDateTime >= @FromDate");
+
+                if (!string.IsNullOrWhiteSpace(vm?.InvoiceToDate))
+                    query.Append(" AND S.InvoiceDateTime <= @ToDate");
+
+                if (vm?.CustomerId > 0)
+                    query.Append(" AND S.CustomerId = @CustomerId");
+
+                if (vm?.ProductId > 0)
+                    query.Append(" AND SD.ProductId = @ProductId");
+
+                if (!string.IsNullOrEmpty(vm?.OrderDate))
+                    query.Append(" AND SO.OrderDate >= @FromDate");
+
+                if (!string.IsNullOrEmpty(vm?.OrderDate))
+                    query.Append(" AND SO.OrderDate <= @ToDate");
+
+                #endregion
+
+                #region GROUP BY
+
+                if (vm?.IsSummary == true)
+                {
+                    query.Append(@"
+GROUP BY
+    S.Code,
+    S.CustomerId,
+    SD.ProductId,
+    SO.Code,
+	S.InvoiceDateTime,
+	SO.OrderDate,
+    C.Code,
+    C.Name,
+    P.Code,
+    P.Name,
+    SD.UnitRate,
+	SD.Quantity,
+	SD.LineTotal,
+	SOD.Quantity,
+	SOD.LineTotal,
+    S.CompanyId,
+    S.BranchId,
+    Co.CompanyName,
+    B.Name
+");
+                }
+
+                #endregion
+
+                SqlDataAdapter da = new SqlDataAdapter(query.ToString(), conn);
+
+                da.SelectCommand.Transaction = transaction;
+
+                if (vm?.CustomerId > 0)
+                    da.SelectCommand.Parameters.AddWithValue("@CustomerId", vm.CustomerId);
+
+                if (vm?.ProductId > 0)
+                    da.SelectCommand.Parameters.AddWithValue("@ProductId", vm.ProductId);
+
+                da.SelectCommand.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
+
+                da.Fill(dt);
+
+                var list = dt.AsEnumerable().Select(r => new SaleReportVM
+                {
+                    SaleNo = r["SaleNo"]?.ToString(),
+                    SaleOrderNo = r["SaleOrderNo"]?.ToString(),
+                    CustomerCode = r["CustomerCode"]?.ToString(),
+                    CustomerName = r["CustomerName"]?.ToString(),
+                    ProductCode = r["ProductCode"]?.ToString(),
+                    ProductName = r["ProductName"]?.ToString(),
+
+                    SaleOrderQty = Convert.ToDecimal(r["SaleOrderQty"]),
+                    SaleOrderTotalAmount = Convert.ToDecimal(r["SaleOrderTotalAmount"]),
+                    SaleQty = Convert.ToDecimal(r["SaleQty"]),
+                    SaleAmount = Convert.ToDecimal(r["SaleAmount"]),
+                    RemainQty = Convert.ToDecimal(r["RemainQty"]),
+
+                    CompanyName = r["CompanyName"]?.ToString(),
+                    BranchName = r["BranchName"]?.ToString()
+
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully";
+                result.DataVM = list;
 
                 return result;
             }

@@ -2272,6 +2272,57 @@ namespace ShampanPOS.Service
             }
         }
 
+        public async Task<ResultVM> SaleOrdervsSaleReportList(SaleReportVM vm = null)
+        {
+            SaleRepository _repo = new SaleRepository();
+
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                DataVM = null
+            };
+
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+            bool isNewConnection = false;
+
+            try
+            {
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+
+                transaction = conn.BeginTransaction();
+
+                if (vm != null)
+                {
+                    vm.Operation = vm.IsSummary ? "SUMMARY" : "DETAILS";
+                }
+
+                result = await _repo.SaleOrdervsSaleReportList(null, null, vm, conn, transaction);
+
+                if (result.Status == "Success")
+                    transaction.Commit();
+                else
+                    transaction.Rollback();
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection)
+                    transaction.Rollback();
+
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = ex.Message,
+                    ExMessage = ex.ToString()
+                };
+            }
+        }
 
     }
 

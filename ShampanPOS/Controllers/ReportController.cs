@@ -1072,5 +1072,28 @@ namespace ShampanPOS.Controllers
             }
         }
 
+        [HttpPost("GetSaleOrdervsSaleByList")]
+        public async Task<ResultVM> GetSaleOrdervsSaleByList(SaleReportVM vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+
+            try
+            {
+                SaleService _service = new SaleService();
+
+                resultVM = await _service.SaleOrdervsSaleReportList(vm);
+
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message
+                };
+            }
+        }
     }
 }
