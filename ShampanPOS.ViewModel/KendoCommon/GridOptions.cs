@@ -16,6 +16,8 @@ namespace ShampanPOS.ViewModel.KendoCommon
         public List<AzFilter.GridSort> sort { get; set; } = new List<AzFilter.GridSort>();
         public AzFilter.GridFilters filter { get; set; } = new AzFilter.GridFilters();
         public CommonVM vm { get; set; }
+        public int CompanyId { get; set; }
+
         public GridOptions()
         {
             vm = new CommonVM();

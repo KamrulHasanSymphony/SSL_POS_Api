@@ -16,7 +16,7 @@ namespace ShampanPOS.ViewModel
         public string? Code { get; set; }
         //public int ReportType { get; set; }
 
-        public string ReportType { get; set; }
+        public string? ReportType { get; set; }
         //public string ReportMode { get; set; }
 
 
