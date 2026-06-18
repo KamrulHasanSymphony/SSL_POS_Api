@@ -1641,6 +1641,59 @@ namespace ShampanPOS.Controllers
             }
         }
 
+        [HttpPost("GetNewProductModal")]
+        public async Task<ResultVM> GetNewProductModal(CommonVM vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+            try
+            {
+                if (string.IsNullOrEmpty(vm.Value2))
+                    return new ResultVM { Status = "Fail", Message = "Branch not found. Please login again." };
+
+                CommonService _commonService = new CommonService();
+                var fields = new List<string>();
+                var values = new List<string>();
+
+                fields.Add("P.BranchId");
+                values.Add(vm.Value2);
+
+                if (!string.IsNullOrEmpty(vm.Value))
+                {
+                    fields.Add("P.ProductGroupId");
+                    values.Add(vm.Value);
+                }
+
+                resultVM = await _commonService.GetNewProductModal(fields.ToArray(), values.ToArray(), null);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM { Status = "Fail", Message = "Data not fetched.", ExMessage = ex.Message };
+            }
+        }
+
+
+        [HttpPost("GetSaleOrderModal")]
+        public async Task<ResultVM> GetSaleOrderModal(CommonVM vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+            try
+            {
+                if (string.IsNullOrEmpty(vm.Value))
+                    return new ResultVM { Status = "Fail", Message = "Branch not found. Please login again." };
+
+                CommonService _commonService = new CommonService();
+                var fields = new List<string> { "BranchId" };
+                var values = new List<string> { vm.Value };
+
+                resultVM = await _commonService.GetSaleOrderModal(fields.ToArray(), values.ToArray(), null);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM { Status = "Fail", Message = "Data not fetched.", ExMessage = ex.Message };
+            }
+        }
 
     }
 }
