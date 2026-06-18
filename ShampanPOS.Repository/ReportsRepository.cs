@@ -1623,6 +1623,115 @@ WHERE 1=1
             }
         }
 
+        public async Task<ResultVM> GetCustomerCollectionDueList(
+    string[] conditionalFields,
+    string[] conditionalValues,
+    CustomerCollectionDueVM vm = null,
+    SqlConnection conn = null,
+    SqlTransaction transaction = null)
+        {
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                DataVM = null
+            };
+
+            try
+            {
+                StringBuilder query = new StringBuilder(@"
+            SELECT
+                C.Id                                                AS CustomerId,
+                C.Code                                              AS CustomerCode,
+                C.Name                                              AS CustomerName,
+                BR.Name                                             AS BranchName,
+                BR.Address                                          AS BranchAddress,
+                CO.CompanyName                                             AS CompanyName,
+                ISNULL(SUM(S.GrandTotal), 0)                        AS TotalSaleAmount,
+                COUNT(DISTINCT S.Id)                                AS SaleCount,
+                ISNULL(SUM(COL.TotalCollectAmount), 0)              AS TotalCollectionAmount,
+                COUNT(DISTINCT COL.Id)                              AS CollectionCount,
+                ISNULL(SUM(S.GrandTotal), 0)
+                    - ISNULL(SUM(COL.TotalCollectAmount), 0)        AS DueAmount
+            FROM Customers C
+            INNER JOIN BranchProfiles BR
+                ON BR.Id = C.BranchId
+            INNER JOIN CompanyProfiles CO
+                ON CO.Id = C.CompanyId
+            LEFT JOIN Sales S
+                ON S.CustomerId = C.Id
+                AND S.BranchId  = @BranchId
+                AND S.IsPost    = 1
+            LEFT JOIN Collections COL
+                ON COL.CustomerId = C.Id
+                AND COL.BranchId  = @BranchId
+                AND COL.IsActive  = 1
+                AND COL.IsArchive = 0
+            WHERE C.IsActive  = 1
+                AND C.IsArchive = 0
+                AND C.BranchId  = @BranchId
+        ");
+
+                if ((vm?.CustomerId ?? 0) > 0)
+                    query.Append(" AND C.Id = @CustomerId");
+
+                query = new StringBuilder(ApplyConditions(query.ToString(), conditionalFields, conditionalValues, false));
+
+                query.Append(" GROUP BY C.Id, C.Code, C.Name, BR.Name, BR.Address, CO.CompanyName");
+
+                if ((vm?.CustomerId ?? 0) == 0)
+                {
+                    query.Append(@"
+                HAVING (ISNULL(SUM(S.GrandTotal), 0)
+                    - ISNULL(SUM(COL.TotalCollectAmount), 0)) != 0
+            ");
+                }
+
+                query.Append(" ORDER BY C.Name ASC");
+
+                SqlDataAdapter objComm = CreateAdapter(query.ToString(), conn, transaction);
+
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                objComm.SelectCommand.Parameters.AddWithValue("@BranchId", vm.BranchId);
+
+                if ((vm?.CustomerId ?? 0) > 0)
+                    objComm.SelectCommand.Parameters.AddWithValue("@CustomerId", vm.CustomerId);
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new CustomerCollectionDueVM
+                {
+                    CustomerId = row.Field<int>("CustomerId"),
+                    CustomerCode = row.Field<string>("CustomerCode") ?? "",
+                    CustomerName = row.Field<string>("CustomerName") ?? "",
+                    BranchName = row.Field<string>("BranchName") ?? "",
+                    BranchAddress = row.Field<string>("BranchAddress") ?? "",
+                    CompanyName = row.Field<string>("CompanyName") ?? "",
+                    TotalSaleAmount = row.Field<decimal>("TotalSaleAmount"),
+                    SaleCount = row.Field<int>("SaleCount"),
+                    TotalCollectionAmount = row.Field<decimal>("TotalCollectionAmount"),
+                    CollectionCount = row.Field<int>("CollectionCount"),
+                    DueAmount = row.Field<decimal>("DueAmount")
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully";
+                result.DataVM = modelList;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Status = "Fail";
+                result.Message = ex.Message;
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+        }
+
         protected SqlDataAdapter CreateAdapter(string query, SqlConnection context, SqlTransaction transaction)
         {
             var cmd = new SqlCommand(query, context, transaction);
