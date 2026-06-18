@@ -2232,22 +2232,47 @@ namespace ShampanPOS.Service
                 isNewConnection = true;
 
                 transaction = conn.BeginTransaction();
-                string[] conditionalFields = new string[] { "S.CompanyId" };
-                string[] conditionalValues = new string[] { vm.CompanyId.ToString() };
 
-                // set mode
+                // Set mode
                 if (vm != null)
                 {
                     vm.Operation = vm.IsSummary ? "SUMMARY" : "DETAILS";
                 }
 
-                // ✅ FIXED CALL
-                result = await _repo.SalevsSaleReturnReportList(
-                    conditionalFields,
-                    conditionalValues,
-                    vm,
-                    conn,
-                    transaction);
+                // Case 1: Both Product and Customer are provided
+                if (vm.ProductId > 0 && vm.CustomerId > 0)
+                {
+                    string[] conditionalFields = new string[] { "S.CompanyId", "SD.ProductId", "S.CustomerId" };
+                    string[] conditionalValues = new string[] { vm.CompanyId.ToString(), vm.ProductId.ToString(), vm.CustomerId.ToString() };
+
+                    result = await _repo.SalevsSaleReturnReportList(conditionalFields, conditionalValues, vm, conn, transaction);
+                }
+                // Case 2: Only Product is provided
+                else if (vm.ProductId > 0)
+                {
+                    string[] conditionalFields = new string[] { "S.CompanyId", "SD.ProductId" };
+                    string[] conditionalValues = new string[] { vm.CompanyId.ToString(), vm.ProductId.ToString() };
+
+                    result = await _repo.SalevsSaleReturnReportList(conditionalFields, conditionalValues, vm, conn, transaction);
+                }
+                // Case 3: Only Customer is provided
+                else if (vm.CustomerId > 0)
+                {
+                    string[] conditionalFields = new string[] { "S.CompanyId", "S.CustomerId" };
+                    string[] conditionalValues = new string[] { vm.CompanyId.ToString(), vm.CustomerId.ToString() };
+
+                    result = await _repo.SalevsSaleReturnReportList(conditionalFields, conditionalValues, vm, conn, transaction);
+                }
+                // Case 4: Default fallback (Company profile match only)
+                else
+                {
+                    string[] conditionalFields = new string[] { "S.CompanyId" };
+                    string[] conditionalValues = new string[] { vm.CompanyId.ToString() };
+
+                    result = await _repo.SalevsSaleReturnReportList(conditionalFields, conditionalValues, vm, conn, transaction);
+                }
+
+                // Transaction Management
                 if (result.Status == "Success")
                 {
                     transaction.Commit();
@@ -2271,7 +2296,6 @@ namespace ShampanPOS.Service
                 return result;
             }
         }
-
         public async Task<ResultVM> SaleOrdervsSaleReportList(SaleReportVM vm = null)
         {
             SaleRepository _repo = new SaleRepository();
