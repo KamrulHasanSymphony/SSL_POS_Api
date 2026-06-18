@@ -171,5 +171,42 @@ namespace ShampanPOS.Service
             }
         }
 
+
+        public async Task<ResultVM> GetSupplierPaymentDueList(SupplierPaymentDueVM vm = null)
+        {
+            ReportsRepository _repo = new ReportsRepository();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            SqlConnection conn = null;
+            bool isNewConnection = false;
+
+            try
+            {
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+
+                string[] conditionalFields = new string[] { "PUR.CompanyId", "PUR.BranchId" };
+                string[] conditionalValues = new string[] { vm.CompanyId.ToString(), vm.BranchId.ToString() };
+
+                result = await _repo.GetSupplierPaymentDueList( conditionalFields, conditionalValues, vm, conn, null);
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.ToString();
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (conn != null && isNewConnection)
+                {
+                    conn.Close();
+                    conn.Dispose();
+                }
+            }
+        }
+
     }
 }
