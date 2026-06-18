@@ -4338,6 +4338,11 @@ WHERE S.CompanyId=@CompanyId
                 if ((vm?.SaleId ?? 0) > 0)
                     query.Append(" AND S.Id = @SaleId");
 
+                if ((vm?.CompanyId ?? 0) > 0)
+                {
+                    query.Append(" AND S.CompanyId = @CompanyId");
+                }
+
                 #endregion
 
                 #region Summary Group By
@@ -4410,10 +4415,7 @@ SRD.LineTotal,
                         "@SaleId",
                         vm.SaleId);
 
-                if ((vm?.CompanyId ?? 0) > 0)
-                    objComm.SelectCommand.Parameters.AddWithValue(
-                        "@CompanyId",
-                        vm.CompanyId);
+                if ((vm?.CompanyId ?? 0) > 0) objComm.SelectCommand.Parameters.AddWithValue( "@CompanyId", vm.CompanyId);
 
                 #endregion
 
@@ -4448,13 +4450,9 @@ SRD.LineTotal,
                             ? Convert.ToDecimal(row["SaleReturnAmount"])
                             : 0,
 
-                        BranchId = dataTable.Columns.Contains("BranchId")
-                            ? Convert.ToInt32(row["BranchId"])
-                            : 0,
+                        BranchId = dataTable.Columns.Contains("BranchId") ? Convert.ToInt32(row["BranchId"]) : 0,
 
-                        CompanyId = dataTable.Columns.Contains("CompanyId")
-                            ? Convert.ToInt32(row["CompanyId"])
-                            : 0,
+                        CompanyId = dataTable.Columns.Contains("CompanyId") ? Convert.ToInt32(row["CompanyId"]) : 0,
 
                         BranchName = row["BranchName"]?.ToString(),
                         CompanyName = row["CompanyName"]?.ToString(),

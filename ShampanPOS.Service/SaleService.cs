@@ -2232,6 +2232,8 @@ namespace ShampanPOS.Service
                 isNewConnection = true;
 
                 transaction = conn.BeginTransaction();
+                string[] conditionalFields = new string[] { "S.CompanyId" };
+                string[] conditionalValues = new string[] { vm.CompanyId.ToString() };
 
                 // set mode
                 if (vm != null)
@@ -2240,8 +2242,12 @@ namespace ShampanPOS.Service
                 }
 
                 // ✅ FIXED CALL
-                result = await _repo.SalevsSaleReturnReportList(null, null, vm, conn, transaction);
-
+                result = await _repo.SalevsSaleReturnReportList(
+                    conditionalFields,
+                    conditionalValues,
+                    vm,
+                    conn,
+                    transaction);
                 if (result.Status == "Success")
                 {
                     transaction.Commit();

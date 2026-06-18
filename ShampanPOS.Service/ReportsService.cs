@@ -191,7 +191,8 @@ namespace ShampanPOS.Service
                 result = await _repo.GetSupplierPaymentDueList( conditionalFields, conditionalValues, vm, conn, null);
 
                 return result;
-            }
+            } 
+
             catch (Exception ex)
             {
                 result.ExMessage = ex.ToString();
