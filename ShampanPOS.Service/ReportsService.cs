@@ -185,14 +185,61 @@ namespace ShampanPOS.Service
                 conn.Open();
                 isNewConnection = true;
 
-                string[] conditionalFields = new string[] { "PUR.CompanyId", "PUR.BranchId" };
-                string[] conditionalValues = new string[] { vm.CompanyId.ToString(), vm.BranchId.ToString() };
+                string[] conditionalFields = new string[] { "PUR.BranchId" };
+                string[] conditionalValues = new string[] { vm.BranchId.ToString() };
+
+                //string[] conditionalFields = new string[] { "PUR.CompanyId", "PUR.BranchId" };
+                //string[] conditionalValues = new string[] { vm.CompanyId.ToString(), vm.BranchId.ToString() };
 
                 result = await _repo.GetSupplierPaymentDueList( conditionalFields, conditionalValues, vm, conn, null);
 
                 return result;
             } 
 
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.ToString();
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (conn != null && isNewConnection)
+                {
+                    conn.Close();
+                    conn.Dispose();
+                }
+            }
+        }
+
+        public async Task<ResultVM> GetCustomerCollectionDueList(CustomerCollectionDueVM vm = null)
+        {
+            ReportsRepository _repo = new ReportsRepository();
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                Id = "0",
+                DataVM = null
+            };
+            SqlConnection conn = null;
+            bool isNewConnection = false;
+            try
+            {
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+
+                string[] conditionalFields = new string[] { "S.BranchId" };
+                string[] conditionalValues = new string[] {  vm.BranchId.ToString() };
+
+                //string[] conditionalFields = new string[] { "S.CompanyId", "S.BranchId" };
+                //string[] conditionalValues = new string[] { vm.CompanyId.ToString(), vm.BranchId.ToString() };
+
+                result = await _repo.GetCustomerCollectionDueList(conditionalFields, conditionalValues, vm, conn, null);
+                return result;
+            }
             catch (Exception ex)
             {
                 result.ExMessage = ex.ToString();
