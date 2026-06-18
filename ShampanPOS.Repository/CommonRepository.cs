@@ -5734,6 +5734,119 @@ LEFT JOIN PurchaseReturnDetails D ON M.Id = D.PurchasesReturnId
             }
         }
 
+
+        public async Task<ResultVM> GetNewProductModal(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+        {
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error" };
+            try
+            {
+                if (conn == null) throw new Exception("Database connection fail!");
+
+                string query = @"
+            SELECT
+                ISNULL(p.Id, 0)             AS Id,
+                ISNULL(p.Code, '')          AS Code,
+                ISNULL(p.Name, '')          AS Name,
+                ISNULL(pg.Id, 0)            AS ProductGroupId,
+                ISNULL(pg.Name, '')         AS GroupName
+            FROM Products p
+            LEFT JOIN ProductGroups pg ON p.ProductGroupId = pg.Id
+            WHERE p.IsArchive = 0 AND p.IsActive = 1";
+
+                int branchIdIndex = Array.IndexOf(conditionalFields, "BranchId");
+                if (branchIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[branchIdIndex]))
+                    query += " AND p.BranchId = @BranchId";
+
+                int groupIdIndex = Array.IndexOf(conditionalFields, "ProductGroupId");
+                if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
+                    query += " AND pg.Id = @ProductGroupId";
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                if (branchIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[branchIdIndex]))
+                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", int.Parse(conditionalValues[branchIdIndex]));
+
+                if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
+                    objComm.SelectCommand.Parameters.AddWithValue("@ProductGroupId", int.Parse(conditionalValues[groupIdIndex]));
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new ProductVM
+                {
+                    Id = row.Field<int>("Id"),
+                    Code = row.Field<string>("Code"),
+                    Name = row.Field<string>("Name"),
+                    ProductGroupId = row.Field<int>("ProductGroupId"),
+                    ProductGroupName = row.Field<string>("GroupName")
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+        }
+
+
+        public async Task<ResultVM> GetSaleOrderModal(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+        {
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error" };
+            try
+            {
+                if (conn == null) throw new Exception("Database connection fail!");
+
+                string query = @"
+            SELECT
+                ISNULL(so.Id, 0)                AS Id,
+                ISNULL(so.Code, '')             AS Code,
+                ISNULL(c.Name, '')              AS CustomerName,
+                CONVERT(varchar(10), so.OrderDate, 120) AS OrderDate
+            FROM SaleOrders so
+            LEFT JOIN Customers c ON so.CustomerId = c.Id
+            WHERE so.IsPost = 0";
+
+                int branchIdIndex = Array.IndexOf(conditionalFields, "BranchId");
+                if (branchIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[branchIdIndex]))
+                    query += " AND so.BranchId = @BranchId";
+
+                query += " ORDER BY so.OrderDate DESC";
+
+                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                if (branchIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[branchIdIndex]))
+                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", int.Parse(conditionalValues[branchIdIndex]));
+
+                objComm.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new SaleOrderVM
+                {
+                    Id = row.Field<int>("Id"),
+                    Code = row.Field<string>("Code"),
+                    CustomerName = row.Field<string>("CustomerName"),
+                    OrderDate = row.Field<string>("OrderDate")
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+        }
+
     }
 
 }
