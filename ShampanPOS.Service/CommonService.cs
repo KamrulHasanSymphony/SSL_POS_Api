@@ -1,15 +1,16 @@
-﻿using ShampanPOS.Repository;
+﻿using Newtonsoft.Json;
+using ShampanPOS.Repository;
+using ShampanPOS.ViewModel;
 using ShampanPOS.ViewModel.CommonVMs;
 using ShampanPOS.ViewModel.Utility;
-using ShampanPOS.ViewModel;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using System.Data;
 
 namespace ShampanPOS.Service
 {
@@ -562,7 +563,9 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                result = await _repo.CustomerList(conditionalFields, conditionalValues, vm, conn, transaction);
+                int companyId = Convert.ToInt32(vm?.CompanyId ?? "0");
+
+                result = await _repo.CustomerList(companyId,conditionalFields,conditionalValues,conn,transaction);
 
                 if (isNewConnection && result.Status == "Success")
                 {
@@ -1085,7 +1088,11 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                result = await _repo.GetProductModal(conditionalFields, conditionalValues, conn, transaction);
+                // ✅ FIX HERE
+                int companyId = Convert.ToInt32(vm?.CompanyId ?? "0");
+
+
+                result = await _repo.GetProductModal(companyId, conditionalFields, conditionalValues, conn, transaction);
 
                 if (isNewConnection && result.Status == "Success")
                 {
@@ -1104,6 +1111,7 @@ namespace ShampanPOS.Service
                 {
                     transaction.Rollback();
                 }
+
                 result.Message = ex.ToString();
                 result.ExMessage = ex.ToString();
                 return result;
@@ -1116,6 +1124,67 @@ namespace ShampanPOS.Service
                 }
             }
         }
+
+
+
+        public async Task<ResultVM> GetProductByBarcode(string[] conditionalFields, string[] conditionalValues, CommonVM vm = null)
+        {
+            string barcode = vm?.Value;
+
+            CommonRepository _repo = new CommonRepository();
+
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                DataVM = null
+            };
+
+            try
+            {
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+
+                transaction = conn.BeginTransaction();
+
+                int companyId = Convert.ToInt32(vm?.CompanyId ?? "0");
+
+
+                result = await _repo.GetProductByBarcode(companyId, barcode, conn, transaction);
+
+                if (result.Status == "Success")
+                {
+                    transaction.Commit();
+                }
+                else
+                {
+                    throw new Exception(result.Message);
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                transaction?.Rollback();
+
+                result.Message = ex.Message;
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+            finally
+            {
+                conn?.Close();
+            }
+        }
+
+
+
+
+
+
 
 
         public async Task<ResultVM> ProductModal(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)

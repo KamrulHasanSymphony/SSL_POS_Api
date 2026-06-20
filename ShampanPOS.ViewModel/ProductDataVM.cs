@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,6 +16,10 @@ namespace ShampanPOS.ViewModel
         public string? ProductName { get; set; }
         public string? BanglaName { get; set; }
         public int? ProductGroupId { get; set; }
+
+        [Display(Name = "Barcode")]
+        public string? BarCode { get; set; }
+
         public string? ProductGroupCode { get; set; }
         public string? ProductGroupName { get; set; }
         public decimal? SDRate { get; set; }
@@ -36,6 +41,10 @@ namespace ShampanPOS.ViewModel
         public string? ImagePath { get; set; }
         public string? ImagePathImage { get; set; }
         public string? CtnSize { get; set; }
+
+        public int? CompanyId { get; set; }
+        public string? CompanyName { get; set; }
+        public string? BranchName { get; set; }
         public PeramModel PeramModel { get; set; }
 
         public ProductDataVM()
