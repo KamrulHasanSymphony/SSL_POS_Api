@@ -123,6 +123,7 @@ namespace ShampanPOS.ViewModel
         
         public string? CompanyName { get; set; }
         public bool IsSummary { get; set; }
+        public SaleReportTypeEnum? ReportTypeEnum { get; set; }
 
 
         [Display(Name = "Posted")]
@@ -186,5 +187,11 @@ namespace ShampanPOS.ViewModel
             SaleCreditCardList = new List<SaleCreditCardVM>();
 
         }
+    }
+
+    public enum SaleReportTypeEnum
+    {
+        ProductWise = 1,
+        CustomerWise = 2
     }
 }
