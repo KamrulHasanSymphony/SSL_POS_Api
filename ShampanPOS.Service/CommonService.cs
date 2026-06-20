@@ -2821,7 +2821,67 @@ namespace ShampanPOS.Service
 
 
 
+        public async Task<ResultVM> GetNewProductModal(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
+        {
+            CommonRepository _repo = new CommonRepository();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error" };
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+            bool isNewConnection = false;
+            try
+            {
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+                transaction = conn.BeginTransaction();
+                result = await _repo.GetNewProductModal(conditionalFields, conditionalValues, conn, transaction);
+                if (result.Status == "Success") transaction.Commit();
+                else throw new Exception(result.Message);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection) transaction.Rollback();
+                result.Message = ex.ToString();
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null) conn.Close();
+            }
+        }
 
+        public async Task<ResultVM> GetSaleOrderModal(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
+        {
+            CommonRepository _repo = new CommonRepository();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error" };
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+            bool isNewConnection = false;
+            try
+            {
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+                transaction = conn.BeginTransaction();
+                result = await _repo.GetSaleOrderModal(conditionalFields, conditionalValues, conn, transaction);
+                if (result.Status == "Success") transaction.Commit();
+                else throw new Exception(result.Message);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection) transaction.Rollback();
+                result.Message = ex.ToString();
+                result.ExMessage = ex.ToString();
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null) conn.Close();
+            }
+        }
 
     }
 }

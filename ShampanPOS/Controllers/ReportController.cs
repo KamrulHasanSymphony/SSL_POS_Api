@@ -1026,6 +1026,49 @@ namespace ShampanPOS.Controllers
             }
         }
 
+        [HttpPost("GetCustomerCollectionDueList")]
+        public async Task<ResultVM> GetCustomerCollectionDueList(CustomerCollectionDueVM vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+            try
+            {
+                ReportsService _service = new ReportsService();
+                resultVM = await _service.GetCustomerCollectionDueList(vm);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message
+                };
+            }
+        }
+        [HttpPost("GetSaleOrderStatusList")]
+        public async Task<ResultVM> GetSaleOrderStatusList(SaleOrderStatusVM vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+            try
+            {
+                ReportsService _service = new ReportsService();
+                resultVM = await _service.GetSaleOrderStatusList(vm);
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message
+                };
+            }
+        }
+
+        
+
         [HttpPost("SalevsSaleReturnReportList")]
         public async Task<ResultVM> SalevsSaleReturnReportList(SaleReportVM sale)
         {
@@ -1051,5 +1094,28 @@ namespace ShampanPOS.Controllers
             }
         }
 
+        [HttpPost("GetSaleOrdervsSaleByList")]
+        public async Task<ResultVM> GetSaleOrdervsSaleByList(SaleReportVM vm)
+        {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+
+            try
+            {
+                SaleService _service = new SaleService();
+
+                resultVM = await _service.SaleOrdervsSaleReportList(vm);
+
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message
+                };
+            }
+        }
     }
 }

@@ -2211,13 +2211,93 @@ namespace ShampanPOS.Service
         public async Task<ResultVM> SalevsSaleReturnReportList(SaleReportVM vm = null)
         {
             SaleRepository _repo = new SaleRepository();
-
             ResultVM result = new ResultVM
             {
                 Status = "Fail",
                 Message = "Error",
                 ExMessage = null,
                 Id = "0",
+                DataVM = null
+            };
+            SqlConnection conn = null;
+            SqlTransaction transaction = null;
+            bool isNewConnection = false;
+            try
+            {
+                bool hasProduct = (vm?.ProductId ?? 0) > 0;
+                bool hasCustomer = (vm?.CustomerId ?? 0) > 0;
+
+                // VALIDATION: যদি Product/Customer কোনোটাই select না থাকে,
+                // তাহলে ReportTypeEnum (ProductWise/CustomerWise) বাধ্যতামূলক
+                if (vm?.IsSummary == true && !hasProduct && !hasCustomer && vm.ReportTypeEnum == null)
+                {
+                    result.Status = "Fail";
+                    result.Message = "Please select Report Type: Product Wise or Customer Wise.";
+                    return result;
+                }
+
+                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                conn.Open();
+                isNewConnection = true;
+                transaction = conn.BeginTransaction();
+
+                if (vm != null)
+                {
+                    vm.Operation = vm.IsSummary ? "SUMMARY" : "DETAILS";
+                }
+
+                // Conditional fields — always unprefixed (outer wrapper column names)
+                var fields = new List<string> { "CompanyId" };
+                var values = new List<string> { vm.CompanyId.ToString() };
+
+                if (hasProduct)
+                {
+                    fields.Add("ProductId");
+                    values.Add(vm.ProductId.ToString());
+                }
+                if (hasCustomer)
+                {
+                    fields.Add("CustomerId");
+                    values.Add(vm.CustomerId.ToString());
+                }
+
+                result = await _repo.SalevsSaleReturnReportList(fields.ToArray(), values.ToArray(), vm, conn, transaction);
+
+                if (result.Status == "Success")
+                    transaction.Commit();
+                else
+                    transaction.Rollback();
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && isNewConnection)
+                {
+                    transaction.Rollback();
+                }
+                result.ExMessage = ex.ToString();
+                result.Message = ex.Message;
+                return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                    conn.Dispose();
+                }
+            }
+        }
+        public async Task<ResultVM> SaleOrdervsSaleReportList(SaleReportVM vm = null)
+        {
+            SaleRepository _repo = new SaleRepository();
+
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
                 DataVM = null
             };
 
@@ -2233,39 +2313,56 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                // set mode
                 if (vm != null)
                 {
                     vm.Operation = vm.IsSummary ? "SUMMARY" : "DETAILS";
                 }
+                // Case 1: Both Product and Customer are provided
+                if (vm.ProductId > 0 && vm.CustomerId > 0)
+                {
+                    string[] conditionalFields = new string[] { "S.CompanyId", "SD.ProductId", "S.CustomerId" };
+                    string[] conditionalValues = new string[] { vm.CompanyId.ToString(), vm.ProductId.ToString(), vm.CustomerId.ToString() };
 
-                // ✅ FIXED CALL
-                result = await _repo.SalevsSaleReturnReportList(null, null, vm, conn, transaction);
+                    result = await _repo.SaleOrdervsSaleReportList(conditionalFields, conditionalValues, vm, conn, transaction);
+                }
+                // Case 2: Only Product is provided
+                else if (vm.ProductId > 0)
+                {
+                    string[] conditionalFields = new string[] { "S.CompanyId", "SD.ProductId" };
+                    string[] conditionalValues = new string[] { vm.CompanyId.ToString(), vm.ProductId.ToString() };
+
+                    result = await _repo.SaleOrdervsSaleReportList(conditionalFields, conditionalValues, vm, conn, transaction);
+                }
+                // Case 3: Only Customer is provided
+                else if (vm.CustomerId > 0)
+                {
+                    string[] conditionalFields = new string[] { "S.CompanyId", "S.CustomerId" };
+                    string[] conditionalValues = new string[] { vm.CompanyId.ToString(), vm.CustomerId.ToString() };
+
+                    result = await _repo.SaleOrdervsSaleReportList(conditionalFields, conditionalValues, vm, conn, transaction);
+                }
+
 
                 if (result.Status == "Success")
-                {
                     transaction.Commit();
-                }
                 else
-                {
                     transaction.Rollback();
-                }
 
                 return result;
             }
             catch (Exception ex)
             {
                 if (transaction != null && isNewConnection)
-                {
                     transaction.Rollback();
-                }
 
-                result.ExMessage = ex.ToString();
-                result.Message = ex.Message;
-                return result;
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = ex.Message,
+                    ExMessage = ex.ToString()
+                };
             }
         }
-
 
     }
 
