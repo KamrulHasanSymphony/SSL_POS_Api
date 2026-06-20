@@ -2324,8 +2324,31 @@ namespace ShampanPOS.Service
                 {
                     vm.Operation = vm.IsSummary ? "SUMMARY" : "DETAILS";
                 }
+                // Case 1: Both Product and Customer are provided
+                if (vm.ProductId > 0 && vm.CustomerId > 0)
+                {
+                    string[] conditionalFields = new string[] { "S.CompanyId", "SD.ProductId", "S.CustomerId" };
+                    string[] conditionalValues = new string[] { vm.CompanyId.ToString(), vm.ProductId.ToString(), vm.CustomerId.ToString() };
 
-                result = await _repo.SaleOrdervsSaleReportList(null, null, vm, conn, transaction);
+                    result = await _repo.SaleOrdervsSaleReportList(conditionalFields, conditionalValues, vm, conn, transaction);
+                }
+                // Case 2: Only Product is provided
+                else if (vm.ProductId > 0)
+                {
+                    string[] conditionalFields = new string[] { "S.CompanyId", "SD.ProductId" };
+                    string[] conditionalValues = new string[] { vm.CompanyId.ToString(), vm.ProductId.ToString() };
+
+                    result = await _repo.SaleOrdervsSaleReportList(conditionalFields, conditionalValues, vm, conn, transaction);
+                }
+                // Case 3: Only Customer is provided
+                else if (vm.CustomerId > 0)
+                {
+                    string[] conditionalFields = new string[] { "S.CompanyId", "S.CustomerId" };
+                    string[] conditionalValues = new string[] { vm.CompanyId.ToString(), vm.CustomerId.ToString() };
+
+                    result = await _repo.SaleOrdervsSaleReportList(conditionalFields, conditionalValues, vm, conn, transaction);
+                }
+
 
                 if (result.Status == "Success")
                     transaction.Commit();
