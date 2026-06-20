@@ -2211,7 +2211,6 @@ namespace ShampanPOS.Service
         public async Task<ResultVM> SalevsSaleReturnReportList(SaleReportVM vm = null)
         {
             SaleRepository _repo = new SaleRepository();
-
             ResultVM result = new ResultVM
             {
                 Status = "Fail",
@@ -2220,67 +2219,54 @@ namespace ShampanPOS.Service
                 Id = "0",
                 DataVM = null
             };
-
             SqlConnection conn = null;
             SqlTransaction transaction = null;
             bool isNewConnection = false;
-
             try
             {
+                bool hasProduct = (vm?.ProductId ?? 0) > 0;
+                bool hasCustomer = (vm?.CustomerId ?? 0) > 0;
+
+                // VALIDATION: যদি Product/Customer কোনোটাই select না থাকে,
+                // তাহলে ReportTypeEnum (ProductWise/CustomerWise) বাধ্যতামূলক
+                if (vm?.IsSummary == true && !hasProduct && !hasCustomer && vm.ReportTypeEnum == null)
+                {
+                    result.Status = "Fail";
+                    result.Message = "Please select Report Type: Product Wise or Customer Wise.";
+                    return result;
+                }
+
                 conn = new SqlConnection(DatabaseHelper.GetConnectionString());
                 conn.Open();
                 isNewConnection = true;
-
                 transaction = conn.BeginTransaction();
 
-                // Set mode
                 if (vm != null)
                 {
                     vm.Operation = vm.IsSummary ? "SUMMARY" : "DETAILS";
                 }
 
-                // Case 1: Both Product and Customer are provided
-                if (vm.ProductId > 0 && vm.CustomerId > 0)
-                {
-                    string[] conditionalFields = new string[] { "S.CompanyId", "SD.ProductId", "S.CustomerId" };
-                    string[] conditionalValues = new string[] { vm.CompanyId.ToString(), vm.ProductId.ToString(), vm.CustomerId.ToString() };
+                // Conditional fields — always unprefixed (outer wrapper column names)
+                var fields = new List<string> { "CompanyId" };
+                var values = new List<string> { vm.CompanyId.ToString() };
 
-                    result = await _repo.SalevsSaleReturnReportList(conditionalFields, conditionalValues, vm, conn, transaction);
+                if (hasProduct)
+                {
+                    fields.Add("ProductId");
+                    values.Add(vm.ProductId.ToString());
                 }
-                // Case 2: Only Product is provided
-                else if (vm.ProductId > 0)
+                if (hasCustomer)
                 {
-                    string[] conditionalFields = new string[] { "S.CompanyId", "SD.ProductId" };
-                    string[] conditionalValues = new string[] { vm.CompanyId.ToString(), vm.ProductId.ToString() };
-
-                    result = await _repo.SalevsSaleReturnReportList(conditionalFields, conditionalValues, vm, conn, transaction);
-                }
-                // Case 3: Only Customer is provided
-                else if (vm.CustomerId > 0)
-                {
-                    string[] conditionalFields = new string[] { "S.CompanyId", "S.CustomerId" };
-                    string[] conditionalValues = new string[] { vm.CompanyId.ToString(), vm.CustomerId.ToString() };
-
-                    result = await _repo.SalevsSaleReturnReportList(conditionalFields, conditionalValues, vm, conn, transaction);
-                }
-                // Case 4: Default fallback (Company profile match only)
-                else
-                {
-                    string[] conditionalFields = new string[] { "S.CompanyId" };
-                    string[] conditionalValues = new string[] { vm.CompanyId.ToString() };
-
-                    result = await _repo.SalevsSaleReturnReportList(conditionalFields, conditionalValues, vm, conn, transaction);
+                    fields.Add("CustomerId");
+                    values.Add(vm.CustomerId.ToString());
                 }
 
-                // Transaction Management
+                result = await _repo.SalevsSaleReturnReportList(fields.ToArray(), values.ToArray(), vm, conn, transaction);
+
                 if (result.Status == "Success")
-                {
                     transaction.Commit();
-                }
                 else
-                {
                     transaction.Rollback();
-                }
 
                 return result;
             }
@@ -2290,10 +2276,17 @@ namespace ShampanPOS.Service
                 {
                     transaction.Rollback();
                 }
-
                 result.ExMessage = ex.ToString();
                 result.Message = ex.Message;
                 return result;
+            }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                    conn.Dispose();
+                }
             }
         }
         public async Task<ResultVM> SaleOrdervsSaleReportList(SaleReportVM vm = null)
