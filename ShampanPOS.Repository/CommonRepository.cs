@@ -5321,7 +5321,10 @@ LEFT JOIN Suppliers S
 
 LEFT JOIN PurchaseOrderDetails D 
     ON M.Id = D.PurchaseOrderId
-	WHERE 1 = 1;";
+	WHERE 1 = 1";
+
+
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
