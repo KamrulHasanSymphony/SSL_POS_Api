@@ -5772,13 +5772,14 @@ LEFT JOIN Suppliers S
     ON M.SupplierId = S.Id
 
 LEFT JOIN PurchaseReturnDetails D ON M.Id = D.PurchasesReturnId
-	WHERE 1 = 1;";
+	WHERE 1 = 1 ";
+
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
                 // optional filters (same pattern as ProductModal)
-                objComm.SelectCommand =
-                    ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
                 objComm.Fill(dataTable);
 
