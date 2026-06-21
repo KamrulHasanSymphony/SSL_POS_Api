@@ -177,6 +177,11 @@ namespace ShampanPOS.ViewModel
         public decimal? SaleOrderTotalAmount { get; set; }
         public decimal? RemainQty { get; set; }
         public int? SaleId { get; set; }
+        [Display(Name = "Order From Date")]
+        public string? OrderFromDate { get; set; }
+
+        [Display(Name = "Order To Date")]
+        public string? OrderToDate { get; set; }
 
         public List<SaleDetailVM> saleDetailsList { get; set; }
         public List<SaleCreditCardVM> SaleCreditCardList { get; set; }
