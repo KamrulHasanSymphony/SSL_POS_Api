@@ -1692,13 +1692,13 @@ namespace ShampanPOS.Controllers
                 CommonService _commonService = new CommonService();
                 if (!string.IsNullOrEmpty(vm.Value)&& !string.IsNullOrEmpty(vm.Value2))
                 {
-                    string[] conditionFields = new string[] { "d.BankId", "d.BankAccountId", "d.BranchId" };
+                    string[] conditionFields = new string[] { "ba.BankId", "d.BankAccountId", "d.BranchId" };
                     string[] conditionValues = new string[] { vm.Value, vm.Value2, vm.BranchId};
                     resultVM = await _commonService.GetDepositModal(conditionFields, conditionValues, null);
                 }
                 else if (!string.IsNullOrEmpty(vm.Value))
                 {
-                    string[] conditionFields = new string[] { "d.BankId", "d.BranchId" };
+                    string[] conditionFields = new string[] { "ba.BankId", "d.BranchId" };
                     string[] conditionValues = new string[] { vm.Value, vm.BranchId };
                     resultVM = await _commonService.GetDepositModal(conditionFields, conditionValues, null);
                 }
@@ -1754,13 +1754,13 @@ namespace ShampanPOS.Controllers
                 CommonService _commonService = new CommonService();
                 if (!string.IsNullOrEmpty(vm.Value) && !string.IsNullOrEmpty(vm.Value2))
                 {
-                    string[] conditionFields = new string[] { "w.BankId", "w.BankAccountId", "w.BranchId" };
+                    string[] conditionFields = new string[] { "ba.BankId", "w.BankAccountId", "w.BranchId" };
                     string[] conditionValues = new string[] { vm.Value, vm.Value2, vm.BranchId };
                     resultVM = await _commonService.GetWithdrawalModal(conditionFields, conditionValues, null);
                 }
                 else if (!string.IsNullOrEmpty(vm.Value))
                 {
-                    string[] conditionFields = new string[] { "w.BankId", "w.BranchId" };
+                    string[] conditionFields = new string[] { "ba.BankId", "w.BranchId" };
                     string[] conditionValues = new string[] { vm.Value, vm.BranchId };
                     resultVM = await _commonService.GetWithdrawalModal(conditionFields, conditionValues, null);
                 }

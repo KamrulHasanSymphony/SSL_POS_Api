@@ -88,6 +88,7 @@ namespace ShampanPOS.ViewModel
         public string? TransactionDate { get; set; }
         public decimal TotalDepositAmount { get; set; }
         public int ToBankAccountId { get; set; }
+        public int BankId { get; set; }
         public string AccountNo { get; set; }
         public string AccountName { get; set; }
         public string BankName { get; set; }
@@ -101,6 +102,7 @@ namespace ShampanPOS.ViewModel
         public string? TransactionDate { get; set; }
         public decimal TotalDepositAmount { get; set; }
         public int FromBankAccountId { get; set; }
+        public int BankId { get; set; }
         public string AccountNo { get; set; }
         public string AccountName { get; set; }
         public string BankName { get; set; }

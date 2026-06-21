@@ -5502,7 +5502,6 @@ LEFT JOIN PurchaseOrderDetails D
                 return result;
             }
         }
-
         public async Task<ResultVM> GetDepositModal(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
         {
             DataTable dataTable = new DataTable();
@@ -5512,47 +5511,27 @@ LEFT JOIN PurchaseOrderDetails D
                 if (conn == null) throw new Exception("Database connection fail!");
 
                 string query = @"
-            SELECT
-                ISNULL(d.Id, 0)                    AS Id,
-                ISNULL(d.Code, '')                 AS Code,
-                d.TransactionDate                  AS TransactionDate,
-                ISNULL(d.TotalDepositAmount, 0)    AS TotalDepositAmount,
-                ISNULL(d.ToBankAccountId, 0)       AS ToBankAccountId,
-                ISNULL(ba.AccountNo, '')            AS AccountNo,
-                ISNULL(ba.AccountName, '')          AS AccountName,
-                ISNULL(bi.Name, '')                 AS BankName,
-                ISNULL(d.Reference, '')             AS Reference
-            FROM Deposits d
-            LEFT JOIN BankAccounts ba ON d.ToBankAccountId = ba.Id
-            LEFT JOIN BankInformations bi ON ba.BankId = bi.Id
-            WHERE d.IsActive = 1 AND d.IsArchive = 0";
+    SELECT
+        ISNULL(d.Id, 0)                    AS Id,
+        ISNULL(d.Code, '')                 AS Code,
+        d.TransactionDate                  AS TransactionDate,
+        ISNULL(d.TotalDepositAmount, 0)    AS TotalDepositAmount,
+        ISNULL(d.ToBankAccountId, 0)       AS ToBankAccountId,
+        ISNULL(ba.BankId, 0)               AS BankId, 
+        ISNULL(ba.AccountNo, '')            AS AccountNo,
+        ISNULL(ba.AccountName, '')          AS AccountName,
+        ISNULL(bi.Name, '')                 AS BankName,
+        ISNULL(d.Reference, '')             AS Reference
+    FROM Deposits d
+    LEFT JOIN BankAccounts ba ON d.ToBankAccountId = ba.Id
+    LEFT JOIN BankInformations bi ON ba.BankId = bi.Id
+    WHERE d.IsActive = 1 AND d.IsArchive = 0";
 
-                //int depBankIdIndex = Array.IndexOf(conditionalFields, "BankId");
-                //if (depBankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[depBankIdIndex]))
-                //{
-                //    query += " AND bi.Id = @BankId";
-                //}
-
-                //int depAccountIdIndex = Array.IndexOf(conditionalFields, "BankAccountId");
-                //if (depAccountIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[depAccountIdIndex]))
-                //{
-                //    query += " AND d.ToBankAccountId = @BankAccountId";
-                //}
                 query = ApplyConditions(query, conditionalFields, conditionalValues, false);
-
                 query += " ORDER BY d.TransactionDate DESC";
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
                 objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
-
-                //if (depBankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[depBankIdIndex]))
-                //{
-                //    objComm.SelectCommand.Parameters.AddWithValue("@BankId", int.Parse(conditionalValues[depBankIdIndex]));
-                //}
-                //if (depAccountIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[depAccountIdIndex]))
-                //{
-                //    objComm.SelectCommand.Parameters.AddWithValue("@BankAccountId", int.Parse(conditionalValues[depAccountIdIndex]));
-                //}
 
                 objComm.Fill(dataTable);
 
@@ -5563,6 +5542,7 @@ LEFT JOIN PurchaseOrderDetails D
                     TransactionDate = dataTable.Columns.Contains("TransactionDate") ? row["TransactionDate"]?.ToString() : "",
                     TotalDepositAmount = row.Field<decimal>("TotalDepositAmount"),
                     ToBankAccountId = row.Field<int>("ToBankAccountId"),
+                    BankId = row.Field<int>("BankId"),
                     AccountNo = row.Field<string>("AccountNo"),
                     AccountName = row.Field<string>("AccountName"),
                     BankName = row.Field<string>("BankName"),
@@ -5591,47 +5571,27 @@ LEFT JOIN PurchaseOrderDetails D
                 if (conn == null) throw new Exception("Database connection fail!");
 
                 string query = @"
-            SELECT
-                ISNULL(w.Id, 0)                    AS Id,
-                ISNULL(w.Code, '')                 AS Code,
-                w.TransactionDate                  AS TransactionDate,
-                ISNULL(w.TotalDepositAmount, 0)    AS TotalDepositAmount,
-                ISNULL(w.FromBankAccountId, 0)     AS FromBankAccountId,
-                ISNULL(ba.AccountNo, '')            AS AccountNo,
-                ISNULL(ba.AccountName, '')          AS AccountName,
-                ISNULL(bi.Name, '')                 AS BankName,
-                ISNULL(w.Reference, '')             AS Reference
-            FROM Withdrawals w
-            LEFT JOIN BankAccounts ba ON w.FromBankAccountId = ba.Id
-            LEFT JOIN BankInformations bi ON ba.BankId = bi.Id
-            WHERE w.IsActive = 1 AND w.IsArchive = 0";
+    SELECT
+        ISNULL(w.Id, 0)                    AS Id,
+        ISNULL(w.Code, '')                 AS Code,
+        w.TransactionDate                  AS TransactionDate,
+        ISNULL(w.TotalDepositAmount, 0)    AS TotalDepositAmount,
+        ISNULL(w.FromBankAccountId, 0)     AS FromBankAccountId,
+        ISNULL(ba.BankId, 0)               AS BankId,
+        ISNULL(ba.AccountNo, '')            AS AccountNo,
+        ISNULL(ba.AccountName, '')          AS AccountName,
+        ISNULL(bi.Name, '')                 AS BankName,
+        ISNULL(w.Reference, '')             AS Reference
+    FROM Withdrawals w
+    LEFT JOIN BankAccounts ba ON w.FromBankAccountId = ba.Id
+    LEFT JOIN BankInformations bi ON ba.BankId = bi.Id
+    WHERE w.IsActive = 1 AND w.IsArchive = 0";
 
-                //int wdBankIdIndex = Array.IndexOf(conditionalFields, "BankId");
-                //if (wdBankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[wdBankIdIndex]))
-                //{
-                //    query += " AND bi.Id = @BankId";
-                //}
-
-                //int wdAccountIdIndex = Array.IndexOf(conditionalFields, "BankAccountId");
-                //if (wdAccountIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[wdAccountIdIndex]))
-                //{
-                //    query += " AND w.FromBankAccountId = @BankAccountId";
-                //}
                 query = ApplyConditions(query, conditionalFields, conditionalValues, false);
-
                 query += " ORDER BY w.TransactionDate DESC";
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
                 objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
-
-                //if (wdBankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[wdBankIdIndex]))
-                //{
-                //    objComm.SelectCommand.Parameters.AddWithValue("@BankId", int.Parse(conditionalValues[wdBankIdIndex]));
-                //}
-                //if (wdAccountIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[wdAccountIdIndex]))
-                //{
-                //    objComm.SelectCommand.Parameters.AddWithValue("@BankAccountId", int.Parse(conditionalValues[wdAccountIdIndex]));
-                //}
 
                 objComm.Fill(dataTable);
 
@@ -5642,6 +5602,7 @@ LEFT JOIN PurchaseOrderDetails D
                     TransactionDate = dataTable.Columns.Contains("TransactionDate") ? row["TransactionDate"]?.ToString() : "",
                     TotalDepositAmount = row.Field<decimal>("TotalDepositAmount"),
                     FromBankAccountId = row.Field<int>("FromBankAccountId"),
+                    BankId = row.Field<int>("BankId"), 
                     AccountNo = row.Field<string>("AccountNo"),
                     AccountName = row.Field<string>("AccountName"),
                     BankName = row.Field<string>("BankName"),
