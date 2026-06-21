@@ -1925,23 +1925,44 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
             try
             {
-                if (string.IsNullOrEmpty(vm.Value2))
-                    return new ResultVM { Status = "Fail", Message = "Branch not found. Please login again." };
+                if (string.IsNullOrEmpty(vm.BranchId) || string.IsNullOrEmpty(vm.CompanyId))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
 
                 CommonService _commonService = new CommonService();
-                var fields = new List<string>();
-                var values = new List<string>();
-
-                fields.Add("P.BranchId");
-                values.Add(vm.Value2);
 
                 if (!string.IsNullOrEmpty(vm.Value))
                 {
-                    fields.Add("P.ProductGroupId");
-                    values.Add(vm.Value);
+                    string[] conditionFields = new string[] { "P.ProductGroupId", "P.BranchId", "P.CompanyId" };
+                    string[] conditionValues = new string[] { vm.Value , vm.BranchId, vm.CompanyId };
+                    resultVM = await _commonService.GetNewProductModal(conditionFields, conditionValues, null);
+
+                }
+                {
+                    string[] conditionFields = new string[] { "P.BranchId", "P.CompanyId" };
+                    string[] conditionValues = new string[] { vm.BranchId, vm.CompanyId };
+                    resultVM = await _commonService.GetNewProductModal(conditionFields, conditionValues, null);
+
                 }
 
-                resultVM = await _commonService.GetNewProductModal(fields.ToArray(), values.ToArray(), null);
+
+                //CommonService _commonService = new CommonService();
+                //var fields = new List<string>();
+                //var values = new List<string>();
+
+                //fields.Add("P.BranchId");
+                //values.Add(vm.Value2);
+
+                //if (!string.IsNullOrEmpty(vm.Value))
+                //{
+                //    fields.Add("P.ProductGroupId");
+                //    values.Add(vm.Value);
+                //}
+
+                //resultVM = await _commonService.GetNewProductModal(fields.ToArray(), values.ToArray(), null);
                 return resultVM;
             }
             catch (Exception ex)

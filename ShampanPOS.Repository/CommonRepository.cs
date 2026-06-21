@@ -5833,21 +5833,23 @@ LEFT JOIN PurchaseReturnDetails D ON M.Id = D.PurchasesReturnId
             LEFT JOIN ProductGroups pg ON p.ProductGroupId = pg.Id
             WHERE p.IsArchive = 0 AND p.IsActive = 1";
 
-                int branchIdIndex = Array.IndexOf(conditionalFields, "BranchId");
-                if (branchIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[branchIdIndex]))
-                    query += " AND p.BranchId = @BranchId";
+                //int branchIdIndex = Array.IndexOf(conditionalFields, "BranchId");
+                //if (branchIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[branchIdIndex]))
+                //    query += " AND p.BranchId = @BranchId";
 
-                int groupIdIndex = Array.IndexOf(conditionalFields, "ProductGroupId");
-                if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
-                    query += " AND pg.Id = @ProductGroupId";
+                //int groupIdIndex = Array.IndexOf(conditionalFields, "ProductGroupId");
+                //if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
+                //    query += " AND pg.Id = @ProductGroupId";
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
-                if (branchIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[branchIdIndex]))
-                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", int.Parse(conditionalValues[branchIdIndex]));
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+                //if (branchIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[branchIdIndex]))
+                //    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", int.Parse(conditionalValues[branchIdIndex]));
 
-                if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
-                    objComm.SelectCommand.Parameters.AddWithValue("@ProductGroupId", int.Parse(conditionalValues[groupIdIndex]));
+                //if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
+                //    objComm.SelectCommand.Parameters.AddWithValue("@ProductGroupId", int.Parse(conditionalValues[groupIdIndex]));
 
                 objComm.Fill(dataTable);
 
