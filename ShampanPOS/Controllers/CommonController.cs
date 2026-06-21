@@ -1978,14 +1978,21 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
             try
             {
-                if (string.IsNullOrEmpty(vm.Value))
-                    return new ResultVM { Status = "Fail", Message = "Branch not found. Please login again." };
+                if (string.IsNullOrEmpty(vm.BranchId) || string.IsNullOrEmpty(vm.CompanyId))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
+
+                string[] conditionFields = new string[] { "so.BranchId", "so.CompanyId" };
+                string[] conditionValues = new string[] { vm.BranchId, vm.CompanyId };
 
                 CommonService _commonService = new CommonService();
-                var fields = new List<string> { "BranchId" };
-                var values = new List<string> { vm.Value };
+                //var fields = new List<string> { "BranchId" };
+                //var values = new List<string> { vm.Value };
 
-                resultVM = await _commonService.GetSaleOrderModal(fields.ToArray(), values.ToArray(), null);
+                resultVM = await _commonService.GetSaleOrderModal(conditionFields, conditionValues, null);
                 return resultVM;
             }
             catch (Exception ex)

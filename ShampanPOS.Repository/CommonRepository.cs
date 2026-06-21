@@ -5894,16 +5894,22 @@ LEFT JOIN PurchaseReturnDetails D ON M.Id = D.PurchasesReturnId
             LEFT JOIN Customers c ON so.CustomerId = c.Id
             WHERE so.IsPost = 0";
 
-                int branchIdIndex = Array.IndexOf(conditionalFields, "BranchId");
-                if (branchIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[branchIdIndex]))
-                    query += " AND so.BranchId = @BranchId";
+                //int branchIdIndex = Array.IndexOf(conditionalFields, "BranchId");
+                //if (branchIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[branchIdIndex]))
+                //    query += " AND so.BranchId = @BranchId";
+
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
+
 
                 query += " ORDER BY so.OrderDate DESC";
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
-                if (branchIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[branchIdIndex]))
-                    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", int.Parse(conditionalValues[branchIdIndex]));
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+
+                //if (branchIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[branchIdIndex]))
+                //    objComm.SelectCommand.Parameters.AddWithValue("@BranchId", int.Parse(conditionalValues[branchIdIndex]));
 
                 objComm.Fill(dataTable);
 
