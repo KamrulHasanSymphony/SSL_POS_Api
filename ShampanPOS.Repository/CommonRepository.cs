@@ -5462,18 +5462,21 @@ LEFT JOIN PurchaseOrderDetails D
             LEFT JOIN BankInformations bi ON ba.BankId = bi.Id
             WHERE 1=1";
 
-                int bankIdIndex = Array.IndexOf(conditionalFields, "BankId");
-                if (bankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[bankIdIndex]))
-                {
-                    query += " AND bi.Id = @BankId";
-                }
+                //int bankIdIndex = Array.IndexOf(conditionalFields, "BankId");
+                //if (bankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[bankIdIndex]))
+                //{
+                //    query += " AND bi.Id = @BankId";
+                //}
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
+
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
-                if (bankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[bankIdIndex]))
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@BankId", int.Parse(conditionalValues[bankIdIndex]));
-                }
+                //if (bankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[bankIdIndex]))
+                //{
+                //    objComm.SelectCommand.Parameters.AddWithValue("@BankId", int.Parse(conditionalValues[bankIdIndex]));
+                //}
 
                 objComm.Fill(dataTable);
 

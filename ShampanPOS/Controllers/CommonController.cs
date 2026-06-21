@@ -1643,15 +1643,32 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
             try
             {
-                CommonService _commonService = new CommonService();
-                var fields = new List<string>();
-                var values = new List<string>();
-                if (!string.IsNullOrEmpty(vm.Value))
+                if (string.IsNullOrEmpty(vm.BranchId) || string.IsNullOrEmpty(vm.CompanyId))
                 {
-                    fields.Add("BankId");
-                    values.Add(vm.Value);
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
                 }
-                resultVM = await _commonService.GetBankAccountModal(fields.ToArray(), values.ToArray(), null);
+                CommonService _commonService = new CommonService();
+                if (!string.IsNullOrEmpty(vm.Value)) { 
+                    string[] conditionFields = new string[] { "ba.BankId", "ba.BranchId", "ba.CompanyId" };
+                    string[] conditionValues = new string[] {  vm.Value,vm.BranchId, vm.CompanyId };
+                    resultVM = await _commonService.GetBankAccountModal(conditionFields, conditionValues, null);
+                }
+                else { 
+                    string[] conditionFields = new string[] { "ba.BranchId", "ba.CompanyId" };
+                    string[] conditionValues = new string[] {  vm.BranchId, vm.CompanyId };
+                    resultVM = await _commonService.GetBankAccountModal(conditionFields, conditionValues, null);
+                }
+
+                //var fields = new List<string>();
+                //var values = new List<string>();
+                //if (!string.IsNullOrEmpty(vm.Value))
+                //{
+                //    fields.Add("BankId");
+                //    values.Add(vm.Value);
+                //}
+                //resultVM = await _commonService.GetBankAccountModal(conditionFields,conditionValues, null);
                 return resultVM;
             }
             catch (Exception ex)
