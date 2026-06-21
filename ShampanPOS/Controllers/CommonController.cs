@@ -293,10 +293,10 @@ namespace ShampanPOS.Controllers
                 string[] conditionFields = null;
                 string[] conditionValues = null;
 
-                if (!string.IsNullOrEmpty(Vm.BranchId))
+                if (!string.IsNullOrEmpty(Vm.BranchId)&&!string.IsNullOrEmpty(Vm.CompanyId))
                 {
-                    conditionFields = new string[] { "H.BranchId" };
-                    conditionValues = new string[] { Vm.BranchId };
+                    conditionFields = new string[] { "H.BranchId", "H.CompanyId" };
+                    conditionValues = new string[] { Vm.BranchId , Vm.CompanyId };
                 }
                 CommonService _commonService = new CommonService();
                 resultVM = await _commonService.CustomerList(conditionFields, conditionValues, null);
