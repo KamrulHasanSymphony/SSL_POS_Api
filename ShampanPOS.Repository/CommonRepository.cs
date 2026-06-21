@@ -5697,14 +5697,21 @@ LEFT JOIN PurchaseOrderDetails D
             LEFT JOIN SupplierGroups sg ON s.SupplierGroupId = sg.Id
             WHERE 1=1";
 
-                int groupIdIndex = Array.IndexOf(conditionalFields, "SupplierGroupId");
-                if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
-                    query += " AND sg.Id = @SupplierGroupId";
+
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
-                if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
-                    objComm.SelectCommand.Parameters.AddWithValue("@SupplierGroupId", int.Parse(conditionalValues[groupIdIndex]));
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                //int groupIdIndex = Array.IndexOf(conditionalFields, "SupplierGroupId");
+                //if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
+                //    query += " AND sg.Id = @SupplierGroupId";
+
+                //SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                //if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
+                //    objComm.SelectCommand.Parameters.AddWithValue("@SupplierGroupId", int.Parse(conditionalValues[groupIdIndex]));
 
                 objComm.Fill(dataTable);
 
