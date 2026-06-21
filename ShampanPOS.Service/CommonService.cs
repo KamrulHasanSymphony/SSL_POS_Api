@@ -564,8 +564,9 @@ namespace ShampanPOS.Service
                 transaction = conn.BeginTransaction();
 
                 int companyId = Convert.ToInt32(vm?.CompanyId ?? "0");
+                int branchId = Convert.ToInt32(vm?.BranchId ?? "0");   // 🔥 ADD THIS
 
-                result = await _repo.CustomerList(companyId,conditionalFields,conditionalValues,conn,transaction);
+                result = await _repo.CustomerList(companyId, branchId, conn, transaction);
 
                 if (isNewConnection && result.Status == "Success")
                 {
@@ -1089,10 +1090,17 @@ namespace ShampanPOS.Service
                 transaction = conn.BeginTransaction();
 
                 // ✅ FIX HERE
+                //int companyId = Convert.ToInt32(vm?.CompanyId ?? "0");
+
+
+                //result = await _repo.GetProductModal(companyId, conditionalFields, conditionalValues, conn, transaction);
+
+
                 int companyId = Convert.ToInt32(vm?.CompanyId ?? "0");
+                int branchId = Convert.ToInt32(vm?.BranchId ?? "0");   // 🔥 ADD
 
+                result = await _repo.GetProductModal(companyId, branchId, conn, transaction);
 
-                result = await _repo.GetProductModal(companyId, conditionalFields, conditionalValues, conn, transaction);
 
                 if (isNewConnection && result.Status == "Success")
                 {

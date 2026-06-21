@@ -281,13 +281,12 @@ namespace ShampanPOS.Controllers
             }
         }
 
-
-
         // POST: api/Common/CustomerList
         [HttpPost("CustomerList")]
         public async Task<ResultVM> CustomerList(CommonVM Vm)
         {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
+
             try
             {
                 string[] conditionFields = null;
@@ -295,11 +294,21 @@ namespace ShampanPOS.Controllers
 
                 if (!string.IsNullOrEmpty(Vm.BranchId))
                 {
-                    conditionFields = new string[] { "H.BranchId" };
-                    conditionValues = new string[] { Vm.BranchId };
+                    conditionFields = new[] { "H.BranchId" };
+                    conditionValues = new[] { Vm.BranchId };
                 }
+
                 CommonService _commonService = new CommonService();
-                resultVM = await _commonService.CustomerList(conditionFields, conditionValues, null);
+
+                resultVM = await _commonService.CustomerList(
+                    conditionFields,
+                    conditionValues,
+                    new PeramModel
+                    {
+                        CompanyId = Vm.CompanyId,
+                        BranchId = Vm.BranchId   // 🔥 FIX HERE
+                    });
+
                 return resultVM;
             }
             catch (Exception ex)
@@ -308,11 +317,13 @@ namespace ShampanPOS.Controllers
                 {
                     Status = "Fail",
                     Message = "Data not fetched.",
-                    ExMessage = ex.Message,
-                    DataVM = null
+                    ExMessage = ex.Message
                 };
             }
         }
+
+
+
         [HttpPost("CustomerGroupList")]
         public async Task<ResultVM> CustomerGroupList(CommonVM Vm)
         {
@@ -588,21 +599,25 @@ namespace ShampanPOS.Controllers
             try
             {
                 CommonService _commonService = new CommonService();
+
                 //resultVM = await _commonService.GetProductModal(new[] { "" }, new[] { "" }, null);
 
-                string[] conditionalFields ={"P.CompanyId"};
+                //string[] conditionalFields = { "P.CompanyId" };
 
-                string[] conditionalValues ={Vm.CompanyId ?? "0"};
+                //string[] conditionalValues = { Vm.CompanyId ?? "0" };
 
-                resultVM = await _commonService.GetProductModal(
-                    conditionalFields,
-                    conditionalValues,
-                    new PeramModel
-                    {
-                        CompanyId = Vm.CompanyId
-                    });
+                //resultVM = await _commonService.GetProductModal(
+                //    conditionalFields,
+                //    conditionalValues,
+                //    new PeramModel
+                //    {
+                //        CompanyId = Vm.CompanyId
+                //    });
 
-                return resultVM;
+
+                return await _commonService.GetProductModal(null,null,new PeramModel{CompanyId = Vm.CompanyId, BranchId = Vm.BranchId });
+
+                //return resultVM;
             }
             catch (Exception ex)
             {
@@ -914,7 +929,19 @@ namespace ShampanPOS.Controllers
                 }
 
                 SaleOrderService _sale = new SaleOrderService();
-                resultVM = await _sale.List(conditionFields, conditionValues, null);
+
+                //resultVM = await _sale.List(conditionFields, conditionValues, null, new PeramModel { CompanyId = Vm.CompanyId, BranchId = Vm.BranchId });
+
+                  resultVM = await _sale.List(
+                      conditionFields,
+                      conditionValues,
+                      new PeramModel { CompanyId = Vm.CompanyId, BranchId = Vm.BranchId }
+                  );
+
+
+                //return await _commonService.GetProductModal(null, null, new PeramModel { CompanyId = Vm.CompanyId, BranchId = Vm.BranchId });
+
+
                 return resultVM;
             }
             catch (Exception ex)
@@ -1334,6 +1361,7 @@ namespace ShampanPOS.Controllers
             try
             {
                 CommonService _commonService = new CommonService();
+
                 resultVM = await _commonService.GetPaymentTypeList(new[] { "" }, new[] { "" }, null);
                 return resultVM;
             }

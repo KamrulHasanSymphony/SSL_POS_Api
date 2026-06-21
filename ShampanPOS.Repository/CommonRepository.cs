@@ -1578,12 +1578,7 @@ WHERE
         }
 
 
-        public async Task<ResultVM> CustomerList(
-     int companyId,
-     string[] conditionalFields,
-     string[] conditionalValues,
-     SqlConnection conn,
-     SqlTransaction transaction)
+        public async Task<ResultVM> CustomerList(int companyId, int branchId, SqlConnection conn,SqlTransaction transaction)
         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();
@@ -1609,10 +1604,13 @@ WHERE
                     CASE WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Active' ELSE 'Inactive' END Status
                 FROM Customers H
                 WHERE H.IsActive = 1 AND H.CompanyId = @CompanyId
+                AND (@BranchId = 0 OR H.BranchId = @BranchId)
+
                 ";
 
                 SqlCommand cmd = new SqlCommand(sqlQuery, conn, transaction);
                 cmd.Parameters.AddWithValue("@CompanyId", companyId);
+                cmd.Parameters.AddWithValue("@BranchId", branchId);
 
                 SqlDataAdapter objComm = new SqlDataAdapter(cmd);
                 objComm.Fill(dataTable);
@@ -2696,7 +2694,11 @@ LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
 
 
 
-        public async Task<ResultVM> GetProductModal(int companyId, string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+        //public async Task<ResultVM> GetProductModal(int companyId, string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+
+
+   public async Task<ResultVM> GetProductModal(int companyId, int branchId, SqlConnection conn, SqlTransaction transaction)
+
         {
             DataTable dataTable = new DataTable();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
@@ -2735,11 +2737,15 @@ FROM Products P
 LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
 LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
 WHERE P.CompanyId = @CompanyId
+AND (@BranchId = 0 OR P.BranchId = @BranchId)
+
 ";
 
                 SqlCommand cmd = new SqlCommand(query, conn, transaction);
 
                 cmd.Parameters.AddWithValue("@CompanyId", companyId);
+                cmd.Parameters.AddWithValue("@BranchId", branchId);
+
 
                 SqlDataAdapter objComm = new SqlDataAdapter(cmd);
                 objComm.Fill(dataTable);
@@ -2782,6 +2788,10 @@ WHERE P.CompanyId = @CompanyId
                 return result;
             }
         }
+
+
+
+
 
 
         public async Task<ResultVM> GetProductByBarcode(int companyId, string barcode, SqlConnection conn, SqlTransaction transaction)
