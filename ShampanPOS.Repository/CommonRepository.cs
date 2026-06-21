@@ -5635,8 +5635,8 @@ LEFT JOIN PurchaseOrderDetails D
                 ISNULL(c.Id, 0)             AS Id,
                 ISNULL(c.Code, '')          AS Code,
                 ISNULL(c.Name, '')          AS Name,
-                ISNULL(cg.Id, 0)            AS CustomerGroupId,
-                ISNULL(cg.Name, '')         AS GroupName
+                ISNULL(c.CustomerGroupId, 0)            AS CustomerGroupId,
+                ISNULL(cg.Name, '') AS CustomerGroupName
             FROM Customers c
             LEFT JOIN CustomerGroups cg ON c.CustomerGroupId = cg.Id
             WHERE 1=1";
@@ -5662,7 +5662,7 @@ LEFT JOIN PurchaseOrderDetails D
                     Code = row.Field<string>("Code"),
                     Name = row.Field<string>("Name"),
                     CustomerGroupId = row.Field<int>("CustomerGroupId"),
-                    CustomerGroupName = row.Field<string>("GroupName")
+                    CustomerGroupName = row.Field<string>("CustomerGroupName")
                 }).ToList();
 
                 result.Status = "Success";
