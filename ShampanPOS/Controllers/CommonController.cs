@@ -588,7 +588,20 @@ namespace ShampanPOS.Controllers
             try
             {
                 CommonService _commonService = new CommonService();
-                resultVM = await _commonService.GetProductModal(new[] { "" }, new[] { "" }, null);
+                //resultVM = await _commonService.GetProductModal(new[] { "" }, new[] { "" }, null);
+
+                string[] conditionalFields ={"P.CompanyId"};
+
+                string[] conditionalValues ={Vm.CompanyId ?? "0"};
+
+                resultVM = await _commonService.GetProductModal(
+                    conditionalFields,
+                    conditionalValues,
+                    new PeramModel
+                    {
+                        CompanyId = Vm.CompanyId
+                    });
+
                 return resultVM;
             }
             catch (Exception ex)
@@ -602,6 +615,58 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
+
+
+
+        [HttpPost("GetProductByBarcode")]
+        public async Task<ResultVM> GetProductByBarcode(CommonVM vm)
+        {
+            ResultVM resultVM = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                DataVM = null
+            };
+
+            try
+            {
+                CommonService _commonService = new CommonService();
+
+                // ✅ FIXED HERE
+                //resultVM = await _commonService.GetProductByBarcode(
+                //    new[] { "" },
+                //    new[] { "" },
+                //    vm
+                //);
+
+                string[] conditionalFields = { "P.CompanyId" };
+
+                string[] conditionalValues = { vm.CompanyId ?? "0" };
+
+                resultVM = await _commonService.GetProductByBarcode(
+                    conditionalFields,
+                    conditionalValues,
+                    new CommonVM
+                    {
+                        CompanyId = vm.CompanyId,
+                        Value = vm.Value
+                    });
+
+
+
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
+
 
 
         [HttpPost("ProductModal")]
