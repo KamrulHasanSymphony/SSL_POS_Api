@@ -5641,14 +5641,18 @@ LEFT JOIN PurchaseOrderDetails D
             LEFT JOIN CustomerGroups cg ON c.CustomerGroupId = cg.Id
             WHERE 1=1";
 
-                int groupIdIndex = Array.IndexOf(conditionalFields, "CustomerGroupId");
-                if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
-                    query += " AND cg.Id = @CustomerGroupId";
+                //int groupIdIndex = Array.IndexOf(conditionalFields, "CustomerGroupId");
+                //if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
+                //    query += " AND cg.Id = @CustomerGroupId";
+                
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
-                if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
-                    objComm.SelectCommand.Parameters.AddWithValue("@CustomerGroupId", int.Parse(conditionalValues[groupIdIndex]));
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                //if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
+                //    objComm.SelectCommand.Parameters.AddWithValue("@CustomerGroupId", int.Parse(conditionalValues[groupIdIndex]));
 
                 objComm.Fill(dataTable);
 

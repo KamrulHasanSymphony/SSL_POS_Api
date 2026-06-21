@@ -1804,15 +1804,35 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
             try
             {
+                if (string.IsNullOrEmpty(vm.BranchId) || string.IsNullOrEmpty(vm.CompanyId))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
                 CommonService _commonService = new CommonService();
-                var fields = new List<string>();
-                var values = new List<string>();
                 if (!string.IsNullOrEmpty(vm.Value))
                 {
-                    fields.Add("CustomerGroupId");
-                    values.Add(vm.Value);
+                    string[] conditionFields = new string[] { "c.CustomerGroupId", "c.BranchId", "c.CompanyId" };
+                    string[] conditionValues = new string[] { vm.Value, vm.BranchId , vm.CompanyId };
+                    resultVM = await _commonService.GetCustomerModal(conditionFields, conditionValues, null);
                 }
-                resultVM = await _commonService.GetCustomerModal(fields.ToArray(), values.ToArray(), null);
+                else
+                {
+                    string[] conditionFields = new string[] { "c.BranchId" , "c.CompanyId" };
+                    string[] conditionValues = new string[] { vm.BranchId , vm.CompanyId };
+                    resultVM = await _commonService.GetCustomerModal(conditionFields, conditionValues, null);
+                }
+
+                //CommonService _commonService = new CommonService();
+                //var fields = new List<string>();
+                //var values = new List<string>();
+                //if (!string.IsNullOrEmpty(vm.Value))
+                //{
+                //    fields.Add("CustomerGroupId");
+                //    values.Add(vm.Value);
+                //}
+                //resultVM = await _commonService.GetCustomerModal(fields.ToArray(), values.ToArray(), null);
                 return resultVM;
             }
             catch (Exception ex)
