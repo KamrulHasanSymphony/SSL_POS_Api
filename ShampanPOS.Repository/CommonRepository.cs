@@ -5238,14 +5238,15 @@ LEFT JOIN Suppliers S
 
 LEFT JOIN PurchaseDetails D 
     ON M.Id = D.PurchaseId
-	WHERE 1 = 1;
+	WHERE 1 = 1
 ";
+
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
                 // optional filters (same pattern as ProductModal)
-                objComm.SelectCommand =
-                    ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
                 objComm.Fill(dataTable);
 

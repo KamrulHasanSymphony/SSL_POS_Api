@@ -443,8 +443,18 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
+                if (string.IsNullOrEmpty(Vm.BranchId) || string.IsNullOrEmpty(Vm.CompanyId))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
+
+                string[] conditionFields = new string[] { "H.BranchId", "H.CompanyId" };
+                string[] conditionValues = new string[] { Vm.BranchId, Vm.CompanyId };
+
                 CommonService _commonService = new CommonService();
-                resultVM = await _commonService.SupplierGroupList(new[] { "" }, new[] { "" }, null);
+                resultVM = await _commonService.SupplierGroupList(conditionFields, conditionValues, null);
                 return resultVM;
             }
             catch (Exception ex)
@@ -1535,8 +1545,18 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
+                if (string.IsNullOrEmpty(Vm.BranchId) || string.IsNullOrEmpty(Vm.CompanyId))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
+
+                string[] conditionFields = new string[] { "M.BranchId", "M.CompanyId" };
+                string[] conditionValues = new string[] { Vm.BranchId, Vm.CompanyId };
+
                 CommonService _commonService = new CommonService();
-                resultVM = await _commonService.GetPurchaseModal(new[] { "" }, new[] { "" }, null);
+                resultVM = await _commonService.GetPurchaseModal(conditionFields, conditionValues, null);
                 return resultVM;
             }
             catch (Exception ex)
