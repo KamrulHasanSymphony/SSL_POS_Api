@@ -359,8 +359,18 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
+                if (string.IsNullOrEmpty(Vm.BranchId) || string.IsNullOrEmpty(Vm.CompanyId))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
+
+                string[] conditionFields = new string[] { "H.BranchId", "H.CompanyId" };
+                string[] conditionValues = new string[] { Vm.BranchId, Vm.CompanyId };
+
                 CommonService _commonService = new CommonService();
-                resultVM = await _commonService.SupplierList(new[] { "" }, new[] { "" }, null);
+                resultVM = await _commonService.SupplierList(conditionFields, conditionValues, null);
                 return resultVM;
             }
             catch (Exception ex)
@@ -556,7 +566,18 @@ namespace ShampanPOS.Controllers
                 PeramModel vm = new PeramModel();
                 vm = model.PeramModel;
 
-                resultVM = await _commonService.GetProductModalForPurchaseData(new[] { "P.Code like", "P.Name like", "P.BanglaName like", "P.HSCodeNo like", "PG.Name like", "UOM.Name like" }, new[] { model.ProductCode, model.ProductName, model.BanglaName, model.HSCodeNo, model.ProductGroupName, model.UOMName }, vm);
+                if (string.IsNullOrEmpty(model.BranchId.ToString()) || string.IsNullOrEmpty(model.CompanyId.ToString()))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
+
+                string[] conditionFields = new string[] { "H.BranchId", "H.CompanyId" ,"P.Code like", "P.Name like", "P.BanglaName like", "P.HSCodeNo like", "PG.Name like", "UOM.Name like" };
+                string[] conditionValues = new string[] { model.BranchId.ToString(), model.CompanyId.ToString(), model.ProductCode, model.ProductName, model.BanglaName, model.HSCodeNo, model.ProductGroupName, model.UOMName };
+
+
+                resultVM = await _commonService.GetProductModalForPurchaseData(conditionFields, conditionValues, vm);
                 return resultVM;
             }
             catch (Exception ex)
