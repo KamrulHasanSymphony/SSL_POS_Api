@@ -1813,14 +1813,14 @@ namespace ShampanPOS.Controllers
                 CommonService _commonService = new CommonService();
                 if (!string.IsNullOrEmpty(vm.Value))
                 {
-                    string[] conditionFields = new string[] { "c.CustomerGroupId", "c.BranchId", "c.CompanyId" };
-                    string[] conditionValues = new string[] { vm.Value, vm.BranchId , vm.CompanyId };
+                    string[] conditionFields = new string[] { "c.CustomerGroupId", "c.BranchId", "c.CompanyId" , "cg.BranchId", "cg.CompanyId" };
+                    string[] conditionValues = new string[] { vm.Value, vm.BranchId , vm.CompanyId , vm.BranchId , vm.CompanyId };
                     resultVM = await _commonService.GetCustomerModal(conditionFields, conditionValues, null);
                 }
                 else
                 {
-                    string[] conditionFields = new string[] { "c.BranchId" , "c.CompanyId" };
-                    string[] conditionValues = new string[] { vm.BranchId , vm.CompanyId };
+                    string[] conditionFields = new string[] { "c.BranchId" , "c.CompanyId" , "cg.BranchId" , "cg.CompanyId" };
+                    string[] conditionValues = new string[] { vm.BranchId , vm.CompanyId , vm.BranchId , vm.CompanyId };
                     resultVM = await _commonService.GetCustomerModal(conditionFields, conditionValues, null);
                 }
 
