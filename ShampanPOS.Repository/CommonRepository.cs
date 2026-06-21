@@ -1578,7 +1578,12 @@ WHERE
         }
 
 
-        public async Task<ResultVM> CustomerList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        public async Task<ResultVM> CustomerList(
+     int companyId,
+     string[] conditionalFields,
+     string[] conditionalValues,
+     SqlConnection conn,
+     SqlTransaction transaction)
         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();
@@ -1594,34 +1599,22 @@ WHERE
                 }
                 string sqlQuery = @"
                 SELECT DISTINCT
-
-                 ISNULL(H.Id, 0) Id
-                ,ISNULL(H.Code, '') Code
-                ,ISNULL(H.Name, '') Name
-                ,ISNULL(H.Address, '') Address
-                ,ISNULL(H.Email, '') Email
-                ,ISNULL(H.BanglaName, '') BanglaName
-                ,ISNULL(H.Comments, '') Comments
-
-
-                ,CASE WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Active' ELSE 'Inactive'   END Status
-
+                    ISNULL(H.Id, 0) Id,
+                    ISNULL(H.Code, '') Code,
+                    ISNULL(H.Name, '') Name,
+                    ISNULL(H.Address, '') Address,
+                    ISNULL(H.Email, '') Email,
+                    ISNULL(H.BanglaName, '') BanglaName,
+                    ISNULL(H.Comments, '') Comments,
+                    CASE WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Active' ELSE 'Inactive' END Status
                 FROM Customers H
+                WHERE H.IsActive = 1 AND H.CompanyId = @CompanyId
+                ";
 
-                WHERE H.IsActive = 1
+                SqlCommand cmd = new SqlCommand(sqlQuery, conn, transaction);
+                cmd.Parameters.AddWithValue("@CompanyId", companyId);
 
-                             ";
-
-
-                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
-
-                SqlDataAdapter objComm = CreateAdapter(sqlQuery, conn, transaction);
-
-                // SET additional conditions param
-                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
-
-
-
+                SqlDataAdapter objComm = new SqlDataAdapter(cmd);
                 objComm.Fill(dataTable);
 
                 var modelList = dataTable.AsEnumerable().Select(row => new CustomerVM
@@ -2703,7 +2696,7 @@ LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
 
 
 
-        public async Task<ResultVM> GetProductModal(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+        public async Task<ResultVM> GetProductModal(int companyId, string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
         {
             DataTable dataTable = new DataTable();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
@@ -2720,28 +2713,35 @@ SELECT
     ISNULL(P.Id,0) AS ProductId, 
     ISNULL(P.Name,'') AS ProductName,
     ISNULL(P.BanglaName,'') AS BanglaName, 
-    ISNULL(P.Code,'') AS ProductCode, 
+    ISNULL(P.Code,'') AS ProductCode,
+    ISNULL(P.BarCode,'') AS BarCode,   -- 🔥 ADDED
+
     ISNULL(P.ProductGroupId, 0) AS ProductGroupId,
     ISNULL(PG.Name,'') AS ProductGroupName,
-    0 AS UOMId,
+
+    ISNULL(P.UOMId, 0) AS UOMId,
     ISNULL(UOM.Name,'') AS UOMName,
+
     CASE WHEN P.IsActive = 1 THEN 'Active' ELSE 'Inactive' END AS Status,
+
     ISNULL(P.SDRate,0) SDRate,
-	ISNULL(P.VATRate,0) VATRate,
+    ISNULL(P.VATRate,0) VATRate,
     ISNULL(P.PurchasePrice,0) PurchasePrice,
     ISNULL(P.SalePrice,0) SalesPrice,
-	ISNULL(P.ImagePath,'') AS ImagePath
+
+    ISNULL(P.ImagePath,'') AS ImagePath
 
 FROM Products P
 LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
 LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
+WHERE P.CompanyId = @CompanyId
 ";
 
-                //sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+                SqlCommand cmd = new SqlCommand(query, conn, transaction);
 
-                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+                cmd.Parameters.AddWithValue("@CompanyId", companyId);
 
-                //objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+                SqlDataAdapter objComm = new SqlDataAdapter(cmd);
                 objComm.Fill(dataTable);
 
                 var modelList = dataTable.AsEnumerable().Select(row => new ProductDataVM
@@ -2750,8 +2750,97 @@ LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
                     ProductName = row.Field<string>("ProductName"),
                     BanglaName = row.Field<string>("BanglaName"),
                     ProductCode = row.Field<string>("ProductCode"),
-                    //HSCodeNo = row.Field<string>("HSCodeNo"), 
-                    //ImagePath = row.Field<string>("ImagePath"),
+
+                    BarCode = row.Field<string>("BarCode"), // 🔥 ADDED HERE
+
+                    ProductGroupId = row.Field<int>("ProductGroupId"),
+                    ProductGroupName = row.Field<string>("ProductGroupName"),
+
+                    UOMId = row.Field<int>("UOMId"),
+                    UOMName = row.Field<string>("UOMName"),
+
+                    Status = row.Field<string>("Status"),
+
+                    SDRate = row.Field<decimal>("SDRate"),
+                    VATRate = row.Field<decimal>("VATRate"),
+                    PurchasePrice = row.Field<decimal>("PurchasePrice"),
+                    SalesPrice = row.Field<decimal>("SalesPrice"),
+
+                    ImagePath = row.Field<string>("ImagePath"),
+                }).ToList();
+
+                result.Status = "Success";
+                result.Message = "Data retrieved successfully.";
+                result.DataVM = modelList;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.ExMessage = ex.Message;
+                result.Message = ex.Message;
+                return result;
+            }
+        }
+
+
+        public async Task<ResultVM> GetProductByBarcode(int companyId, string barcode, SqlConnection conn, SqlTransaction transaction)
+        {
+            DataTable dataTable = new DataTable();
+
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                DataVM = null
+            };
+
+            try
+            {
+                if (conn == null)
+                {
+                    throw new Exception("Database connection fail!");
+                }
+
+                string query = @"
+SELECT 
+    ISNULL(P.Id,0) AS ProductId, 
+    ISNULL(P.Name,'') AS ProductName,
+    ISNULL(P.BanglaName,'') AS BanglaName, 
+    ISNULL(P.Code,'') AS ProductCode,
+	ISNULL(P.BarCode,'') AS Barcode, 
+    ISNULL(P.ProductGroupId, 0) AS ProductGroupId,
+    ISNULL(PG.Name,'') AS ProductGroupName,
+    ISNULL(P.UOMId,0) AS UOMId,
+    ISNULL(UOM.Name,'') AS UOMName,
+    CASE WHEN P.IsActive = 1 THEN 'Active' ELSE 'Inactive' END AS Status,
+    ISNULL(P.SDRate,0) AS SDRate,
+    ISNULL(P.VATRate,0) AS VATRate,
+    ISNULL(P.PurchasePrice,0) AS PurchasePrice,
+    ISNULL(P.SalePrice,0) AS SalesPrice,
+    ISNULL(P.ImagePath,'') AS ImagePath
+FROM Products P
+LEFT JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
+LEFT JOIN UOMs UOM ON P.UOMId = UOM.Id
+WHERE P.BarCode = @Barcode AND P.CompanyId = @CompanyId
+";
+
+                SqlCommand cmd = new SqlCommand(query, conn, transaction);
+                cmd.Parameters.AddWithValue("@Barcode", barcode ?? "");
+                cmd.Parameters.AddWithValue("@CompanyId", companyId);
+
+                SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                adapter.SelectCommand = cmd;
+                adapter.Fill(dataTable);
+
+                var modelList = dataTable.AsEnumerable().Select(row => new ProductDataVM
+                {
+                    ProductId = row.Field<int>("ProductId"),
+                    ProductName = row.Field<string>("ProductName"),
+                    BanglaName = row.Field<string>("BanglaName"),
+                    ProductCode = row.Field<string>("ProductCode"),
+                    BarCode = row.Field<string>("Barcode"),
                     ProductGroupId = row.Field<int>("ProductGroupId"),
                     ProductGroupName = row.Field<string>("ProductGroupName"),
                     UOMId = row.Field<int>("UOMId"),
@@ -2762,12 +2851,12 @@ LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
                     PurchasePrice = row.Field<decimal>("PurchasePrice"),
                     SalesPrice = row.Field<decimal>("SalesPrice"),
                     ImagePath = row.Field<string>("ImagePath"),
-
                 }).ToList();
 
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";
-                result.DataVM = modelList;
+                result.DataVM = modelList.FirstOrDefault(); // barcode → single product
+
                 return result;
             }
             catch (Exception ex)
@@ -2777,6 +2866,12 @@ LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
                 return result;
             }
         }
+
+
+
+
+
+
 
 
         public async Task<ResultVM> ProductModal(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
@@ -5143,14 +5238,15 @@ LEFT JOIN Suppliers S
 
 LEFT JOIN PurchaseDetails D 
     ON M.Id = D.PurchaseId
-	WHERE 1 = 1;
+	WHERE 1 = 1
 ";
+
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
                 // optional filters (same pattern as ProductModal)
-                objComm.SelectCommand =
-                    ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
                 objComm.Fill(dataTable);
 
@@ -5225,7 +5321,10 @@ LEFT JOIN Suppliers S
 
 LEFT JOIN PurchaseOrderDetails D 
     ON M.Id = D.PurchaseOrderId
-	WHERE 1 = 1;";
+	WHERE 1 = 1";
+
+
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
@@ -5363,18 +5462,21 @@ LEFT JOIN PurchaseOrderDetails D
             LEFT JOIN BankInformations bi ON ba.BankId = bi.Id
             WHERE 1=1";
 
-                int bankIdIndex = Array.IndexOf(conditionalFields, "BankId");
-                if (bankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[bankIdIndex]))
-                {
-                    query += " AND bi.Id = @BankId";
-                }
+                //int bankIdIndex = Array.IndexOf(conditionalFields, "BankId");
+                //if (bankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[bankIdIndex]))
+                //{
+                //    query += " AND bi.Id = @BankId";
+                //}
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
+
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
-                if (bankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[bankIdIndex]))
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@BankId", int.Parse(conditionalValues[bankIdIndex]));
-                }
+                //if (bankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[bankIdIndex]))
+                //{
+                //    objComm.SelectCommand.Parameters.AddWithValue("@BankId", int.Parse(conditionalValues[bankIdIndex]));
+                //}
 
                 objComm.Fill(dataTable);
 
@@ -5400,7 +5502,6 @@ LEFT JOIN PurchaseOrderDetails D
                 return result;
             }
         }
-
         public async Task<ResultVM> GetDepositModal(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
         {
             DataTable dataTable = new DataTable();
@@ -5410,45 +5511,27 @@ LEFT JOIN PurchaseOrderDetails D
                 if (conn == null) throw new Exception("Database connection fail!");
 
                 string query = @"
-            SELECT
-                ISNULL(d.Id, 0)                    AS Id,
-                ISNULL(d.Code, '')                 AS Code,
-                d.TransactionDate                  AS TransactionDate,
-                ISNULL(d.TotalDepositAmount, 0)    AS TotalDepositAmount,
-                ISNULL(d.ToBankAccountId, 0)       AS ToBankAccountId,
-                ISNULL(ba.AccountNo, '')            AS AccountNo,
-                ISNULL(ba.AccountName, '')          AS AccountName,
-                ISNULL(bi.Name, '')                 AS BankName,
-                ISNULL(d.Reference, '')             AS Reference
-            FROM Deposits d
-            LEFT JOIN BankAccounts ba ON d.ToBankAccountId = ba.Id
-            LEFT JOIN BankInformations bi ON ba.BankId = bi.Id
-            WHERE d.IsActive = 1 AND d.IsArchive = 0";
+    SELECT
+        ISNULL(d.Id, 0)                    AS Id,
+        ISNULL(d.Code, '')                 AS Code,
+        d.TransactionDate                  AS TransactionDate,
+        ISNULL(d.TotalDepositAmount, 0)    AS TotalDepositAmount,
+        ISNULL(d.ToBankAccountId, 0)       AS ToBankAccountId,
+        ISNULL(ba.BankId, 0)               AS BankId, 
+        ISNULL(ba.AccountNo, '')            AS AccountNo,
+        ISNULL(ba.AccountName, '')          AS AccountName,
+        ISNULL(bi.Name, '')                 AS BankName,
+        ISNULL(d.Reference, '')             AS Reference
+    FROM Deposits d
+    LEFT JOIN BankAccounts ba ON d.ToBankAccountId = ba.Id
+    LEFT JOIN BankInformations bi ON ba.BankId = bi.Id
+    WHERE d.IsActive = 1 AND d.IsArchive = 0";
 
-                int depBankIdIndex = Array.IndexOf(conditionalFields, "BankId");
-                if (depBankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[depBankIdIndex]))
-                {
-                    query += " AND bi.Id = @BankId";
-                }
-
-                int depAccountIdIndex = Array.IndexOf(conditionalFields, "BankAccountId");
-                if (depAccountIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[depAccountIdIndex]))
-                {
-                    query += " AND d.ToBankAccountId = @BankAccountId";
-                }
-
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
                 query += " ORDER BY d.TransactionDate DESC";
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
-
-                if (depBankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[depBankIdIndex]))
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@BankId", int.Parse(conditionalValues[depBankIdIndex]));
-                }
-                if (depAccountIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[depAccountIdIndex]))
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@BankAccountId", int.Parse(conditionalValues[depAccountIdIndex]));
-                }
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
                 objComm.Fill(dataTable);
 
@@ -5459,6 +5542,7 @@ LEFT JOIN PurchaseOrderDetails D
                     TransactionDate = dataTable.Columns.Contains("TransactionDate") ? row["TransactionDate"]?.ToString() : "",
                     TotalDepositAmount = row.Field<decimal>("TotalDepositAmount"),
                     ToBankAccountId = row.Field<int>("ToBankAccountId"),
+                    BankId = row.Field<int>("BankId"),
                     AccountNo = row.Field<string>("AccountNo"),
                     AccountName = row.Field<string>("AccountName"),
                     BankName = row.Field<string>("BankName"),
@@ -5487,45 +5571,27 @@ LEFT JOIN PurchaseOrderDetails D
                 if (conn == null) throw new Exception("Database connection fail!");
 
                 string query = @"
-            SELECT
-                ISNULL(w.Id, 0)                    AS Id,
-                ISNULL(w.Code, '')                 AS Code,
-                w.TransactionDate                  AS TransactionDate,
-                ISNULL(w.TotalDepositAmount, 0)    AS TotalDepositAmount,
-                ISNULL(w.FromBankAccountId, 0)     AS FromBankAccountId,
-                ISNULL(ba.AccountNo, '')            AS AccountNo,
-                ISNULL(ba.AccountName, '')          AS AccountName,
-                ISNULL(bi.Name, '')                 AS BankName,
-                ISNULL(w.Reference, '')             AS Reference
-            FROM Withdrawals w
-            LEFT JOIN BankAccounts ba ON w.FromBankAccountId = ba.Id
-            LEFT JOIN BankInformations bi ON ba.BankId = bi.Id
-            WHERE w.IsActive = 1 AND w.IsArchive = 0";
+    SELECT
+        ISNULL(w.Id, 0)                    AS Id,
+        ISNULL(w.Code, '')                 AS Code,
+        w.TransactionDate                  AS TransactionDate,
+        ISNULL(w.TotalDepositAmount, 0)    AS TotalDepositAmount,
+        ISNULL(w.FromBankAccountId, 0)     AS FromBankAccountId,
+        ISNULL(ba.BankId, 0)               AS BankId,
+        ISNULL(ba.AccountNo, '')            AS AccountNo,
+        ISNULL(ba.AccountName, '')          AS AccountName,
+        ISNULL(bi.Name, '')                 AS BankName,
+        ISNULL(w.Reference, '')             AS Reference
+    FROM Withdrawals w
+    LEFT JOIN BankAccounts ba ON w.FromBankAccountId = ba.Id
+    LEFT JOIN BankInformations bi ON ba.BankId = bi.Id
+    WHERE w.IsActive = 1 AND w.IsArchive = 0";
 
-                int wdBankIdIndex = Array.IndexOf(conditionalFields, "BankId");
-                if (wdBankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[wdBankIdIndex]))
-                {
-                    query += " AND bi.Id = @BankId";
-                }
-
-                int wdAccountIdIndex = Array.IndexOf(conditionalFields, "BankAccountId");
-                if (wdAccountIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[wdAccountIdIndex]))
-                {
-                    query += " AND w.FromBankAccountId = @BankAccountId";
-                }
-
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
                 query += " ORDER BY w.TransactionDate DESC";
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
-
-                if (wdBankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[wdBankIdIndex]))
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@BankId", int.Parse(conditionalValues[wdBankIdIndex]));
-                }
-                if (wdAccountIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[wdAccountIdIndex]))
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@BankAccountId", int.Parse(conditionalValues[wdAccountIdIndex]));
-                }
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
                 objComm.Fill(dataTable);
 
@@ -5536,6 +5602,7 @@ LEFT JOIN PurchaseOrderDetails D
                     TransactionDate = dataTable.Columns.Contains("TransactionDate") ? row["TransactionDate"]?.ToString() : "",
                     TotalDepositAmount = row.Field<decimal>("TotalDepositAmount"),
                     FromBankAccountId = row.Field<int>("FromBankAccountId"),
+                    BankId = row.Field<int>("BankId"), 
                     AccountNo = row.Field<string>("AccountNo"),
                     AccountName = row.Field<string>("AccountName"),
                     BankName = row.Field<string>("BankName"),
@@ -5568,20 +5635,24 @@ LEFT JOIN PurchaseOrderDetails D
                 ISNULL(c.Id, 0)             AS Id,
                 ISNULL(c.Code, '')          AS Code,
                 ISNULL(c.Name, '')          AS Name,
-                ISNULL(cg.Id, 0)            AS CustomerGroupId,
-                ISNULL(cg.Name, '')         AS GroupName
+                ISNULL(c.CustomerGroupId, 0)            AS CustomerGroupId,
+                ISNULL(cg.Name, '') AS CustomerGroupName
             FROM Customers c
             LEFT JOIN CustomerGroups cg ON c.CustomerGroupId = cg.Id
             WHERE 1=1";
 
-                int groupIdIndex = Array.IndexOf(conditionalFields, "CustomerGroupId");
-                if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
-                    query += " AND cg.Id = @CustomerGroupId";
+                //int groupIdIndex = Array.IndexOf(conditionalFields, "CustomerGroupId");
+                //if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
+                //    query += " AND cg.Id = @CustomerGroupId";
+                
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
-                if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
-                    objComm.SelectCommand.Parameters.AddWithValue("@CustomerGroupId", int.Parse(conditionalValues[groupIdIndex]));
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                //if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
+                //    objComm.SelectCommand.Parameters.AddWithValue("@CustomerGroupId", int.Parse(conditionalValues[groupIdIndex]));
 
                 objComm.Fill(dataTable);
 
@@ -5591,7 +5662,7 @@ LEFT JOIN PurchaseOrderDetails D
                     Code = row.Field<string>("Code"),
                     Name = row.Field<string>("Name"),
                     CustomerGroupId = row.Field<int>("CustomerGroupId"),
-                    CustomerGroupName = row.Field<string>("GroupName")
+                    CustomerGroupName = row.Field<string>("CustomerGroupName")
                 }).ToList();
 
                 result.Status = "Success";
@@ -5626,14 +5697,21 @@ LEFT JOIN PurchaseOrderDetails D
             LEFT JOIN SupplierGroups sg ON s.SupplierGroupId = sg.Id
             WHERE 1=1";
 
-                int groupIdIndex = Array.IndexOf(conditionalFields, "SupplierGroupId");
-                if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
-                    query += " AND sg.Id = @SupplierGroupId";
+
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
-                if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
-                    objComm.SelectCommand.Parameters.AddWithValue("@SupplierGroupId", int.Parse(conditionalValues[groupIdIndex]));
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                //int groupIdIndex = Array.IndexOf(conditionalFields, "SupplierGroupId");
+                //if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
+                //    query += " AND sg.Id = @SupplierGroupId";
+
+                //SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                //if (groupIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[groupIdIndex]))
+                //    objComm.SelectCommand.Parameters.AddWithValue("@SupplierGroupId", int.Parse(conditionalValues[groupIdIndex]));
 
                 objComm.Fill(dataTable);
 
