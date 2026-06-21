@@ -143,11 +143,25 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
-                CommonService _commonService = new CommonService();
-                //resultVM = await _commonService.ProductGroupList(new[] { "H.Id" }, new[] { Vm.Value.ToString() == "0" ? null : Vm.Value.ToString() }, null);
-                resultVM = await _commonService.ProductGroupList(new[] { "" }, new[] { "" }, null);
 
+                if (string.IsNullOrEmpty(Vm.BranchId) || string.IsNullOrEmpty(Vm.CompanyId))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
+
+                string[] conditionFields = new string[] { "H.BranchId", "H.CompanyId" };
+                string[] conditionValues = new string[] { Vm.BranchId, Vm.CompanyId };
+
+                CommonService _commonService = new CommonService();
+                resultVM = await _commonService.ProductGroupList(conditionFields, conditionValues, null);
                 return resultVM;
+                //CommonService _commonService = new CommonService();
+                ////resultVM = await _commonService.ProductGroupList(new[] { "H.Id" }, new[] { Vm.Value.ToString() == "0" ? null : Vm.Value.ToString() }, null);
+                //resultVM = await _commonService.ProductGroupList(new[] { "" }, new[] { "" }, null);
+
+                //return resultVM;
             }
             catch (Exception ex)
             {
@@ -288,18 +302,22 @@ namespace ShampanPOS.Controllers
         public async Task<ResultVM> CustomerList(CommonVM Vm)
         {
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
             try
             {
-                string[] conditionFields = null;
-                string[] conditionValues = null;
-
-                if (!string.IsNullOrEmpty(Vm.BranchId)&&!string.IsNullOrEmpty(Vm.CompanyId))
+                if (string.IsNullOrEmpty(Vm.BranchId) || string.IsNullOrEmpty(Vm.CompanyId))
                 {
-                    conditionFields = new string[] { "H.BranchId", "H.CompanyId" };
-                    conditionValues = new string[] { Vm.BranchId , Vm.CompanyId };
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
                 }
+
+                string[] conditionFields = new string[] { "H.BranchId", "H.CompanyId" };
+                string[] conditionValues = new string[] { Vm.BranchId, Vm.CompanyId };
+
                 CommonService _commonService = new CommonService();
                 resultVM = await _commonService.CustomerList(conditionFields, conditionValues, null);
+
                 return resultVM;
             }
             catch (Exception ex)
