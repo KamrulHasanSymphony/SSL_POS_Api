@@ -2227,8 +2227,6 @@ namespace ShampanPOS.Service
                 bool hasProduct = (vm?.ProductId ?? 0) > 0;
                 bool hasCustomer = (vm?.CustomerId ?? 0) > 0;
 
-                // VALIDATION: যদি Product/Customer কোনোটাই select না থাকে,
-                // তাহলে ReportTypeEnum (ProductWise/CustomerWise) বাধ্যতামূলক
                 if (vm?.IsSummary == true && !hasProduct && !hasCustomer && vm.ReportTypeEnum == null)
                 {
                     result.Status = "Fail";
@@ -2304,44 +2302,44 @@ namespace ShampanPOS.Service
             SqlConnection conn = null;
             SqlTransaction transaction = null;
             bool isNewConnection = false;
-
             try
             {
+                bool hasProduct = (vm?.ProductId ?? 0) > 0;
+                bool hasCustomer = (vm?.CustomerId ?? 0) > 0;
+
+                if (vm?.IsSummary == true && !hasProduct && !hasCustomer && vm.ReportTypeEnum == null)
+                {
+                    result.Status = "Fail";
+                    result.Message = "Please select Report Type: Product Wise or Customer Wise.";
+                    return result;
+                }
+
                 conn = new SqlConnection(DatabaseHelper.GetConnectionString());
                 conn.Open();
                 isNewConnection = true;
-
                 transaction = conn.BeginTransaction();
 
                 if (vm != null)
                 {
                     vm.Operation = vm.IsSummary ? "SUMMARY" : "DETAILS";
                 }
-                // Case 1: Both Product and Customer are provided
-                if (vm.ProductId > 0 && vm.CustomerId > 0)
-                {
-                    string[] conditionalFields = new string[] { "S.CompanyId", "SD.ProductId", "S.CustomerId" };
-                    string[] conditionalValues = new string[] { vm.CompanyId.ToString(), vm.ProductId.ToString(), vm.CustomerId.ToString() };
 
-                    result = await _repo.SaleOrdervsSaleReportList(conditionalFields, conditionalValues, vm, conn, transaction);
+                // Conditional fields — always unprefixed (outer wrapper column names)
+                var fields = new List<string> { "CompanyId" };
+                var values = new List<string> { vm.CompanyId.ToString() };
+
+                if (hasProduct)
+                {
+                    fields.Add("ProductId");
+                    values.Add(vm.ProductId.ToString());
                 }
-                // Case 2: Only Product is provided
-                else if (vm.ProductId > 0)
+                if (hasCustomer)
                 {
-                    string[] conditionalFields = new string[] { "S.CompanyId", "SD.ProductId" };
-                    string[] conditionalValues = new string[] { vm.CompanyId.ToString(), vm.ProductId.ToString() };
-
-                    result = await _repo.SaleOrdervsSaleReportList(conditionalFields, conditionalValues, vm, conn, transaction);
-                }
-                // Case 3: Only Customer is provided
-                else if (vm.CustomerId > 0)
-                {
-                    string[] conditionalFields = new string[] { "S.CompanyId", "S.CustomerId" };
-                    string[] conditionalValues = new string[] { vm.CompanyId.ToString(), vm.CustomerId.ToString() };
-
-                    result = await _repo.SaleOrdervsSaleReportList(conditionalFields, conditionalValues, vm, conn, transaction);
+                    fields.Add("CustomerId");
+                    values.Add(vm.CustomerId.ToString());
                 }
 
+                result = await _repo.SaleOrdervsSaleReportList(fields.ToArray(), values.ToArray(), vm, conn, transaction);
 
                 if (result.Status == "Success")
                     transaction.Commit();
@@ -2353,15 +2351,14 @@ namespace ShampanPOS.Service
             catch (Exception ex)
             {
                 if (transaction != null && isNewConnection)
-                    transaction.Rollback();
-
-                return new ResultVM
                 {
-                    Status = "Fail",
-                    Message = ex.Message,
-                    ExMessage = ex.ToString()
-                };
+                    transaction.Rollback();
+                }
+                result.ExMessage = ex.ToString();
+                result.Message = ex.Message;
+                return result;
             }
+
         }
 
     }

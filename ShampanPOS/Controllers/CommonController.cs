@@ -143,11 +143,25 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
-                CommonService _commonService = new CommonService();
-                //resultVM = await _commonService.ProductGroupList(new[] { "H.Id" }, new[] { Vm.Value.ToString() == "0" ? null : Vm.Value.ToString() }, null);
-                resultVM = await _commonService.ProductGroupList(new[] { "" }, new[] { "" }, null);
 
+                if (string.IsNullOrEmpty(Vm.BranchId) || string.IsNullOrEmpty(Vm.CompanyId))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
+
+                string[] conditionFields = new string[] { "H.BranchId", "H.CompanyId" };
+                string[] conditionValues = new string[] { Vm.BranchId, Vm.CompanyId };
+
+                CommonService _commonService = new CommonService();
+                resultVM = await _commonService.ProductGroupList(conditionFields, conditionValues, null);
                 return resultVM;
+                //CommonService _commonService = new CommonService();
+                ////resultVM = await _commonService.ProductGroupList(new[] { "H.Id" }, new[] { Vm.Value.ToString() == "0" ? null : Vm.Value.ToString() }, null);
+                //resultVM = await _commonService.ProductGroupList(new[] { "" }, new[] { "" }, null);
+
+                //return resultVM;
             }
             catch (Exception ex)
             {
@@ -285,30 +299,19 @@ namespace ShampanPOS.Controllers
         [HttpPost("CustomerList")]
         public async Task<ResultVM> CustomerList(CommonVM Vm)
         {
+            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
 
             try
             {
-                string[] conditionFields = null;
-                string[] conditionValues = null;
-
-                if (!string.IsNullOrEmpty(Vm.BranchId))
+                if (string.IsNullOrEmpty(Vm.BranchId) || string.IsNullOrEmpty(Vm.CompanyId))
                 {
-                    conditionFields = new[] { "H.BranchId" };
-                    conditionValues = new[] { Vm.BranchId };
+                    conditionFields = new string[] { "H.BranchId" };
+                    conditionValues = new string[] { Vm.BranchId };
                 }
-
                 CommonService _commonService = new CommonService();
-
-                resultVM = await _commonService.CustomerList(
-                    conditionFields,
-                    conditionValues,
-                    new PeramModel
-                    {
-                        CompanyId = Vm.CompanyId,
-                        BranchId = Vm.BranchId   // 🔥 FIX HERE
-                    });
-
+                resultVM = await _commonService.CustomerList(conditionFields, conditionValues, null);
                 return resultVM;
             }
             catch (Exception ex)
@@ -352,8 +355,18 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
+                if (string.IsNullOrEmpty(Vm.BranchId) || string.IsNullOrEmpty(Vm.CompanyId))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
+
+                string[] conditionFields = new string[] { "H.BranchId", "H.CompanyId" };
+                string[] conditionValues = new string[] { Vm.BranchId, Vm.CompanyId };
+
                 CommonService _commonService = new CommonService();
-                resultVM = await _commonService.SupplierList(new[] { "" }, new[] { "" }, null);
+                resultVM = await _commonService.SupplierList(conditionFields, conditionValues, null);
                 return resultVM;
             }
             catch (Exception ex)
@@ -426,8 +439,18 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
+                if (string.IsNullOrEmpty(Vm.BranchId) || string.IsNullOrEmpty(Vm.CompanyId))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
+
+                string[] conditionFields = new string[] { "H.BranchId", "H.CompanyId" };
+                string[] conditionValues = new string[] { Vm.BranchId, Vm.CompanyId };
+
                 CommonService _commonService = new CommonService();
-                resultVM = await _commonService.SupplierGroupList(new[] { "" }, new[] { "" }, null);
+                resultVM = await _commonService.SupplierGroupList(conditionFields, conditionValues, null);
                 return resultVM;
             }
             catch (Exception ex)
@@ -549,7 +572,18 @@ namespace ShampanPOS.Controllers
                 PeramModel vm = new PeramModel();
                 vm = model.PeramModel;
 
-                resultVM = await _commonService.GetProductModalForPurchaseData(new[] { "P.Code like", "P.Name like", "P.BanglaName like", "P.HSCodeNo like", "PG.Name like", "UOM.Name like" }, new[] { model.ProductCode, model.ProductName, model.BanglaName, model.HSCodeNo, model.ProductGroupName, model.UOMName }, vm);
+                if (string.IsNullOrEmpty(model.BranchId.ToString()) || string.IsNullOrEmpty(model.CompanyId.ToString()))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
+
+                string[] conditionFields = new string[] { "H.BranchId", "H.CompanyId" ,"P.Code like", "P.Name like", "P.BanglaName like", "P.HSCodeNo like", "PG.Name like", "UOM.Name like" };
+                string[] conditionValues = new string[] { model.BranchId.ToString(), model.CompanyId.ToString(), model.ProductCode, model.ProductName, model.BanglaName, model.HSCodeNo, model.ProductGroupName, model.UOMName };
+
+
+                resultVM = await _commonService.GetProductModalForPurchaseData(conditionFields, conditionValues, vm);
                 return resultVM;
             }
             catch (Exception ex)
@@ -1524,8 +1558,18 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
+                if (string.IsNullOrEmpty(Vm.BranchId) || string.IsNullOrEmpty(Vm.CompanyId))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
+
+                string[] conditionFields = new string[] { "M.BranchId", "M.CompanyId" };
+                string[] conditionValues = new string[] { Vm.BranchId, Vm.CompanyId };
+
                 CommonService _commonService = new CommonService();
-                resultVM = await _commonService.GetPurchaseModal(new[] { "" }, new[] { "" }, null);
+                resultVM = await _commonService.GetPurchaseModal(conditionFields, conditionValues, null);
                 return resultVM;
             }
             catch (Exception ex)
@@ -1546,8 +1590,17 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
+                if (string.IsNullOrEmpty(Vm.BranchId) || string.IsNullOrEmpty(Vm.CompanyId))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
+
+                string[] conditionFields = new string[] { "M.BranchId", "M.CompanyId" };
+                string[] conditionValues = new string[] { Vm.BranchId, Vm.CompanyId };
                 CommonService _commonService = new CommonService();
-                resultVM = await _commonService.GetPurchaseOrderModal(new[] { "" }, new[] { "" }, null);
+                resultVM = await _commonService.GetPurchaseOrderModal(conditionFields, conditionValues, null);
                 return resultVM;
             }
             catch (Exception ex)
@@ -1569,8 +1622,19 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
+                if (string.IsNullOrEmpty(Vm.BranchId) || string.IsNullOrEmpty(Vm.CompanyId))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
+
+                string[] conditionFields = new string[] { "M.BranchId" };
+                string[] conditionValues = new string[] { Vm.BranchId};
+
+
                 CommonService _commonService = new CommonService();
-                resultVM = await _commonService.BankIdList(new[] { "" }, new[] { "" }, null);
+                resultVM = await _commonService.BankIdList(conditionFields, conditionValues, null);
                 return resultVM;
             }
             catch (Exception ex)
@@ -1592,15 +1656,32 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
             try
             {
-                CommonService _commonService = new CommonService();
-                var fields = new List<string>();
-                var values = new List<string>();
-                if (!string.IsNullOrEmpty(vm.Value))
+                if (string.IsNullOrEmpty(vm.BranchId) || string.IsNullOrEmpty(vm.CompanyId))
                 {
-                    fields.Add("BankId");
-                    values.Add(vm.Value);
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
                 }
-                resultVM = await _commonService.GetBankAccountModal(fields.ToArray(), values.ToArray(), null);
+                CommonService _commonService = new CommonService();
+                if (!string.IsNullOrEmpty(vm.Value)) { 
+                    string[] conditionFields = new string[] { "ba.BankId", "ba.BranchId", "ba.CompanyId" };
+                    string[] conditionValues = new string[] {  vm.Value,vm.BranchId, vm.CompanyId };
+                    resultVM = await _commonService.GetBankAccountModal(conditionFields, conditionValues, null);
+                }
+                else { 
+                    string[] conditionFields = new string[] { "ba.BranchId", "ba.CompanyId" };
+                    string[] conditionValues = new string[] {  vm.BranchId, vm.CompanyId };
+                    resultVM = await _commonService.GetBankAccountModal(conditionFields, conditionValues, null);
+                }
+
+                //var fields = new List<string>();
+                //var values = new List<string>();
+                //if (!string.IsNullOrEmpty(vm.Value))
+                //{
+                //    fields.Add("BankId");
+                //    values.Add(vm.Value);
+                //}
+                //resultVM = await _commonService.GetBankAccountModal(conditionFields,conditionValues, null);
                 return resultVM;
             }
             catch (Exception ex)
@@ -1615,20 +1696,53 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
             try
             {
+                if (string.IsNullOrEmpty(vm.BranchId) || string.IsNullOrEmpty(vm.CompanyId))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
                 CommonService _commonService = new CommonService();
-                var fields = new List<string>();
-                var values = new List<string>();
-                if (!string.IsNullOrEmpty(vm.Value))
+                if (!string.IsNullOrEmpty(vm.Value)&& !string.IsNullOrEmpty(vm.Value2))
                 {
-                    fields.Add("BankId");
-                    values.Add(vm.Value);
+                    string[] conditionFields = new string[] { "ba.BankId", "d.BankAccountId", "d.BranchId" };
+                    string[] conditionValues = new string[] { vm.Value, vm.Value2, vm.BranchId};
+                    resultVM = await _commonService.GetDepositModal(conditionFields, conditionValues, null);
                 }
-                if (!string.IsNullOrEmpty(vm.Value2))
+                else if (!string.IsNullOrEmpty(vm.Value))
                 {
-                    fields.Add("BankAccountId");
-                    values.Add(vm.Value2);
+                    string[] conditionFields = new string[] { "ba.BankId", "d.BranchId" };
+                    string[] conditionValues = new string[] { vm.Value, vm.BranchId };
+                    resultVM = await _commonService.GetDepositModal(conditionFields, conditionValues, null);
                 }
-                resultVM = await _commonService.GetDepositModal(fields.ToArray(), values.ToArray(), null);
+                else if (!string.IsNullOrEmpty(vm.Value2))
+                {
+                    string[] conditionFields = new string[] { "d.BankAccountId", "d.BranchId" };
+                    string[] conditionValues = new string[] { vm.Value2, vm.BranchId };
+                    resultVM = await _commonService.GetDepositModal(conditionFields, conditionValues, null);
+                }
+                else
+                {
+                    string[] conditionFields = new string[] { "d.BranchId" };
+                    string[] conditionValues = new string[] { vm.BranchId };
+                    resultVM = await _commonService.GetDepositModal(conditionFields, conditionValues, null);
+                }
+
+
+                //CommonService _commonService = new CommonService();
+                //var fields = new List<string>();
+                //var values = new List<string>();
+                //if (!string.IsNullOrEmpty(vm.Value))
+                //{
+                //    fields.Add("BankId");
+                //    values.Add(vm.Value);
+                //}
+                //if (!string.IsNullOrEmpty(vm.Value2))
+                //{
+                //    fields.Add("BankAccountId");
+                //    values.Add(vm.Value2);
+                //}
+                //resultVM = await _commonService.GetDepositModal(fields.ToArray(), values.ToArray(), null);
                 return resultVM;
             }
             catch (Exception ex)
@@ -1643,20 +1757,52 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
             try
             {
+
+                if (string.IsNullOrEmpty(vm.BranchId) || string.IsNullOrEmpty(vm.CompanyId))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
                 CommonService _commonService = new CommonService();
-                var fields = new List<string>();
-                var values = new List<string>();
-                if (!string.IsNullOrEmpty(vm.Value))
+                if (!string.IsNullOrEmpty(vm.Value) && !string.IsNullOrEmpty(vm.Value2))
                 {
-                    fields.Add("BankId");
-                    values.Add(vm.Value);
+                    string[] conditionFields = new string[] { "ba.BankId", "w.BankAccountId", "w.BranchId" };
+                    string[] conditionValues = new string[] { vm.Value, vm.Value2, vm.BranchId };
+                    resultVM = await _commonService.GetWithdrawalModal(conditionFields, conditionValues, null);
                 }
-                if (!string.IsNullOrEmpty(vm.Value2))
+                else if (!string.IsNullOrEmpty(vm.Value))
                 {
-                    fields.Add("BankAccountId");
-                    values.Add(vm.Value2);
+                    string[] conditionFields = new string[] { "ba.BankId", "w.BranchId" };
+                    string[] conditionValues = new string[] { vm.Value, vm.BranchId };
+                    resultVM = await _commonService.GetWithdrawalModal(conditionFields, conditionValues, null);
                 }
-                resultVM = await _commonService.GetWithdrawalModal(fields.ToArray(), values.ToArray(), null);
+                else if (!string.IsNullOrEmpty(vm.Value2))
+                {
+                    string[] conditionFields = new string[] { "w.BankAccountId", "w.BranchId" };
+                    string[] conditionValues = new string[] { vm.Value2, vm.BranchId };
+                    resultVM = await _commonService.GetWithdrawalModal(conditionFields, conditionValues, null);
+                }
+                else
+                {
+                    string[] conditionFields = new string[] { "w.BranchId" };
+                    string[] conditionValues = new string[] { vm.BranchId };
+                    resultVM = await _commonService.GetWithdrawalModal(conditionFields, conditionValues, null);
+                }
+                //CommonService _commonService = new CommonService();
+                //var fields = new List<string>();
+                //var values = new List<string>();
+                //if (!string.IsNullOrEmpty(vm.Value))
+                //{
+                //    fields.Add("BankId");
+                //    values.Add(vm.Value);
+                //}
+                //if (!string.IsNullOrEmpty(vm.Value2))
+                //{
+                //    fields.Add("BankAccountId");
+                //    values.Add(vm.Value2);
+                //}
+                //resultVM = await _commonService.GetWithdrawalModal(fields.ToArray(), values.ToArray(), null);
                 return resultVM;
             }
             catch (Exception ex)
@@ -1671,15 +1817,35 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
             try
             {
+                if (string.IsNullOrEmpty(vm.BranchId) || string.IsNullOrEmpty(vm.CompanyId))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
                 CommonService _commonService = new CommonService();
-                var fields = new List<string>();
-                var values = new List<string>();
                 if (!string.IsNullOrEmpty(vm.Value))
                 {
-                    fields.Add("CustomerGroupId");
-                    values.Add(vm.Value);
+                    string[] conditionFields = new string[] { "c.CustomerGroupId", "c.BranchId", "c.CompanyId" , "cg.BranchId", "cg.CompanyId" };
+                    string[] conditionValues = new string[] { vm.Value, vm.BranchId , vm.CompanyId , vm.BranchId , vm.CompanyId };
+                    resultVM = await _commonService.GetCustomerModal(conditionFields, conditionValues, null);
                 }
-                resultVM = await _commonService.GetCustomerModal(fields.ToArray(), values.ToArray(), null);
+                else
+                {
+                    string[] conditionFields = new string[] { "c.BranchId" , "c.CompanyId" , "cg.BranchId" , "cg.CompanyId" };
+                    string[] conditionValues = new string[] { vm.BranchId , vm.CompanyId , vm.BranchId , vm.CompanyId };
+                    resultVM = await _commonService.GetCustomerModal(conditionFields, conditionValues, null);
+                }
+
+                //CommonService _commonService = new CommonService();
+                //var fields = new List<string>();
+                //var values = new List<string>();
+                //if (!string.IsNullOrEmpty(vm.Value))
+                //{
+                //    fields.Add("CustomerGroupId");
+                //    values.Add(vm.Value);
+                //}
+                //resultVM = await _commonService.GetCustomerModal(fields.ToArray(), values.ToArray(), null);
                 return resultVM;
             }
             catch (Exception ex)
@@ -1694,15 +1860,35 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
             try
             {
+                if (string.IsNullOrEmpty(vm.BranchId) || string.IsNullOrEmpty(vm.CompanyId))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
                 CommonService _commonService = new CommonService();
-                var fields = new List<string>();
-                var values = new List<string>();
                 if (!string.IsNullOrEmpty(vm.Value))
                 {
-                    fields.Add("SupplierGroupId");
-                    values.Add(vm.Value);
+                    string[] conditionFields = new string[] { "s.SupplierGroupId", "s.BranchId", "s.CompanyId", "sg.BranchId", "sg.CompanyId" };
+                    string[] conditionValues = new string[] { vm.Value, vm.BranchId, vm.CompanyId, vm.BranchId, vm.CompanyId };
+                    resultVM = await _commonService.GetSupplierModal(conditionFields, conditionValues, null);
                 }
-                resultVM = await _commonService.GetSupplierModal(fields.ToArray(), values.ToArray(), null);
+                else
+                {
+                    string[] conditionFields = new string[] { "s.BranchId", "s.CompanyId", "sg.BranchId", "sg.CompanyId" };
+                    string[] conditionValues = new string[] { vm.BranchId, vm.CompanyId, vm.BranchId, vm.CompanyId };
+                    resultVM = await _commonService.GetSupplierModal(conditionFields, conditionValues, null);
+                }
+
+                //CommonService _commonService = new CommonService();
+                //var fields = new List<string>();
+                //var values = new List<string>();
+                //if (!string.IsNullOrEmpty(vm.Value))
+                //{
+                //    fields.Add("SupplierGroupId");
+                //    values.Add(vm.Value);
+                //}
+                //resultVM = await _commonService.GetSupplierModal(fields.ToArray(), values.ToArray(), null);
                 return resultVM;
             }
             catch (Exception ex)
@@ -1718,8 +1904,20 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
+                if (string.IsNullOrEmpty(Vm.BranchId) || string.IsNullOrEmpty(Vm.CompanyId))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
+
+                string[] conditionFields = new string[] { "M.BranchId", "M.CompanyId" };
+                string[] conditionValues = new string[] { Vm.BranchId, Vm.CompanyId };
+
+
                 CommonService _commonService = new CommonService();
-                resultVM = await _commonService.GetPurchaseReturnModal(new[] { "" }, new[] { "" }, null);
+                resultVM = await _commonService.GetPurchaseReturnModal(conditionFields, conditionValues, null);
+
                 return resultVM;
             }
             catch (Exception ex)
@@ -1740,23 +1938,44 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
             try
             {
-                if (string.IsNullOrEmpty(vm.Value2))
-                    return new ResultVM { Status = "Fail", Message = "Branch not found. Please login again." };
+                if (string.IsNullOrEmpty(vm.BranchId) || string.IsNullOrEmpty(vm.CompanyId))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
 
                 CommonService _commonService = new CommonService();
-                var fields = new List<string>();
-                var values = new List<string>();
-
-                fields.Add("P.BranchId");
-                values.Add(vm.Value2);
 
                 if (!string.IsNullOrEmpty(vm.Value))
                 {
-                    fields.Add("P.ProductGroupId");
-                    values.Add(vm.Value);
+                    string[] conditionFields = new string[] { "P.ProductGroupId", "P.BranchId", "P.CompanyId" };
+                    string[] conditionValues = new string[] { vm.Value , vm.BranchId, vm.CompanyId };
+                    resultVM = await _commonService.GetNewProductModal(conditionFields, conditionValues, null);
+
+                }
+                {
+                    string[] conditionFields = new string[] { "P.BranchId", "P.CompanyId" };
+                    string[] conditionValues = new string[] { vm.BranchId, vm.CompanyId };
+                    resultVM = await _commonService.GetNewProductModal(conditionFields, conditionValues, null);
+
                 }
 
-                resultVM = await _commonService.GetNewProductModal(fields.ToArray(), values.ToArray(), null);
+
+                //CommonService _commonService = new CommonService();
+                //var fields = new List<string>();
+                //var values = new List<string>();
+
+                //fields.Add("P.BranchId");
+                //values.Add(vm.Value2);
+
+                //if (!string.IsNullOrEmpty(vm.Value))
+                //{
+                //    fields.Add("P.ProductGroupId");
+                //    values.Add(vm.Value);
+                //}
+
+                //resultVM = await _commonService.GetNewProductModal(fields.ToArray(), values.ToArray(), null);
                 return resultVM;
             }
             catch (Exception ex)
@@ -1772,14 +1991,21 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
             try
             {
-                if (string.IsNullOrEmpty(vm.Value))
-                    return new ResultVM { Status = "Fail", Message = "Branch not found. Please login again." };
+                if (string.IsNullOrEmpty(vm.BranchId) || string.IsNullOrEmpty(vm.CompanyId))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
+
+                string[] conditionFields = new string[] { "so.BranchId", "so.CompanyId" };
+                string[] conditionValues = new string[] { vm.BranchId, vm.CompanyId };
 
                 CommonService _commonService = new CommonService();
-                var fields = new List<string> { "BranchId" };
-                var values = new List<string> { vm.Value };
+                //var fields = new List<string> { "BranchId" };
+                //var values = new List<string> { vm.Value };
 
-                resultVM = await _commonService.GetSaleOrderModal(fields.ToArray(), values.ToArray(), null);
+                resultVM = await _commonService.GetSaleOrderModal(conditionFields, conditionValues, null);
                 return resultVM;
             }
             catch (Exception ex)
