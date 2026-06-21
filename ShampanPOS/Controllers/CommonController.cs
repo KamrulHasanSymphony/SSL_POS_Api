@@ -301,17 +301,21 @@ namespace ShampanPOS.Controllers
         {
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
-
             try
             {
                 if (string.IsNullOrEmpty(Vm.BranchId) || string.IsNullOrEmpty(Vm.CompanyId))
                 {
-                    conditionFields = new string[] { "H.BranchId" };
-                    conditionValues = new string[] { Vm.BranchId };
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
                 }
+
+                string[] conditionFields = new string[] { "H.BranchId", "H.CompanyId" };
+                string[] conditionValues = new string[] { Vm.BranchId, Vm.CompanyId };
+
                 CommonService _commonService = new CommonService();
                 resultVM = await _commonService.CustomerList(conditionFields, conditionValues, null);
+
                 return resultVM;
             }
             catch (Exception ex)
@@ -320,7 +324,8 @@ namespace ShampanPOS.Controllers
                 {
                     Status = "Fail",
                     Message = "Data not fetched.",
-                    ExMessage = ex.Message
+                    ExMessage = ex.Message,
+                    DataVM = null
                 };
             }
         }
