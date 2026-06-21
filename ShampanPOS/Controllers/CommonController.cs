@@ -1683,20 +1683,53 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error" };
             try
             {
+                if (string.IsNullOrEmpty(vm.BranchId) || string.IsNullOrEmpty(vm.CompanyId))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
                 CommonService _commonService = new CommonService();
-                var fields = new List<string>();
-                var values = new List<string>();
-                if (!string.IsNullOrEmpty(vm.Value))
+                if (!string.IsNullOrEmpty(vm.Value)&& !string.IsNullOrEmpty(vm.Value2))
                 {
-                    fields.Add("BankId");
-                    values.Add(vm.Value);
+                    string[] conditionFields = new string[] { "d.BankId", "d.BankAccountId", "d.BranchId" };
+                    string[] conditionValues = new string[] { vm.Value, vm.Value2, vm.BranchId};
+                    resultVM = await _commonService.GetDepositModal(conditionFields, conditionValues, null);
                 }
-                if (!string.IsNullOrEmpty(vm.Value2))
+                else if (!string.IsNullOrEmpty(vm.Value))
                 {
-                    fields.Add("BankAccountId");
-                    values.Add(vm.Value2);
+                    string[] conditionFields = new string[] { "d.BankId", "d.BranchId" };
+                    string[] conditionValues = new string[] { vm.Value, vm.BranchId };
+                    resultVM = await _commonService.GetDepositModal(conditionFields, conditionValues, null);
                 }
-                resultVM = await _commonService.GetDepositModal(fields.ToArray(), values.ToArray(), null);
+                else if (!string.IsNullOrEmpty(vm.Value2))
+                {
+                    string[] conditionFields = new string[] { "d.BankAccountId", "d.BranchId" };
+                    string[] conditionValues = new string[] { vm.Value2, vm.BranchId };
+                    resultVM = await _commonService.GetDepositModal(conditionFields, conditionValues, null);
+                }
+                else
+                {
+                    string[] conditionFields = new string[] { "d.BranchId" };
+                    string[] conditionValues = new string[] { vm.BranchId };
+                    resultVM = await _commonService.GetDepositModal(conditionFields, conditionValues, null);
+                }
+
+
+                //CommonService _commonService = new CommonService();
+                //var fields = new List<string>();
+                //var values = new List<string>();
+                //if (!string.IsNullOrEmpty(vm.Value))
+                //{
+                //    fields.Add("BankId");
+                //    values.Add(vm.Value);
+                //}
+                //if (!string.IsNullOrEmpty(vm.Value2))
+                //{
+                //    fields.Add("BankAccountId");
+                //    values.Add(vm.Value2);
+                //}
+                //resultVM = await _commonService.GetDepositModal(fields.ToArray(), values.ToArray(), null);
                 return resultVM;
             }
             catch (Exception ex)

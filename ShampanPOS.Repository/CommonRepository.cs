@@ -5527,30 +5527,32 @@ LEFT JOIN PurchaseOrderDetails D
             LEFT JOIN BankInformations bi ON ba.BankId = bi.Id
             WHERE d.IsActive = 1 AND d.IsArchive = 0";
 
-                int depBankIdIndex = Array.IndexOf(conditionalFields, "BankId");
-                if (depBankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[depBankIdIndex]))
-                {
-                    query += " AND bi.Id = @BankId";
-                }
+                //int depBankIdIndex = Array.IndexOf(conditionalFields, "BankId");
+                //if (depBankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[depBankIdIndex]))
+                //{
+                //    query += " AND bi.Id = @BankId";
+                //}
 
-                int depAccountIdIndex = Array.IndexOf(conditionalFields, "BankAccountId");
-                if (depAccountIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[depAccountIdIndex]))
-                {
-                    query += " AND d.ToBankAccountId = @BankAccountId";
-                }
+                //int depAccountIdIndex = Array.IndexOf(conditionalFields, "BankAccountId");
+                //if (depAccountIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[depAccountIdIndex]))
+                //{
+                //    query += " AND d.ToBankAccountId = @BankAccountId";
+                //}
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
 
                 query += " ORDER BY d.TransactionDate DESC";
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
-                if (depBankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[depBankIdIndex]))
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@BankId", int.Parse(conditionalValues[depBankIdIndex]));
-                }
-                if (depAccountIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[depAccountIdIndex]))
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@BankAccountId", int.Parse(conditionalValues[depAccountIdIndex]));
-                }
+                //if (depBankIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[depBankIdIndex]))
+                //{
+                //    objComm.SelectCommand.Parameters.AddWithValue("@BankId", int.Parse(conditionalValues[depBankIdIndex]));
+                //}
+                //if (depAccountIdIndex >= 0 && !string.IsNullOrEmpty(conditionalValues[depAccountIdIndex]))
+                //{
+                //    objComm.SelectCommand.Parameters.AddWithValue("@BankAccountId", int.Parse(conditionalValues[depAccountIdIndex]));
+                //}
 
                 objComm.Fill(dataTable);
 
