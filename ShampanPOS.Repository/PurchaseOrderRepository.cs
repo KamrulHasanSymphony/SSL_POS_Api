@@ -281,7 +281,16 @@ namespace ShampanPOS.Repository
                 }
             }
         }
-        public async Task<ResultVM> List(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+
+
+
+
+        //public async Task<ResultVM> List(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+
+
+
+        public async Task<ResultVM> List(string[] conditionalFields,string[] conditionalValues,int companyId,int branchId,PeramModel vm = null,SqlConnection conn = null,SqlTransaction transaction = null)
+
         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();
@@ -341,7 +350,10 @@ LEFT OUTER JOIN CompanyProfiles CP
 LEFT OUTER JOIN BranchProfiles Br
     ON M.BranchId = Br.Id
 
-WHERE 1 = 1
+WHERE 1 = 1 AND
+
+M.CompanyId = @CompanyId
+AND (@BranchId = 0 OR M.BranchId = @BranchId)
  ";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
@@ -350,12 +362,16 @@ WHERE 1 = 1
                 }
 
                 // Apply additional conditions
-                query = ApplyConditions(query, conditionalFields, conditionalValue, false);
+                // Apply additional conditions
+                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
+                objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", companyId);
+                objComm.SelectCommand.Parameters.AddWithValue("@BranchId", branchId);
+
                 // SET additional conditions param
-                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValue);
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
                 {

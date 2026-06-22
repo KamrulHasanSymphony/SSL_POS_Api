@@ -514,7 +514,14 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                result = await _repo.List(conditionalFields, conditionalValues, vm, conn, transaction);
+
+                int companyId = Convert.ToInt32(vm?.CompanyId ?? "0");
+                int branchId = Convert.ToInt32(vm?.BranchId ?? "0");   // 🔥 ADD
+
+
+                result = await _repo.List(conditionalFields, conditionalValues, companyId, branchId, vm, conn, transaction);
+
+                //result = await _repo.List(conditionalFields, conditionalValues, vm, conn, transaction);
 
                 var lst = new List<PurchaseOrderVM>();
 
@@ -528,7 +535,12 @@ namespace ShampanPOS.Service
                     string json = JsonConvert.SerializeObject(dt);
                     var details = JsonConvert.DeserializeObject<List<PurchaseOrderDetailVM>>(json);
 
-                    lst.FirstOrDefault().purchaseOrderDetailsList = details;
+                    //lst.FirstOrDefault().purchaseOrderDetailsList = details;
+
+
+                    if (lst.FirstOrDefault() != null)
+                        lst.FirstOrDefault().purchaseOrderDetailsList = details;
+
                     result.DataVM = lst;
                 }
 

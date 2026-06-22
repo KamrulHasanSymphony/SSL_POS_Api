@@ -754,8 +754,14 @@ namespace ShampanPOS.Controllers
             try
             {
                 CommonService _commonService = new CommonService();
-                resultVM = await _commonService.GetProductModalPurchase(new[] { "" }, new[] { "" }, null);
-                return resultVM;
+                //resultVM = await _commonService.GetProductModalPurchase(new[] { "" }, new[] { "" }, null);
+
+
+                return await _commonService.GetProductModalPurchase(null, null, new PeramModel { CompanyId = Vm.CompanyId, BranchId = Vm.BranchId });
+
+
+
+                //return resultVM;
             }
             catch (Exception ex)
             {
@@ -1132,12 +1138,20 @@ namespace ShampanPOS.Controllers
 
                 if (!string.IsNullOrEmpty(Vm.BranchId))
                 {
-                    conditionFields = new string[] { "H.BranchId" };
+                    conditionFields = new string[] { "M.BranchId" };
                     conditionValues = new string[] { Vm.BranchId };
                 }
 
                 PurchaseOrderService _purchase = new PurchaseOrderService();
-                resultVM = await _purchase.List(conditionFields, conditionValues, null);
+
+                resultVM = await _purchase.List(
+                    conditionFields,
+                    conditionValues,
+                    new PeramModel { CompanyId = Vm.CompanyId, BranchId = Vm.BranchId }
+                );
+
+                //resultVM = await _purchase.List(conditionFields, conditionValues, null);
+
                 return resultVM;
             }
             catch (Exception ex)

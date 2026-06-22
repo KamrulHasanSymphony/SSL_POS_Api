@@ -306,13 +306,26 @@ namespace ShampanPOS.Repository
 
                 var detailsDataList = DetailsList(new[] { "D.SaleOrderId" }, conditionalValues, vm, conn, transaction);
 
-                if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
+                //if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
+                //{
+                //    string json = JsonConvert.SerializeObject(dt);
+                //    var details = JsonConvert.DeserializeObject<List<SaleOrderDetailVM>>(json);
+
+                //    model.FirstOrDefault().saleOrderDetailsList = details;
+                //}
+
+                var master = model.FirstOrDefault();
+
+                if (master != null &&
+                    detailsDataList.Status == "Success" &&
+                    detailsDataList.DataVM is DataTable dt)
                 {
                     string json = JsonConvert.SerializeObject(dt);
-                    var details = JsonConvert.DeserializeObject<List<SaleOrderDetailVM>>(json);
-
-                    model.FirstOrDefault().saleOrderDetailsList = details;
+                    master.saleOrderDetailsList =
+                        JsonConvert.DeserializeObject<List<SaleOrderDetailVM>>(json);
                 }
+
+
 
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";

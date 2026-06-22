@@ -1263,7 +1263,16 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                result = await _repo.GetProductModalPurchase(conditionalFields, conditionalValues, conn, transaction);
+
+
+                int companyId = Convert.ToInt32(vm?.CompanyId ?? "0");
+                int branchId = Convert.ToInt32(vm?.BranchId ?? "0");   // 🔥 ADD
+
+                result = await _repo.GetProductModalPurchase(companyId, branchId, conn, transaction);
+
+
+
+                //result = await _repo.GetProductModalPurchase(conditionalFields, conditionalValues, conn, transaction);
 
                 if (isNewConnection && result.Status == "Success")
                 {
