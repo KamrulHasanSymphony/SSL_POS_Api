@@ -2963,7 +2963,8 @@ WHERE P.BarCode = @Barcode AND P.CompanyId = @CompanyId
         }
 
 
-        public async Task<ResultVM> GetProductModalPurchase(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+        public async Task<ResultVM> GetProductModalPurchase(int companyId,int branchId,SqlConnection conn,SqlTransaction transaction)
+
         {
             DataTable dataTable = new DataTable();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
@@ -2996,12 +2997,18 @@ FROM Products P
 LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
 LEFT OUTER JOIN UOMs uom ON P.UOMId = uom.Id
 
-WHERE P.IsActive = 1
+WHERE P.IsActive = 1 
+AND P.CompanyId = @CompanyId
+AND (@BranchId = 0 OR P.BranchId = @BranchId)
 ";
 
                 //sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", companyId);
+                objComm.SelectCommand.Parameters.AddWithValue("@BranchId", branchId);
+
 
                 //objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
                 objComm.Fill(dataTable);
