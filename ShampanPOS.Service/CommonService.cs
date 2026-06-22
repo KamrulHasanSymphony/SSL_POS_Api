@@ -1212,7 +1212,15 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                result = await _repo.ProductModal(conditionalFields, conditionalValues, conn, transaction);
+
+                int companyId = Convert.ToInt32(vm?.CompanyId ?? "0");
+                int branchId = Convert.ToInt32(vm?.BranchId ?? "0");   // 🔥 ADD
+
+                result = await _repo.ProductModal(companyId, branchId, conditionalFields, conditionalValues, conn, transaction);
+
+
+
+                //result = await _repo.ProductModal(conditionalFields, conditionalValues, conn, transaction);
 
                 if (isNewConnection && result.Status == "Success")
                 {
