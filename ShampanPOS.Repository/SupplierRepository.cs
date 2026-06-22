@@ -1004,11 +1004,17 @@ SELECT
     ISNULL(FORMAT(M.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') CreatedOn,
     ISNULL(M.LastModifiedBy, '') LastModifiedBy,
     ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') LastModifiedOn,
-    ISNULL(M.ImagePath,'') AS ImagePath
+    ISNULL(M.ImagePath,'') AS ImagePath,
+	M.CompanyId,
+    M.BranchId,
+    Co.CompanyName,
+    B.Name AS BranchName
    
 FROM Suppliers M
 
 LEFT OUTER JOIN SupplierGroups SG ON M.SupplierGroupId = SG.Id
+LEFT OUTER JOIN CompanyProfiles Co ON Co.Id = M.CompanyId
+LEFT OUTER JOIN BranchProfiles B ON B.Id = M.BranchId
 
 WHERE 1 = 1
 ";
@@ -1052,7 +1058,12 @@ WHERE 1 = 1
                     CreatedOn = row.Field<string>("CreatedOn"),
                     LastModifiedBy = row.Field<string>("LastModifiedBy"),
                     LastModifiedOn = row.Field<string?>("LastModifiedOn"),
-                    ImagePath = row.Field<string?>("ImagePath")
+                    ImagePath = row.Field<string?>("ImagePath"),
+                    BranchId = row.Field<int>("BranchId"),
+                    BranchName = row.Field<string>("BranchName"),
+                    CompanyId = row.Field<int>("CompanyId"),
+                    CompanyName = row.Field<string>("CompanyName")
+
                 }).ToList();
 
                 result.Status = "Success";
