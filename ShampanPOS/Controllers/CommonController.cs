@@ -730,7 +730,12 @@ namespace ShampanPOS.Controllers
             try
             {
                 CommonService _commonService = new CommonService();
-                resultVM = await _commonService.ProductModal(new[] { "" }, new[] { "" }, null);
+
+
+                resultVM = await _commonService.ProductModal(null, null, new PeramModel { CompanyId = Vm.CompanyId, BranchId = Vm.BranchId });
+
+
+                //resultVM = await _commonService.ProductModal(new[] { "" }, new[] { "" }, null);
                 return resultVM;
             }
             catch (Exception ex)

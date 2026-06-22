@@ -2879,12 +2879,7 @@ WHERE P.BarCode = @Barcode AND P.CompanyId = @CompanyId
 
 
 
-
-
-
-
-
-        public async Task<ResultVM> ProductModal(string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+        public async Task<ResultVM> ProductModal(int companyId, int branchId, string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
         {
             DataTable dataTable = new DataTable();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
@@ -2917,8 +2912,13 @@ WHERE P.BarCode = @Barcode AND P.CompanyId = @CompanyId
         LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
         LEFT OUTER JOIN UOMs UOM ON P.UOMId = UOM.Id
 
-        WHERE (@ProductGroupId IS NULL OR @ProductGroupId = '' OR P.ProductGroupId = @ProductGroupId)
-        ";
+          WHERE
+                P.CompanyId = @CompanyId
+                AND (@BranchId = 0 OR P.BranchId = @BranchId)
+                AND (
+                    @ProductGroupId IS NULL
+                    OR P.ProductGroupId = @ProductGroupId
+                )";
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
@@ -2928,6 +2928,15 @@ WHERE P.BarCode = @Barcode AND P.CompanyId = @CompanyId
 
                 objComm.SelectCommand.Parameters.AddWithValue("@ProductGroupId",
                     string.IsNullOrEmpty(groupId) ? (object)DBNull.Value : groupId);
+
+                objComm.SelectCommand.Parameters.AddWithValue(
+                    "@CompanyId",
+                    companyId);
+
+                objComm.SelectCommand.Parameters.AddWithValue(
+                    "@BranchId",
+                    branchId);
+
 
                 objComm.Fill(dataTable);
 
