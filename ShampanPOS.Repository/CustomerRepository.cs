@@ -1215,11 +1215,16 @@ SELECT
 	ISNULL(CP.CompanyLegalName,'') CompanyName,
 	ISNULL(CP.Address,'') CompanyAddress,
 	ISNULL(CP.TelephoneNo,'') CompanyTelephoneNo,
-	ISNULL(CP.Email,'') CompanyEmail
+	ISNULL(CP.Email,'') CompanyEmail,
+	M.CompanyId,
+    M.BranchId,
+    B.Name AS BranchName
 
 FROM Customers M
 LEFT OUTER JOIN CustomerGroups CG ON M.CustomerGroupId = CG.Id
 LEFT OUTER JOIN CompanyProfiles CP ON M.CompanyId = CP.Id
+LEFT OUTER JOIN BranchProfiles B ON B.Id = M.BranchId
+
 WHERE 1 = 1
 and M.Code!='ALL'
 
@@ -1278,7 +1283,11 @@ and M.Code!='ALL'
                         CreatedOn = row.Field<string>("CreatedOn"),
                         LastModifiedBy = row.Field<string>("LastModifiedBy"),
                         LastModifiedOn = row.Field<string>("LastModifiedOn"),
-                        ImagePath = row.Field<string>("ImagePath")
+                        ImagePath = row.Field<string>("ImagePath"),
+                        BranchId = row.Field<int>("BranchId"),
+                        BranchName = row.Field<string>("BranchName"),
+                        CompanyId = row.Field<int>("CompanyId")
+
                     });
                 }
 
