@@ -68,8 +68,6 @@ namespace ShampanPOS.Controllers
             }
         }
 
-
-
         // POST: api/Sale/List
         [HttpPost("List")]
         public async Task<ResultVM> List(CommonVM vm)
@@ -139,7 +137,6 @@ namespace ShampanPOS.Controllers
             }
         }
 
-
         //POST: api/Sale/MultiplePost
        [HttpPost("MultiplePost")]
         public async Task<ResultVM> MultiplePost(CommonVM vm)
@@ -163,7 +160,6 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
-
 
         // POST: api/Sale/GetGridData
         [HttpPost("GetGridData")]
@@ -299,7 +295,6 @@ namespace ShampanPOS.Controllers
             }
         }
 
-
         // POST: api/Sale/GetSaleDetailDataById
         [HttpPost("GetSaleDetailDataById")]
         public async Task<ResultVM> GetSaleDetailDataById(GridOptions options, int masterId)
@@ -322,7 +317,6 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
-
 
         // POST: api/Purchase/SaleList
         [HttpPost("SaleList")]
@@ -369,7 +363,6 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
-
 
         // POST: api/Purchase/FromSaleGridData
         [HttpPost("FromSaleGridData")]

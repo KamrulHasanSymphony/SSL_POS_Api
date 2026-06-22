@@ -196,7 +196,14 @@ namespace ShampanPOS.Repository
         }
 
         // List Method
-        public async Task<ResultVM> List(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        public async Task<ResultVM> List(
+      string[] conditionalFields,
+      string[] conditionalValues,
+      int companyId,
+      int branchId,
+      PeramModel vm = null,
+      SqlConnection conn = null,
+      SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();
@@ -240,7 +247,9 @@ namespace ShampanPOS.Repository
         LEFT JOIN Customers C ON M.CustomerId = C.Id
         LEFT OUTER JOIN BranchProfiles Br ON M.BranchId = Br.Id
     	LEFT OUTER JOIN CompanyProfiles CP ON M.CompanyId = CP.Id
-        WHERE 1 = 1
+        WHERE 1 = 1 AND
+        M.CompanyId = @CompanyId
+        AND (@BranchId = 0 OR M.BranchId = @BranchId)
     ";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
@@ -251,6 +260,10 @@ namespace ShampanPOS.Repository
                 query = ApplyConditions(query, conditionalFields, conditionalValues, false);
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+                objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", companyId);
+                objComm.SelectCommand.Parameters.AddWithValue("@BranchId", branchId);
+
                 // SET additional conditions param
                 objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
