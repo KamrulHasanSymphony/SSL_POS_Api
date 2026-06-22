@@ -970,6 +970,7 @@ WHERE H.IsArchive != 1";
         }
 
         public async Task<ResultVM> ReportList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+
         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();
