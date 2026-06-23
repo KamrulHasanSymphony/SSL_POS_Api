@@ -209,15 +209,39 @@ namespace ShampanPOS.Controllers
             }
         }
 
-        // POST: api/PurchaseOrder/GetGridData
+
+
+
         [HttpPost("GetGridData")]
         public async Task<ResultVM> GetGridData(GridOptions options)
         {
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
+
+                List<string> conditionFields = new List<string>
+         {
+            "H.CompanyId",
+             "H.BranchId",
+             "H.OrderDate between",
+             "H.OrderDate between"
+         };
+
+                List<string> conditionValues = new List<string>
+         {
+             options.vm.CompanyId.ToString(),
+             options.vm.BranchId.ToString(),
+             options.vm.FromDate.ToString(),
+             options.vm.ToDate.ToString()
+         };
+
+                string[] finalConditionFields = conditionFields.ToArray();
+                string[] finalConditionValues = conditionValues.ToArray();
+
                 _purchaseOrderService = new PurchaseOrderService();
-                resultVM = await _purchaseOrderService.GetGridData(options, new[] { "H.BranchId", "H.IsPost", "H.OrderDate between", "H.OrderDate between" }, new[] { options.vm.BranchId.ToString(), options.vm.IsPost.ToString(), options.vm.FromDate.ToString(), options.vm.ToDate.ToString() });
+                resultVM = await _purchaseOrderService.GetGridData(options, finalConditionFields, finalConditionValues);
+
+
                 return resultVM;
             }
             catch (Exception ex)
@@ -232,15 +256,68 @@ namespace ShampanPOS.Controllers
             }
         }
 
-        // POST: api/PurchaseOrder/GetDetailsGridData
+
+
+
+
+
+        //// POST: api/PurchaseOrder/GetGridData
+        //[HttpPost("GetGridData")]
+        //public async Task<ResultVM> GetGridData(GridOptions options)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        _purchaseOrderService = new PurchaseOrderService();
+        //        resultVM = await _purchaseOrderService.GetGridData(options, new[] { "H.BranchId", "H.IsPost", "H.OrderDate between", "H.OrderDate between" }, new[] { options.vm.BranchId.ToString(), options.vm.IsPost.ToString(), options.vm.FromDate.ToString(), options.vm.ToDate.ToString() });
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = ex.Message,
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
+
+
+
+
+
         [HttpPost("GetDetailsGridData")]
         public async Task<ResultVM> GetDetailsGridData(GridOptions options)
         {
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
+
+                List<string> conditionFields = new List<string>
+         {
+            "H.CompanyId",
+             "H.BranchId",
+             "H.OrderDate between",
+             "H.OrderDate between"
+         };
+
+                List<string> conditionValues = new List<string>
+         {
+             options.vm.CompanyId.ToString(),
+             options.vm.BranchId.ToString(),
+             options.vm.FromDate.ToString(),
+             options.vm.ToDate.ToString()
+         };
+
+                string[] finalConditionFields = conditionFields.ToArray();
+                string[] finalConditionValues = conditionValues.ToArray();
+
                 _purchaseOrderService = new PurchaseOrderService();
-                resultVM = await _purchaseOrderService.GetDetailsGridData(options, new[] { "H.BranchId", "H.OrderDate between", "H.OrderDate between" }, new[] { options.vm.BranchId.ToString(),  options.vm.FromDate.ToString(), options.vm.ToDate.ToString() });
+                resultVM = await _purchaseOrderService.GetDetailsGridData(options, finalConditionFields, finalConditionValues);
+
+
                 return resultVM;
             }
             catch (Exception ex)
@@ -254,6 +331,35 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
+
+
+
+
+
+
+
+        //// POST: api/PurchaseOrder/GetDetailsGridData
+        //[HttpPost("GetDetailsGridData")]
+        //public async Task<ResultVM> GetDetailsGridData(GridOptions options)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        _purchaseOrderService = new PurchaseOrderService();
+        //        resultVM = await _purchaseOrderService.GetDetailsGridData(options, new[] { "H.BranchId", "H.OrderDate between", "H.OrderDate between" }, new[] { options.vm.BranchId.ToString(),  options.vm.FromDate.ToString(), options.vm.ToDate.ToString() });
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = ex.Message,
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
 
 
 

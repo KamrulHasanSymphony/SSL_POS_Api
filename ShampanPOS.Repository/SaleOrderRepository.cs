@@ -1439,6 +1439,9 @@ WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take);";
             }
         }
 
+
+
+
         public async Task<ResultVM> UpdateGrandTotal(SaleOrderVM vm, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
