@@ -220,17 +220,61 @@ namespace ShampanPOS.Controllers
             }
         }
 
+        //[HttpPost("GetGridData")]
+        //public async Task<ResultVM> GetGridData(GridOptions options)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        _saleOrderService = new SaleOrderService();
+        //        resultVM = await _saleOrderService.GetGridData(options, new[] { "H.BranchId", "H.IsPost", "H.OrderDate between", "H.OrderDate between" }, new[] { options.vm.BranchId.ToString(), options.vm.IsPost.ToString(), options.vm.FromDate.ToString(), options.vm.ToDate.ToString() });
+
+        //        return resultVM;
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = ex.Message,
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
+
         [HttpPost("GetGridData")]
         public async Task<ResultVM> GetGridData(GridOptions options)
         {
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
-                _saleOrderService = new SaleOrderService();
-                resultVM = await _saleOrderService.GetGridData(options, new[] { "H.BranchId", "H.IsPost", "H.OrderDate between", "H.OrderDate between" }, new[] { options.vm.BranchId.ToString(), options.vm.IsPost.ToString(), options.vm.FromDate.ToString(), options.vm.ToDate.ToString() });
+
+                List<string> conditionFields = new List<string>
+         {
+            "H.CompanyId",
+             "H.BranchId",
+             "H.OrderDate between",
+             "H.OrderDate between"
+         };
+
+                List<string> conditionValues = new List<string>
+         {
+             options.vm.CompanyId.ToString(),
+             options.vm.BranchId.ToString(),
+             options.vm.FromDate.ToString(),
+             options.vm.ToDate.ToString()
+         };               
+
+                string[] finalConditionFields = conditionFields.ToArray();
+                string[] finalConditionValues = conditionValues.ToArray();
+
+                _saleOrderService = new SaleOrderService();    
+                resultVM = await _saleOrderService.GetGridData(options, finalConditionFields, finalConditionValues);
+
 
                 return resultVM;
-
             }
             catch (Exception ex)
             {
