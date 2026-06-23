@@ -833,6 +833,14 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
+
+                if (string.IsNullOrEmpty(Vm.BranchId) || string.IsNullOrEmpty(Vm.CompanyId))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
+
                 // Normalize Vm.Value: if null, empty, 0, or negative, set to ""
                 string normalizedValue = string.Empty;
                 if (!string.IsNullOrWhiteSpace(Vm.Value))
@@ -851,13 +859,11 @@ namespace ShampanPOS.Controllers
                         normalizedValue = Vm.Value;
                     }
                 }
+                string[] conditionFields = new string[] { "M.BranchId", "M.CompanyId", "M.CustomerId" };
+                string[] conditionValues = new string[] { Vm.BranchId, Vm.CompanyId , normalizedValue };
 
                 CommonService _commonService = new CommonService();
-                resultVM = await _commonService.SaleModal(
-                    new[] { "M.CustomerId" },
-                    new[] { normalizedValue },
-                    null
-                );
+                resultVM = await _commonService.SaleModal(conditionFields, conditionValues,null);
                 return resultVM;
             }
             catch (Exception ex)
