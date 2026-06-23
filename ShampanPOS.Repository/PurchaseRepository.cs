@@ -2117,7 +2117,7 @@ WHERE  1 = 1  ";
         }
 
 
-        public async Task<ResultVM> PurchaseListForPayment(string?[] IDs, SqlConnection conn = null, SqlTransaction transaction = null)
+        public async Task<ResultVM> PurchaseListForPayment(string[] conditionalFields, string[] conditionalValues, string?[] IDs, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();
