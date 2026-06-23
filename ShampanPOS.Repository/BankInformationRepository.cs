@@ -39,13 +39,13 @@ namespace ShampanPOS.Repository
 INSERT INTO BankInformations
 (
     Code, Name, UserId, BanglaName, Address, BanglaAddress, 
-     TelephoneNo, FaxNo, Email,BranchId,
+     TelephoneNo, FaxNo, Email,BranchId,CompanyId,
     Comments, IsArchive, IsActive,CreatedFrom, CreatedBy, CreatedOn
 )
 VALUES
 (
     @Code, @Name,@UserId, @BanglaName, @Address, @BanglaAddress, 
-     @TelephoneNo, @FaxNo, @Email,@BranchId,
+     @TelephoneNo, @FaxNo, @Email,@BranchId,@CompanyId,
     @Comments, @IsArchive, @IsActive,@CreatedFrom, @CreatedBy, @CreatedOn 
 );
 SELECT SCOPE_IDENTITY();";
@@ -64,6 +64,8 @@ SELECT SCOPE_IDENTITY();";
                     cmd.Parameters.AddWithValue("@FaxNo", vm.FaxNo ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Email", vm.Email ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
+
 
                     cmd.Parameters.AddWithValue("@Comments", vm.Comments ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsArchive", vm.IsArchive);
@@ -132,6 +134,7 @@ SET
     Code = @Code,
     Name = @Name,
     BranchId = @BranchId,
+    CompanyId = @CompanyId,
     BanglaName = @BanglaName,
     Address = @Address,
     BanglaAddress = @BanglaAddress,
@@ -154,6 +157,8 @@ WHERE Id = @Id";
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Name", vm.Name ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
+
                     cmd.Parameters.AddWithValue("@BanglaName", vm.BanglaName ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Address", vm.Address ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@BanglaAddress", vm.BanglaAddress ?? (object)DBNull.Value);
@@ -315,8 +320,17 @@ SELECT
     ISNULL(M.CreatedBy, '') AS CreatedBy,
     FORMAT(ISNULL(M.CreatedOn, '1900-01-01'), 'yyyy-MM-dd') AS CreatedOn,
     ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
-    FORMAT(ISNULL(M.LastModifiedOn, '1900-01-01'), 'yyyy-MM-dd') AS LastModifiedOn
+    FORMAT(ISNULL(M.LastModifiedOn, '1900-01-01'), 'yyyy-MM-dd') AS LastModifiedOn,
+
+	ISNULL(M.CompanyId, 0) AS CompanyId,
+	ISNULL(C.CompanyName, '') AS CompanyName,
+
+	ISNULL(M.BranchId, 0) AS BranchId,
+	ISNULL(B.Name, '') AS BranchName
 FROM BankInformations M
+
+LEFT OUTER JOIN CompanyProfiles C ON M.CompanyId = C.Id
+LEFT OUTER JOIN BranchProfiles B ON M.BranchId = B.Id
 WHERE 1 = 1
  ";
 
@@ -363,7 +377,10 @@ WHERE 1 = 1
                         CreatedBy = row.Field<string>("CreatedBy"),
                         CreatedOn = row.Field<string>("CreatedOn"),
                         LastModifiedBy = row.Field<string>("LastModifiedBy"),
-                        LastModifiedOn = row.Field<string>("LastModifiedOn")
+                        LastModifiedOn = row.Field<string>("LastModifiedOn"),
+                        CompanyId = Convert.ToInt32(row["CompanyId"]),
+                        BranchId = Convert.ToInt32(row["BranchId"]),
+
                     });
                 }
 
@@ -631,15 +648,128 @@ ORDER BY Name";
                 }
             }
         }
+
+
+
         // GetGridData Method
-        public async Task<ResultVM> GetGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues, SqlConnection conn = null, SqlTransaction transaction = null)
+//        public async Task<ResultVM> GetGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues, SqlConnection conn = null, SqlTransaction transaction = null)
+//        {
+//            bool isNewConnection = false;
+//            DataTable dataTable = new DataTable();
+//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+//            try
+//            {
+//                if (conn == null)
+//                {
+//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+//                    conn.Open();
+//                    isNewConnection = true;
+//                }
+
+//                var data = new GridEntity<BankInformationVM>();
+
+//                string sqlQuery = @"
+//    -- Count query
+//    SELECT COUNT(DISTINCT H.Id) AS totalcount
+//        FROM BankInformations H 
+//        WHERE H.IsArchive != 1 ";
+
+//                sqlQuery = sqlQuery + (options.filter.Filters.Count > 0 ?
+//                    " AND (" + GridQueryBuilder<BankInformationVM>.FilterCondition(options.filter) + ")" : "");
+
+//                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+//                sqlQuery += @"
+
+//    -- Data query with pagination and sorting
+//    SELECT * 
+//    FROM (
+//        SELECT 
+//        ROW_NUMBER() OVER(ORDER BY " +
+//                                        (options.sort.Count > 0 ?
+//                                            options.sort[0].field + " " + options.sort[0].dir :
+//                                            "H.Id DESC ") + @") AS rowindex,
+        
+//        ISNULL(H.Id, 0) AS Id,
+//        ISNULL(H.Code, '') AS Code,
+//        ISNULL(H.Name, '') AS Name,
+//        ISNULL(H.BanglaName, '') AS BanglaName,
+//        ISNULL(H.Address, '') AS Address,
+//        ISNULL(H.BanglaAddress, '') AS BanglaAddress,
+//        ISNULL(H.TelephoneNo, '') AS TelephoneNo,
+//        ISNULL(H.FaxNo, '') AS FaxNo,
+//        ISNULL(H.Email, '') AS Email,
+//        ISNULL(H.Comments, '') AS Comments,
+//        ISNULL(H.IsArchive, 0) AS IsArchive,
+//        ISNULL(H.IsActive, 0) AS IsActive,
+//        CASE WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Yes' ELSE 'No' END AS Status,
+//        ISNULL(H.CreatedBy, '') AS CreatedBy,
+//        ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
+//        ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS CreatedOn,
+//        ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS LastModifiedOn,
+//        ISNULL(H.CreatedFrom, '') AS CreatedFrom,
+//        ISNULL(H.LastUpdateFrom, '') AS LastUpdateFrom
+
+//        FROM BankInformations H 
+//        WHERE H.IsArchive != 1";
+
+//                sqlQuery = sqlQuery + (options.filter.Filters.Count > 0 ?
+//                    " AND (" + GridQueryBuilder<BankInformationVM>.FilterCondition(options.filter) + ")" : "");
+
+//                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+//                sqlQuery += @"
+//    ) AS a
+//    WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
+//";
+
+
+
+//                data = KendoGrid<BankInformationVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+//                //data = KendoGrid<CustomerVM>.GetTransactionalGridData_CMD(options, sqlQuery, "H.Id", conditionalFields, conditionalValues);
+//                result.Status = "Success";
+//                result.Message = "Data retrieved successfully.";
+//                result.DataVM = data;
+
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                result.ExMessage = ex.Message;
+//                result.Message = ex.Message;
+//                return result;
+//            }
+//            finally
+//            {
+//                if (isNewConnection && conn != null)
+//                {
+//                    conn.Close();
+//                }
+//            }
+//        }
+
+
+
+
+        public async Task<ResultVM> GetGridData(GridOptions options, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                Id = "0",
+                DataVM = null
+            };
 
             try
             {
+
+                int companyId = Convert.ToInt32(options.vm.CompanyId); //this
+
                 if (conn == null)
                 {
                     conn = new SqlConnection(DatabaseHelper.GetConnectionString());
@@ -647,67 +777,88 @@ ORDER BY Name";
                     isNewConnection = true;
                 }
 
-                var data = new GridEntity<BankInformationVM>();
+                string filterCondition = "";
+                if (options?.filter?.Filters != null && options.filter.Filters.Count > 0)
+                {
+                    filterCondition = " AND (" +
+                        GridQueryBuilder<BankInformationVM>.FilterCondition(options.filter) +
+                        ")";
+                }
 
-                string sqlQuery = @"
-    -- Count query
-    SELECT COUNT(DISTINCT H.Id) AS totalcount
-        FROM BankInformations H 
-        WHERE H.IsArchive != 1 ";
+                string sortExpression = "H.Id DESC";
+                if (options?.sort != null && options.sort.Count > 0)
+                {
+                    sortExpression = options.sort[0].field + " " + options.sort[0].dir;
+                }
 
-                sqlQuery = sqlQuery + (options.filter.Filters.Count > 0 ?
-                    " AND (" + GridQueryBuilder<BankInformationVM>.FilterCondition(options.filter) + ")" : "");
+                // 🔥 FIX: inject companyId directly
+                string companyCondition = $" AND H.CompanyId = {companyId} "; //this
 
-                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+                string sqlQuery = $@"
 
-                sqlQuery += @"
+            -- =========================
+            -- COUNT QUERY
+            -- =========================
+                SELECT COUNT(DISTINCT H.Id) AS totalcount
+                FROM BankInformations H 
+			    LEFT OUTER JOIN CompanyProfiles C ON H.CompanyId = C.Id
+                LEFT OUTER JOIN BranchProfiles B ON H.BranchId = B.Id
 
-    -- Data query with pagination and sorting
-    SELECT * 
-    FROM (
-        SELECT 
-        ROW_NUMBER() OVER(ORDER BY " +
-                                        (options.sort.Count > 0 ?
-                                            options.sort[0].field + " " + options.sort[0].dir :
-                                            "H.Id DESC ") + @") AS rowindex,
-        
-        ISNULL(H.Id, 0) AS Id,
-        ISNULL(H.Code, '') AS Code,
-        ISNULL(H.Name, '') AS Name,
-        ISNULL(H.BanglaName, '') AS BanglaName,
-        ISNULL(H.Address, '') AS Address,
-        ISNULL(H.BanglaAddress, '') AS BanglaAddress,
-        ISNULL(H.TelephoneNo, '') AS TelephoneNo,
-        ISNULL(H.FaxNo, '') AS FaxNo,
-        ISNULL(H.Email, '') AS Email,
-        ISNULL(H.Comments, '') AS Comments,
-        ISNULL(H.IsArchive, 0) AS IsArchive,
-        ISNULL(H.IsActive, 0) AS IsActive,
-        CASE WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Yes' ELSE 'No' END AS Status,
-        ISNULL(H.CreatedBy, '') AS CreatedBy,
-        ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
-        ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS CreatedOn,
-        ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS LastModifiedOn,
-        ISNULL(H.CreatedFrom, '') AS CreatedFrom,
-        ISNULL(H.LastUpdateFrom, '') AS LastUpdateFrom
-
-        FROM BankInformations H 
-        WHERE H.IsArchive != 1";
-
-                sqlQuery = sqlQuery + (options.filter.Filters.Count > 0 ?
-                    " AND (" + GridQueryBuilder<BankInformationVM>.FilterCondition(options.filter) + ")" : "");
-
-                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
-
-                sqlQuery += @"
-    ) AS a
-    WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
-";
+            WHERE H.IsArchive <> 1
+            {companyCondition}
+            {filterCondition}
 
 
+            -- =========================
+            -- DATA QUERY
+            -- =========================
+            SELECT *
+            FROM
+            (
+                SELECT
+                    ROW_NUMBER() OVER(ORDER BY {sortExpression}) AS rowindex,
 
-                data = KendoGrid<BankInformationVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
-                //data = KendoGrid<CustomerVM>.GetTransactionalGridData_CMD(options, sqlQuery, "H.Id", conditionalFields, conditionalValues);
+						ISNULL(H.Id, 0) AS Id,
+						ISNULL(H.Code, '') AS Code,
+						ISNULL(H.Name, '') AS Name,
+						ISNULL(H.BanglaName, '') AS BanglaName,
+						ISNULL(H.Address, '') AS Address,
+						ISNULL(H.BanglaAddress, '') AS BanglaAddress,
+						ISNULL(H.TelephoneNo, '') AS TelephoneNo,
+						ISNULL(H.FaxNo, '') AS FaxNo,
+						ISNULL(H.Email, '') AS Email,
+						ISNULL(H.Comments, '') AS Comments,
+						ISNULL(H.IsArchive, 0) AS IsArchive,
+						ISNULL(H.IsActive, 0) AS IsActive,
+						CASE WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Yes' ELSE 'No' END AS Status,
+						ISNULL(H.CreatedBy, '') AS CreatedBy,
+						ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
+						ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS CreatedOn,
+						ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS LastModifiedOn,
+						ISNULL(H.CreatedFrom, '') AS CreatedFrom,
+						ISNULL(H.LastUpdateFrom, '') AS LastUpdateFrom,
+						ISNULL(H.CompanyId, 0) AS CompanyId,
+						ISNULL(C.CompanyName, '') AS CompanyName,
+
+						ISNULL(H.BranchId, 0) AS BranchId,
+						ISNULL(B.Name, '') AS BranchName
+
+						FROM BankInformations H 
+
+					    LEFT OUTER JOIN CompanyProfiles C ON H.CompanyId = C.Id
+                        LEFT OUTER JOIN BranchProfiles B ON H.BranchId = B.Id
+
+                WHERE H.IsArchive <> 1
+                {companyCondition}
+                {filterCondition}
+
+            ) A
+            WHERE A.rowindex > @skip
+            AND (@take = 0 OR A.rowindex <= @take);
+            ";
+
+                var data = KendoGrid<BankInformationVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";
                 result.DataVM = data;
@@ -716,8 +867,9 @@ ORDER BY Name";
             }
             catch (Exception ex)
             {
-                result.ExMessage = ex.Message;
+                result.Status = "Fail";
                 result.Message = ex.Message;
+                result.ExMessage = ex.ToString();
                 return result;
             }
             finally
@@ -725,9 +877,17 @@ ORDER BY Name";
                 if (isNewConnection && conn != null)
                 {
                     conn.Close();
+                    conn.Dispose();
                 }
             }
         }
+
+
+
+
+
+
+
         //        public async Task<ResultVM> GetCustomerModalData(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         //        {
         //            bool isNewConnection = false;
@@ -806,230 +966,230 @@ ORDER BY Name";
         //                }
         //            }
         //        }
-//        public async Task<ResultVM> ListCustomersBySalePersonAndBranch(int salePersonId, int branchId, SqlConnection conn, SqlTransaction transaction)
-//        {
-//            bool isNewConnection = false;
-//            DataTable dataTable = new DataTable();
-//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+        //        public async Task<ResultVM> ListCustomersBySalePersonAndBranch(int salePersonId, int branchId, SqlConnection conn, SqlTransaction transaction)
+        //        {
+        //            bool isNewConnection = false;
+        //            DataTable dataTable = new DataTable();
+        //            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
 
-//            try
-//            {
-//                // If no connection is passed, create a new one
-//                if (conn == null)
-//                {
-//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-//                    conn.Open();
-//                    isNewConnection = true;
-//                }
+        //            try
+        //            {
+        //                // If no connection is passed, create a new one
+        //                if (conn == null)
+        //                {
+        //                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //                    conn.Open();
+        //                    isNewConnection = true;
+        //                }
 
-//                // SQL query to get the customers based on SalePersonId and BranchId
-//                string query = @"
-//            SELECT
-//M.Id, 
-//M.Name,
-//sp.BranchId,
-//M.Code,
-//M.Address,
-//M.Email,
-//isnull(M.RegularDiscountRate,0)RegularDiscountRate
+        //                // SQL query to get the customers based on SalePersonId and BranchId
+        //                string query = @"
+        //            SELECT
+        //M.Id, 
+        //M.Name,
+        //sp.BranchId,
+        //M.Code,
+        //M.Address,
+        //M.Email,
+        //isnull(M.RegularDiscountRate,0)RegularDiscountRate
 
-            
-//FROM Customers M
-            
-//LEFT OUTER JOIN SalePersonRoutes sp ON sp.RouteId = M.RouteId
-            
-//WHERE 
-//M.IsArchive != 1 AND M.BranchId = @CusBranchId AND  sp.BranchId = @BranchId AND sp.SalePersonId = @SalePersonId
-//        ";
 
-//                // Create the SQL command and set parameters
-//                SqlCommand cmd = new SqlCommand(query, conn, transaction);
-//                cmd.Parameters.AddWithValue("@SalePersonId", salePersonId);
-//                cmd.Parameters.AddWithValue("@BranchId", branchId);
-//                cmd.Parameters.AddWithValue("@CusBranchId", branchId);
+        //FROM Customers M
 
-//                // Create a data adapter to fill the DataTable
-//                SqlDataAdapter objComm = new SqlDataAdapter(cmd);
-//                objComm.Fill(dataTable);
+        //LEFT OUTER JOIN SalePersonRoutes sp ON sp.RouteId = M.RouteId
 
-//                // Convert the DataTable rows to a list of CustomerDataVM objects
-//                var modelList = dataTable.AsEnumerable().Select(row => new CustomerVM
-//                {
-//                    Id = row.Field<int>("Id"),
-//                    Name = row.Field<string>("Name"),
-//                    Code = row.Field<string>("Code"),
-//                    Address = row.Field<string>("Address"),
-//                    Email = row.Field<string>("Email"),
-//                    BranchId = row.Field<int>("BranchId"),
+        //WHERE 
+        //M.IsArchive != 1 AND M.BranchId = @CusBranchId AND  sp.BranchId = @BranchId AND sp.SalePersonId = @SalePersonId
+        //        ";
 
-//                    //RegularDiscountRate = row.Field<decimal>("RegularDiscountRate")
+        //                // Create the SQL command and set parameters
+        //                SqlCommand cmd = new SqlCommand(query, conn, transaction);
+        //                cmd.Parameters.AddWithValue("@SalePersonId", salePersonId);
+        //                cmd.Parameters.AddWithValue("@BranchId", branchId);
+        //                cmd.Parameters.AddWithValue("@CusBranchId", branchId);
 
-//                }).ToList();
+        //                // Create a data adapter to fill the DataTable
+        //                SqlDataAdapter objComm = new SqlDataAdapter(cmd);
+        //                objComm.Fill(dataTable);
 
-//                // If there are any customers, set the status to Success
-//                if (modelList.Any())
-//                {
-//                    result.Status = "Success";
-//                    result.Message = "Data retrieved successfully.";
-//                    result.DataVM = modelList;
-//                }
-//                else
-//                {
-//                    result.Status = "Fail";
-//                    result.Message = "No customers found for the given SalePersonId and BranchId.";
-//                }
+        //                // Convert the DataTable rows to a list of CustomerDataVM objects
+        //                var modelList = dataTable.AsEnumerable().Select(row => new CustomerVM
+        //                {
+        //                    Id = row.Field<int>("Id"),
+        //                    Name = row.Field<string>("Name"),
+        //                    Code = row.Field<string>("Code"),
+        //                    Address = row.Field<string>("Address"),
+        //                    Email = row.Field<string>("Email"),
+        //                    BranchId = row.Field<int>("BranchId"),
 
-//                return result;
-//            }
-//            catch (Exception ex)
-//            {
-//                // Log the exception and return the error message
-//                result.ExMessage = ex.Message;
-//                result.Message = ex.Message;
-//                return result;
-//            }
-//            finally
-//            {
-//                // Close the connection if it was opened in this method
-//                if (isNewConnection && conn != null)
-//                {
-//                    conn.Close();
-//                }
-//            }
-//        }
+        //                    //RegularDiscountRate = row.Field<decimal>("RegularDiscountRate")
 
-//        public async Task<ResultVM> BranchWiseDevitCrdit(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
-//        {
-//            bool isNewConnection = false;
-//            DataTable dataTable = new DataTable();
-//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-//            try
-//            {
-//                if (conn == null)
-//                {
-//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-//                    conn.Open();
-//                    isNewConnection = true;
-//                }
+        //                }).ToList();
 
-//                string query = @"
-//        SELECT
-//            SL,
-//            a.Code,
-//            InvoiceDateTime,
-//            CustomerId,
-//            c.Code AS CustomerCode,
-//            c.Name AS CustomerName,
-//            c.Address AS CustomerAddress,
-//            ISNULL(a.Opening, 0) AS Opening,
-//            DrAmount,
-//            SUM(ISNULL(a.Opening, 0) + ISNULL(DrAmount, 0) - ISNULL(CrAmount, 0))
-//                OVER(PARTITION BY a.CustomerId
-//                      ORDER BY a.InvoiceDateTime, a.Code, SL
-//                      ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS CurrentBalance,
-//            Remarks
-//        FROM (
-//            SELECT *
-//            FROM (
-//                SELECT
-//                    'D' AS SL,
-//                    Code,
-//                    InvoiceDateTime,
-//                    CustomerId,
-//                    0 AS Opening,
-//                    0 AS DrAmount,
-//                    GrandTotalAmount AS CrAmount,
-//                    'Sales' AS Remarks
-//                FROM SaleDeleveries h
-//                WHERE 1 = 1
+        //                // If there are any customers, set the status to Success
+        //                if (modelList.Any())
+        //                {
+        //                    result.Status = "Success";
+        //                    result.Message = "Data retrieved successfully.";
+        //                    result.DataVM = modelList;
+        //                }
+        //                else
+        //                {
+        //                    result.Status = "Fail";
+        //                    result.Message = "No customers found for the given SalePersonId and BranchId.";
+        //                }
 
-//                UNION ALL
+        //                return result;
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                // Log the exception and return the error message
+        //                result.ExMessage = ex.Message;
+        //                result.Message = ex.Message;
+        //                return result;
+        //            }
+        //            finally
+        //            {
+        //                // Close the connection if it was opened in this method
+        //                if (isNewConnection && conn != null)
+        //                {
+        //                    conn.Close();
+        //                }
+        //            }
+        //        }
 
-//                SELECT
-//                    'B' AS SL,
-//                    ISNULL(s.Code, 0) AS Code,
-//                    NULL AS InvoiceDateTime, -- Placeholder for InvoiceDateTime
-//                    ISNULL(s.CustomerId, 0) AS CustomerId,
-//                    0 AS Opening,
-//                    b.Amount AS DrAmount,
-//                    0 AS CrAmount,
-//                    b.ModeOfPayment + '~ ' + '~ ' AS Remarks
-//                FROM CustomerPaymentCollection b
-//                LEFT OUTER JOIN SaleDeleveries s ON b.CustomerId = s.CustomerId
-//                WHERE 1 = 1
-//            ) AS a
-//        ) AS a
-//        LEFT OUTER JOIN Customers c ON a.CustomerId = c.Id
-//        WHERE c.IsActive = 1";
+        //        public async Task<ResultVM> BranchWiseDevitCrdit(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        //        {
+        //            bool isNewConnection = false;
+        //            DataTable dataTable = new DataTable();
+        //            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //            try
+        //            {
+        //                if (conn == null)
+        //                {
+        //                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //                    conn.Open();
+        //                    isNewConnection = true;
+        //                }
 
-//                // Apply filters for Id and Date range
-//                if (vm != null && !string.IsNullOrEmpty(vm.Id))
-//                {
-//                    query += " AND c.Id = @Id ";
-//                }
+        //                string query = @"
+        //        SELECT
+        //            SL,
+        //            a.Code,
+        //            InvoiceDateTime,
+        //            CustomerId,
+        //            c.Code AS CustomerCode,
+        //            c.Name AS CustomerName,
+        //            c.Address AS CustomerAddress,
+        //            ISNULL(a.Opening, 0) AS Opening,
+        //            DrAmount,
+        //            SUM(ISNULL(a.Opening, 0) + ISNULL(DrAmount, 0) - ISNULL(CrAmount, 0))
+        //                OVER(PARTITION BY a.CustomerId
+        //                      ORDER BY a.InvoiceDateTime, a.Code, SL
+        //                      ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS CurrentBalance,
+        //            Remarks
+        //        FROM (
+        //            SELECT *
+        //            FROM (
+        //                SELECT
+        //                    'D' AS SL,
+        //                    Code,
+        //                    InvoiceDateTime,
+        //                    CustomerId,
+        //                    0 AS Opening,
+        //                    0 AS DrAmount,
+        //                    GrandTotalAmount AS CrAmount,
+        //                    'Sales' AS Remarks
+        //                FROM SaleDeleveries h
+        //                WHERE 1 = 1
 
-//                if (vm != null && !string.IsNullOrEmpty(vm.FromDate) && !string.IsNullOrEmpty(vm.ToDate))
-//                {
-//                    query += " AND CAST(a.InvoiceDateTime AS DATE) BETWEEN @FromDate AND @ToDate ";
-//                }
+        //                UNION ALL
 
-//                // Apply additional conditions
-//                query = ApplyConditions(query, conditionalFields, conditionalValue, false);
+        //                SELECT
+        //                    'B' AS SL,
+        //                    ISNULL(s.Code, 0) AS Code,
+        //                    NULL AS InvoiceDateTime, -- Placeholder for InvoiceDateTime
+        //                    ISNULL(s.CustomerId, 0) AS CustomerId,
+        //                    0 AS Opening,
+        //                    b.Amount AS DrAmount,
+        //                    0 AS CrAmount,
+        //                    b.ModeOfPayment + '~ ' + '~ ' AS Remarks
+        //                FROM CustomerPaymentCollection b
+        //                LEFT OUTER JOIN SaleDeleveries s ON b.CustomerId = s.CustomerId
+        //                WHERE 1 = 1
+        //            ) AS a
+        //        ) AS a
+        //        LEFT OUTER JOIN Customers c ON a.CustomerId = c.Id
+        //        WHERE c.IsActive = 1";
 
-//                query += @" ORDER BY c.Id, a.InvoiceDateTime, a.Code, SL";
+        //                // Apply filters for Id and Date range
+        //                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+        //                {
+        //                    query += " AND c.Id = @Id ";
+        //                }
 
-//                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+        //                if (vm != null && !string.IsNullOrEmpty(vm.FromDate) && !string.IsNullOrEmpty(vm.ToDate))
+        //                {
+        //                    query += " AND CAST(a.InvoiceDateTime AS DATE) BETWEEN @FromDate AND @ToDate ";
+        //                }
 
-//                // SET additional conditions parameters
-//                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValue);
+        //                // Apply additional conditions
+        //                query = ApplyConditions(query, conditionalFields, conditionalValue, false);
 
-//                if (vm != null && !string.IsNullOrEmpty(vm.Id))
-//                {
-//                    objComm.SelectCommand.Parameters.AddWithValue("@Id", vm.Id);
-//                }
+        //                query += @" ORDER BY c.Id, a.InvoiceDateTime, a.Code, SL";
 
-//                if (vm != null && !string.IsNullOrEmpty(vm.FromDate) && !string.IsNullOrEmpty(vm.ToDate))
-//                {
-//                    objComm.SelectCommand.Parameters.AddWithValue("@FromDate", vm.FromDate);
-//                    objComm.SelectCommand.Parameters.AddWithValue("@ToDate", vm.ToDate);
-//                }
+        //                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
-//                objComm.Fill(dataTable);
+        //                // SET additional conditions parameters
+        //                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValue);
 
-//                var lst = new List<CustomerVM>();
-//                int serialNumber = 1;
-//                foreach (DataRow row in dataTable.Rows)
-//                {
-//                    lst.Add(new CustomerVM
-//                    {
-//                        SL = serialNumber,
-//                        Id = Convert.ToInt32(row["CustomerId"]),
-//                        Name = row["CustomerName"].ToString(),
-//                        Code = row["CustomerCode"].ToString(),
-//                        BranchId = Convert.ToInt32(row["CustomerId"])
-//                    });
-//                    serialNumber++;
-//                }
+        //                if (vm != null && !string.IsNullOrEmpty(vm.Id))
+        //                {
+        //                    objComm.SelectCommand.Parameters.AddWithValue("@Id", vm.Id);
+        //                }
 
-//                result.Status = "Success";
-//                result.Message = "Data retrieved successfully.";
-//                result.DataVM = lst;
-//                return result;
-//            }
-//            catch (Exception ex)
-//            {
-//                result.ExMessage = ex.Message;
-//                result.Message = ex.Message;
-//                return result;
-//            }
-//            finally
-//            {
-//                if (isNewConnection && conn != null)
-//                {
-//                    conn.Close();
-//                }
-//            }
-//        }
+        //                if (vm != null && !string.IsNullOrEmpty(vm.FromDate) && !string.IsNullOrEmpty(vm.ToDate))
+        //                {
+        //                    objComm.SelectCommand.Parameters.AddWithValue("@FromDate", vm.FromDate);
+        //                    objComm.SelectCommand.Parameters.AddWithValue("@ToDate", vm.ToDate);
+        //                }
+
+        //                objComm.Fill(dataTable);
+
+        //                var lst = new List<CustomerVM>();
+        //                int serialNumber = 1;
+        //                foreach (DataRow row in dataTable.Rows)
+        //                {
+        //                    lst.Add(new CustomerVM
+        //                    {
+        //                        SL = serialNumber,
+        //                        Id = Convert.ToInt32(row["CustomerId"]),
+        //                        Name = row["CustomerName"].ToString(),
+        //                        Code = row["CustomerCode"].ToString(),
+        //                        BranchId = Convert.ToInt32(row["CustomerId"])
+        //                    });
+        //                    serialNumber++;
+        //                }
+
+        //                result.Status = "Success";
+        //                result.Message = "Data retrieved successfully.";
+        //                result.DataVM = lst;
+        //                return result;
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                result.ExMessage = ex.Message;
+        //                result.Message = ex.Message;
+        //                return result;
+        //            }
+        //            finally
+        //            {
+        //                if (isNewConnection && conn != null)
+        //                {
+        //                    conn.Close();
+        //                }
+        //            }
+        //        }
         public async Task<ResultVM> ReportPreview(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;

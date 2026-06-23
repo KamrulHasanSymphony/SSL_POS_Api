@@ -352,7 +352,7 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                result = await _repo.GetGridData(options, conditionalFields, conditionalValues, conn, transaction);
+                result = await _repo.GetGridData(options, conn, transaction);
 
                 if (isNewConnection && result.Status == "Success")
                 {

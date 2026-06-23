@@ -669,14 +669,131 @@ ORDER BY Name";
             }
         }
         // GetGridData Method
-        public async Task<ResultVM> GetGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues, SqlConnection conn = null, SqlTransaction transaction = null)
+//        public async Task<ResultVM> GetGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues, SqlConnection conn = null, SqlTransaction transaction = null)
+//        {
+//            bool isNewConnection = false;
+//            DataTable dataTable = new DataTable();
+//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+//            try
+//            {
+//                if (conn == null)
+//                {
+//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+//                    conn.Open();
+//                    isNewConnection = true;
+//                }
+
+//                var data = new GridEntity<CustomerVM>();
+
+//                string sqlQuery = @"
+//    -- Count query
+//    SELECT COUNT(DISTINCT H.Id) AS totalcount
+//    FROM Customers H 
+//    LEFT OUTER JOIN CustomerGroups C ON H.CustomerGroupId = C.Id
+//    WHERE H.IsArchive != 1 ";
+
+//                sqlQuery = sqlQuery + (options.filter.Filters.Count > 0 ?
+//                    " AND (" + GridQueryBuilder<CustomerVM>.FilterCondition(options.filter) + ")" : "");
+
+//                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+//                sqlQuery += @"
+
+//    -- Data query with pagination and sorting
+//    SELECT * 
+//    FROM (
+//        SELECT 
+//        ROW_NUMBER() OVER(ORDER BY " +
+//                                        (options.sort.Count > 0 ?
+//                                            options.sort[0].field + " " + options.sort[0].dir :
+//                                            "H.Id DESC ") + @") AS rowindex,
+        
+//        ISNULL(H.Id, 0) AS Id,
+//        ISNULL(H.Code, '') AS Code,
+//        ISNULL(H.Name, '') AS Name,
+//        ISNULL(H.CustomerGroupId, 0) AS CustomerGroupId,
+//        ISNULL(C.Name, '') AS CustomerGroupName,
+//        ISNULL(H.BanglaName, '') AS BanglaName,
+//        ISNULL(H.Address, '') AS Address,
+//        ISNULL(H.BanglaAddress, '') AS BanglaAddress,
+//        ISNULL(H.TelephoneNo, '') AS TelephoneNo,
+//        ISNULL(H.FaxNo, '') AS FaxNo,
+//        ISNULL(H.Email, '') AS Email,
+//        ISNULL(H.TINNo, '') AS TINNo,
+//        ISNULL(H.BINNo, '') AS BINNo,
+//        ISNULL(H.NIDNo, '') AS NIDNo,
+//        ISNULL(H.Comments, '') AS Comments,
+//        ISNULL(H.IsArchive, 0) AS IsArchive,
+//        ISNULL(H.IsActive, 0) AS IsActive,
+//        CASE WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Yes' ELSE 'No' END AS Status,
+//        ISNULL(H.CreatedBy, '') AS CreatedBy,
+//        ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
+//        ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS CreatedOn,
+//        ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS LastModifiedOn,
+//        ISNULL(H.CreatedFrom, '') AS CreatedFrom,
+//        ISNULL(H.LastUpdateFrom, '') AS LastUpdateFrom
+
+//        FROM Customers H 
+//        LEFT OUTER JOIN CustomerGroups C ON H.CustomerGroupId = C.Id
+//        WHERE H.IsArchive != 1";
+
+//                sqlQuery = sqlQuery + (options.filter.Filters.Count > 0 ?
+//                    " AND (" + GridQueryBuilder<CustomerVM>.FilterCondition(options.filter) + ")" : "");
+
+//                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+//                sqlQuery += @"
+//    ) AS a
+//    WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
+//";
+
+
+
+//                data = KendoGrid<CustomerVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+//                //data = KendoGrid<CustomerVM>.GetTransactionalGridData_CMD(options, sqlQuery, "H.Id", conditionalFields, conditionalValues);
+//                result.Status = "Success";
+//                result.Message = "Data retrieved successfully.";
+//                result.DataVM = data;
+
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                result.ExMessage = ex.Message;
+//                result.Message = ex.Message;
+//                return result;
+//            }
+//            finally
+//            {
+//                if (isNewConnection && conn != null)
+//                {
+//                    conn.Close();
+//                }
+//            }
+//        }
+
+
+
+
+        public async Task<ResultVM> GetGridData(GridOptions options, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
-            DataTable dataTable = new DataTable();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                Id = "0",
+                DataVM = null
+            };
 
             try
             {
+
+                int companyId = Convert.ToInt32(options.vm.CompanyId); //this
+
                 if (conn == null)
                 {
                     conn = new SqlConnection(DatabaseHelper.GetConnectionString());
@@ -684,31 +801,46 @@ ORDER BY Name";
                     isNewConnection = true;
                 }
 
-                var data = new GridEntity<CustomerVM>();
+                string filterCondition = "";
+                if (options?.filter?.Filters != null && options.filter.Filters.Count > 0)
+                {
+                    filterCondition = " AND (" +
+                        GridQueryBuilder<CustomerVM>.FilterCondition(options.filter) +
+                        ")";
+                }
 
-                string sqlQuery = @"
-    -- Count query
+                string sortExpression = "H.Id DESC";
+                if (options?.sort != null && options.sort.Count > 0)
+                {
+                    sortExpression = options.sort[0].field + " " + options.sort[0].dir;
+                }
+
+                // 🔥 FIX: inject companyId directly
+                string companyCondition = $" AND H.CompanyId = {companyId} "; //this
+
+                string sqlQuery = $@"
+
+-- =========================
+-- COUNT QUERY
+-- =========================
     SELECT COUNT(DISTINCT H.Id) AS totalcount
     FROM Customers H 
     LEFT OUTER JOIN CustomerGroups C ON H.CustomerGroupId = C.Id
-    WHERE H.IsArchive != 1 ";
 
-                sqlQuery = sqlQuery + (options.filter.Filters.Count > 0 ?
-                    " AND (" + GridQueryBuilder<CustomerVM>.FilterCondition(options.filter) + ")" : "");
+WHERE H.IsArchive <> 1
+{companyCondition}
+{filterCondition}
 
-                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
 
-                sqlQuery += @"
+-- =========================
+-- DATA QUERY
+-- =========================
+SELECT *
+FROM
+(
+    SELECT
+        ROW_NUMBER() OVER(ORDER BY {sortExpression}) AS rowindex,
 
-    -- Data query with pagination and sorting
-    SELECT * 
-    FROM (
-        SELECT 
-        ROW_NUMBER() OVER(ORDER BY " +
-                                        (options.sort.Count > 0 ?
-                                            options.sort[0].field + " " + options.sort[0].dir :
-                                            "H.Id DESC ") + @") AS rowindex,
-        
         ISNULL(H.Id, 0) AS Id,
         ISNULL(H.Code, '') AS Code,
         ISNULL(H.Name, '') AS Name,
@@ -736,22 +868,18 @@ ORDER BY Name";
 
         FROM Customers H 
         LEFT OUTER JOIN CustomerGroups C ON H.CustomerGroupId = C.Id
-        WHERE H.IsArchive != 1";
 
-                sqlQuery = sqlQuery + (options.filter.Filters.Count > 0 ?
-                    " AND (" + GridQueryBuilder<CustomerVM>.FilterCondition(options.filter) + ")" : "");
+    WHERE H.IsArchive <> 1
+    {companyCondition}
+    {filterCondition}
 
-                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
-
-                sqlQuery += @"
-    ) AS a
-    WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
+) A
+WHERE A.rowindex > @skip
+AND (@take = 0 OR A.rowindex <= @take);
 ";
 
+                var data = KendoGrid<CustomerVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
 
-
-                data = KendoGrid<CustomerVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
-                //data = KendoGrid<CustomerVM>.GetTransactionalGridData_CMD(options, sqlQuery, "H.Id", conditionalFields, conditionalValues);
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";
                 result.DataVM = data;
@@ -760,8 +888,9 @@ ORDER BY Name";
             }
             catch (Exception ex)
             {
-                result.ExMessage = ex.Message;
+                result.Status = "Fail";
                 result.Message = ex.Message;
+                result.ExMessage = ex.ToString();
                 return result;
             }
             finally
@@ -769,87 +898,89 @@ ORDER BY Name";
                 if (isNewConnection && conn != null)
                 {
                     conn.Close();
+                    conn.Dispose();
                 }
             }
         }
-//        public async Task<ResultVM> GetCustomerModalData(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
-//        {
-//            bool isNewConnection = false;
-//            DataTable dataTable = new DataTable();
-//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
 
-//            try
-//            {
-//                if (conn == null)
-//                {
-//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-//                    conn.Open();
-//                    isNewConnection = true;
-//                }
+        //        public async Task<ResultVM> GetCustomerModalData(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        //        {
+        //            bool isNewConnection = false;
+        //            DataTable dataTable = new DataTable();
+        //            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
 
-//                string query = @"
-//SELECT DISTINCT
-//    ISNULL(Cus.Id, 0) AS CustomerId, 
-//    ISNULL(Cus.Name, '') AS CustomerName,
-//    ISNULL(Cus.BanglaName, '') AS BanglaName, 
-//    ISNULL(Cus.Code, '') AS CustomerCode,
-//    'Active' AS Status
-//FROM Customers Cus
-//WHERE Cus.Name = 'ALL'
+        //            try
+        //            {
+        //                if (conn == null)
+        //                {
+        //                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //                    conn.Open();
+        //                    isNewConnection = true;
+        //                }
 
-//UNION
+        //                string query = @"
+        //SELECT DISTINCT
+        //    ISNULL(Cus.Id, 0) AS CustomerId, 
+        //    ISNULL(Cus.Name, '') AS CustomerName,
+        //    ISNULL(Cus.BanglaName, '') AS BanglaName, 
+        //    ISNULL(Cus.Code, '') AS CustomerCode,
+        //    'Active' AS Status
+        //FROM Customers Cus
+        //WHERE Cus.Name = 'ALL'
 
-//SELECT DISTINCT
-//    ISNULL(Cus.Id,0)CustomerId , 
-//    ISNULL(Cus.Name,'') CustomerName,
-//    ISNULL(Cus.BanglaName,'') BanglaName, 
-//    ISNULL(Cus.Code,'') CustomerCode, 
-//    CASE WHEN Cus.IsActive = 1 THEN 'Active' ELSE 'Inactive' END Status
-//FROM Customers Cus
-//WHERE Cus.IsActive = 1 
-//";
+        //UNION
 
-//                // Apply additional conditions
-//                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
+        //SELECT DISTINCT
+        //    ISNULL(Cus.Id,0)CustomerId , 
+        //    ISNULL(Cus.Name,'') CustomerName,
+        //    ISNULL(Cus.BanglaName,'') BanglaName, 
+        //    ISNULL(Cus.Code,'') CustomerCode, 
+        //    CASE WHEN Cus.IsActive = 1 THEN 'Active' ELSE 'Inactive' END Status
+        //FROM Customers Cus
+        //WHERE Cus.IsActive = 1 
+        //";
 
-//                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+        //                // Apply additional conditions
+        //                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
 
-//                // SET additional conditions param
-//                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+        //                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
-//                objComm.Fill(dataTable);
+        //                // SET additional conditions param
+        //                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
-//                var modelList = dataTable.AsEnumerable().Select(row => new CustomerDataVM
-//                {
-//                    CustomerId = row.Field<int>("CustomerId"),
-//                    CustomerName = row.Field<string>("CustomerName"),
-//                    BanglaName = row.Field<string>("BanglaName"),
-//                    CustomerCode = row.Field<string>("CustomerCode"),
-                
-//                    Status = row.Field<string>("Status")
+        //                objComm.Fill(dataTable);
 
-//                }).ToList();
+        //                var modelList = dataTable.AsEnumerable().Select(row => new CustomerDataVM
+        //                {
+        //                    CustomerId = row.Field<int>("CustomerId"),
+        //                    CustomerName = row.Field<string>("CustomerName"),
+        //                    BanglaName = row.Field<string>("BanglaName"),
+        //                    CustomerCode = row.Field<string>("CustomerCode"),
+
+        //                    Status = row.Field<string>("Status")
+
+        //                }).ToList();
 
 
-//                result.Status = "Success";
-//                result.Message = "Data retrieved successfully.";
-//                result.DataVM = modelList;
-//                return result;
-//            }
-//            catch (Exception ex)
-//            {
-//                result.ExMessage = ex.Message;
-//                result.Message = ex.Message;
-//                return result;
-//            }
-//            finally
-//            {
-//                if (isNewConnection && conn != null)
-//                {
-//                    conn.Close();
-//                }
-//            }
-//        }
+        //                result.Status = "Success";
+        //                result.Message = "Data retrieved successfully.";
+        //                result.DataVM = modelList;
+        //                return result;
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                result.ExMessage = ex.Message;
+        //                result.Message = ex.Message;
+        //                return result;
+        //            }
+        //            finally
+        //            {
+        //                if (isNewConnection && conn != null)
+        //                {
+        //                    conn.Close();
+        //                }
+        //            }
+        //        }
         public async Task<ResultVM> ListCustomersBySalePersonAndBranch(int salePersonId, int branchId, SqlConnection conn, SqlTransaction transaction)
         {
             bool isNewConnection = false;
