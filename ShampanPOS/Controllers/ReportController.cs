@@ -105,7 +105,6 @@ namespace ShampanPOS.Controllers
 
             try
             {
-                // Sample কোডের মতো প্রথম ধাপে Branch এবং Company ভ্যালিডেশন চেক
                 if (customer == null || string.IsNullOrEmpty(customer.BranchId?.ToString()) || string.IsNullOrEmpty(customer.CompanyId.ToString()))
                 {
                     resultVM.Status = "Fail";
@@ -173,11 +172,21 @@ namespace ShampanPOS.Controllers
 
                 if (!string.IsNullOrEmpty(Vm.Id))
                 {
-                    conditionFields = new string[] { "M.Id" };
-                    conditionValues = new string[] { Vm.Id };
+                    conditionFields = new string[] { "M.Id", "M.CompanyId" };
+                    conditionValues = new string[] { Vm.Id, Vm.CompanyId };
+                }
+                else {
+                    conditionFields = new string[] { "M.CompanyId" };
+                    conditionValues = new string[] { Vm.CompanyId };
                 }
 
-                PurchaseService _service = new PurchaseService();
+                    //var param = new PeramModel
+                    //{
+                    //    Id = Vm.Id,
+                    //    CompanyId = Vm.CompanyId
+                    //};
+
+                    PurchaseService _service = new PurchaseService();
                 resultVM = await _service.GetPurchaseReport(conditionFields, conditionValues, null);
                 return resultVM;
             }

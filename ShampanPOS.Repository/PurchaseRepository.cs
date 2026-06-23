@@ -2388,6 +2388,7 @@ LEFT OUTER JOIN Suppliers S ON ISNULL(M.SupplierId,0) = S.Id
 	LEFT OUTER JOIN CompanyProfiles CP ON M.CompanyId = CP.Id
 	LEFT OUTER JOIN PurchaseOrders P ON M.PurchaseOrderId = P.Id 
 WHERE 1 = 1
+
  ";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
@@ -2400,8 +2401,15 @@ WHERE 1 = 1
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
+                if (objComm?.SelectCommand == null)
+                {
+                    throw new Exception("SelectCommand is null");
+                }
+
                 // SET additional conditions param
                 objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValue);
+
+                //objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", (object)vm?.CompanyId ?? DBNull.Value);
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
                 {

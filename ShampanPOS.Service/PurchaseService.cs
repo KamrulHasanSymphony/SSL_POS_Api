@@ -1512,8 +1512,14 @@ namespace ShampanPOS.Service
                     if (lst != null && lst.Count > 0)
                     {
                         var firstInvoice = lst.FirstOrDefault();
-
-                        var detailsDataList = await _repo.DetailsList(new[] { "D.PurchaseId" }, conditionalValues, vm, conn, transaction);
+                        var detailsDataList = await _repo.DetailsList(
+                        new[] { "D.PurchaseId" },
+                        new[] { conditionalValues[0] }, // <-- Wrap it in an array here
+                        vm,
+                        conn,
+                        transaction
+                    );
+                        //var detailsDataList = await _repo.DetailsList(new[] { "D.PurchaseId" }, conditionalValues, vm, conn, transaction);
                         if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dtDetails)
                         {
                             string jsonDetails = JsonConvert.SerializeObject(dtDetails);
@@ -1524,9 +1530,15 @@ namespace ShampanPOS.Service
                                 firstInvoice.PurchaseOrderId = firstInvoice.purchaseDetailList.FirstOrDefault().PurchaseOrderId;
                             }
                         }
-
-                        var paymentDataList = await _repo.PaymentHistoryList(new[] { "PAYD.PurchaseId" }, conditionalValues, vm, conn, transaction);
-                        if (paymentDataList.Status == "Success" && paymentDataList.DataVM is DataTable dtPayments)
+                            //var paymentDataList = await _repo.PaymentHistoryList(new[] { "PAYD.PurchaseId" }, conditionalValues, vm, conn, transaction);
+                            var paymentDataList = await _repo.PaymentHistoryList(
+                            new[] { "PAYD.PurchaseId" },
+                            new[] { conditionalValues[0] }, // <-- Wrap it in an array here
+                            vm,
+                            conn,
+                            transaction
+                        );
+                            if (paymentDataList.Status == "Success" && paymentDataList.DataVM is DataTable dtPayments)
                         {
                             string jsonPayments = JsonConvert.SerializeObject(dtPayments);
                             firstInvoice.purchasePaymentList = JsonConvert.DeserializeObject<List<PurchasePaymentVM>>(jsonPayments);
