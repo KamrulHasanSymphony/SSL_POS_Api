@@ -1328,7 +1328,7 @@ namespace ShampanPOS.Service
                 }
             }
         }
-        public async Task<ResultVM> PurchaseListForPayment(string?[] IDs)
+        public async Task<ResultVM> PurchaseListForPayment(string[] conditionalFields, string[] conditionalValues, string?[] IDs)
         {
             PurchaseRepository _repo = new PurchaseRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
@@ -1344,7 +1344,7 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                result = await _repo.PurchaseListForPayment(IDs, conn, transaction);
+                result = await _repo.PurchaseListForPayment(conditionalFields, conditionalValues, IDs, conn, transaction);
 
                 var lst = new List<PaymentVM>();
 

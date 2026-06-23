@@ -480,8 +480,19 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
+                if (string.IsNullOrEmpty(vm.BranchId) || string.IsNullOrEmpty(vm.CompanyId))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
+
+                string[] conditionFields = new string[] { "H.BranchId", "H.CompanyId" };
+                string[] conditionValues = new string[] { vm.BranchId, vm.CompanyId };
+
+
                 _service = new PurchaseService();
-                resultVM = await _service.PurchaseListForPayment(vm.IDs);
+                resultVM = await _service.PurchaseListForPayment(conditionFields, conditionValues,vm.IDs);
                 return resultVM;
             }
             catch (Exception ex)

@@ -1732,11 +1732,19 @@ WHERE 1 = 1 ";
             	ISNULL(M.VATRate, 0) AS VATRate,
             	ISNULL(M.SDRate, 0) AS SDRate,
             	ISNULL(M.PurchasePrice, 0) AS PurchasePrice,
-            	ISNULL(M.SalePrice, 0) AS SalePrice
+            	ISNULL(M.SalePrice, 0) AS SalePrice,
+	            M.CompanyId,
+                M.BranchId,
+                Co.CompanyName,
+                B.Name AS BranchName
+
             
             FROM Products M
             LEFT OUTER JOIN ProductGroups PG ON M.ProductGroupId = PG.Id
             LEFT OUTER JOIN UOMs UM ON M.UOMId = UM.Id
+            LEFT OUTER JOIN CompanyProfiles Co ON Co.Id = M.CompanyId
+            LEFT OUTER JOIN BranchProfiles B ON B.Id = M.BranchId
+
             WHERE 1 = 1";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
@@ -1784,7 +1792,12 @@ WHERE 1 = 1 ";
                     VATRate = row.Field<decimal?>("VATRate") ?? 0.0m,
                     SDRate = row.Field<decimal?>("SDRate") ?? 0.0m,
                     PurchasePrice = row.Field<decimal?>("PurchasePrice") ?? 0.0m,
-                    SalePrice = row.Field<decimal?>("SalePrice") ?? 0.0m
+                    SalePrice = row.Field<decimal?>("SalePrice") ?? 0.0m,
+                    BranchId = row.Field<int>("BranchId"),
+                    BranchName = row.Field<string>("BranchName"),
+                    CompanyId = row.Field<int>("CompanyId"),
+                    CompanyName = row.Field<string>("CompanyName")
+
 
                 }).ToList();
 

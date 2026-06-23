@@ -3976,13 +3976,6 @@ WHERE  1 = 1";
                 result.Message = ex.Message;
                 return result;
             }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
         }
 
 
