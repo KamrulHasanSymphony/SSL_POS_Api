@@ -161,7 +161,15 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
-               
+                if (string.IsNullOrEmpty(options.vm.BranchId) || string.IsNullOrEmpty(options.vm.CompanyId))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
+
+                string[] conditionFields = new string[] { "H.BranchId", "H.CompanyId" };
+                string[] conditionValues = new string[] { options.vm.BranchId, options.vm.CompanyId };
                 SupplierGroupService _supplierGroupService = new SupplierGroupService();
                 resultVM = await _supplierGroupService.GetGridData(options, null, null);
                 return resultVM;
