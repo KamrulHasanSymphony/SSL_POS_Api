@@ -241,6 +241,7 @@ namespace ShampanPOS.Repository
         ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
         ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
     	ISNULL(Br.Name,'') BranchName,
+	    ISNULL(Br.Address,'') BranchAddress,
         ISNULL(CP.CompanyName,'') CompanyName
 
         FROM SaleOrders M
@@ -284,6 +285,7 @@ namespace ShampanPOS.Repository
                         Code = row["Code"].ToString(),
                         BranchId = Convert.ToInt32(row["BranchId"]),
                         BranchName = row.Field<string>("BranchName"),
+                        BranchAddress = row.Field<string>("BranchAddress"),
                         CompanyId = Convert.ToInt32(row["CompanyId"]),
                         CompanyName = row.Field<string>("CompanyName"),
                         CustomerId = Convert.ToInt32(row["CustomerId"]),

@@ -2495,8 +2495,7 @@ WHERE 1 = 1
 				LEFT OUTER JOIN CompanyProfiles CP ON M.CompanyId = CP.Id
                 LEFT OUTER JOIN Customers cus ON M.CustomerId = cus.Id
 				LEFT OUTER JOIN SaleOrders S ON M.SaleOrderId = S.Id
-			WHERE 1 = 1
-            --AND M.CompanyId = @CompanyId
+			WHERE 1 = 1 AND M.CompanyId = @CompanyId
                         ";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
