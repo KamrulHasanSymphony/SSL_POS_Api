@@ -1704,6 +1704,7 @@ SELECT
     ISNULL(M.LastUpdateFrom, '') AS LastUpdateFrom,
     ISNULL(S.Name, '') AS SupplierName,
 	ISNULL(Br.Name,'') BranchName,
+	ISNULL(Br.Address,'') BranchAddress,
     ISNULL(CP.CompanyName,'') CompanyName
 FROM 
     PurchasesReturn M
@@ -1743,6 +1744,7 @@ WHERE 1 = 1
                         Code = row.Field<string>("Code"),
                         BranchId = row.Field<int>("BranchId"),
                         BranchName = row.Field<string>("BranchName"),
+                        BranchAddress = row.Field<string>("BranchAddress"),
                         CompanyId = row.Field<int>("CompanyId"),
                         CompanyName = row.Field<string>("CompanyName"),
                         SupplierId = row.Field<int>("SupplierId"),

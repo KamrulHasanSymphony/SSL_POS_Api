@@ -393,8 +393,13 @@ namespace ShampanPOS.Controllers
 
                 if (!string.IsNullOrEmpty(Vm.Id))
                 {
-                    conditionFields = new string[] { "M.Id" };
-                    conditionValues = new string[] { Vm.Id };
+                    conditionFields = new string[] { "M.Id", "M.CompanyId" };
+                    conditionValues = new string[] { Vm.Id, Vm.CompanyId };
+                }
+                else
+                {
+                    conditionFields = new string[] { "M.CompanyId" };
+                    conditionValues = new string[] { Vm.CompanyId };
                 }
 
                 PurchaseOrderService _service = new PurchaseOrderService();
@@ -424,9 +429,15 @@ namespace ShampanPOS.Controllers
 
                 if (!string.IsNullOrEmpty(Vm.Id))
                 {
-                    conditionFields = new string[] { "M.Id" };
-                    conditionValues = new string[] { Vm.Id };
+                    conditionFields = new string[] { "M.Id", "M.CompanyId" };
+                    conditionValues = new string[] { Vm.Id, Vm.CompanyId };
                 }
+                else
+                {
+                    conditionFields = new string[] { "M.CompanyId" };
+                    conditionValues = new string[] { Vm.CompanyId };
+                }
+
 
                 PurchaseReturnService _service = new PurchaseReturnService();
                 resultVM = await _service.PurchaseReturnReport(conditionFields, conditionValues, null);

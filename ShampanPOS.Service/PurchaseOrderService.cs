@@ -1119,15 +1119,22 @@ namespace ShampanPOS.Service
                 string data = JsonConvert.SerializeObject(result.DataVM);
                 lst = JsonConvert.DeserializeObject<List<PurchaseOrderVM>>(data);
 
-                var detailsDataList = await _repo.DetailsList(new[] { "D.PurchaseOrderId" }, conditionalValues, vm, conn, transaction);
-
-                if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
+                //var detailsDataList = await _repo.DetailsList(new[] { "D.PurchaseOrderId" }, conditionalValues, vm, conn, transaction);
+                if (lst != null && lst.Count > 0)
                 {
-                    string json = JsonConvert.SerializeObject(dt);
-                    var details = JsonConvert.DeserializeObject<List<PurchaseOrderDetailVM>>(json);
+                    var firstInvoice = lst.FirstOrDefault();
+                    var detailsDataList = await _repo.DetailsList(
+                    new[] { "D.PurchaseOrderId" },
+                    new[] { conditionalValues[0] }, vm, conn, transaction
+                );
+                    if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
+                    {
+                        string json = JsonConvert.SerializeObject(dt);
+                        var details = JsonConvert.DeserializeObject<List<PurchaseOrderDetailVM>>(json);
 
-                    lst.FirstOrDefault().purchaseOrderDetailsList = details;
-                    result.DataVM = lst;
+                        lst.FirstOrDefault().purchaseOrderDetailsList = details;
+                        result.DataVM = lst;
+                    }
                 }
 
                 if (isNewConnection && result.Status == "Success")

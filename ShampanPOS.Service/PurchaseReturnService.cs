@@ -757,16 +757,23 @@ namespace ShampanPOS.Service
                 string data = JsonConvert.SerializeObject(result.DataVM);
                 lst = JsonConvert.DeserializeObject<List<PurchaseReturnVM>>(data);
 
-                var detailsDataList = await _repo.DetailsList(new[] { "D.PurchasesReturnId" }, conditionalValues, vm, conn, transaction);
-
-                if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
+                if (lst != null && lst.Count > 0)
                 {
-                    string json = JsonConvert.SerializeObject(dt);
-                    var details = JsonConvert.DeserializeObject<List<PurchaseReturnDetailVM>>(json);
+                    var firstInvoice = lst.FirstOrDefault();
+                    var detailsDataList = await _repo.DetailsList(
+                    new[] { "D.PurchasesReturnId" },
+                    new[] { conditionalValues[0] }, vm, conn, transaction
+                );
 
-                    lst.FirstOrDefault().purchaseReturnDetailList = details;
-                    lst.FirstOrDefault().PurchaseId = details.FirstOrDefault().PurchaseId;
-                    result.DataVM = lst;
+                    if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
+                    {
+                        string json = JsonConvert.SerializeObject(dt);
+                        var details = JsonConvert.DeserializeObject<List<PurchaseReturnDetailVM>>(json);
+
+                        lst.FirstOrDefault().purchaseReturnDetailList = details;
+                        lst.FirstOrDefault().PurchaseId = details.FirstOrDefault().PurchaseId;
+                        result.DataVM = lst;
+                    }
                 }
 
                 if (isNewConnection && result.Status == "Success")
