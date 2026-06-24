@@ -590,8 +590,8 @@ WHERE M.IsArchive != 1";
 
 
 
-                data = KendoGrid<WithdrawalVM>.GetGridData_CMD(options, sqlQuery, "M.Id");
-                //data = KendoGrid<CustomerVM>.GetTransactionalGridData_CMD(options, sqlQuery, "H.Id", conditionalFields, conditionalValues);
+                //data = KendoGrid<WithdrawalVM>.GetGridData_CMD(options, sqlQuery, "M.Id");
+                data = KendoGrid<WithdrawalVM>.GetTransactionalGridData_CMD(options, sqlQuery, "H.Id", conditionalFields, conditionalValues);
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";
                 result.DataVM = data;
