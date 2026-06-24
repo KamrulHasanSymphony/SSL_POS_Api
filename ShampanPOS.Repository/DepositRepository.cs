@@ -66,7 +66,7 @@ SELECT SCOPE_IDENTITY();";
                     cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy);
                     cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
-                    cmd.Parameters.AddWithValue("@BranchId", vm.CompanyId);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
 
                     vm.Id = Convert.ToInt32(cmd.ExecuteScalar());
 
