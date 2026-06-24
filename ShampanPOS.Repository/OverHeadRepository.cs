@@ -38,12 +38,12 @@ namespace ShampanPOS.Repository
 INSERT INTO OverHeads
 (
     Code, OverHead,
-    Comments, IsArchive, IsActive, CreatedBy, CreatedOn,BranchId,CreatedFrom
+    Comments, IsArchive, IsActive, CreatedBy, CreatedOn,BranchId,CompanyId,CreatedFrom
 )
 VALUES
 (
     @Code, @OverHead, 
-    @Comments, @IsArchive, @IsActive, @CreatedBy, @CreatedOn ,@BranchId ,@CreatedFrom
+    @Comments, @IsArchive, @IsActive, @CreatedBy, @CreatedOn ,@BranchId,@CompanyId ,@CreatedFrom
 );
 SELECT SCOPE_IDENTITY();";
 
@@ -58,6 +58,7 @@ SELECT SCOPE_IDENTITY();";
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy);
                     cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
                     cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
                     cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom ?? (object)DBNull.Value);
 
                     vm.Id = Convert.ToInt32(cmd.ExecuteScalar());
