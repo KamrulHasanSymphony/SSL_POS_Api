@@ -455,106 +455,14 @@ ORDER BY Name";
             }
         }
 
-        //public async Task<ResultVM> GetGridData(GridOptions options, SqlConnection conn = null, SqlTransaction transaction = null)
-        //{
-        //    bool isNewConnection = false;
-        //    DataTable dataTable = new DataTable();
-        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-
-        //    try
-        //    {
-        //        if (conn == null)
-        //        {
-        //            conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-        //            conn.Open();
-        //            isNewConnection = true;
-        //        }
-
-        //        var data = new GridEntity<CustomerGroupVM>();
-
-        //        // Define your SQL query string
-        //        string sqlQuery = @"
-        //       -- Count query
-        //       SELECT COUNT(DISTINCT H.Id) AS totalcount
-			     //       FROM CustomerGroups H 
-			     //       WHERE H.IsArchive != 1
-        //        -- Add the filter condition
-        //        " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<CustomerGroupVM>.FilterCondition(options.filter) + ")" : "") + @"
-
-        //        -- Data query with pagination and sorting
-        //        SELECT * 
-        //        FROM (
-        //            SELECT 
-        //            ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC ") + @") AS rowindex
-        //            ,ISNULL(H.Id,0)	Id
-		      //      ,ISNULL(H.Code,'') Code
-		      //      ,ISNULL(H.Name,'') Name
-        //            ,ISNULL(H. Description, '') AS  Description
-        //            ,ISNULL(H.Comments, '') AS Comments
-		      //      ,ISNULL(H.IsArchive,0)	IsArchive
-		      //      ,ISNULL(H.IsActive,0)	IsActive
-		      //      ,CASE WHEN ISNULL(H.IsActive,0) = 1 THEN 'Active' ELSE 'Inactive'	END Status
-		      //      ,ISNULL(H.CreatedBy,'') CreatedBy
-		      //      ,ISNULL(H.LastModifiedBy,'') LastModifiedBy
-		      //      ,ISNULL(FORMAT(H.CreatedOn,'yyyy-MM-dd HH:mm'),'1900-01-01') CreatedOn
-		      //      ,ISNULL(FORMAT(H.LastModifiedOn,'yyyy-MM-dd HH:mm'),'1900-01-01') LastModifiedOn
-
-		      //      FROM CustomerGroups H 
-		
-		      //      WHERE H.IsArchive != 1
-        //        -- Add the filter condition
-        //        " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<CustomerGroupVM>.FilterCondition(options.filter) + ")" : "") + @"
-
-        //        ) AS a
-        //        WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
-        //    ";
-
-        //        data = KendoGrid<CustomerGroupVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
-
-        //        result.Status = "Success";
-        //        result.Message = "Data retrieved successfully.";
-        //        result.DataVM = data;
-
-        //        return result;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        result.ExMessage = ex.Message;
-        //        result.Message = ex.Message;
-        //        return result;
-        //    }
-        //    finally
-        //    {
-        //        if (isNewConnection && conn != null)
-        //        {
-        //            conn.Close();
-        //        }
-        //    }
-        //}
-
-
-
-
-
-
-        public async Task<ResultVM> GetGridData(GridOptions options, SqlConnection conn = null, SqlTransaction transaction = null)
+        public async Task<ResultVM> GetGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
         {
             bool isNewConnection = false;
-
-            ResultVM result = new ResultVM
-            {
-                Status = "Fail",
-                Message = "Error",
-                ExMessage = null,
-                Id = "0",
-                DataVM = null
-            };
+            DataTable dataTable = new DataTable();
+            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
             try
             {
-
-                int companyId = Convert.ToInt32(options.vm.CompanyId); //this
-
                 if (conn == null)
                 {
                     conn = new SqlConnection(DatabaseHelper.GetConnectionString());
@@ -562,70 +470,63 @@ ORDER BY Name";
                     isNewConnection = true;
                 }
 
-                string filterCondition = "";
-                if (options?.filter?.Filters != null && options.filter.Filters.Count > 0)
-                {
-                    filterCondition = " AND (" +
-                        GridQueryBuilder<CustomerGroupVM>.FilterCondition(options.filter) +
-                        ")";
-                }
+                var data = new GridEntity<CustomerGroupVM>();
 
-                string sortExpression = "H.Id DESC";
-                if (options?.sort != null && options.sort.Count > 0)
-                {
-                    sortExpression = options.sort[0].field + " " + options.sort[0].dir;
-                }
+                // Define your SQL query string
+                string sqlQuery = @"
+               -- Count query
+               SELECT COUNT(DISTINCT H.Id) AS totalcount
+			            FROM CustomerGroups H 
+                        LEFT OUTER JOIN CompanyProfiles C ON H.CompanyId = C.Id
+                        LEFT OUTER JOIN BranchProfiles B ON H.BranchId = B.Id
 
-                // 🔥 FIX: inject companyId directly
-                string companyCondition = $" AND H.CompanyId = {companyId} "; //this
-
-                string sqlQuery = $@"
-
--- =========================
--- COUNT QUERY
--- =========================
- SELECT COUNT(DISTINCT H.Id) AS totalcount
-FROM CustomerGroups H 
-
-WHERE H.IsArchive <> 1
-{companyCondition}
-{filterCondition}
+			            WHERE H.IsArchive != 1
+                -- Add the filter condition
+                " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<CustomerGroupVM>.FilterCondition(options.filter) + ")" : "");
+                // Apply additional conditions
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
 
 
--- =========================
--- DATA QUERY
--- =========================
-SELECT *
-FROM
-(
-    SELECT
-        ROW_NUMBER() OVER(ORDER BY {sortExpression}) AS rowindex,
+                sqlQuery += @"
 
-                    ISNULL(H.Id,0)	Id
-		            ,ISNULL(H.Code,'') Code
-		            ,ISNULL(H.Name,'') Name
+                -- Data query with pagination and sorting
+                SELECT * 
+                FROM (
+                    SELECT 
+                ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC") + @") AS rowindex, 
+                     ISNULL(H.Id,0)	Id
+                    ,ISNULL(H.Code,'') Code
+                    ,ISNULL(H.Name,'') Name
                     ,ISNULL(H. Description, '') AS  Description
                     ,ISNULL(H.Comments, '') AS Comments
-		            ,ISNULL(H.IsArchive,0)	IsArchive
-		            ,ISNULL(H.IsActive,0)	IsActive
-		            ,CASE WHEN ISNULL(H.IsActive,0) = 1 THEN 'Active' ELSE 'Inactive'	END Status
-		            ,ISNULL(H.CreatedBy,'') CreatedBy
-		            ,ISNULL(H.LastModifiedBy,'') LastModifiedBy
-		            ,ISNULL(FORMAT(H.CreatedOn,'yyyy-MM-dd HH:mm'),'1900-01-01') CreatedOn
-		            ,ISNULL(FORMAT(H.LastModifiedOn,'yyyy-MM-dd HH:mm'),'1900-01-01') LastModifiedOn
+                    ,ISNULL(H.IsArchive,0)	IsArchive
+                    ,ISNULL(H.IsActive,0)	IsActive
+                    ,CASE WHEN ISNULL(H.IsActive,0) = 1 THEN 'Active' ELSE 'Inactive'	END Status
+                    ,ISNULL(H.CreatedBy,'') CreatedBy
+                    ,ISNULL(H.LastModifiedBy,'') LastModifiedBy
+                    ,ISNULL(FORMAT(H.CreatedOn,'yyyy-MM-dd HH:mm'),'1900-01-01') CreatedOn
+                    ,ISNULL(FORMAT(H.LastModifiedOn,'yyyy-MM-dd HH:mm'),'1900-01-01') LastModifiedOn
+                    ,ISNULL(H.CompanyId, 0) AS CompanyId
+                    ,ISNULL(C.CompanyName, '') AS CompanyName
+                    ,ISNULL(H.BranchId, 0) AS BranchId
+                    ,ISNULL(B.Name, '') AS BranchName
 
-		            FROM CustomerGroups H 
+                    FROM CustomerGroups H
+                    LEFT OUTER JOIN CompanyProfiles C ON H.CompanyId = C.Id
+                    LEFT OUTER JOIN BranchProfiles B ON H.BranchId = B.Id
+		            WHERE H.IsArchive != 1
+                -- Add the filter condition
+                " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<CustomerGroupVM>.FilterCondition(options.filter) + ")" : "");
+                // Apply additional conditions
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
 
-    WHERE H.IsArchive <> 1
-    {companyCondition}
-    {filterCondition}
+                sqlQuery += @"
 
-) A
-WHERE A.rowindex > @skip
-AND (@take = 0 OR A.rowindex <= @take);
-";
+                ) AS a
+                WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
+            ";
 
-                var data = KendoGrid<CustomerGroupVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+                data = KendoGrid<CustomerGroupVM>.GetTransactionalGridData_CMD(options, sqlQuery, "H.Id", conditionalFields, conditionalValues);
 
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";
@@ -635,20 +536,128 @@ AND (@take = 0 OR A.rowindex <= @take);
             }
             catch (Exception ex)
             {
-                result.Status = "Fail";
+                result.ExMessage = ex.Message;
                 result.Message = ex.Message;
-                result.ExMessage = ex.ToString();
                 return result;
             }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                    conn.Dispose();
-                }
-            }
         }
+
+
+
+
+
+//        public async Task<ResultVM> GetGridData(GridOptions options, SqlConnection conn = null, SqlTransaction transaction = null)
+//        {
+//            bool isNewConnection = false;
+
+//            ResultVM result = new ResultVM
+//            {
+//                Status = "Fail",
+//                Message = "Error",
+//                ExMessage = null,
+//                Id = "0",
+//                DataVM = null
+//            };
+
+//            try
+//            {
+
+//                int companyId = Convert.ToInt32(options.vm.CompanyId); //this
+
+//                if (conn == null)
+//                {
+//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+//                    conn.Open();
+//                    isNewConnection = true;
+//                }
+
+//                string filterCondition = "";
+//                if (options?.filter?.Filters != null && options.filter.Filters.Count > 0)
+//                {
+//                    filterCondition = " AND (" +
+//                        GridQueryBuilder<CustomerGroupVM>.FilterCondition(options.filter) +
+//                        ")";
+//                }
+
+//                string sortExpression = "H.Id DESC";
+//                if (options?.sort != null && options.sort.Count > 0)
+//                {
+//                    sortExpression = options.sort[0].field + " " + options.sort[0].dir;
+//                }
+
+//                 🔥 FIX: inject companyId directly
+//                string companyCondition = $" AND H.CompanyId = {companyId} "; //this
+
+//                string sqlQuery = $@"
+
+//-- =========================
+//-- COUNT QUERY
+//-- =========================
+// SELECT COUNT(DISTINCT H.Id) AS totalcount
+//FROM CustomerGroups H 
+
+//WHERE H.IsArchive <> 1
+//{companyCondition}
+//{filterCondition}
+
+
+//-- =========================
+//-- DATA QUERY
+//-- =========================
+//SELECT *
+//FROM
+//(
+//    SELECT
+//        ROW_NUMBER() OVER(ORDER BY {sortExpression}) AS rowindex,
+
+//                    ISNULL(H.Id,0)	Id
+//		            ,ISNULL(H.Code,'') Code
+//		            ,ISNULL(H.Name,'') Name
+//                    ,ISNULL(H. Description, '') AS  Description
+//                    ,ISNULL(H.Comments, '') AS Comments
+//		            ,ISNULL(H.IsArchive,0)	IsArchive
+//		            ,ISNULL(H.IsActive,0)	IsActive
+//		            ,CASE WHEN ISNULL(H.IsActive,0) = 1 THEN 'Active' ELSE 'Inactive'	END Status
+//		            ,ISNULL(H.CreatedBy,'') CreatedBy
+//		            ,ISNULL(H.LastModifiedBy,'') LastModifiedBy
+//		            ,ISNULL(FORMAT(H.CreatedOn,'yyyy-MM-dd HH:mm'),'1900-01-01') CreatedOn
+//		            ,ISNULL(FORMAT(H.LastModifiedOn,'yyyy-MM-dd HH:mm'),'1900-01-01') LastModifiedOn
+
+//		            FROM CustomerGroups H 
+
+//    WHERE H.IsArchive <> 1
+//    {companyCondition}
+//    {filterCondition}
+
+//) A
+//WHERE A.rowindex > @skip
+//AND (@take = 0 OR A.rowindex <= @take);
+//";
+
+//                var data = KendoGrid<CustomerGroupVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+
+//                result.Status = "Success";
+//                result.Message = "Data retrieved successfully.";
+//                result.DataVM = data;
+
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                result.Status = "Fail";
+//                result.Message = ex.Message;
+//                result.ExMessage = ex.ToString();
+//                return result;
+//            }
+//            finally
+//            {
+//                if (isNewConnection && conn != null)
+//                {
+//                    conn.Close();
+//                    conn.Dispose();
+//                }
+//            }
+//        }
 
 
 
