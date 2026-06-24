@@ -51,6 +51,7 @@ namespace ShampanPOS.ViewModel
         public string? LastUpdateFrom { get; set; }
         public string? Status { get; set; }
         public int? BranchId { get; set; }
+        public int? CompanyId { get; set; }
 
     }
 }
