@@ -499,110 +499,109 @@ ORDER BY Name";
             }
         }
         // GetGridData Method
-//        public async Task<ResultVM> GetGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues, SqlConnection conn = null, SqlTransaction transaction = null)
-//        {
-//            bool isNewConnection = false;
-//            DataTable dataTable = new DataTable();
-//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //        public async Task<ResultVM> GetGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues, SqlConnection conn = null, SqlTransaction transaction = null)
+        //        {
+        //            bool isNewConnection = false;
+        //            DataTable dataTable = new DataTable();
+        //            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
 
-//            try
-//            {
-//                if (conn == null)
-//                {
-//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-//                    conn.Open();
-//                    isNewConnection = true;
-//                }
+        //            try
+        //            {
+        //                if (conn == null)
+        //                {
+        //                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //                    conn.Open();
+        //                    isNewConnection = true;
+        //                }
 
-//                var data = new GridEntity<BankAccountVM>();
+        //                var data = new GridEntity<BankAccountVM>();
 
-//                string sqlQuery = @"
-//    -- Count query
-//    SELECT COUNT(DISTINCT H.Id) AS totalcount
-//        FROM BankAccounts H 
-//		LEFT OUTER JOIN BankInformations b on H.BankId = b.Id
-//        WHERE H.IsArchive != 1 ";
+        //                string sqlQuery = @"
+        //    -- Count query
+        //    SELECT COUNT(DISTINCT H.Id) AS totalcount
+        //        FROM BankAccounts H 
+        //		LEFT OUTER JOIN BankInformations b on H.BankId = b.Id
+        //        WHERE H.IsArchive != 1 ";
 
-//                sqlQuery = sqlQuery + (options.filter.Filters.Count > 0 ?
-//                    " AND (" + GridQueryBuilder<BankAccountVM>.FilterCondition(options.filter) + ")" : "");
+        //                sqlQuery = sqlQuery + (options.filter.Filters.Count > 0 ?
+        //                    " AND (" + GridQueryBuilder<BankAccountVM>.FilterCondition(options.filter) + ")" : "");
 
-//                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+        //                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
 
-//                sqlQuery += @"
+        //                sqlQuery += @"
 
-//    -- Data query with pagination and sorting
-//    SELECT * 
-//    FROM (
-//        SELECT 
-//        ROW_NUMBER() OVER(ORDER BY " +
-//                                        (options.sort.Count > 0 ?
-//                                            options.sort[0].field + " " + options.sort[0].dir :
-//                                            "H.Id DESC ") + @") AS rowindex,
-        
-
-//        ISNULL(H.Id, 0) AS Id,
-//		ISNULL(H.BankId, 0) AS BankId,
-//		ISNULL(b.Name, '' ) AS BankName,
-//		ISNULL(H.AccountName, '') AS AccountName,
-//		ISNULL(H.BranchName, '') AS BranchName,
-//		ISNULL(H.AccountNo, '') AS AccountNo,
-//		ISNULL(H.Comments, '') AS Comments,
-//		ISNULL(H.IsArchive, 0) AS IsArchive,
-//		ISNULL(H.IsCash, 0) AS IsCash,   
-//		ISNULL(H.IsActive, 0) AS IsActive, 
-//        CASE WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Yes' ELSE 'No' END AS Status,
-//        ISNULL(H.CreatedBy, '') AS CreatedBy,
-//        ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
-//        ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS CreatedOn,
-//        ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS LastModifiedOn,
-//        ISNULL(H.CreatedFrom, '') AS CreatedFrom,
-//        ISNULL(H.LastUpdateFrom, '') AS LastUpdateFrom
-
-//        FROM BankAccounts H 
-//		LEFT OUTER JOIN BankInformations b on H.BankId = b.Id
-//        WHERE H.IsArchive != 1";
-
-//                sqlQuery = sqlQuery + (options.filter.Filters.Count > 0 ?
-//                    " AND (" + GridQueryBuilder<BankAccountVM>.FilterCondition(options.filter) + ")" : "");
-
-//                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
-
-//                sqlQuery += @"
-//    ) AS a
-//    WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
-//";
+        //    -- Data query with pagination and sorting
+        //    SELECT * 
+        //    FROM (
+        //        SELECT 
+        //        ROW_NUMBER() OVER(ORDER BY " +
+        //                                        (options.sort.Count > 0 ?
+        //                                            options.sort[0].field + " " + options.sort[0].dir :
+        //                                            "H.Id DESC ") + @") AS rowindex,
 
 
+        //        ISNULL(H.Id, 0) AS Id,
+        //		ISNULL(H.BankId, 0) AS BankId,
+        //		ISNULL(b.Name, '' ) AS BankName,
+        //		ISNULL(H.AccountName, '') AS AccountName,
+        //		ISNULL(H.BranchName, '') AS BranchName,
+        //		ISNULL(H.AccountNo, '') AS AccountNo,
+        //		ISNULL(H.Comments, '') AS Comments,
+        //		ISNULL(H.IsArchive, 0) AS IsArchive,
+        //		ISNULL(H.IsCash, 0) AS IsCash,   
+        //		ISNULL(H.IsActive, 0) AS IsActive, 
+        //        CASE WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Yes' ELSE 'No' END AS Status,
+        //        ISNULL(H.CreatedBy, '') AS CreatedBy,
+        //        ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
+        //        ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS CreatedOn,
+        //        ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS LastModifiedOn,
+        //        ISNULL(H.CreatedFrom, '') AS CreatedFrom,
+        //        ISNULL(H.LastUpdateFrom, '') AS LastUpdateFrom
 
-//                data = KendoGrid<BankAccountVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
-//                //data = KendoGrid<CustomerVM>.GetTransactionalGridData_CMD(options, sqlQuery, "H.Id", conditionalFields, conditionalValues);
-//                result.Status = "Success";
-//                result.Message = "Data retrieved successfully.";
-//                result.DataVM = data;
+        //        FROM BankAccounts H 
+        //		LEFT OUTER JOIN BankInformations b on H.BankId = b.Id
+        //        WHERE H.IsArchive != 1";
 
-//                return result;
-//            }
-//            catch (Exception ex)
-//            {
-//                result.ExMessage = ex.Message;
-//                result.Message = ex.Message;
-//                return result;
-//            }
-//            finally
-//            {
-//                if (isNewConnection && conn != null)
-//                {
-//                    conn.Close();
-//                }
-//            }
-//        }
+        //                sqlQuery = sqlQuery + (options.filter.Filters.Count > 0 ?
+        //                    " AND (" + GridQueryBuilder<BankAccountVM>.FilterCondition(options.filter) + ")" : "");
+
+        //                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+        //                sqlQuery += @"
+        //    ) AS a
+        //    WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
+        //";
 
 
+
+        //                data = KendoGrid<BankAccountVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+        //                //data = KendoGrid<CustomerVM>.GetTransactionalGridData_CMD(options, sqlQuery, "H.Id", conditionalFields, conditionalValues);
+        //                result.Status = "Success";
+        //                result.Message = "Data retrieved successfully.";
+        //                result.DataVM = data;
+
+        //                return result;
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                result.ExMessage = ex.Message;
+        //                result.Message = ex.Message;
+        //                return result;
+        //            }
+        //            finally
+        //            {
+        //                if (isNewConnection && conn != null)
+        //                {
+        //                    conn.Close();
+        //                }
+        //            }
+        //        }
 
 
 
 
-        public async Task<ResultVM> GetGridData(GridOptions options, SqlConnection conn = null, SqlTransaction transaction = null)
+
+        public async Task<ResultVM> GetGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
 
@@ -617,9 +616,6 @@ ORDER BY Name";
 
             try
             {
-
-                int companyId = Convert.ToInt32(options.vm.CompanyId); //this
-
                 if (conn == null)
                 {
                     conn = new SqlConnection(DatabaseHelper.GetConnectionString());
@@ -627,57 +623,36 @@ ORDER BY Name";
                     isNewConnection = true;
                 }
 
-                string filterCondition = "";
-                if (options?.filter?.Filters != null && options.filter.Filters.Count > 0)
-                {
-                    filterCondition = " AND (" +
-                        GridQueryBuilder<BankAccountVM>.FilterCondition(options.filter) +
-                        ")";
-                }
+                var data = new GridEntity<BankAccountVM>();
 
-                string sortExpression = "H.Id DESC";
-                if (options?.sort != null && options.sort.Count > 0)
-                {
-                    sortExpression = options.sort[0].field + " " + options.sort[0].dir;
-                }
-
-                // 🔥 FIX: inject companyId directly
-                string companyCondition = $" AND H.CompanyId = {companyId} "; //this
-
-                string sqlQuery = $@"
-
--- =========================
--- COUNT QUERY
--- =========================
+                // Count query
+                string sqlQuery = @"
     SELECT COUNT(DISTINCT H.Id) AS totalcount
-        FROM BankAccounts H 
-		LEFT OUTER JOIN BankInformations b on H.BankId = b.Id 
-		LEFT OUTER JOIN CompanyProfiles C ON H.CompanyId = C.Id
+        FROM BankAccounts H
+        LEFT OUTER JOIN BankInformations b ON H.BankId = b.Id
+        LEFT OUTER JOIN CompanyProfiles C ON H.CompanyId = C.Id
         LEFT OUTER JOIN BranchProfiles d ON H.BranchId = d.Id
+        WHERE H.IsArchive <> 1
+    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<BankAccountVM>.FilterCondition(options.filter) + ")" : "");
 
-WHERE H.IsArchive <> 1
-{companyCondition}
-{filterCondition}
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
 
-
--- =========================
--- DATA QUERY
--- =========================
-SELECT *
-FROM
-(
-    SELECT
-        ROW_NUMBER() OVER(ORDER BY {sortExpression}) AS rowindex,
+                // Data query
+                sqlQuery += @"
+    SELECT *
+    FROM (
+        SELECT
+        ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC") + @") AS rowindex,
 
         ISNULL(H.Id, 0) AS Id,
-		ISNULL(H.BankId, 0) AS BankId,
-		ISNULL(b.Name, '' ) AS BankName,
-		ISNULL(H.AccountName, '') AS AccountName,
-		ISNULL(H.AccountNo, '') AS AccountNo,
-		ISNULL(H.Comments, '') AS Comments,
-		ISNULL(H.IsArchive, 0) AS IsArchive,
-		ISNULL(H.IsCash, 0) AS IsCash,   
-		ISNULL(H.IsActive, 0) AS IsActive, 
+        ISNULL(H.BankId, 0) AS BankId,
+        ISNULL(b.Name, '') AS BankName,
+        ISNULL(H.AccountName, '') AS AccountName,
+        ISNULL(H.AccountNo, '') AS AccountNo,
+        ISNULL(H.Comments, '') AS Comments,
+        ISNULL(H.IsArchive, 0) AS IsArchive,
+        ISNULL(H.IsCash, 0) AS IsCash,
+        ISNULL(H.IsActive, 0) AS IsActive,
         CASE WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Yes' ELSE 'No' END AS Status,
         ISNULL(H.CreatedBy, '') AS CreatedBy,
         ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
@@ -685,27 +660,27 @@ FROM
         ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS LastModifiedOn,
         ISNULL(H.CreatedFrom, '') AS CreatedFrom,
         ISNULL(H.LastUpdateFrom, '') AS LastUpdateFrom,
-		ISNULL(H.CompanyId, 0) AS CompanyId,
-	    ISNULL(C.CompanyName, '') AS CompanyName,
-
+        ISNULL(H.CompanyId, 0) AS CompanyId,
+        ISNULL(C.CompanyName, '') AS CompanyName,
         ISNULL(H.BranchId, 0) AS BranchId,
         ISNULL(d.Name, '') AS BranchName
 
-        FROM BankAccounts H 
-		LEFT OUTER JOIN BankInformations b on H.BankId = b.Id 
-		LEFT OUTER JOIN CompanyProfiles C ON H.CompanyId = C.Id
+        FROM BankAccounts H
+        LEFT OUTER JOIN BankInformations b ON H.BankId = b.Id
+        LEFT OUTER JOIN CompanyProfiles C ON H.CompanyId = C.Id
         LEFT OUTER JOIN BranchProfiles d ON H.BranchId = d.Id
 
-    WHERE H.IsArchive <> 1
-    {companyCondition}
-    {filterCondition}
+        WHERE H.IsArchive <> 1
+    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<BankAccountVM>.FilterCondition(options.filter) + ")" : "");
 
-) A
-WHERE A.rowindex > @skip
-AND (@take = 0 OR A.rowindex <= @take);
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+                sqlQuery += @"
+    ) AS a
+    WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
 ";
 
-                var data = KendoGrid<BankAccountVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+                data = KendoGrid<BankAccountVM>.GetTransactionalGridData_CMD(options, sqlQuery, "H.Id", conditionalFields, conditionalValues);
 
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";
@@ -715,9 +690,8 @@ AND (@take = 0 OR A.rowindex <= @take);
             }
             catch (Exception ex)
             {
-                result.Status = "Fail";
+                result.ExMessage = ex.Message;
                 result.Message = ex.Message;
-                result.ExMessage = ex.ToString();
                 return result;
             }
             finally
@@ -725,12 +699,9 @@ AND (@take = 0 OR A.rowindex <= @take);
                 if (isNewConnection && conn != null)
                 {
                     conn.Close();
-                    conn.Dispose();
                 }
             }
         }
-
-
 
 
 
