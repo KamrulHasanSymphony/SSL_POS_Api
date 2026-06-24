@@ -546,8 +546,7 @@ ORDER BY Name";
 
 
 
-                data = KendoGrid<OverHeadVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
-                //data = KendoGrid<CustomerVM>.GetTransactionalGridData_CMD(options, sqlQuery, "H.Id", conditionalFields, conditionalValues);
+                data = KendoGrid<OverHeadVM>.GetTransactionalGridData_CMD(options, sqlQuery, "H.Id", conditionalFields, conditionalValues);
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";
                 result.DataVM = data;
