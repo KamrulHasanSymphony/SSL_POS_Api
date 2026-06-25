@@ -2922,8 +2922,6 @@ SELECT
         //}
 
 
-
-
         public async Task<ResultVM> ReportList(string[] conditionalFields, string[] conditionalValues, SaleOrderReportVM vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
@@ -2970,7 +2968,8 @@ WHERE 1=1
 AND S.OrderDate >= @fromDate
 AND S.OrderDate <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+AND (@ProductId = 0 OR SD.ProductId = @ProductId) "
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
 GROUP BY CAST(S.OrderDate AS DATE), S.CompanyId, S.BranchId, C.CompanyName, B.Name
 ORDER BY CAST(S.OrderDate AS DATE)";
                             break;
@@ -2995,7 +2994,8 @@ WHERE 1=1
 AND S.OrderDate >= @fromDate
 AND S.OrderDate <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+AND (@ProductId = 0 OR SD.ProductId = @ProductId) "
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
 GROUP BY 
 YEAR(S.OrderDate),
 MONTH(S.OrderDate),
@@ -3035,7 +3035,8 @@ WHERE 1=1
     AND S.OrderDate >= @fromDate
     AND S.OrderDate <= @toDate
     AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-    AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+    AND (@ProductId = 0 OR SD.ProductId = @ProductId) "
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
 GROUP BY 
     C.Id, 
     C.Name, 
@@ -3071,7 +3072,8 @@ WHERE 1=1
 AND S.OrderDate >= @fromDate
 AND S.OrderDate <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId) -- Product Filter
+AND (@ProductId = 0 OR SD.ProductId = @ProductId) -- Product Filter "
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
 GROUP BY P.Id, P.Name, S.CompanyId, S.BranchId, Co.CompanyName, B.Name
 ORDER BY LineTotal DESC";
                             break;
@@ -3100,7 +3102,8 @@ WHERE 1=1
 AND S.OrderDate >= @fromDate
 AND S.OrderDate <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+AND (@ProductId = 0 OR SD.ProductId = @ProductId) "
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
 GROUP BY S.Code, S.OrderDate, C.Name, S.CompanyId, S.BranchId, Co.CompanyName, B.Name
 ORDER BY S.OrderDate";
                             break;
@@ -3131,7 +3134,8 @@ WHERE 1=1
     AND S.OrderDate >= @fromDate
     AND S.OrderDate <= @toDate
     AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-    AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+    AND (@ProductId = 0 OR SD.ProductId = @ProductId) "
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
 GROUP BY 
     S.Code, 
     S.OrderDate, 
@@ -3170,7 +3174,8 @@ WHERE 1=1
 AND S.OrderDate >= @fromDate
 AND S.OrderDate <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+AND (@ProductId = 0 OR SD.ProductId = @ProductId) "
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
 GROUP BY S.Code, S.OrderDate, C.Name, S.CompanyId, S.BranchId, Co.CompanyName, B.Name, P.Name
 ORDER BY S.OrderDate";
                             break;
@@ -3208,7 +3213,8 @@ WHERE 1=1
 AND S.OrderDate >= @fromDate
 AND S.OrderDate <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+AND (@ProductId = 0 OR SD.ProductId = @ProductId) "
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
 ORDER BY S.OrderDate";
                             break;
 
@@ -3234,7 +3240,8 @@ WHERE 1=1
 AND S.OrderDate >= @fromDate
 AND S.OrderDate <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+AND (@ProductId = 0 OR SD.ProductId = @ProductId) "
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
 ORDER BY 
 YEAR(S.OrderDate),
 MONTH(S.OrderDate)";
@@ -3268,7 +3275,8 @@ WHERE 1=1
 AND S.OrderDate >= @fromDate
 AND S.OrderDate <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
+AND (@ProductId = 0 OR SD.ProductId = @ProductId) "
++ ApplyConditions("", conditionalFields, conditionalValues, false);
                             break;
 
 
@@ -3298,7 +3306,8 @@ WHERE 1=1
 AND S.OrderDate >= @fromDate
 AND S.OrderDate <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
+AND (@ProductId = 0 OR SD.ProductId = @ProductId) "
++ ApplyConditions("", conditionalFields, conditionalValues, false);
                             break;
 
                         case "Invoice Wise": // Invoice-wise Details
@@ -3328,7 +3337,8 @@ WHERE 1=1
 AND S.OrderDate >= @fromDate
 AND S.OrderDate <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
+AND (@ProductId = 0 OR SD.ProductId = @ProductId) "
++ ApplyConditions("", conditionalFields, conditionalValues, false);
                             break;
 
                         case "Sale Order List": // Sale Order List Details
@@ -3361,7 +3371,8 @@ WHERE 1=1
     AND S.OrderDate >= @fromDate
     AND S.OrderDate <= @toDate
     AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-    AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+    AND (@ProductId = 0 OR SD.ProductId = @ProductId) "
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
 ORDER BY S.OrderDate, S.Code, SD.Line";
                             break;
 
@@ -3396,7 +3407,8 @@ WHERE 1=1
 AND S.OrderDate >= @fromDate
 AND S.OrderDate <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
+AND (@ProductId = 0 OR SD.ProductId = @ProductId) "
++ ApplyConditions("", conditionalFields, conditionalValues, false);
                             break;
 
                         default:
@@ -3423,8 +3435,9 @@ INNER JOIN BranchProfiles B ON S.BranchId = B.Id
 INNER JOIN Products P ON SD.ProductId = P.Id 
 WHERE S.OrderDate >= @fromDate
 AND S.OrderDate <= @toDate
-AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
+AND ( S.CustomerId = @CustomerId)
+AND ( SD.ProductId = @ProductId) "
++ ApplyConditions("", conditionalFields, conditionalValues, false);
                             break;
                     }
                 }
@@ -3434,10 +3447,6 @@ AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
                 {
                     query += " WHERE 1=1 ";
                 }
-
-                // Apply additional conditions
-                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
-                //query = ApplyConditions(query, conditionalFields, conditionalValues, false);
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
 
@@ -3460,7 +3469,7 @@ AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
                     //Code = row.Field<string>("SaleCode"),
                     //CustomerName = row.Field<string>("CustomerName"),
 
-                    Code = dataTable.Columns.Contains("SaleOrderCode")? row["SaleOrderCode"]?.ToString(): "",
+                    Code = dataTable.Columns.Contains("SaleOrderCode") ? row["SaleOrderCode"]?.ToString() : "",
                     CustomerName = dataTable.Columns.Contains("CustomerName") ? row["CustomerName"]?.ToString() : "",
                     ProductName = dataTable.Columns.Contains("ProductName") ? row.Field<string>("ProductName") : "",
                     BranchId = Convert.ToInt32(row["BranchId"]),
@@ -3468,8 +3477,8 @@ AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
                     BranchName = row.Field<string>("BranchName"),
                     CompanyName = row.Field<string>("CompanyName"),
                     //OrderDate = dataTable.Columns.Contains("OrderDate")? row["OrderDate"]?.ToString(): "",
-                    OrderDate = dataTable.Columns.Contains("OrderDate")? row["OrderDate"]?.ToString(): dataTable.Columns.Contains("MonthYear")
-                    ? row["MonthYear"]?.ToString(): "",
+                    OrderDate = dataTable.Columns.Contains("OrderDate") ? row["OrderDate"]?.ToString() : dataTable.Columns.Contains("MonthYear")
+                    ? row["MonthYear"]?.ToString() : "",
                     //Quantity = row.Field<decimal?>("Quantity") ?? 0.0m,
                     Quantity = dataTable.Columns.Contains("Quantity")
                     ? row.Field<decimal?>("Quantity") ?? 0.0m
@@ -3501,7 +3510,7 @@ AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
                     ? row.Field<decimal?>("LineTotal") ?? 0.0m
                     : 0.0m
 
-                    
+
                 }).ToList();
 
                 result.Status = "Success";
@@ -3523,9 +3532,6 @@ AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
                 }
             }
         }
-
-
-
 
 
     }

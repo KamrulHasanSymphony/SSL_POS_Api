@@ -1063,7 +1063,7 @@ namespace ShampanPOS.Service
                         throw new Exception("Product group name is required.");
 
                     // Check if group exists
-                    var groupResult = await productGroupService.grouplist(new[] { "M.Name" },new[] { groupName }, null);
+                    var groupResult = await productGroupService.grouplist(new[] { "M.Name","M.CompanyId" },new[]{ groupName,product.CompanyId.ToString() }, null);
 
                     ProductGroupVM productGroupVM =
                         groupResult?.Status == "Success" && groupResult.DataVM is List<ProductGroupVM> list && list.Any()? list.First() : null;

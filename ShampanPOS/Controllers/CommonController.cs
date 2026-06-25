@@ -1387,33 +1387,41 @@ namespace ShampanPOS.Controllers
 
 
 
-
-
-
-
         [HttpPost("GetItemList")]
         public async Task<ResultVM> GetItemList(CommonVM vm)
         {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            ResultVM resultVM = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                Id = "0",
+                DataVM = null
+            };
 
             try
             {
                 List<string> conditionFields = new List<string>
-                    {
-                        "H.MasterItemGroupId"
-                    };
+        {
+            "H.MasterItemGroupId"
+        };
 
                 List<string> conditionValues = new List<string>
-                    {
-                        vm.Value?.ToString() ?? "0"
-                    };
+        {
+            vm?.Value?.ToString() ?? "0"
+        };
 
                 string[] finalConditionFields = conditionFields.ToArray();
                 string[] finalConditionValues = conditionValues.ToArray();
 
                 CommonService commonService = new CommonService();
 
-                resultVM = await commonService.GetItemList(finalConditionFields, finalConditionValues, null);
+                // 🔥 FIX: vm PASS করা বাধ্যতামূলক
+                resultVM = await commonService.GetItemList(
+                    finalConditionFields,
+                    finalConditionValues,
+                    vm
+                );
 
                 return resultVM;
             }
@@ -1428,6 +1436,52 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
+
+
+
+
+
+
+
+
+
+        //[HttpPost("GetItemList")]
+        //public async Task<ResultVM> GetItemList(CommonVM vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+        //    try
+        //    {
+        //        List<string> conditionFields = new List<string>
+        //            {
+        //                "H.MasterItemGroupId"
+        //            };
+
+        //        List<string> conditionValues = new List<string>
+        //            {
+        //                vm.Value?.ToString() ?? "0"
+        //            };
+
+        //        string[] finalConditionFields = conditionFields.ToArray();
+        //        string[] finalConditionValues = conditionValues.ToArray();
+
+        //        CommonService commonService = new CommonService();
+
+        //        resultVM = await commonService.GetItemList(finalConditionFields, finalConditionValues, null);
+
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
 
 
 

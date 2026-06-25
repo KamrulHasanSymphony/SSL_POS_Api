@@ -112,8 +112,16 @@ namespace ShampanPOS.Service
                 transaction = conn.BeginTransaction();
 
                 #region Check Exist Data
-                string[] conditionField = { "Name" };
-                string[] conditionValue = { productGroup.Name.Trim() };
+                //string[] conditionField = { "Name" };
+                //string[] conditionValue = { productGroup.Name.Trim() };
+
+                //string[] conditionField = { "Id not", "CompanyId" };
+                //string[] conditionValue = { productGroup.Id.ToString(), productGroup.CompanyId.ToString().Trim() };
+
+
+                string[] conditionField = { "Name", "CompanyId" };
+                string[] conditionValue = { productGroup.Name.Trim(), productGroup.CompanyId.ToString() };
+
 
                 bool exist = _commonRepo.CheckExists("ProductGroups", conditionField, conditionValue, conn, transaction);
 
