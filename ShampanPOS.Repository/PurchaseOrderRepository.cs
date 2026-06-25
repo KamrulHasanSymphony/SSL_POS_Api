@@ -1901,6 +1901,7 @@ WHERE  1 = 1 ";
 
             try
             {
+
                 if (conn == null)
                 {
                     conn = new SqlConnection(DatabaseHelper.GetConnectionString());
@@ -1932,6 +1933,7 @@ SELECT
     ISNULL(M.LastModifiedBy, '') AS LastModifiedBy,
     ISNULL(FORMAT(M.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
 	ISNULL(Br.Name,'') BranchName,
+	ISNULL(Br.Address,'') BranchAddress,
     ISNULL(CP.CompanyName,'') CompanyName
     
 FROM 
@@ -1956,6 +1958,8 @@ WHERE  1 = 1
                 // SET additional conditions param
                 objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValue);
 
+
+
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
                 {
                     objComm.SelectCommand.Parameters.AddWithValue("@Id", vm.Id);
@@ -1973,6 +1977,7 @@ WHERE  1 = 1
                         Code = row["Code"].ToString(),
                         BranchId = Convert.ToInt32(row["BranchId"]),
                         BranchName = row.Field<string>("BranchName"),
+                        BranchAddress = row.Field<string>("BranchAddress"),
                         CompanyId = Convert.ToInt32(row["CompanyId"]),
                         CompanyName = Convert.ToString(row["CompanyName"]),
                         SupplierId = Convert.ToInt32(row["SupplierId"]),
@@ -2003,15 +2008,7 @@ WHERE  1 = 1
                 result.Message = ex.Message;
                 return result;
             }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
-            }
         }
-
 
         //        public async Task<ResultVM> ReportList(string[] conditionalFields, string[] conditionalValues, PurchaseOrderReportVM vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         //        {

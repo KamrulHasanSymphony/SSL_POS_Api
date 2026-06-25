@@ -318,7 +318,7 @@ namespace ShampanPOS.Service
             }
         }
 
-        public async Task<ResultVM> GetGridData(GridOptions options)
+        public async Task<ResultVM> GetGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues)
         {
             CustomerGroupRepository _repo = new CustomerGroupRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
@@ -334,7 +334,7 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                result = await _repo.GetGridData(options, conn, transaction);
+                result = await _repo.GetGridData(options, conditionalFields, conditionalValues, conn, transaction);
 
                 if (isNewConnection && result.Status == "Success")
                 {

@@ -649,6 +649,8 @@ ORDER BY Name";
 -- =========================
 SELECT COUNT(DISTINCT H.Id) AS totalcount
 FROM SupplierGroups H
+LEFT OUTER JOIN CompanyProfiles C ON H.CompanyId = C.Id
+LEFT OUTER JOIN BranchProfiles B ON H.BranchId = B.Id
 
 WHERE H.IsArchive <> 1
 {companyCondition}
@@ -675,8 +677,15 @@ FROM
                     ISNULL(H.CreatedBy, '') AS CreatedBy,
                     ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
                     ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS CreatedOn,
-                    ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS LastModifiedOn
+                    ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS LastModifiedOn,
+                    ISNULL(H.CompanyId, 0) AS CompanyId,
+                    ISNULL(C.CompanyName, '') AS CompanyName,
+                    ISNULL(H.BranchId, 0) AS BranchId,
+                    ISNULL(B.Name, '') AS BranchName
+
                     FROM SupplierGroups H 
+                    LEFT OUTER JOIN CompanyProfiles C ON H.CompanyId = C.Id
+                    LEFT OUTER JOIN BranchProfiles B ON H.BranchId = B.Id
 
     WHERE H.IsArchive <> 1
     {companyCondition}

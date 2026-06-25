@@ -39,13 +39,12 @@ namespace ShampanPOS.Repository
 INSERT INTO Withdrawals
 (
      Code, TransactionDate,Reference, FromBankAccountId, ChequeNo,ChequeBankName, ChequeDate,ToBankAccountId,IsCash,TotalDepositAmount,
-    Comments, IsArchive, IsActive, CreatedBy, CreatedOn,CreatedFrom,
- BranchId
+    Comments, IsArchive, IsActive, CreatedBy, CreatedOn,CreatedFrom,BranchId ,CompanyId
 )
 VALUES
 (
     @Code, @TransactionDate, @Reference,@FromBankAccountId, @ChequeNo,@ChequeBankName, @ChequeDate,@ToBankAccountId,@IsCash, @TotalDepositAmount,@Comments,
-     @IsArchive, @IsActive, @CreatedBy, GETDATE(),@CreatedFrom,@BranchId 
+     @IsArchive, @IsActive, @CreatedBy, GETDATE(),@CreatedFrom,@BranchId ,@CompanyId 
 );
 SELECT SCOPE_IDENTITY();";
 
@@ -67,6 +66,7 @@ SELECT SCOPE_IDENTITY();";
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy);
                     cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
 
                     vm.Id = Convert.ToInt32(cmd.ExecuteScalar());
 
@@ -590,8 +590,8 @@ WHERE M.IsArchive != 1";
 
 
 
-                data = KendoGrid<WithdrawalVM>.GetGridData_CMD(options, sqlQuery, "M.Id");
-                //data = KendoGrid<CustomerVM>.GetTransactionalGridData_CMD(options, sqlQuery, "H.Id", conditionalFields, conditionalValues);
+                //data = KendoGrid<WithdrawalVM>.GetGridData_CMD(options, sqlQuery, "M.Id");
+                data = KendoGrid<WithdrawalVM>.GetTransactionalGridData_CMD(options, sqlQuery, "H.Id", conditionalFields, conditionalValues);
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";
                 result.DataVM = data;
