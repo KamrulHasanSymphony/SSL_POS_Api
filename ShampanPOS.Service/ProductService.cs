@@ -1101,7 +1101,7 @@ namespace ShampanPOS.Service
                             continue;
 
                         // Check duplicate
-                        if (_repo.Exists(productName, conn, transaction))
+                        if (_repo.Exists(productName, product.CompanyId.Value, conn, transaction))
                         {
                             skippedCount++;
                             continue;
@@ -1118,6 +1118,8 @@ namespace ShampanPOS.Service
                             Code = string.IsNullOrWhiteSpace(item.Code)
                                 ? _commonRepo.CodeGenerationNo("Product", "Product", conn, transaction)
                                 : item.Code,
+
+                            BarCode = string.IsNullOrWhiteSpace(item.BarCode)? item.Code: item.BarCode,
 
                             ProductGroupId = productGroupVM.Id,
 

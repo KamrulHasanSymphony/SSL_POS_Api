@@ -119,8 +119,6 @@ namespace ShampanPOS.Controllers
 
 
 
-
-
         // POST: api/SaleOrder/OrderList
         [HttpPost("OrderList")]
         public async Task<ResultVM> OrderList(CommonVM vm)
@@ -144,8 +142,6 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
-
-
 
 
 
@@ -244,6 +240,8 @@ namespace ShampanPOS.Controllers
         //    }
         //}
 
+
+
         [HttpPost("GetGridData")]
         public async Task<ResultVM> GetGridData(GridOptions options)
         {
@@ -288,6 +286,9 @@ namespace ShampanPOS.Controllers
             }
         }
 
+
+
+
         [HttpPost("GetOrderNoWiseGridData")]
         public async Task<ResultVM> GetOrderNoWiseGridData(GridOptions options)
         {
@@ -310,8 +311,6 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
-
-
 
 
 

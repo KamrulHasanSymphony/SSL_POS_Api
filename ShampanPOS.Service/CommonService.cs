@@ -2020,7 +2020,11 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                result = await _repo.GetItemList(conditionalFields, conditionalValues, vm, conn, transaction);
+                int companyId = Convert.ToInt32(vm?.CompanyId ?? "0");
+
+
+
+                result = await _repo.GetItemList(companyId,conditionalFields, conditionalValues, vm, conn, transaction);
 
                 if (isNewConnection && result.Status == "Success")
                 {

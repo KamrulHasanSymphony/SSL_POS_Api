@@ -218,15 +218,40 @@ namespace ShampanPOS.Controllers
             }
         }
 
-        // POST: api/Purchase/GetGridData
+
+
+
+
         [HttpPost("GetGridData")]
         public async Task<ResultVM> GetGridData(GridOptions options)
         {
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
+
+                List<string> conditionFields = new List<string>
+         {
+            "H.CompanyId",
+             "H.BranchId",
+             "H.TransactionDate between",
+             "H.TransactionDate between"
+         };
+
+                List<string> conditionValues = new List<string>
+         {
+             options.vm.CompanyId.ToString(),
+             options.vm.BranchId.ToString(),
+             options.vm.FromDate.ToString(),
+             options.vm.ToDate.ToString()
+         };
+
+                string[] finalConditionFields = conditionFields.ToArray();
+                string[] finalConditionValues = conditionValues.ToArray();
+
                 _service = new PaymentService();
-                resultVM = await _service.GetGridData(options, new[] { "" }, new[] { "" });
+                resultVM = await _service.GetGridData(options, finalConditionFields, finalConditionValues);
+
+
                 return resultVM;
             }
             catch (Exception ex)
@@ -240,6 +265,35 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
+
+
+
+
+
+
+
+        //// POST: api/Purchase/GetGridData
+        //[HttpPost("GetGridData")]
+        //public async Task<ResultVM> GetGridData(GridOptions options)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        _service = new PaymentService();
+        //        resultVM = await _service.GetGridData(options, new[] { "" }, new[] { "" });
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = ex.Message,
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
 
 
         // POST: api/Purchase/GetDetailsGridData

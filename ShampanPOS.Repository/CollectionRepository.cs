@@ -773,6 +773,8 @@ WHERE 1 = 1 ";
                 FROM Collections H
                 LEFT OUTER JOIN Customers s on h.CustomerId = s.Id
 				LEFT OUTER JOIN BankAccounts e on h.BankAccountId= e.AccountNo
+				LEFT OUTER JOIN BranchProfiles BR ON H.BranchId = BR.Id
+                LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
 
                 WHERE 1 = 1
             -- Add the filter condition
@@ -810,13 +812,20 @@ WHERE 1 = 1 ";
 				ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
 				ISNULL(H.CreatedFrom, '') AS CreatedFrom,
 				ISNULL(H.LastUpdateFrom, '') AS LastUpdateFrom , 
-                ISNULL(S.Name,'') SupplierName
+                ISNULL(S.Name,'') SupplierName,
+				ISNULL(H.BranchId, 0) AS BranchId,
+				ISNULL(BR.Name, '-') AS BranchName,
+				ISNULL(CP.CompanyName, '') AS CompanyName,
+				ISNULL(H.CompanyId, 0) AS CompanyId
+
 
 
 
                 FROM Collections H
                 LEFT OUTER JOIN Customers s on h.CustomerId = s.Id
 				LEFT OUTER JOIN BankAccounts e on h.BankAccountId= e.AccountNo
+				LEFT OUTER JOIN BranchProfiles BR ON H.BranchId = BR.Id
+                LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
 
                 WHERE 1 = 1
 

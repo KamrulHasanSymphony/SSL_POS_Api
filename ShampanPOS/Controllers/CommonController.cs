@@ -2,6 +2,7 @@
 using ShampanPOS.Service;
 using ShampanPOS.ViewModel;
 using ShampanPOS.ViewModel.CommonVMs;
+using ShampanPOS.ViewModel.KendoCommon;
 using System;
 using System.Data;
 using System.Threading.Tasks;
@@ -1357,14 +1358,63 @@ namespace ShampanPOS.Controllers
             }
         }
 
+        //[HttpPost("GetItemList")]
+        //public async Task<ResultVM> GetItemList(CommonVM Vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        CommonService _commonService = new CommonService();
+        //        resultVM = await _commonService.GetItemList(new[] { "H.MasterItemGroupId" }, new[] { Vm.Value.ToString() }, null);
+
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
+
+
+
+
+
+
+
+
+
+
+
         [HttpPost("GetItemList")]
-        public async Task<ResultVM> GetItemList(CommonVM Vm)
+        public async Task<ResultVM> GetItemList(CommonVM vm)
         {
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
             try
             {
-                CommonService _commonService = new CommonService();
-                resultVM = await _commonService.GetItemList(new[] { "H.MasterItemGroupId" }, new[] { Vm.Value.ToString() }, null);
+                List<string> conditionFields = new List<string>
+                    {
+                        "H.MasterItemGroupId"
+                    };
+
+                List<string> conditionValues = new List<string>
+                    {
+                        vm.Value?.ToString() ?? "0"
+                    };
+
+                string[] finalConditionFields = conditionFields.ToArray();
+                string[] finalConditionValues = conditionValues.ToArray();
+
+                CommonService commonService = new CommonService();
+
+                resultVM = await commonService.GetItemList(finalConditionFields, finalConditionValues, null);
+
                 return resultVM;
             }
             catch (Exception ex)
@@ -1378,6 +1428,15 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
+
+
+
+
+
+
+
+
+
 
         // POST: api/Common/IsMasterItemGroupMappedWithProductGroup
         //[HttpPost("IsMasterItemGroupMappedWithProductGroup")]

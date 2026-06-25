@@ -53,8 +53,12 @@ namespace ShampanPOS.Repository
                 {
                     cmd.Parameters.AddWithValue("@Code", vm.Code ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Name", vm.Name ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@BarCode", vm.BarCode ?? (object)DBNull.Value);
-
+                    //cmd.Parameters.AddWithValue("@BarCode", vm.BarCode ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@BarCode",
+    string.IsNullOrWhiteSpace(vm.BarCode)
+        ? vm.Code   // fallback
+        : vm.BarCode
+);
                     cmd.Parameters.AddWithValue("@BranchId", vm.BranchId);
                     //cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
                     cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId ?? (object)DBNull.Value);
@@ -1822,18 +1826,40 @@ WHERE 1 = 1 ";
             }
         }
 
-        public bool Exists(string name, SqlConnection conn, SqlTransaction tran)
+        //public bool Exists(string name, SqlConnection conn, SqlTransaction tran)
+        //{
+        //    string sql = @"
+        //      SELECT COUNT(1)
+        //      FROM Products
+        //      WHERE LOWER(LTRIM(RTRIM(Name))) = LOWER(LTRIM(RTRIM(@Name)))
+        //      AND IsArchive = 0
+        //   ";
+
+        //    using (SqlCommand cmd = new SqlCommand(sql, conn, tran))
+        //    {
+        //        cmd.Parameters.AddWithValue("@Name", name.Trim());
+        //        return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+        //    }
+        //}
+
+
+
+
+        public bool Exists(string name, int companyId, SqlConnection conn, SqlTransaction tran)
         {
             string sql = @"
-              SELECT COUNT(1)
-              FROM Products
-              WHERE LOWER(LTRIM(RTRIM(Name))) = LOWER(LTRIM(RTRIM(@Name)))
-              AND IsArchive = 0
-           ";
+        SELECT COUNT(1)
+        FROM Products
+        WHERE LOWER(LTRIM(RTRIM(Name))) = LOWER(LTRIM(RTRIM(@Name)))
+        AND CompanyId = @CompanyId
+        AND IsArchive = 0
+    ";
 
             using (SqlCommand cmd = new SqlCommand(sql, conn, tran))
             {
                 cmd.Parameters.AddWithValue("@Name", name.Trim());
+                cmd.Parameters.AddWithValue("@CompanyId", companyId);
+
                 return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
             }
         }

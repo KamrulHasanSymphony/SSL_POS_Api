@@ -4586,7 +4586,7 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
             }
         }
 
-        public async Task<ResultVM> GetItemList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        public async Task<ResultVM> GetItemList(int companyId, string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             DataTable dataTable = new DataTable();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
@@ -4598,39 +4598,45 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
                     throw new Exception("Database connection fail!");
                 }
                 string sqlQuery = @"
-             SELECT DISTINCT 
 
-            ISNULL(H.Id, 0) Id,
-            ISNULL(H.Code, '') Code, 
-            ISNULL(H.Name, '') Name,
-			ISNULL(H.MasterItemGroupId, 0) MasterItemGroupId,
-			ISNULL(G.Name, '') MasterItemGroupName,
-			ISNULL(G.Code, '') MasterItemGroupCode,
-			ISNULL(H.BanglaName, '') BanglaName,
-			ISNULL(H.Description, '') Description,
-			ISNULL(H.UOMId, 0) UOMId,
-			ISNULL(H.HSCodeNo, '') HSCodeNo,
-            ISNULL(H.IsActive, 0) IsActive,
-            ISNULL(H.IsArchive, 0) IsArchive,
-			ISNULL(H.CreatedBy, '') CreatedBy,
-			ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') CreatedOn,
-			ISNULL(H.LastModifiedBy, '') LastModifiedBy,
-			ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') LastModifiedOn,
-			ISNULL(H.VATRate, 0) AS VATRate,
-			ISNULL(H.SDRate, 0) AS SDRate,
+                SELECT DISTINCT 
 
-			CASE 
-				WHEN P.Id IS NULL THEN 0
-				ELSE 1
-			END AS IsAlreadyAdded
+                ISNULL(H.Id, 0) Id,
+                ISNULL(H.Code, '') Code, 
+                ISNULL(H.Name, '') Name,
+                ISNULL(H.MasterItemGroupId, 0) MasterItemGroupId,
+                ISNULL(G.Name, '') MasterItemGroupName,
+                ISNULL(G.Code, '') MasterItemGroupCode,
+                ISNULL(H.BanglaName, '') BanglaName,
+                ISNULL(H.Description, '') Description,
+                ISNULL(H.UOMId, 0) UOMId,
+                ISNULL(H.HSCodeNo, '') HSCodeNo,
+                ISNULL(H.IsActive, 0) IsActive,
+                ISNULL(H.IsArchive, 0) IsArchive,
+                ISNULL(H.CreatedBy, '') CreatedBy,
+                ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') CreatedOn,
+                ISNULL(H.LastModifiedBy, '') LastModifiedBy,
+                ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') LastModifiedOn,
+                ISNULL(H.VATRate, 0) AS VATRate,
+                ISNULL(H.SDRate, 0) AS SDRate,
 
-            FROM MasterItem H
-			LEFT JOIN MasterItemGroup G ON H.MasterItemGroupId = G.Id
-		    LEFT JOIN Products P ON P.Name = H.Name
-            Where 1=1
-            And H.IsActive = 1
+                CASE 
+                    WHEN P.Id IS NULL THEN 0
+                    ELSE 1
+                END AS IsAlreadyAdded
 
-             ";
+                FROM MasterItem H
+
+                LEFT JOIN MasterItemGroup G 
+                    ON H.MasterItemGroupId = G.Id
+
+                LEFT JOIN Products P 
+                    ON P.Code = H.Code 
+                    AND P.CompanyId = @CompanyId
+
+                WHERE H.IsActive = 1
+
+                             ";
 
 
                 sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
@@ -4640,7 +4646,7 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
                 // SET additional conditions param
                 objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
 
-
+                objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", companyId);
 
                 objComm.Fill(dataTable);
 
@@ -4665,9 +4671,6 @@ AND (@SupplierId = 0 OR M.SupplierId = @SupplierId)
                     VATRate = row.Field<decimal?>("VATRate") ?? 0.0m,
                     SDRate = row.Field<decimal?>("SDRate") ?? 0.0m,
                     IsAlreadyAdded = row.Field<int>("IsAlreadyAdded") == 1
-
-
-
 
 
                 }).ToList();
