@@ -1763,6 +1763,9 @@ namespace ShampanPOS.Service
                     vm.Operation = vm.IsSummary ? "SUMMARY" : "DETAILS";
                 }
 
+                var fields = new List<string> { "CompanyId" };
+                var values = new List<string> { vm.CompanyId.ToString() };
+
                 // ✅ FIXED CALL
                 result = await _repo.PurchaseOrdervsPurchaseReportList(null, null, vm, conn, transaction);
 

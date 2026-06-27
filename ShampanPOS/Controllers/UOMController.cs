@@ -165,8 +165,22 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
+                List<string> conditionFields = new List<string>
+                 {
+                    "H.CompanyId"
+                 };
+
+                List<string> conditionValues = new List<string>
+                 {
+                     options.vm.CompanyId.ToString(),
+                 };
+
+                string[] finalConditionFields = conditionFields.ToArray();
+                string[] finalConditionValues = conditionValues.ToArray();
+
+
                 _uomService = new UOMService();
-                resultVM = await _uomService.GetGridData(options);
+                resultVM = await _uomService.GetGridData(options, finalConditionFields, finalConditionValues);
                 return resultVM;
             }
             catch (Exception ex)

@@ -36,11 +36,11 @@ namespace ShampanPOS.Repository
                 string query = @"
 INSERT INTO UOMs 
 (
- Name, Code, IsArchive, IsActive, CreatedBy, CreatedOn, CreatedFrom
+ Name, Code, IsArchive, IsActive, CreatedBy, CreatedOn, CreatedFrom,CompanyId
 )
 VALUES 
 (
- @Name, @Code, @IsArchive, @IsActive, @CreatedBy, @CreatedOn, @CreatedFrom
+ @Name, @Code, @IsArchive, @IsActive, @CreatedBy, @CreatedOn, @CreatedFrom, @CompanyId
 );
 SELECT SCOPE_IDENTITY();";
 
@@ -53,6 +53,7 @@ SELECT SCOPE_IDENTITY();";
                     cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy);
                     cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
                     cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
 
                     vm.Id = Convert.ToInt32(cmd.ExecuteScalar());
 
@@ -117,7 +118,9 @@ SET
  IsActive = @IsActive, 
  LastModifiedBy = @LastModifiedBy, 
  LastModifiedOn = GETDATE(), 
- LastUpdateFrom = @LastUpdateFrom
+ LastUpdateFrom = @LastUpdateFrom,
+ CompanyId = @CompanyId
+
 WHERE Id = @Id";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
@@ -129,6 +132,7 @@ WHERE Id = @Id";
                     cmd.Parameters.AddWithValue("@IsActive", vm.IsActive);
                     cmd.Parameters.AddWithValue("@LastModifiedBy", vm.LastModifiedBy ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@LastUpdateFrom", vm.LastUpdateFrom ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
 
                     int rowsAffected = cmd.ExecuteNonQuery();
                     if (rowsAffected > 0)
@@ -449,7 +453,7 @@ ORDER BY Name";
             }
         }
 
-        public async Task<ResultVM> GetGridData(GridOptions options, SqlConnection conn = null, SqlTransaction transaction = null)
+        public async Task<ResultVM> GetGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();
@@ -470,11 +474,16 @@ ORDER BY Name";
                 string sqlQuery = @"
                                  -- Count query
                   SELECT COUNT(DISTINCT H.Id) AS totalcount
-				                FROM UOMs H					
-				                WHERE H.IsArchive != 1
+				  FROM UOMs H	
+                  LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id		
+				  WHERE H.IsArchive != 1
 
                   -- Add the filter condition
-                  " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<UOMVM>.FilterCondition(options.filter) + ")" : "") + @"
+                  " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<UOMVM>.FilterCondition(options.filter) + ")" : "");
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+                sqlQuery += @"
+
 
                   -- Data query with pagination and sorting
                    SELECT * 
@@ -483,26 +492,31 @@ ORDER BY Name";
                      ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC ") + @") AS rowindex
 			                ,ISNULL(H.Id,0)	Id
                             ,ISNULL(H.Code,'') Code	
-			                ,ISNULL(H.Name,'') Name				
-			                ,ISNULL(H.IsArchive,0)	IsArchive			                
-			                ,CASE WHEN ISNULL(H.IsActive,0) = 1 THEN 'Yes' ELSE 'No'	END Status
-			                ,ISNULL(H.CreatedBy,'') CreatedBy
-			                ,ISNULL(H.LastModifiedBy,'') LastModifiedBy
-			                ,ISNULL(FORMAT(H.CreatedOn,'yyyy-MM-dd HH:mm'),'1900-01-01') CreatedOn
-			                ,ISNULL(FORMAT(H.LastModifiedOn,'yyyy-MM-dd HH:mm'),'1900-01-01') LastModifiedOn				
-
-			                FROM UOMs H 
-			
-			                WHERE H.IsArchive != 1 
-
+                             ,ISNULL(H.Name,'') Name				
+                             ,ISNULL(H.IsArchive,0)	IsArchive			                
+                             ,CASE WHEN ISNULL(H.IsActive,0) = 1 THEN 'Yes' ELSE 'No'	END Status
+                             ,ISNULL(H.CreatedBy,'') CreatedBy
+                             ,ISNULL(H.LastModifiedBy,'') LastModifiedBy
+                             ,ISNULL(FORMAT(H.CreatedOn,'yyyy-MM-dd HH:mm'),'1900-01-01')   CreatedOn
+                             ,ISNULL(FORMAT(H.LastModifiedOn,'yyyy-MM-dd HH:mm'),'1900-01-  01')      LastModifiedOn   	    	    	    	
+                             ,ISNULL(H.CompanyId, 0) AS CompanyId
+                             ,ISNULL(CP.CompanyName, '') AS CompanyName
+                            
+                             FROM UOMs H 
+                             LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id		    	
+                             WHERE H.IsArchive != 1 
                   -- Add the filter condition
-                  " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<UOMVM>.FilterCondition(options.filter) + ")" : "") + @"
+                  " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<UOMVM>.FilterCondition(options.filter) + ")" : "");
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+                sqlQuery += @"
+
 
                   ) AS a
                   WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
             ";
 
-                data = KendoGrid<UOMVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+                data = KendoGrid<UOMVM>.GetTransactionalGridData_CMD(options, sqlQuery, "H.Id", conditionalFields, conditionalValues);
 
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";
