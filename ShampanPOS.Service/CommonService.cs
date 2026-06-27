@@ -497,6 +497,99 @@ namespace ShampanPOS.Service
         }
 
 
+
+
+//        public async Task<ResultVM> ProductList(
+//string[] conditionalFields,
+//string[] conditionalValues,
+//CommonVM vm = null,
+//SqlConnection conn = null,
+//SqlTransaction transaction = null)
+//        {
+//            CommonRepository _repo = new CommonRepository();
+
+//            ResultVM result = new ResultVM
+//            {
+//                Status = "Fail",
+//                Message = "Error",
+//                ExMessage = null,
+//                Id = "0",
+//                DataVM = null
+//            };
+
+//            bool isNewConnection = false;
+
+//            try
+//            {
+//                // 🔥 only create if null
+//                if (conn == null)
+//                {
+//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+//                    conn.Open();
+//                    isNewConnection = true;
+//                }
+
+//                if (transaction == null)
+//                {
+//                    transaction = conn.BeginTransaction();
+//                }
+
+//                int companyId = Convert.ToInt32(vm?.CompanyId ?? "0");
+
+//                // 🔥 FIX: CommonVM → PeramModel mapping (temporary fix)
+//                PeramModel param = new PeramModel
+//                {
+//                    CompanyId = vm?.CompanyId,
+//                    BranchId = vm?.BranchId
+//                };
+
+//                result = await _repo.ProductList(
+//                    companyId,
+//                    conditionalFields,
+//                    conditionalValues,
+//                    param,
+//                    conn,
+//                    transaction
+//                );
+
+//                if (isNewConnection && result.Status == "Success")
+//                {
+//                    transaction.Commit();
+//                }
+//                else if (isNewConnection)
+//                {
+//                    throw new Exception(result.Message);
+//                }
+
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                if (transaction != null && isNewConnection)
+//                {
+//                    transaction.Rollback();
+//                }
+
+//                result.Message = ex.Message;
+//                result.ExMessage = ex.ToString();
+
+//                return result;
+//            }
+//            finally
+//            {
+//                if (isNewConnection && conn != null)
+//                {
+//                    conn.Close();
+//                }
+//            }
+//        }
+
+
+
+
+
+
+
         public async Task<ResultVM> MasterProductList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
         {
             CommonRepository _repo = new CommonRepository();
@@ -2152,29 +2245,64 @@ namespace ShampanPOS.Service
 
 
 
-        public async Task<ResultVM> GetSupplierListByGroup(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
+        public async Task<ResultVM> GetSupplierListByGroup(
+    string[] conditionalFields,
+    string[] conditionalValues,
+    CommonVM vm = null,
+    SqlConnection conn = null,
+    SqlTransaction transaction = null)
         {
             CommonRepository _repo = new CommonRepository();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                Id = "0",
+                DataVM = null
+            };
 
             bool isNewConnection = false;
-            SqlConnection conn = null;
-            SqlTransaction transaction = null;
+
             try
             {
-                conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-                conn.Open();
-                isNewConnection = true;
+                // 🔥 only create if null
+                if (conn == null)
+                {
+                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+                    conn.Open();
+                    isNewConnection = true;
+                }
 
-                transaction = conn.BeginTransaction();
+                if (transaction == null)
+                {
+                    transaction = conn.BeginTransaction();
+                }
 
-                result = await _repo.GetSupplierListByGroup(conditionalFields, conditionalValues, vm, conn, transaction);
+                int companyId = Convert.ToInt32(vm?.CompanyId ?? "0");
+
+                // 🔥 FIX: CommonVM → PeramModel mapping (temporary fix)
+                PeramModel param = new PeramModel
+                {
+                    CompanyId = vm?.CompanyId,
+                    BranchId = vm?.BranchId
+                };
+
+                result = await _repo.GetSupplierListByGroup(
+                    companyId,
+                    conditionalFields,
+                    conditionalValues,
+                    param,
+                    conn,
+                    transaction
+                );
 
                 if (isNewConnection && result.Status == "Success")
                 {
                     transaction.Commit();
                 }
-                else
+                else if (isNewConnection)
                 {
                     throw new Exception(result.Message);
                 }
@@ -2187,8 +2315,10 @@ namespace ShampanPOS.Service
                 {
                     transaction.Rollback();
                 }
-                result.Message = ex.ToString();
+
+                result.Message = ex.Message;
                 result.ExMessage = ex.ToString();
+
                 return result;
             }
             finally
@@ -2199,6 +2329,64 @@ namespace ShampanPOS.Service
                 }
             }
         }
+
+
+
+
+
+
+
+
+
+
+
+        //public async Task<ResultVM> GetSupplierListByGroup(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
+        //{
+        //    CommonRepository _repo = new CommonRepository();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
+
+        //        transaction = conn.BeginTransaction();
+
+        //        result = await _repo.GetSupplierListByGroup(conditionalFields, conditionalValues, vm, conn, transaction);
+
+        //        if (isNewConnection && result.Status == "Success")
+        //        {
+        //            transaction.Commit();
+        //        }
+        //        else
+        //        {
+        //            throw new Exception(result.Message);
+        //        }
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+        //        result.Message = ex.ToString();
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //    finally
+        //    {
+        //        if (isNewConnection && conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //    }
+        //}
 
         public async Task<ResultVM> MasterSupplierGroupList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
         {

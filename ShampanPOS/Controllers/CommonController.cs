@@ -266,7 +266,7 @@ namespace ShampanPOS.Controllers
             try
             {
                 CommonService _commonService = new CommonService();
-                resultVM = await _commonService.ProductList( new[] { "H.ProductGroupId" }, new[] { Vm.Value }, null);
+                resultVM = await _commonService.ProductList(new[] { "H.ProductGroupId" }, new[] { Vm.Value }, null);
                 //resultVM = await _commonService.ProductList(new[] { "H.Id" }, Vm.Value, null);
                 return resultVM;
             }
@@ -281,6 +281,64 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
+
+
+
+
+        //[HttpPost("ProductList")]
+        //public async Task<ResultVM> ProductList(CommonVM vm)
+        //{
+        //    ResultVM resultVM = new ResultVM
+        //    {
+        //        Status = "Fail",
+        //        Message = "Error",
+        //        ExMessage = null,
+        //        Id = "0",
+        //        DataVM = null
+        //    };
+
+        //    try
+        //    {
+        //        List<string> conditionFields = new List<string>
+        //{
+        //    "H.ProductGroupId"
+        //};
+
+        //        List<string> conditionValues = new List<string>
+        //{
+        //    vm?.Value?.ToString() ?? "0"
+        //};
+
+        //        string[] finalConditionFields = conditionFields.ToArray();
+        //        string[] finalConditionValues = conditionValues.ToArray();
+
+        //        CommonService commonService = new CommonService();
+
+        //        resultVM = await commonService.ProductList(
+        //            finalConditionFields,
+        //            finalConditionValues,
+        //            vm
+        //        );
+
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
+
+
+
+
+
+
 
 
         // POST: api/Common/MasterProductList
@@ -1416,7 +1474,6 @@ namespace ShampanPOS.Controllers
 
                 CommonService commonService = new CommonService();
 
-                // 🔥 FIX: vm PASS করা বাধ্যতামূলক
                 resultVM = await commonService.GetItemList(
                     finalConditionFields,
                     finalConditionValues,
@@ -1559,14 +1616,68 @@ namespace ShampanPOS.Controllers
 
 
 
+        //[HttpPost("GetSupplierListByGroup")]
+        //public async Task<ResultVM> GetSupplierListByGroup(CommonVM Vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        CommonService _commonService = new CommonService();
+        //        resultVM = await _commonService.GetSupplierListByGroup(new[] { "H.MasterSupplierGroupId" }, new[] { Vm.Value.ToString() }, null);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
+
+
+
+
+
+
         [HttpPost("GetSupplierListByGroup")]
-        public async Task<ResultVM> GetSupplierListByGroup(CommonVM Vm)
+        public async Task<ResultVM> GetSupplierListByGroup(CommonVM vm)
         {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            ResultVM resultVM = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                Id = "0",
+                DataVM = null
+            };
+
             try
             {
-                CommonService _commonService = new CommonService();
-                resultVM = await _commonService.GetSupplierListByGroup(new[] { "H.MasterSupplierGroupId" }, new[] { Vm.Value.ToString() }, null);
+                List<string> conditionFields = new List<string>
+{
+    "H.MasterSupplierGroupId"
+};
+
+                List<string> conditionValues = new List<string>
+{
+    vm?.Value?.ToString() ?? "0"
+};
+
+                string[] finalConditionFields = conditionFields.ToArray();
+                string[] finalConditionValues = conditionValues.ToArray();
+
+                CommonService commonService = new CommonService();
+
+                resultVM = await commonService.GetSupplierListByGroup(
+                    finalConditionFields,
+                    finalConditionValues,
+                    vm
+                );
+
                 return resultVM;
             }
             catch (Exception ex)
@@ -1580,6 +1691,11 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
+
+
+
+
+
 
 
 

@@ -876,7 +876,7 @@ namespace ShampanPOS.Service
 
                     // Check if the group exists
                     var groupResult = await supplierGroupService.grouplist(
-                        new[] { "M.Name" }, new[] { groupName }, null);
+                        new[] { "M.Name", "M.CompanyId" }, new[] { groupName, supplier.CompanyId.ToString() }, null);
 
                     SupplierGroupVM supplierGroupVM = groupResult?.Status == "Success" && groupResult.DataVM is List<SupplierGroupVM> list && list.Any() ? list.First() : null;
 
@@ -914,7 +914,7 @@ namespace ShampanPOS.Service
                             if (string.IsNullOrWhiteSpace(supplierName))
                                 continue;
 
-                            if (_repo.Exists(supplierName, conn, transaction))
+                            if (_repo.Exists(supplierName, supplier.CompanyId.Value, conn, transaction))
                                 {
                                     skippedCount++;
                                     continue;
