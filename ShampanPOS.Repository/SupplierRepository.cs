@@ -1083,18 +1083,22 @@ WHERE 1 = 1
         }
 
 
-        public bool Exists(string name, SqlConnection conn, SqlTransaction tran)
+        public bool Exists(string name, int companyId, SqlConnection conn, SqlTransaction tran)
         {
             string sql = @"
               SELECT COUNT(1)
               FROM Suppliers
               WHERE LOWER(LTRIM(RTRIM(Name))) = LOWER(LTRIM(RTRIM(@Name)))
+              AND CompanyId = @CompanyId
+
               AND IsArchive = 0
            ";
 
             using (SqlCommand cmd = new SqlCommand(sql, conn, tran))
             {
                 cmd.Parameters.AddWithValue("@Name", name.Trim());
+                cmd.Parameters.AddWithValue("@CompanyId", companyId);
+
                 return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
             }
         }

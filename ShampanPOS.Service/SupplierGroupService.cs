@@ -37,8 +37,9 @@ namespace ShampanPOS.Service
                 transaction = conn.BeginTransaction();
 
                 #region Check Exist Data
-                string[] conditionField = { "Name" };
-                string[] conditionValue = { supplierGroup.Name.Trim() };
+                string[] conditionField = { "Name", "CompanyId" };
+                string[] conditionValue = { supplierGroup.Name.Trim(), supplierGroup.CompanyId.ToString() };
+
 
                 bool exist = _commonRepo.CheckExists("SupplierGroups", conditionField, conditionValue, conn, transaction);
 
