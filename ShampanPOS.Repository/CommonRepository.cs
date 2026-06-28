@@ -1139,7 +1139,104 @@ WHERE
             }
         }
 
-        public async Task<ResultVM> ProductList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        //     public async Task<ResultVM> ProductList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        //     {
+        //         bool isNewConnection = false;
+        //         DataTable dataTable = new DataTable();
+        //         ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
+
+        //         try
+        //         {
+        //             if (conn == null)
+        //             {
+        //                 conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //                 conn.Open();
+        //                 isNewConnection = true;
+        //             }
+
+        //             string query = @"
+        //      SELECT 
+        //   ISNULL(H.Id, 0) AS Id,
+        //   ISNULL(H.Code, '') AS Code,               
+        //   ISNULL(H.Name, '') AS Name,
+        //   ISNULL(H.ProductGroupId, 0) ProductGroupId,
+        //ISNULL(G.Name, '') ProductGroupName,
+        //ISNULL(H.BanglaName, '') BanglaName,
+        //ISNULL(H.Description, '') Description,
+        //ISNULL(H.UOMId, 0) UOMId,
+        //ISNULL(H.HSCodeNo, '') HSCodeNo,
+        //         ISNULL(H.IsActive, 0) IsActive,
+        //         ISNULL(H.IsArchive, 0) IsArchive,
+        //ISNULL(H.CreatedBy, '') CreatedBy,
+        //ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') CreatedOn,
+        //ISNULL(H.LastModifiedBy, '') LastModifiedBy,
+        //ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') LastModifiedOn,
+        //ISNULL(H.VATRate, 0) AS VATRate,
+        //ISNULL(H.SDRate, 0) AS SDRate
+        //   FROM Products H
+        //LEFT JOIN ProductGroups G ON H.ProductGroupId = G.Id
+        //Where 1=1
+        //   And H.IsActive = 1 ";
+
+
+        //             query = ApplyConditions(query, conditionalFields, conditionalValues, false);
+
+        //             SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
+
+        //             // SET additional conditions param
+        //             objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+        //             objComm.Fill(dataTable);
+
+        //             var modelList = dataTable.AsEnumerable().Select(row => new ProductNewVM
+        //             {
+        //                 Id = Convert.ToInt32(row["Id"]),
+        //                 Name = row["Name"]?.ToString(),
+        //                 Code = row["Code"]?.ToString(),
+        //                 Description = row["Description"]?.ToString(),
+        //                 IsActive = Convert.ToBoolean(row["IsActive"]),
+        //                 IsArchive = Convert.ToBoolean(row["IsArchive"]),
+        //                 ProductGroupId = row.Field<int>("ProductGroupId"),
+        //                 ProductGroupName = row.Field<string>("ProductGroupName"),
+        //                 BanglaName = row.Field<string>("BanglaName"),
+        //                 UOMId = row.Field<int?>("UOMId"),
+        //                 HSCodeNo = row.Field<string>("HSCodeNo"),
+        //                 //IsArchive = row.Field<bool>("IsArchive"),
+        //                 //IsActive = row.Field<bool>("IsActive"),
+        //                 CreatedBy = row.Field<string>("CreatedBy"),
+        //                 CreatedOn = row.Field<string>("CreatedOn"),
+        //                 LastModifiedBy = row.Field<string>("LastModifiedBy"),
+        //                 LastModifiedOn = row.Field<string?>("LastModifiedOn"),
+        //                 VATRate = row.Field<decimal?>("VATRate") ?? 0.0m,
+        //                 SDRate = row.Field<decimal?>("SDRate") ?? 0.0m
+
+
+        //             }).ToList();
+
+
+        //             result.Status = "Success";
+        //             result.Message = "Data retrieved successfully.";
+        //             result.DataVM = modelList;
+        //             return result;
+        //         }
+        //         catch (Exception ex)
+        //         {
+        //             result.ExMessage = ex.Message;
+        //             result.Message = ex.Message;
+        //             return result;
+        //         }
+        //         finally
+        //         {
+        //             if (isNewConnection && conn != null)
+        //             {
+        //                 conn.Close();
+        //             }
+        //         }
+        //     }
+
+
+
+        public async Task<ResultVM> ProductList(int companyId, string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();
@@ -1176,7 +1273,9 @@ WHERE
       FROM Products H
 	  LEFT JOIN ProductGroups G ON H.ProductGroupId = G.Id
 	  Where 1=1
-      And H.IsActive = 1 ";
+      And H.IsActive = 1
+      AND H.CompanyId = @CompanyId
+";
 
 
                 query = ApplyConditions(query, conditionalFields, conditionalValues, false);
@@ -1185,6 +1284,9 @@ WHERE
 
                 // SET additional conditions param
                 objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+                objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", companyId);
+
 
                 objComm.Fill(dataTable);
 
@@ -1233,108 +1335,6 @@ WHERE
                 }
             }
         }
-
-
-
-//        public async Task<ResultVM> ProductList(int companyId, string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
-//        {
-//            bool isNewConnection = false;
-//            DataTable dataTable = new DataTable();
-//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
-
-//            try
-//            {
-//                if (conn == null)
-//                {
-//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
-//                    conn.Open();
-//                    isNewConnection = true;
-//                }
-
-//                string query = @"
-//         SELECT 
-//		    ISNULL(H.Id, 0) AS Id,
-//		    ISNULL(H.Code, '') AS Code,               
-//		    ISNULL(H.Name, '') AS Name,
-//		    ISNULL(H.ProductGroupId, 0) ProductGroupId,
-//			ISNULL(G.Name, '') ProductGroupName,
-//			ISNULL(H.BanglaName, '') BanglaName,
-//			ISNULL(H.Description, '') Description,
-//			ISNULL(H.UOMId, 0) UOMId,
-//			ISNULL(H.HSCodeNo, '') HSCodeNo,
-//            ISNULL(H.IsActive, 0) IsActive,
-//            ISNULL(H.IsArchive, 0) IsArchive,
-//			ISNULL(H.CreatedBy, '') CreatedBy,
-//			ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') CreatedOn,
-//			ISNULL(H.LastModifiedBy, '') LastModifiedBy,
-//			ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') LastModifiedOn,
-//			ISNULL(H.VATRate, 0) AS VATRate,
-//			ISNULL(H.SDRate, 0) AS SDRate
-//      FROM Products H
-//	  LEFT JOIN ProductGroups G ON H.ProductGroupId = G.Id
-//	  Where 1=1
-//      And H.IsActive = 1
-//      AND H.CompanyId = @CompanyId
-//";
-
-
-//                query = ApplyConditions(query, conditionalFields, conditionalValues, false);
-
-//                SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
-
-//                // SET additional conditions param
-//                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
-
-//                objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", companyId);
-
-
-//                objComm.Fill(dataTable);
-
-//                var modelList = dataTable.AsEnumerable().Select(row => new ProductNewVM
-//                {
-//                    Id = Convert.ToInt32(row["Id"]),
-//                    Name = row["Name"]?.ToString(),
-//                    Code = row["Code"]?.ToString(),
-//                    Description = row["Description"]?.ToString(),
-//                    IsActive = Convert.ToBoolean(row["IsActive"]),
-//                    IsArchive = Convert.ToBoolean(row["IsArchive"]),
-//                    ProductGroupId = row.Field<int>("ProductGroupId"),
-//                    ProductGroupName = row.Field<string>("ProductGroupName"),
-//                    BanglaName = row.Field<string>("BanglaName"),
-//                    UOMId = row.Field<int?>("UOMId"),
-//                    HSCodeNo = row.Field<string>("HSCodeNo"),
-//                    //IsArchive = row.Field<bool>("IsArchive"),
-//                    //IsActive = row.Field<bool>("IsActive"),
-//                    CreatedBy = row.Field<string>("CreatedBy"),
-//                    CreatedOn = row.Field<string>("CreatedOn"),
-//                    LastModifiedBy = row.Field<string>("LastModifiedBy"),
-//                    LastModifiedOn = row.Field<string?>("LastModifiedOn"),
-//                    VATRate = row.Field<decimal?>("VATRate") ?? 0.0m,
-//                    SDRate = row.Field<decimal?>("SDRate") ?? 0.0m
-
-
-//                }).ToList();
-
-
-//                result.Status = "Success";
-//                result.Message = "Data retrieved successfully.";
-//                result.DataVM = modelList;
-//                return result;
-//            }
-//            catch (Exception ex)
-//            {
-//                result.ExMessage = ex.Message;
-//                result.Message = ex.Message;
-//                return result;
-//            }
-//            finally
-//            {
-//                if (isNewConnection && conn != null)
-//                {
-//                    conn.Close();
-//                }
-//            }
-//        }
 
 
 
