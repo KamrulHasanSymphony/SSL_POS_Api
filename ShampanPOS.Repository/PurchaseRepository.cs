@@ -3611,13 +3611,13 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
 
         FROM PurchaseDetails PD
 
-        INNER JOIN Purchases Pur ON Pur.Id = PD.PurchaseId
-        INNER JOIN PurchaseOrders PO ON PO.Id = Pur.PurchaseOrderId
-        INNER JOIN PurchaseOrderDetails POD ON POD.Id = pd.PurchaseOrderDetailId
-        INNER JOIN Products P ON P.Id = PD.ProductId
-        INNER JOIN Suppliers S ON S.Id = Pur.SupplierId
-        INNER JOIN CompanyProfiles Co ON Co.Id = Pur.CompanyId
-        INNER JOIN BranchProfiles B ON B.Id = Pur.BranchId
+        LEFT OUTER JOIN Purchases Pur ON Pur.Id = PD.PurchaseId
+        LEFT OUTER JOIN PurchaseOrders PO ON PO.Id = Pur.PurchaseOrderId
+        LEFT OUTER JOIN PurchaseOrderDetails POD ON POD.Id = pd.PurchaseOrderDetailId
+        LEFT OUTER JOIN Products P ON P.Id = PD.ProductId
+        LEFT OUTER JOIN Suppliers S ON S.Id = Pur.SupplierId
+        LEFT OUTER JOIN CompanyProfiles Co ON Co.Id = Pur.CompanyId
+        LEFT OUTER JOIN BranchProfiles B ON B.Id = Pur.BranchId
         WHERE Pur.CompanyId=@CompanyId
             ");
                 }
@@ -3647,13 +3647,13 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
             
             FROM PurchaseDetails PD
             
-            INNER JOIN Purchases Pur ON Pur.Id = PD.PurchaseId
-            INNER JOIN PurchaseOrders PO ON PO.Id = Pur.PurchaseOrderId
-            INNER JOIN PurchaseOrderDetails POD ON POD.Id = pd.PurchaseOrderDetailId
-            INNER JOIN Products P ON P.Id = PD.ProductId
-            INNER JOIN Suppliers S ON S.Id = Pur.SupplierId
-            INNER JOIN CompanyProfiles Co ON Co.Id = Pur.CompanyId
-            INNER JOIN BranchProfiles B ON B.Id = Pur.BranchId
+            LEFT OUTER JOIN Purchases Pur ON Pur.Id = PD.PurchaseId
+            LEFT OUTER JOIN PurchaseOrders PO ON PO.Id = Pur.PurchaseOrderId
+            LEFT OUTER JOIN PurchaseOrderDetails POD ON POD.Id = pd.PurchaseOrderDetailId
+            LEFT OUTER JOIN Products P ON P.Id = PD.ProductId
+            LEFT OUTER JOIN Suppliers S ON S.Id = Pur.SupplierId
+            LEFT OUTER JOIN CompanyProfiles Co ON Co.Id = Pur.CompanyId
+            LEFT OUTER JOIN BranchProfiles B ON B.Id = Pur.BranchId
             WHERE Pur.CompanyId=@CompanyId
             ");
                 }
@@ -3726,65 +3726,96 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                 objComm.Fill(dataTable);
 
                 var modelList = dataTable.AsEnumerable().Select(row => new PurchaseReportVM
-                    {
-                    //PurchaseId = row.Field<int?>("PurchaseId") ?? 0,
+                {
                     Code = row.Field<string>("PurchaseNo") ?? "",
-
                     PurchaseOrderNo = row.Field<string>("PurchaseOrderNo") ?? "",
                     SupplierCode = row.Field<string>("SupplierCode") ?? "",
                     SupplierName = row.Field<string>("SupplierName") ?? "",
-                    ProductCode = dataTable.Columns.Contains("ProductCode")
-                    ? row["ProductCode"]?.ToString()
-                    : "",
-                    ProductName = dataTable.Columns.Contains("ProductName")
-                    ? row["ProductName"]?.ToString()
-                    : "",
-                    PurchaseOrderQty = dataTable.Columns.Contains("PurchaseOrderQty")
-                    ? Convert.ToDecimal(row["PurchaseOrderQty"])
-                    : 0,
 
-                    PurchaseOrderTotalAmount = dataTable.Columns.Contains("PurchaseOrderTotalAmount")
-                         ? Convert.ToDecimal(row["PurchaseOrderTotalAmount"])
-                            : 0,
+                    ProductCode = row.Table.Columns.Contains("ProductCode") ? row.Field<string>("ProductCode") ?? "" : "",
+                    ProductName = row.Table.Columns.Contains("ProductName") ? row.Field<string>("ProductName") ?? "" : "",
 
-                    PurchaseTotalAmount = dataTable.Columns.Contains("PurchaseTotalAmount")
-                     ? Convert.ToDecimal(row["PurchaseTotalAmount"])
-                    : 0,
+                    // Safely handling nullable Decimals using row.Field<decimal?>()
+                    PurchaseOrderQty = row.Table.Columns.Contains("PurchaseOrderQty") ? (row.Field<decimal?>("PurchaseOrderQty") ?? 0) : 0,
+                    PurchaseOrderTotalAmount = row.Table.Columns.Contains("PurchaseOrderTotalAmount") ? (row.Field<decimal?>("PurchaseOrderTotalAmount") ?? 0) : 0,
+                    PurchaseTotalAmount = row.Table.Columns.Contains("PurchaseTotalAmount") ? (row.Field<decimal?>("PurchaseTotalAmount") ?? 0) : 0,
+                    RemainQty = row.Table.Columns.Contains("RemainQty") ? (row.Field<decimal?>("RemainQty") ?? 0) : 0,
+                    PurchaseQty = row.Table.Columns.Contains("PurchaseQty") ? (row.Field<decimal?>("PurchaseQty") ?? 0) : 0,
+                    UnitPrice = row.Table.Columns.Contains("UnitPrice") ? (row.Field<decimal?>("UnitPrice") ?? 0) : 0,
 
-                    RemainQty = dataTable.Columns.Contains("RemainQty")
-                     ? Convert.ToDecimal(row["RemainQty"])
-                     : 0,
-                    PurchaseQty = dataTable.Columns.Contains("PurchaseQty")
-                     ? Convert.ToDecimal(row["PurchaseQty"])
-                     : 0,
-                    UnitPrice = dataTable.Columns.Contains("UnitPrice")
-                    ? row.Field<decimal?>("UnitPrice") ?? 0
-                    : 0,
+                    // Safely handling nullable Integers
+                    BranchId = row.Table.Columns.Contains("BranchId") ? (row.Field<int?>("BranchId") ?? 0) : 0,
+                    CompanyId = row.Table.Columns.Contains("CompanyId") ? (row.Field<int?>("CompanyId") ?? 0) : 0,
 
-                    BranchId = dataTable.Columns.Contains("BranchId")
-                        ? Convert.ToInt32(row["BranchId"])
-                        : 0,
+                    BranchName = row.Table.Columns.Contains("BranchName") ? row.Field<string>("BranchName") ?? "" : "",
+                    CompanyName = row.Table.Columns.Contains("CompanyName") ? row.Field<string>("CompanyName") ?? "" : "",
 
-                    CompanyId = dataTable.Columns.Contains("CompanyId")
-                        ? Convert.ToInt32(row["CompanyId"])
-                        : 0,
-
-                    BranchName = dataTable.Columns.Contains("BranchName")
-                        ? row["BranchName"]?.ToString()
-                        : "",
-
-                    CompanyName = dataTable.Columns.Contains("CompanyName")
-                        ? row["CompanyName"]?.ToString()
-                        : "",
-                    InvoiceDateTime = dataTable.Columns.Contains("InvoiceDateTime")
-                        ? row["InvoiceDateTime"]?.ToString()
-                        : "",
-
-                    PurchaseDate = dataTable.Columns.Contains("PurchaseDate")
-                        ? row["PurchaseDate"]?.ToString()
-                        : ""
+                    // Convert Dates smoothly to strings, checking for DBNull implicitly via row.Field
+                    InvoiceDateTime = row.Table.Columns.Contains("InvoiceDateTime") ? row.Field<DateTime?>("InvoiceDateTime")?.ToString("yyyy-MM-dd") ?? "" : "",
+                    PurchaseDate = row.Table.Columns.Contains("PurchaseDate") ? row.Field<DateTime?>("PurchaseDate")?.ToString("yyyy-MM-dd") ?? "" : ""
                 })
-                    .ToList();
+.ToList();
+
+                //var modelList = dataTable.AsEnumerable().Select(row => new PurchaseReportVM
+                //    {
+                //    //PurchaseId = row.Field<int?>("PurchaseId") ?? 0,
+                //    Code = row.Field<string>("PurchaseNo") ?? "",
+
+                //    PurchaseOrderNo = row.Field<string>("PurchaseOrderNo") ?? "",
+                //    SupplierCode = row.Field<string>("SupplierCode") ?? "",
+                //    SupplierName = row.Field<string>("SupplierName") ?? "",
+                //    ProductCode = dataTable.Columns.Contains("ProductCode")
+                //    ? row["ProductCode"]?.ToString()
+                //    : "",
+                //    ProductName = dataTable.Columns.Contains("ProductName")
+                //    ? row["ProductName"]?.ToString()
+                //    : "",
+                //    PurchaseOrderQty = dataTable.Columns.Contains("PurchaseOrderQty")
+                //    ? Convert.ToDecimal(row["PurchaseOrderQty"])
+                //    : 0,
+
+                //    PurchaseOrderTotalAmount = dataTable.Columns.Contains("PurchaseOrderTotalAmount")
+                //         ? Convert.ToDecimal(row["PurchaseOrderTotalAmount"])
+                //            : 0,
+
+                //    PurchaseTotalAmount = dataTable.Columns.Contains("PurchaseTotalAmount")
+                //     ? Convert.ToDecimal(row["PurchaseTotalAmount"])
+                //    : 0,
+
+                //    RemainQty = dataTable.Columns.Contains("RemainQty")
+                //     ? Convert.ToDecimal(row["RemainQty"])
+                //     : 0,
+                //    PurchaseQty = dataTable.Columns.Contains("PurchaseQty")
+                //     ? Convert.ToDecimal(row["PurchaseQty"])
+                //     : 0,
+                //    UnitPrice = dataTable.Columns.Contains("UnitPrice")
+                //    ? row.Field<decimal?>("UnitPrice") ?? 0
+                //    : 0,
+
+                //    BranchId = dataTable.Columns.Contains("BranchId")
+                //        ? Convert.ToInt32(row["BranchId"])
+                //        : 0,
+
+                //    CompanyId = dataTable.Columns.Contains("CompanyId")
+                //        ? Convert.ToInt32(row["CompanyId"])
+                //        : 0,
+
+                //    BranchName = dataTable.Columns.Contains("BranchName")
+                //        ? row["BranchName"]?.ToString()
+                //        : "",
+
+                //    CompanyName = dataTable.Columns.Contains("CompanyName")
+                //        ? row["CompanyName"]?.ToString()
+                //        : "",
+                //    InvoiceDateTime = dataTable.Columns.Contains("InvoiceDateTime")
+                //        ? row["InvoiceDateTime"]?.ToString()
+                //        : "",
+
+                //    PurchaseDate = dataTable.Columns.Contains("PurchaseDate")
+                //        ? row["PurchaseDate"]?.ToString()
+                //        : ""
+                //})
+                //    .ToList();
 
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully";

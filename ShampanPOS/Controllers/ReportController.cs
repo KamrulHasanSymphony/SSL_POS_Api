@@ -806,9 +806,20 @@ namespace ShampanPOS.Controllers
 
             try
             {
+
+                if (string.IsNullOrEmpty(salereturn.BranchId.ToString()) || string.IsNullOrEmpty(salereturn.CompanyId.ToString()))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
+
+                string[] conditionFields = new string[] { "S.BranchId", "S.CompanyId" };
+                string[] conditionValues = new string[] { salereturn.BranchId.ToString(), salereturn.CompanyId.ToString() };
+
                 SaleReturnService _service = new SaleReturnService();
 
-                resultVM = await _service.ReportList(salereturn);
+                resultVM = await _service.ReportList(conditionFields, conditionValues, salereturn);
 
 
                 return resultVM;

@@ -2013,7 +2013,8 @@ WHERE 1=1
 AND S.InvoiceDateTime >= @fromDate
 AND S.InvoiceDateTime <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+AND (@ProductId = 0 OR SD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
 GROUP BY CAST(S.InvoiceDateTime AS DATE), S.CompanyId, S.BranchId, C.CompanyName, B.Name
 ORDER BY CAST(S.InvoiceDateTime AS DATE)";
                             break;
@@ -2038,7 +2039,8 @@ WHERE 1=1
 AND S.InvoiceDateTime >= @fromDate
 AND S.InvoiceDateTime <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+AND (@ProductId = 0 OR SD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
 GROUP BY 
 YEAR(S.InvoiceDateTime),
 MONTH(S.InvoiceDateTime),
@@ -2077,7 +2079,8 @@ WHERE 1=1
 AND S.InvoiceDateTime >= @fromDate
 AND S.InvoiceDateTime <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+AND (@ProductId = 0 OR SD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
 GROUP BY C.Id, C.Name, S.CompanyId, S.BranchId, Co.CompanyName, B.Name
 ORDER BY LineTotal DESC";
                             break;
@@ -2105,7 +2108,8 @@ WHERE 1=1
 AND S.InvoiceDateTime >= @fromDate
 AND S.InvoiceDateTime <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId) -- Product Filter
+AND (@ProductId = 0 OR SD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
 GROUP BY P.Id, P.Name, S.CompanyId, S.BranchId, Co.CompanyName, B.Name
 ORDER BY LineTotal DESC";
                             break;
@@ -2135,6 +2139,7 @@ AND S.InvoiceDateTime >= @fromDate
 AND S.InvoiceDateTime <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
 AND (@ProductId = 0 OR SD.ProductId = @ProductId)
++ ApplyConditions("""", conditionalFields, conditionalValues, false) + @""
 GROUP BY S.Code, S.InvoiceDateTime, C.Name, S.CompanyId, S.BranchId, Co.CompanyName, B.Name
 ORDER BY S.InvoiceDateTime";
                             break;
@@ -2165,7 +2170,8 @@ WHERE 1=1
     AND S.InvoiceDateTime >= @fromDate
     AND S.InvoiceDateTime <= @toDate
     AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-    AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+    AND (@ProductId = 0 OR SD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
 GROUP BY 
     S.Code, 
     S.InvoiceDateTime, 
@@ -2204,7 +2210,9 @@ WHERE 1=1
 AND S.InvoiceDateTime >= @fromDate
 AND S.InvoiceDateTime <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+AND (@ProductId = 0 OR SD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
+
 GROUP BY S.Code, S.InvoiceDateTime, C.Name, S.CompanyId, S.BranchId, Co.CompanyName, B.Name, P.Name
 ORDER BY S.InvoiceDateTime";
                             break;
@@ -2242,7 +2250,9 @@ WHERE 1=1
 AND S.InvoiceDateTime >= @fromDate
 AND S.InvoiceDateTime <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+AND (@ProductId = 0 OR SD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
+
 ORDER BY S.InvoiceDateTime";
                             break;
 
@@ -2268,7 +2278,9 @@ WHERE 1=1
 AND S.InvoiceDateTime >= @fromDate
 AND S.InvoiceDateTime <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+AND (@ProductId = 0 OR SD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
+
 ORDER BY 
 YEAR(S.InvoiceDateTime),
 MONTH(S.InvoiceDateTime)";
@@ -2303,7 +2315,8 @@ WHERE 1=1
 AND S.InvoiceDateTime >= @fromDate
 AND S.InvoiceDateTime <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
+AND (@ProductId = 0 OR SD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false);
                             break;
 
 
@@ -2334,7 +2347,9 @@ WHERE 1=1
 AND S.InvoiceDateTime >= @fromDate
 AND S.InvoiceDateTime <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
+AND (@ProductId = 0 OR SD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false);
+
                             break;
 
                         case "Invoice Wise": // Invoice-wise Details
@@ -2364,7 +2379,8 @@ WHERE 1=1
 AND S.InvoiceDateTime >= @fromDate
 AND S.InvoiceDateTime <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
+AND (@ProductId = 0 OR SD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false);
                             break;
 
                         case "Sale Return List": // Sale Return List Details
@@ -2396,7 +2412,9 @@ WHERE 1=1
     AND S.InvoiceDateTime >= @fromDate
     AND S.InvoiceDateTime <= @toDate
     AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-    AND (@ProductId = 0 OR SD.ProductId = @ProductId)
+    AND (@ProductId = 0 OR SD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
+
 ORDER BY S.InvoiceDateTime, S.Code, SD.Line";
                             break;
 
@@ -2431,7 +2449,8 @@ WHERE 1=1
 AND S.InvoiceDateTime >= @fromDate
 AND S.InvoiceDateTime <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
+AND (@ProductId = 0 OR SD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false);
                             break;
 
                         default:
@@ -2459,7 +2478,8 @@ INNER JOIN Products P ON SD.ProductId = P.Id
 WHERE S.InvoiceDateTime >= @fromDate
 AND S.InvoiceDateTime <= @toDate
 AND (@CustomerId = 0 OR S.CustomerId = @CustomerId)
-AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
+AND (@ProductId = 0 OR SD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false);
                             break;
                     }
                 }
@@ -2471,7 +2491,7 @@ AND (@ProductId = 0 OR SD.ProductId = @ProductId)";
                 }
 
                 // Apply additional conditions
-                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
+                //query = ApplyConditions(query, conditionalFields, conditionalValues, true);
                 //query = ApplyConditions(query, conditionalFields, conditionalValues, false);
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
