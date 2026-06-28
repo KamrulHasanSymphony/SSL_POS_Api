@@ -258,68 +258,16 @@ namespace ShampanPOS.Controllers
             }
         }
 
-        // POST: api/Common/ProductList
-        [HttpPost("ProductList")]
-        public async Task<ResultVM> ProductList(CommonVM Vm)
-        {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
-            try
-            {
-                CommonService _commonService = new CommonService();
-                resultVM = await _commonService.ProductList(new[] { "H.ProductGroupId" }, new[] { Vm.Value }, null);
-                //resultVM = await _commonService.ProductList(new[] { "H.Id" }, Vm.Value, null);
-                return resultVM;
-            }
-            catch (Exception ex)
-            {
-                return new ResultVM
-                {
-                    Status = "Fail",
-                    Message = "Data not fetched.",
-                    ExMessage = ex.Message,
-                    DataVM = null
-                };
-            }
-        }
-
-
-
-
+        //// POST: api/Common/ProductList
         //[HttpPost("ProductList")]
-        //public async Task<ResultVM> ProductList(CommonVM vm)
+        //public async Task<ResultVM> ProductList(CommonVM Vm)
         //{
-        //    ResultVM resultVM = new ResultVM
-        //    {
-        //        Status = "Fail",
-        //        Message = "Error",
-        //        ExMessage = null,
-        //        Id = "0",
-        //        DataVM = null
-        //    };
-
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
         //    try
         //    {
-        //        List<string> conditionFields = new List<string>
-        //{
-        //    "H.ProductGroupId"
-        //};
-
-        //        List<string> conditionValues = new List<string>
-        //{
-        //    vm?.Value?.ToString() ?? "0"
-        //};
-
-        //        string[] finalConditionFields = conditionFields.ToArray();
-        //        string[] finalConditionValues = conditionValues.ToArray();
-
-        //        CommonService commonService = new CommonService();
-
-        //        resultVM = await commonService.ProductList(
-        //            finalConditionFields,
-        //            finalConditionValues,
-        //            vm
-        //        );
-
+        //        CommonService _commonService = new CommonService();
+        //        resultVM = await _commonService.ProductList(new[] { "H.ProductGroupId" }, new[] { Vm.Value }, null);
+        //        //resultVM = await _commonService.ProductList(new[] { "H.Id" }, Vm.Value, null);
         //        return resultVM;
         //    }
         //    catch (Exception ex)
@@ -336,8 +284,55 @@ namespace ShampanPOS.Controllers
 
 
 
+        [HttpPost("ProductList")]
+        public async Task<ResultVM> ProductList(CommonVM vm)
+        {
+            ResultVM resultVM = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                Id = "0",
+                DataVM = null
+            };
 
+            try
+            {
+                List<string> conditionFields = new List<string>();
+                List<string> conditionValues = new List<string>();
 
+                // ProductGroupId filter only when valid value exists
+                int productGroupId = 0;
+
+                if (!string.IsNullOrWhiteSpace(vm?.Value) &&
+                    int.TryParse(vm.Value, out productGroupId) &&
+                    productGroupId > 0)
+                {
+                    conditionFields.Add("H.ProductGroupId");
+                    conditionValues.Add(productGroupId.ToString());
+                }
+
+                CommonService commonService = new CommonService();
+
+                resultVM = await commonService.ProductList(
+                    conditionFields.ToArray(),
+                    conditionValues.ToArray(),
+                    vm
+                );
+
+                return resultVM;
+            }
+            catch (Exception ex)
+            {
+                return new ResultVM
+                {
+                    Status = "Fail",
+                    Message = "Data not fetched.",
+                    ExMessage = ex.Message,
+                    DataVM = null
+                };
+            }
+        }
 
 
 
