@@ -1760,7 +1760,7 @@ namespace ShampanPOS.Service
 
 
 
-        public async Task<ResultVM> FromSaleGridData(GridOptions options)
+        public async Task<ResultVM> FromSaleGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues)
         {
             SaleRepository _repo = new SaleRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
@@ -1776,7 +1776,8 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                result = await _repo.FromSaleGridData(options, conn, transaction);
+                result = await _repo.FromSaleGridData(options, conditionalFields, conditionalValues, conn, transaction);
+
 
                 if (isNewConnection && result.Status == "Success")
                 {
@@ -1807,6 +1808,12 @@ namespace ShampanPOS.Service
                 }
             }
         }
+
+
+
+
+
+
 
         public async Task<ResultVM> SaleReport(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
         {

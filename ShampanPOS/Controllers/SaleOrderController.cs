@@ -94,15 +94,63 @@ namespace ShampanPOS.Controllers
             }
         }
 
+        //// POST: api/SaleOrder/List
+        //[HttpPost("List")]
+        //public async Task<ResultVM> List(CommonVM vm)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        _saleOrderService = new SaleOrderService();
+        //        resultVM = await _saleOrderService.List(new[] { "M.Id" }, new[] { vm.Id.ToString() }, null);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = "Data not fetched.",
+        //            ExMessage = ex.Message,
+        //            DataVM = vm
+        //        };
+        //    }
+        //}
+
+
+
+
+
         // POST: api/SaleOrder/List
         [HttpPost("List")]
         public async Task<ResultVM> List(CommonVM vm)
         {
-            ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+            ResultVM resultVM = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                Id = "0",
+                DataVM = null
+            };
+
             try
             {
                 _saleOrderService = new SaleOrderService();
-                resultVM = await _saleOrderService.List(new[] { "M.Id" }, new[] { vm.Id.ToString() }, null);
+
+                PeramModel param = new PeramModel
+                {
+                    Id = vm?.Id,
+                    CompanyId = vm?.CompanyId,
+                    BranchId = vm?.BranchId
+                };
+
+                resultVM = await _saleOrderService.List(
+                    new[] { "M.Id" },
+                    new[] { vm?.Id?.ToString() ?? "0" },
+                    param
+                );
+
                 return resultVM;
             }
             catch (Exception ex)
@@ -116,6 +164,9 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
+
+
+
 
 
 
@@ -391,15 +442,58 @@ namespace ShampanPOS.Controllers
 
 
 
-        // POST: api/SaleOrder/FromSaleOrderGridData
+        //// POST: api/SaleOrder/FromSaleOrderGridData
+        //[HttpPost("FromSaleOrderGridData")]
+        //public async Task<ResultVM> FromSaleOrderGridData(GridOptions options)
+        //{
+        //    ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+        //    try
+        //    {
+        //        _saleOrderService = new SaleOrderService();
+        //        resultVM = await _saleOrderService.FromSaleOrderGridData(options);
+        //        return resultVM;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResultVM
+        //        {
+        //            Status = "Fail",
+        //            Message = ex.Message,
+        //            ExMessage = ex.Message,
+        //            DataVM = null
+        //        };
+        //    }
+        //}
+
+
+
+
         [HttpPost("FromSaleOrderGridData")]
         public async Task<ResultVM> FromSaleOrderGridData(GridOptions options)
         {
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
+
+                List<string> conditionFields = new List<string>
+         {
+            "H.CompanyId",
+             "H.BranchId"
+         };
+
+                List<string> conditionValues = new List<string>
+         {
+             options.vm.CompanyId.ToString(),
+             options.vm.BranchId.ToString()
+         };
+
+                string[] finalConditionFields = conditionFields.ToArray();
+                string[] finalConditionValues = conditionValues.ToArray();
+
                 _saleOrderService = new SaleOrderService();
-                resultVM = await _saleOrderService.FromSaleOrderGridData(options);
+                resultVM = await _saleOrderService.FromSaleOrderGridData(options, finalConditionFields, finalConditionValues);
+
+
                 return resultVM;
             }
             catch (Exception ex)
@@ -413,6 +507,13 @@ namespace ShampanPOS.Controllers
                 };
             }
         }
+
+
+
+
+
+
+
 
         // POST: api/PurchaseOrder/SaleOrderList
         [HttpPost("SaleOrderList")]

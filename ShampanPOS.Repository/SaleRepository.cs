@@ -2068,7 +2068,127 @@ WHERE 1 = 1";
         }
 
 
-        public async Task<ResultVM> FromSaleGridData(GridOptions options, SqlConnection conn = null, SqlTransaction transaction = null)
+//        public async Task<ResultVM> FromSaleGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
+//        {
+//            bool isNewConnection = false;
+//            DataTable dataTable = new DataTable();
+//            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+//            try
+//            {
+//                if (conn == null)
+//                {
+//                    conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+//                    conn.Open();
+//                    isNewConnection = true;
+//                }
+
+//                var data = new GridEntity<SaleVM>();
+
+//                // Define your SQL query string
+//                string sqlQuery = @"
+//    -- Count query
+//    SELECT COUNT(DISTINCT H.Id) AS totalcount
+//        FROM Sales H 
+//        LEFT OUTER JOIN BranchProfiles Br ON H.BranchId = Br.Id
+//        LEFT OUTER JOIN Customers S ON H.CustomerId = S.Id
+//		LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
+
+//        LEFT JOIN 
+//					(
+//						SELECT d.PurchaseId, SUM(ISNULL(d.Quantity,0)) AS TotalQuantity
+//						FROM [dbo].[PurchaseDetails] d   
+//						GROUP BY d.PurchaseId
+//					) SD ON H.Id = SD.PurchaseId
+//        WHERE 1 = 1 
+//    -- Add the filter condition
+//    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleVM>.FilterCondition(options.filter) + ")" : "") + @"
+
+//    -- Data query with pagination and sorting
+//    SELECT * 
+//    FROM (
+//        SELECT 
+//        ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC") + @") AS rowindex,
+        
+
+//        ISNULL(H.Id, 0) AS Id,
+//        ISNULL(H.Code, '') AS Code,
+//        ISNULL(H.BranchId, 0) AS BranchId,
+//        ISNULL(H.CustomerId, 0) AS CustomerId,
+//        ISNULL(S.Name, '') AS CustomerName,
+//        ISNULL(FORMAT(H.InvoiceDateTime, 'yyyy-MM-dd'), '1900-01-01') AS InvoiceDateTime,
+//        ISNULL(H.Comments, '') AS Comments,
+//        ISNULL(H.TransactionType, '') AS TransactionType,
+//        ISNULL(H.IsPost, 0) AS IsPost,
+//        CASE WHEN ISNULL(H.IsPost, 0) = 1 THEN 'Posted' ELSE 'Not-posted' END AS Status,
+//        ISNULL(H.PostedBy, '') AS PostedBy,
+//        ISNULL(FORMAT(H.PostedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS PostedOn,
+//        ISNULL(H.PeriodId, '') AS PeriodId,
+//        ISNULL(H.CreatedBy, '') AS CreatedBy,
+//        ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS CreatedOn,
+//        ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
+//        ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
+//        ISNULL(H.CreatedFrom, '') AS CreatedFrom,
+//        ISNULL(H.LastUpdateFrom, '') AS LastUpdateFrom,
+
+//        ISNULL(Br.Name,'') BranchName,
+//        ISNULL(S.Name,'') SupplierName,
+//		ISNULL(CP.CompanyName,'') CompanyName
+
+
+//        FROM Sales H 
+//        LEFT OUTER JOIN BranchProfiles Br ON H.BranchId = Br.Id
+//        LEFT OUTER JOIN Customers S ON H.CustomerId = S.Id
+//		LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
+
+//        LEFT JOIN 
+//					(
+//						SELECT d.PurchaseId, SUM(ISNULL(d.Quantity,0)) AS TotalQuantity
+//						FROM [dbo].[PurchaseDetails] d   
+//						GROUP BY d.PurchaseId
+//					) SD ON H.Id = SD.PurchaseId
+//        WHERE 1 = 1 
+
+
+//    -- Add the filter condition
+//    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleVM>.FilterCondition(options.filter) + ")" : "") + @"
+
+//    ) AS a
+//    WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
+//";
+
+//                //data = KendoGrid<SaleVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+
+//                data = KendoGrid<SaleVM>.GetTransactionalGridData_CMD(options, sqlQuery, "H.Id", conditionalFields, conditionalValues);
+
+//                result.Status = "Success";
+//                result.Message = "Data retrieved successfully.";
+//                result.DataVM = data;
+
+//                return result;
+//            }
+//            catch (Exception ex)
+//            {
+//                result.ExMessage = ex.Message;
+//                result.Message = ex.Message;
+//                return result;
+//            }
+//            finally
+//            {
+//                if (isNewConnection && conn != null)
+//                {
+//                    conn.Close();
+//                }
+//            }
+//        }
+
+
+
+
+
+
+
+        public async Task<ResultVM> FromSaleGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();
@@ -2088,28 +2208,33 @@ WHERE 1 = 1";
                 // Define your SQL query string
                 string sqlQuery = @"
     -- Count query
+
     SELECT COUNT(DISTINCT H.Id) AS totalcount
         FROM Sales H 
         LEFT OUTER JOIN BranchProfiles Br ON H.BranchId = Br.Id
         LEFT OUTER JOIN Customers S ON H.CustomerId = S.Id
+		LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
+
         LEFT JOIN 
 					(
 						SELECT d.PurchaseId, SUM(ISNULL(d.Quantity,0)) AS TotalQuantity
 						FROM [dbo].[PurchaseDetails] d   
 						GROUP BY d.PurchaseId
 					) SD ON H.Id = SD.PurchaseId
-        WHERE H.IsPost = 1 
+        WHERE 1 = 1 
     -- Add the filter condition
-    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleVM>.FilterCondition(options.filter) + ")" : "") + @"
+    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleVM>.FilterCondition(options.filter) + ")" : ""); /*+ @"*/
+                // Apply additional conditions
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
 
+                sqlQuery += @"
     -- Data query with pagination and sorting
     SELECT * 
     FROM (
         SELECT 
         ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC") + @") AS rowindex,
-        
 
-        ISNULL(H.Id, 0) AS Id,
+                ISNULL(H.Id, 0) AS Id,
         ISNULL(H.Code, '') AS Code,
         ISNULL(H.BranchId, 0) AS BranchId,
         ISNULL(H.CustomerId, 0) AS CustomerId,
@@ -2130,28 +2255,36 @@ WHERE 1 = 1";
         ISNULL(H.LastUpdateFrom, '') AS LastUpdateFrom,
 
         ISNULL(Br.Name,'') BranchName,
-        ISNULL(S.Name,'') SupplierName
+        ISNULL(S.Name,'') SupplierName,
+		ISNULL(CP.CompanyName,'') CompanyName
+
 
         FROM Sales H 
         LEFT OUTER JOIN BranchProfiles Br ON H.BranchId = Br.Id
         LEFT OUTER JOIN Customers S ON H.CustomerId = S.Id
+		LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
+
         LEFT JOIN 
 					(
 						SELECT d.PurchaseId, SUM(ISNULL(d.Quantity,0)) AS TotalQuantity
 						FROM [dbo].[PurchaseDetails] d   
 						GROUP BY d.PurchaseId
 					) SD ON H.Id = SD.PurchaseId
-        WHERE H.IsPost = 1 
-
+        WHERE 1 = 1 
 
     -- Add the filter condition
-    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleVM>.FilterCondition(options.filter) + ")" : "") + @"
+    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleVM>.FilterCondition(options.filter) + ")" : ""); /*+ @"*/
+                // Apply additional conditions
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+                sqlQuery += @"
 
     ) AS a
     WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
 ";
 
-                data = KendoGrid<SaleVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+                //data = KendoGrid<SaleOrderVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+                data = KendoGrid<SaleVM>.GetTransactionalGridData_CMD(options, sqlQuery, "H.Id", conditionalFields, conditionalValues);
 
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";
@@ -2173,6 +2306,13 @@ WHERE 1 = 1";
                 }
             }
         }
+
+
+
+
+
+
+
 
 
 

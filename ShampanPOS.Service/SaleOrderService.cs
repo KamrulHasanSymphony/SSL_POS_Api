@@ -395,14 +395,77 @@ namespace ShampanPOS.Service
             }
         }
 
-        public async Task<ResultVM> List(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
+        //public async Task<ResultVM> List(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
+        //{
+        //    SaleOrderRepository _repo = new SaleOrderRepository();
+        //    ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+        //    bool isNewConnection = false;
+        //    SqlConnection conn = null;
+        //    SqlTransaction transaction = null;
+        //    try
+        //    {
+        //        conn = new SqlConnection(DatabaseHelper.GetConnectionString());
+        //        conn.Open();
+        //        isNewConnection = true;
+
+        //        transaction = conn.BeginTransaction();
+
+
+
+
+        //        int companyId = Convert.ToInt32(vm?.CompanyId);
+        //        int branchId = Convert.ToInt32(vm?.BranchId);   // 🔥 ADD
+
+        //        //result = await _repo.GetProductModal(companyId, branchId, conn, transaction);
+
+
+        //        result = await _repo.List(conditionalFields,conditionalValues,companyId,branchId,vm,conn,transaction);
+
+
+        //        if (isNewConnection)
+        //        {
+        //            transaction.Commit();
+        //        }
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && isNewConnection)
+        //        {
+        //            transaction.Rollback();
+        //        }
+
+        //        result.ExMessage = ex.ToString();
+        //        return result;
+        //    }
+        //}
+
+
+
+
+
+        public async Task<ResultVM> List(
+    string[] conditionalFields,
+    string[] conditionalValues,
+    PeramModel vm = null)
         {
             SaleOrderRepository _repo = new SaleOrderRepository();
-            ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+
+            ResultVM result = new ResultVM
+            {
+                Status = "Fail",
+                Message = "Error",
+                ExMessage = null,
+                Id = "0",
+                DataVM = null
+            };
 
             bool isNewConnection = false;
             SqlConnection conn = null;
             SqlTransaction transaction = null;
+
             try
             {
                 conn = new SqlConnection(DatabaseHelper.GetConnectionString());
@@ -411,17 +474,28 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
+                int companyId = 0;
+                int branchId = 0;
 
+                if (!string.IsNullOrWhiteSpace(vm?.CompanyId))
+                {
+                    int.TryParse(vm.CompanyId, out companyId);
+                }
 
+                if (!string.IsNullOrWhiteSpace(vm?.BranchId))
+                {
+                    int.TryParse(vm.BranchId, out branchId);
+                }
 
-                int companyId = Convert.ToInt32(vm?.CompanyId ?? "0");
-                int branchId = Convert.ToInt32(vm?.BranchId ?? "0");   // 🔥 ADD
-
-                //result = await _repo.GetProductModal(companyId, branchId, conn, transaction);
-
-
-                result = await _repo.List(conditionalFields,conditionalValues,companyId,branchId,vm,conn,transaction);
-
+                result = await _repo.List(
+                    conditionalFields,
+                    conditionalValues,
+                    companyId,
+                    branchId,
+                    vm,
+                    conn,
+                    transaction
+                );
 
                 if (isNewConnection)
                 {
@@ -438,9 +512,21 @@ namespace ShampanPOS.Service
                 }
 
                 result.ExMessage = ex.ToString();
+                result.Message = ex.Message;
                 return result;
             }
+            finally
+            {
+                if (isNewConnection && conn != null)
+                {
+                    conn.Close();
+                }
+            }
         }
+
+
+
+
 
 
 
@@ -959,7 +1045,7 @@ namespace ShampanPOS.Service
             }
         }
 
-        public async Task<ResultVM> FromSaleOrderGridData(GridOptions options)
+        public async Task<ResultVM> FromSaleOrderGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues)
         {
             SaleOrderRepository _repo = new SaleOrderRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
@@ -975,7 +1061,7 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                result = await _repo.FromSaleOrderGridData(options, conn, transaction);
+                result = await _repo.FromSaleOrderGridData(options, conditionalFields, conditionalValues, conn, transaction);
 
                 if (isNewConnection && result.Status == "Success")
                 {

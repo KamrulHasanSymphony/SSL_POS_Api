@@ -306,7 +306,7 @@ namespace ShampanPOS.Repository
                     });
                 }
 
-                var detailsDataList = DetailsList(new[] { "D.SaleOrderId" }, conditionalValues, vm, conn, transaction);
+                var detailsDataList = DetailsList(new[] { "D.SaleOrderId" }, conditionalValues, companyId, vm, conn, transaction);
 
                 //if (detailsDataList.Status == "Success" && detailsDataList.DataVM is DataTable dt)
                 //{
@@ -782,7 +782,7 @@ SELECT SCOPE_IDENTITY();";
             return result;
         }
 
-        public ResultVM DetailsList(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        public ResultVM DetailsList(string[] conditionalFields, string[] conditionalValue, int companyId, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();
@@ -832,12 +832,13 @@ SELECT SCOPE_IDENTITY();";
                 LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
                 LEFT OUTER JOIN CompanyProfiles CP ON D.CompanyId = CP.Id
 
-                WHERE 1 = 1 ";
+                WHERE 1 = 1 AND
+                D.CompanyId = @CompanyId ";
 
-                if (vm != null && !string.IsNullOrEmpty(vm.Id))
-                {
-                    query += " AND D.Id = @Id ";
-                }
+                //if (vm != null && !string.IsNullOrEmpty(vm.Id))
+                //{
+                //    query += " AND D.Id = @Id ";
+                //}
 
                 // Apply additional conditions
                 query = ApplyConditions(query, conditionalFields, conditionalValue, false);
@@ -847,10 +848,13 @@ SELECT SCOPE_IDENTITY();";
                 // SET additional conditions param
                 objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValue);
 
-                if (vm != null && !string.IsNullOrEmpty(vm.Id))
-                {
-                    objComm.SelectCommand.Parameters.AddWithValue("@Id", vm.Id);
-                }
+                objComm.SelectCommand.Parameters.AddWithValue("@CompanyId", companyId);
+
+
+                //if (vm != null && !string.IsNullOrEmpty(vm.Id))
+                //{
+                //    objComm.SelectCommand.Parameters.AddWithValue("@Id", vm.Id);
+                //}
 
                 objComm.Fill(dataTable);
 
@@ -2684,7 +2688,7 @@ SELECT
         }
 
 
-        public async Task<ResultVM> FromSaleOrderGridData(GridOptions options, SqlConnection conn, SqlTransaction transaction)
+        public async Task<ResultVM> FromSaleOrderGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
          {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();
@@ -2712,14 +2716,13 @@ SELECT
 				LEFT OUTER JOIN Customers C ON H.CustomerId = C.Id
 				LEFT OUTER JOIN BranchProfiles BR on h.BranchId = BR.Id
 				LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
-				WHERE H.IsPost = 1
-
-
-
-
+				WHERE 1 = 1
     -- Add the filter condition
-    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleOrderVM>.FilterCondition(options.filter) + ")" : "") + @"
+    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleOrderVM>.FilterCondition(options.filter) + ")" : ""); /*+ @"*/
+                // Apply additional conditions
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
 
+                sqlQuery += @"
     -- Data query with pagination and sorting
     SELECT * 
     FROM (
@@ -2754,16 +2757,21 @@ SELECT
 				LEFT OUTER JOIN Customers C ON H.CustomerId = C.Id
 				LEFT OUTER JOIN BranchProfiles BR on h.BranchId = BR.Id
 				LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
-				WHERE H.IsPost = 1
+				WHERE 1 = 1
 
     -- Add the filter condition
-    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleOrderVM>.FilterCondition(options.filter) + ")" : "") + @"
+    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<SaleOrderVM>.FilterCondition(options.filter) + ")" : ""); /*+ @"*/
+                // Apply additional conditions
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+                sqlQuery += @"
 
     ) AS a
     WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
 ";
 
-                data = KendoGrid<SaleOrderVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+                //data = KendoGrid<SaleOrderVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+                data = KendoGrid<SaleOrderVM>.GetTransactionalGridData_CMD(options, sqlQuery, "H.Id", conditionalFields, conditionalValues);
 
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";
