@@ -806,9 +806,20 @@ namespace ShampanPOS.Controllers
 
             try
             {
+
+                if (string.IsNullOrEmpty(salereturn.BranchId.ToString()) || string.IsNullOrEmpty(salereturn.CompanyId.ToString()))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
+
+                string[] conditionFields = new string[] { "S.BranchId", "S.CompanyId" };
+                string[] conditionValues = new string[] { salereturn.BranchId.ToString(), salereturn.CompanyId.ToString() };
+
                 SaleReturnService _service = new SaleReturnService();
 
-                resultVM = await _service.ReportList(salereturn);
+                resultVM = await _service.ReportList(conditionFields, conditionValues, salereturn);
 
 
                 return resultVM;
@@ -833,9 +844,19 @@ namespace ShampanPOS.Controllers
 
             try
             {
+                if (string.IsNullOrEmpty(purchase.BranchId.ToString()) || string.IsNullOrEmpty(purchase.CompanyId.ToString()))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
+
+                string[] conditionFields = new string[] { "P.BranchId", "P.CompanyId" };
+                string[] conditionValues = new string[] { purchase.BranchId.ToString(), purchase.CompanyId.ToString() };
+
                 PurchaseService _service = new PurchaseService();
 
-                resultVM = await _service.ReportList(purchase);
+                resultVM = await _service.ReportList(conditionFields, conditionValues, purchase);
 
 
                 return resultVM;
@@ -860,9 +881,20 @@ namespace ShampanPOS.Controllers
 
             try
             {
+                if (string.IsNullOrEmpty(purchaseorder.BranchId.ToString()) || string.IsNullOrEmpty(purchaseorder.CompanyId.ToString()))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
+
+                string[] conditionFields = new string[] { "P.BranchId", "P.CompanyId" };
+                string[] conditionValues = new string[] { purchaseorder.BranchId.ToString(), purchaseorder.CompanyId.ToString() };
+
+
                 PurchaseOrderService _service = new PurchaseOrderService();
 
-                resultVM = await _service.ReportList(purchaseorder);
+                resultVM = await _service.ReportList(conditionFields, conditionValues, purchaseorder);
 
 
                 return resultVM;
@@ -888,9 +920,19 @@ namespace ShampanPOS.Controllers
 
             try
             {
+                if (string.IsNullOrEmpty(purchasereturn.BranchId.ToString()) || string.IsNullOrEmpty(purchasereturn.CompanyId.ToString()))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
+
+                string[] conditionFields = new string[] { "P.BranchId", "P.CompanyId" };
+                string[] conditionValues = new string[] { purchasereturn.BranchId.ToString(), purchasereturn.CompanyId.ToString() };
+
                 PurchaseReturnService _service = new PurchaseReturnService();
 
-                resultVM = await _service.ReportList(purchasereturn);
+                resultVM = await _service.ReportList(conditionFields, conditionValues, purchasereturn);
 
 
                 return resultVM;

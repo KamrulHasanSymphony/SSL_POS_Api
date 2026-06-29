@@ -2271,7 +2271,9 @@ AND P.OrderDate <= @toDate
 AND P.DeliveryDateTime >= @deliveryFromDate
 AND P.DeliveryDateTime <= @deliveryToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
+
 GROUP BY 
 CAST(P.OrderDate AS DATE),
 CAST(P.DeliveryDateTime AS DATE),
@@ -2314,7 +2316,9 @@ AND P.OrderDate <= @toDate
 AND P.DeliveryDateTime >= @deliveryFromDate
 AND P.DeliveryDateTime <= @deliveryToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
+
 GROUP BY 
 YEAR(P.OrderDate),
 MONTH(P.OrderDate),
@@ -2359,7 +2363,9 @@ AND P.OrderDate <= @toDate
 AND P.DeliveryDateTime >= @deliveryFromDate
 AND P.DeliveryDateTime <= @deliveryToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
+
 GROUP BY 
 S.Id,
 S.Name,
@@ -2399,7 +2405,9 @@ AND P.OrderDate <= @toDate
 AND P.DeliveryDateTime >= @deliveryFromDate
 AND P.DeliveryDateTime <= @deliveryToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
+
 GROUP BY 
 PR.Id,
 PR.Name,
@@ -2439,7 +2447,9 @@ AND P.OrderDate <= @toDate
 AND P.DeliveryDateTime >= @deliveryFromDate
 AND P.DeliveryDateTime <= @deliveryToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
+
 GROUP BY 
 P.Code,
 P.OrderDate,
@@ -2484,7 +2494,9 @@ AND P.OrderDate <= @toDate
 AND P.DeliveryDateTime >= @deliveryFromDate
 AND P.DeliveryDateTime <= @deliveryToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
+
 GROUP BY 
 P.Code,
 P.OrderDate,
@@ -2534,7 +2546,9 @@ WHERE 1=1
     AND P.DeliveryDateTime >= @deliveryFromDate
     AND P.DeliveryDateTime <= @deliveryToDate
     AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-    AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+    AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
+
 ORDER BY P.OrderDate, P.Code, PD.Line";
                             break;
                     }
@@ -2574,7 +2588,9 @@ AND P.OrderDate <= @toDate
 AND P.DeliveryDateTime >= @deliveryFromDate
 AND P.DeliveryDateTime <= @deliveryToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
+
 ORDER BY 
 P.DeliveryDateTime,
 P.OrderDate";
@@ -2606,12 +2622,16 @@ AND P.OrderDate <= @toDate
 AND P.DeliveryDateTime >= @deliveryFromDate
 AND P.DeliveryDateTime <= @deliveryToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
+
 GROUP BY 
 YEAR(P.OrderDate),
 MONTH(P.OrderDate),
 DATENAME(MONTH, P.OrderDate),
 P.Id, P.Code, P.OrderDate, P.DeliveryDateTime,
+PD.SDAmount,
+PD.VATAmount,
 PD.Quantity, PD.LineTotal,
 P.CompanyId, P.BranchId,
 Co.CompanyName, B.Name
@@ -2650,7 +2670,10 @@ AND P.OrderDate <= @toDate
 AND P.DeliveryDateTime >= @deliveryFromDate
 AND P.DeliveryDateTime <= @deliveryToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false);
+
+
                             break;
 
                         case "Product Wise":
@@ -2683,7 +2706,9 @@ AND P.OrderDate <= @toDate
 AND P.DeliveryDateTime >= @deliveryFromDate
 AND P.DeliveryDateTime <= @deliveryToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false);
+
                             break;
 
                         case "Invoice Wise":
@@ -2717,7 +2742,9 @@ AND P.OrderDate <= @toDate
 AND P.DeliveryDateTime >= @deliveryFromDate
 AND P.DeliveryDateTime <= @deliveryToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false);
+
                             break;
 
 
@@ -2774,7 +2801,8 @@ AND P.DeliveryDateTime >= @deliveryFromDate
 AND P.DeliveryDateTime <= @deliveryToDate
 
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
 
 ORDER BY
 P.OrderDate,
@@ -2820,7 +2848,9 @@ AND P.OrderDate <= @toDate
 AND P.DeliveryDateTime >= @deliveryFromDate
 AND P.DeliveryDateTime <= @deliveryToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false);
+
                             break;
 
                         default:
@@ -2853,8 +2883,11 @@ AND P.OrderDate <= @toDate
 AND P.DeliveryDateTime >= @deliveryFromDate
 AND P.DeliveryDateTime <= @deliveryToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
+
 ORDER BY P.OrderDate, P.Code, PD.Line";
+
                             break;
                     }
                 }
@@ -2865,7 +2898,7 @@ ORDER BY P.OrderDate, P.Code, PD.Line";
                 }
 
                 // Apply additional conditions
-                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
+                //query = ApplyConditions(query, conditionalFields, conditionalValues, true);
                 //query = ApplyConditions(query, conditionalFields, conditionalValues, false);
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
