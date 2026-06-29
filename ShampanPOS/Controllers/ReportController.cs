@@ -844,9 +844,19 @@ namespace ShampanPOS.Controllers
 
             try
             {
+                if (string.IsNullOrEmpty(purchase.BranchId.ToString()) || string.IsNullOrEmpty(purchase.CompanyId.ToString()))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
+
+                string[] conditionFields = new string[] { "P.BranchId", "P.CompanyId" };
+                string[] conditionValues = new string[] { purchase.BranchId.ToString(), purchase.CompanyId.ToString() };
+
                 PurchaseService _service = new PurchaseService();
 
-                resultVM = await _service.ReportList(purchase);
+                resultVM = await _service.ReportList(conditionFields, conditionValues, purchase);
 
 
                 return resultVM;

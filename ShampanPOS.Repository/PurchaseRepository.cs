@@ -2857,7 +2857,8 @@ AND P.InvoiceDateTime <= @toDate
 AND P.PurchaseDate >= @purchaseFromDate
 AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
 GROUP BY 
 CAST(P.InvoiceDateTime AS DATE),
 CAST(P.PurchaseDate AS DATE),
@@ -2900,8 +2901,8 @@ AND P.InvoiceDateTime <= @toDate
 AND P.PurchaseDate >= @purchaseFromDate
 AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)
-
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
 GROUP BY
 YEAR(P.InvoiceDateTime),
 MONTH(P.InvoiceDateTime),
@@ -2944,7 +2945,8 @@ AND P.InvoiceDateTime <= @toDate
 AND P.PurchaseDate >= @purchaseFromDate
 AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
 GROUP BY 
 S.Id,
 S.Name,
@@ -2984,7 +2986,8 @@ AND P.InvoiceDateTime <= @toDate
 AND P.PurchaseDate >= @purchaseFromDate
 AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
 GROUP BY 
 PR.Id,
 PR.Name,
@@ -3024,7 +3027,8 @@ AND P.InvoiceDateTime <= @toDate
 AND P.PurchaseDate >= @purchaseFromDate
 AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
 GROUP BY 
 P.Code,
 P.InvoiceDateTime,
@@ -3084,8 +3088,8 @@ AND P.InvoiceDateTime <= @toDate
 AND P.PurchaseDate >= @purchaseFromDate
 AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)
-
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
 GROUP BY
 P.Code,
 P.InvoiceDateTime,
@@ -3135,7 +3139,9 @@ AND P.InvoiceDateTime <= @toDate
 AND P.PurchaseDate >= @purchaseFromDate
 AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
+
 GROUP BY 
 P.Code,
 P.InvoiceDateTime,
@@ -3187,7 +3193,9 @@ AND P.InvoiceDateTime <= @toDate
 AND P.PurchaseDate >= @purchaseFromDate
 AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
+
 ORDER BY 
 P.PurchaseDate,
 P.InvoiceDateTime";
@@ -3221,7 +3229,9 @@ AND P.InvoiceDateTime <= @toDate
 AND P.PurchaseDate >= @purchaseFromDate
 AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false) + @"
+
 ORDER BY 
 YEAR(P.InvoiceDateTime),
 MONTH(P.InvoiceDateTime)";
@@ -3256,7 +3266,9 @@ AND P.InvoiceDateTime <= @toDate
 AND P.PurchaseDate >= @purchaseFromDate
 AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false);
+
                             break;
 
                         case "Product Wise": // Product-wise Details
@@ -3288,7 +3300,9 @@ AND P.InvoiceDateTime <= @toDate
 AND P.PurchaseDate >= @purchaseFromDate
 AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false);
+
                             break;
 
                         case "Invoice Wise": // Invoice-wise Details
@@ -3321,7 +3335,9 @@ AND P.InvoiceDateTime <= @toDate
 AND P.PurchaseDate >= @purchaseFromDate
 AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false);
+
                             break;
 
 
@@ -3354,7 +3370,9 @@ AND P.InvoiceDateTime <= @toDate
 AND P.PurchaseDate >= @purchaseFromDate
 AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false);
+
                             break;
 
 
@@ -3393,7 +3411,9 @@ AND P.InvoiceDateTime <= @toDate
 AND P.PurchaseDate >= @purchaseFromDate
 AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false);
+
                             break;
 
                         default:
@@ -3425,7 +3445,9 @@ AND P.InvoiceDateTime <= @toDate
 AND P.PurchaseDate >= @purchaseFromDate
 AND P.PurchaseDate <= @purchaseToDate
 AND (@SupplierId = 0 OR P.SupplierId = @SupplierId)
-AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
+AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
++ ApplyConditions("", conditionalFields, conditionalValues, false);
+
                             break;
                     }
                 }
@@ -3437,7 +3459,7 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                 }
 
                 // Apply additional conditions
-                query = ApplyConditions(query, conditionalFields, conditionalValues, true);
+                //query = ApplyConditions(query, conditionalFields, conditionalValues, true);
                 //query = ApplyConditions(query, conditionalFields, conditionalValues, false);
 
                 SqlDataAdapter objComm = CreateAdapter(query, conn, transaction);
@@ -3754,68 +3776,8 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)";
                     InvoiceDateTime = row.Table.Columns.Contains("InvoiceDateTime") ? row.Field<DateTime?>("InvoiceDateTime")?.ToString("yyyy-MM-dd") ?? "" : "",
                     PurchaseDate = row.Table.Columns.Contains("PurchaseDate") ? row.Field<DateTime?>("PurchaseDate")?.ToString("yyyy-MM-dd") ?? "" : ""
                 })
-.ToList();
+                 .ToList();
 
-                //var modelList = dataTable.AsEnumerable().Select(row => new PurchaseReportVM
-                //    {
-                //    //PurchaseId = row.Field<int?>("PurchaseId") ?? 0,
-                //    Code = row.Field<string>("PurchaseNo") ?? "",
-
-                //    PurchaseOrderNo = row.Field<string>("PurchaseOrderNo") ?? "",
-                //    SupplierCode = row.Field<string>("SupplierCode") ?? "",
-                //    SupplierName = row.Field<string>("SupplierName") ?? "",
-                //    ProductCode = dataTable.Columns.Contains("ProductCode")
-                //    ? row["ProductCode"]?.ToString()
-                //    : "",
-                //    ProductName = dataTable.Columns.Contains("ProductName")
-                //    ? row["ProductName"]?.ToString()
-                //    : "",
-                //    PurchaseOrderQty = dataTable.Columns.Contains("PurchaseOrderQty")
-                //    ? Convert.ToDecimal(row["PurchaseOrderQty"])
-                //    : 0,
-
-                //    PurchaseOrderTotalAmount = dataTable.Columns.Contains("PurchaseOrderTotalAmount")
-                //         ? Convert.ToDecimal(row["PurchaseOrderTotalAmount"])
-                //            : 0,
-
-                //    PurchaseTotalAmount = dataTable.Columns.Contains("PurchaseTotalAmount")
-                //     ? Convert.ToDecimal(row["PurchaseTotalAmount"])
-                //    : 0,
-
-                //    RemainQty = dataTable.Columns.Contains("RemainQty")
-                //     ? Convert.ToDecimal(row["RemainQty"])
-                //     : 0,
-                //    PurchaseQty = dataTable.Columns.Contains("PurchaseQty")
-                //     ? Convert.ToDecimal(row["PurchaseQty"])
-                //     : 0,
-                //    UnitPrice = dataTable.Columns.Contains("UnitPrice")
-                //    ? row.Field<decimal?>("UnitPrice") ?? 0
-                //    : 0,
-
-                //    BranchId = dataTable.Columns.Contains("BranchId")
-                //        ? Convert.ToInt32(row["BranchId"])
-                //        : 0,
-
-                //    CompanyId = dataTable.Columns.Contains("CompanyId")
-                //        ? Convert.ToInt32(row["CompanyId"])
-                //        : 0,
-
-                //    BranchName = dataTable.Columns.Contains("BranchName")
-                //        ? row["BranchName"]?.ToString()
-                //        : "",
-
-                //    CompanyName = dataTable.Columns.Contains("CompanyName")
-                //        ? row["CompanyName"]?.ToString()
-                //        : "",
-                //    InvoiceDateTime = dataTable.Columns.Contains("InvoiceDateTime")
-                //        ? row["InvoiceDateTime"]?.ToString()
-                //        : "",
-
-                //    PurchaseDate = dataTable.Columns.Contains("PurchaseDate")
-                //        ? row["PurchaseDate"]?.ToString()
-                //        : ""
-                //})
-                //    .ToList();
 
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully";
