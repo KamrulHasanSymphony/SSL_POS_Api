@@ -1791,7 +1791,7 @@ WHERE  1 = 1 ";
             }
         }
 
-        public async Task<ResultVM> FromPurchaseOrderGridData(GridOptions options, SqlConnection conn, SqlTransaction transaction)
+        public async Task<ResultVM> FromPurchaseOrderGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();
@@ -1815,6 +1815,8 @@ WHERE  1 = 1 ";
             FROM PurchaseOrders H
             LEFT OUTER JOIN Suppliers s on h.SupplierId = s.Id
             LEFT OUTER JOIN BranchProfiles br on h.BranchId = br.Id
+			LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
+
 
 	        LEFT JOIN 
 					            (
@@ -1824,7 +1826,12 @@ WHERE  1 = 1 ";
 					            ) SD ON H.Id = SD.PurchaseOrderId
             WHERE H.IsPost = 1 AND  (SD.TotalCompletedQty < SD.TotalQuantity)
     -- Add the filter condition
-    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PurchaseOrderVM>.FilterCondition(options.filter) + ")" : "") + @"
+    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PurchaseOrderVM>.FilterCondition(options.filter) + ")" : "");
+                // Apply additional conditions
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+                sqlQuery += @"
+
 
     -- Data query with pagination and sorting
     SELECT * 
@@ -1848,12 +1855,18 @@ WHERE  1 = 1 ";
                 ISNULL(H.LastModifiedBy, '') AS LastModifiedBy,
                 ISNULL(FORMAT(H.CreatedOn, 'yyyy-MM-dd HH:mm'), '1900-01-01') AS CreatedOn,                
 	            ISNULL(H.IsPost, 'N') AS IsPost,
-                ISNULL(br.Name, '') AS BranchName
+                ISNULL(br.Name, '') AS BranchName,
+			    ISNULL(CP.CompanyName,'') CompanyName,
+                ISNULL(H.BranchId, 0) AS BranchId,
+		        ISNULL(H.CompanyId, 0) AS CompanyId
+
+
 
 
             FROM PurchaseOrders H
             LEFT OUTER JOIN Suppliers s on h.SupplierId = s.Id
             LEFT OUTER JOIN BranchProfiles br on h.BranchId = br.Id
+			LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
 
             LEFT JOIN 
 					    (
@@ -1864,13 +1877,18 @@ WHERE  1 = 1 ";
             WHERE H.IsPost = 1 AND  (SD.TotalCompletedQty < SD.TotalQuantity)
 
     -- Add the filter condition
-    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PurchaseOrderVM>.FilterCondition(options.filter) + ")" : "") + @"
+    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PurchaseOrderVM>.FilterCondition(options.filter) + ")" : "");
+                // Apply additional conditions
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+                sqlQuery += @"
+
 
     ) AS a
     WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
 ";
 
-                data = KendoGrid<PurchaseOrderVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+                data = KendoGrid<PurchaseOrderVM>.GetTransactionalGridData_CMD(options, sqlQuery, "H.Id", conditionalFields, conditionalValues);
 
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";

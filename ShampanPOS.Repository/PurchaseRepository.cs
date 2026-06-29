@@ -1592,7 +1592,7 @@ WHERE 1 = 1 ";
                 }
             }
         }
-        public async Task<ResultVM> FromPurchaseGridData(GridOptions options, SqlConnection conn = null, SqlTransaction transaction = null)
+        public async Task<ResultVM> FromPurchaseGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();
@@ -1616,6 +1616,8 @@ WHERE 1 = 1 ";
         FROM Purchases H 
         LEFT OUTER JOIN BranchProfiles Br ON H.BranchId = Br.Id
         LEFT OUTER JOIN Suppliers S ON H.SupplierId = S.Id
+	    LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
+
         LEFT JOIN 
 					(
 						SELECT d.PurchaseId, SUM(ISNULL(d.Quantity,0)) AS TotalQuantity
@@ -1624,7 +1626,12 @@ WHERE 1 = 1 ";
 					) SD ON H.Id = SD.PurchaseId
         WHERE H.IsPost = 1 
     -- Add the filter condition
-    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PurchaseVM>.FilterCondition(options.filter) + ")" : "") + @"
+    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PurchaseVM>.FilterCondition(options.filter) + ")" : "");
+                // Apply additional conditions
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+                sqlQuery += @"
+
 
     -- Data query with pagination and sorting
     SELECT * 
@@ -1633,12 +1640,10 @@ WHERE 1 = 1 ";
         ROW_NUMBER() OVER(ORDER BY " + (options.sort.Count > 0 ? options.sort[0].field + " " + options.sort[0].dir : "H.Id DESC") + @") AS rowindex,
         
 
-
-
-
-        ISNULL(H.Id, 0) AS Id,
+		ISNULL(H.Id, 0) AS Id,
         ISNULL(H.Code, '') AS Code,
         ISNULL(H.BranchId, 0) AS BranchId,
+		ISNULL(H.CompanyId, 0) AS CompanyId,
         ISNULL(H.SupplierId, 0) AS SupplierId,
         ISNULL(H.BENumber, '') AS BENumber,
         ISNULL(FORMAT(H.InvoiceDateTime, 'yyyy-MM-dd'), '1900-01-01') AS InvoiceDateTime,
@@ -1657,13 +1662,18 @@ WHERE 1 = 1 ";
         ISNULL(FORMAT(H.LastModifiedOn, 'yyyy-MM-dd HH:mm:ss'), '1900-01-01 00:00:00') AS LastModifiedOn,
         ISNULL(H.CreatedFrom, '') AS CreatedFrom,
         ISNULL(H.LastUpdateFrom, '') AS LastUpdateFrom,
-
         ISNULL(Br.Name,'') BranchName,
-        ISNULL(S.Name,'') SupplierName
+        ISNULL(S.Name,'') SupplierName,
+		ISNULL(CP.CompanyName,'') CompanyName
+
 
         FROM Purchases H 
         LEFT OUTER JOIN BranchProfiles Br ON H.BranchId = Br.Id
         LEFT OUTER JOIN Suppliers S ON H.SupplierId = S.Id
+		LEFT OUTER JOIN CompanyProfiles CP ON H.CompanyId = CP.Id
+
+
+
         LEFT JOIN 
 					(
 						SELECT d.PurchaseId, SUM(ISNULL(d.Quantity,0)) AS TotalQuantity
@@ -1672,15 +1682,19 @@ WHERE 1 = 1 ";
 					) SD ON H.Id = SD.PurchaseId
         WHERE H.IsPost = 1 
 
-
     -- Add the filter condition
-    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PurchaseVM>.FilterCondition(options.filter) + ")" : "") + @"
+    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<PurchaseVM>.FilterCondition(options.filter) + ")" : "");
+                // Apply additional conditions
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
+
+                sqlQuery += @"
+
 
     ) AS a
     WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
 ";
 
-                data = KendoGrid<PurchaseVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+                data = KendoGrid<PurchaseVM>.GetTransactionalGridData_CMD(options, sqlQuery, "H.Id", conditionalFields, conditionalValues);
 
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";
@@ -1693,13 +1707,6 @@ WHERE 1 = 1 ";
                 result.ExMessage = ex.Message;
                 result.Message = ex.Message;
                 return result;
-            }
-            finally
-            {
-                if (isNewConnection && conn != null)
-                {
-                    conn.Close();
-                }
             }
         }
 
