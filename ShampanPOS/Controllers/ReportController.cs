@@ -920,9 +920,19 @@ namespace ShampanPOS.Controllers
 
             try
             {
+                if (string.IsNullOrEmpty(purchasereturn.BranchId.ToString()) || string.IsNullOrEmpty(purchasereturn.CompanyId.ToString()))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Branch and Company are required.";
+                    return resultVM;
+                }
+
+                string[] conditionFields = new string[] { "P.BranchId", "P.CompanyId" };
+                string[] conditionValues = new string[] { purchasereturn.BranchId.ToString(), purchasereturn.CompanyId.ToString() };
+
                 PurchaseReturnService _service = new PurchaseReturnService();
 
-                resultVM = await _service.ReportList(purchasereturn);
+                resultVM = await _service.ReportList(conditionFields, conditionValues, purchasereturn);
 
 
                 return resultVM;

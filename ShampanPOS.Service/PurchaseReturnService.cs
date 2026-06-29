@@ -907,7 +907,7 @@ namespace ShampanPOS.Service
 
 
 
-        public async Task<ResultVM> ReportList(PurchaseReturnReportVM vm = null)
+        public async Task<ResultVM> ReportList(string[] conditionFields, string[] conditionValues, PurchaseReturnReportVM vm = null)
         {
             PurchaseReturnRepository _repo = new PurchaseReturnRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
@@ -931,7 +931,7 @@ namespace ShampanPOS.Service
                 }
 
                 // CALL REPOSITORY
-                result = await _repo.ReportList(null, null, vm, conn, transaction);
+                result = await _repo.ReportList(conditionFields, conditionValues, vm, conn, transaction);
 
                 if (result.Status == "Success")
                 {
