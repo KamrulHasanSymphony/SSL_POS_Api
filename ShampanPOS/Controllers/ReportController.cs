@@ -956,6 +956,7 @@ namespace ShampanPOS.Controllers
 
             try
             {
+
                 PurchaseService _service = new PurchaseService();
 
                 resultVM = await _service.PurchaseOrdervsPurchaseReportList(purchase);

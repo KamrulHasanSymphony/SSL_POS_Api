@@ -485,8 +485,18 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
+                List<string> conditionFields = new List<string>
+                { "H.CompanyId", "H.BranchId", };
+
+                List<string> conditionValues = new List<string>
+                { options.vm.CompanyId.ToString(), options.vm.BranchId.ToString(), };
+
+                string[] finalConditionFields = conditionFields.ToArray();
+                string[] finalConditionValues = conditionValues.ToArray();
+                  
+
                 _purchaseOrderService = new PurchaseOrderService();
-                resultVM = await _purchaseOrderService.FromPurchaseOrderGridData(options);
+                resultVM = await _purchaseOrderService.FromPurchaseOrderGridData(options, finalConditionFields, finalConditionValues);
                 return resultVM;
             }
             catch (Exception ex)
