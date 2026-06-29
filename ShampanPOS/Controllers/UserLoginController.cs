@@ -4,10 +4,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ShampanPOS.Service;
 using ShampanPOS.ViewModel;
 using ShampanPOS.ViewModel.CommonVMs;
+using ShampanPOS.ViewModel.KendoCommon;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -314,19 +316,32 @@ namespace ShampanPOS.Controllers
                 }
 
                 var user = _userManager.Users.SingleOrDefault(x => x.UserName == model.UserName);
+                UserProfileVM userProfile = null;
+                if (user != null)
+                {
+                    ResultVM companyresultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
+                    UserProfileService _service = new UserProfileService();
+                    companyresultVM = await _service.List(new[] { "U.UserName" }, new[] { model.UserName }, null);
 
-                if (user == null)
+                    if (companyresultVM.Status != "Success" || companyresultVM.DataVM == null)
+                    {
+                        resultVM.Message = "User profile not found";
+                        return resultVM;
+                    }
+
+                    var data = companyresultVM.DataVM as List<UserProfileVM>;
+                    userProfile = data?.FirstOrDefault();
+                }
+                else
                 {
                     resultVM.Message = "Wrong username or password";
                     return resultVM;
                 }
-
                 var tokenResult = GetAccessToken(model);
-
                 resultVM.Status = "Success";
                 resultVM.Message = "Login Successfully.";
                 resultVM.Data = tokenResult;
-                resultVM.DataVM = user;
+                resultVM.DataVM = userProfile;
             }
             catch (Exception ex)
             {
