@@ -1,4 +1,6 @@
-﻿using ShampanPOS.ViewModel;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Newtonsoft.Json;
+using ShampanPOS.ViewModel;
 using ShampanPOS.ViewModel.CommonVMs;
 using ShampanPOS.ViewModel.KendoCommon;
 using ShampanPOS.ViewModel.Utility;
@@ -353,7 +355,7 @@ LEFT OUTER JOIN BranchProfiles Br
 WHERE 1 = 1 AND
 
 M.CompanyId = @CompanyId
-AND (@BranchId = 0 OR M.BranchId = @BranchId)
+AND ( M.BranchId = @BranchId)
  ";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
@@ -361,7 +363,6 @@ AND (@BranchId = 0 OR M.BranchId = @BranchId)
                     query += " AND M.Id = @Id ";
                 }
 
-                // Apply additional conditions
                 // Apply additional conditions
                 query = ApplyConditions(query, conditionalFields, conditionalValues, false);
 
@@ -408,6 +409,28 @@ AND (@BranchId = 0 OR M.BranchId = @BranchId)
                     });
                 }
 
+
+                var master = lst.FirstOrDefault();
+
+                var detailsDataList = await DetailsList(
+                    new[] { "D.PurchaseOrderId" },
+                    new[] { master.Id.ToString() },
+                    companyId,
+                    vm,
+                    conn,
+                    transaction);
+
+                if (master != null &&
+                    detailsDataList.Status == "Success" &&
+                    detailsDataList.DataVM is DataTable dt)
+                {
+                    string json = JsonConvert.SerializeObject(dt);
+
+                    master.purchaseOrderDetailsList =
+                        JsonConvert.DeserializeObject<List<PurchaseOrderDetailVM>>(json);
+                }
+
+
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";
                 result.DataVM = lst;
@@ -427,7 +450,12 @@ AND (@BranchId = 0 OR M.BranchId = @BranchId)
                 }
             }
         }
-        public async Task<ResultVM> DetailsList(string[] conditionalFields, string[] conditionalValue, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+
+
+
+
+
+        public async Task<ResultVM> DetailsList(string[] conditionalFields, string[] conditionalValue, int companyId, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();
@@ -474,10 +502,10 @@ AND (@BranchId = 0 OR M.BranchId = @BranchId)
         LEFT OUTER JOIN CompanyProfiles CP ON D.CompanyId = CP.Id
         WHERE 1 = 1 ";
 
-                if (vm != null && !string.IsNullOrEmpty(vm.Id))
-                {
-                    query += " AND D.Id = @Id ";
-                }
+                //if (vm != null && !string.IsNullOrEmpty(vm.Id))
+                //{
+                //    query += " AND D.Id = @Id ";
+                //}
 
                 // Apply additional conditions
                 query = ApplyConditions(query, conditionalFields, conditionalValue, false);

@@ -99,7 +99,20 @@ namespace ShampanPOS.Controllers
             try
             {
                 _purchaseOrderService = new PurchaseOrderService();
-                resultVM = await _purchaseOrderService.List(new[] { "M.Id" }, new[] { vm.Id }, null);
+                PeramModel param = new PeramModel
+                {
+                    Id = vm?.Id,
+                    CompanyId = vm?.CompanyId,
+                    BranchId = vm?.BranchId
+                };
+
+                resultVM = await _purchaseOrderService.List(
+                    new[] { "M.Id" },
+                    new[] { vm?.Id?.ToString() ?? "0" },
+                    param
+                );
+
+                //resultVM = await _purchaseOrderService.List(new[] { "M.Id" }, new[] { vm.Id }, null);
                 return resultVM;
             }
             catch (Exception ex)
