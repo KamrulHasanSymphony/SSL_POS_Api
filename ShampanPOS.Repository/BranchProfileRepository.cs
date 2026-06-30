@@ -323,7 +323,9 @@ FROM
     BranchProfiles H
 	
 	WHERE 1 = 1
- AND ISNULL(H.IsActive,0) = 1";
+ --AND ISNULL(H.IsActive,0) = 1
+
+";
 
                 if (vm != null && !string.IsNullOrEmpty(vm.Id))
                 {
