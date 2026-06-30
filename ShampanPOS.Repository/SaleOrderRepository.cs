@@ -832,8 +832,7 @@ SELECT SCOPE_IDENTITY();";
                 LEFT OUTER JOIN ProductGroups PG ON P.ProductGroupId = PG.Id
                 LEFT OUTER JOIN CompanyProfiles CP ON D.CompanyId = CP.Id
 
-                WHERE 1 = 1 AND
-                D.CompanyId = @CompanyId ";
+                WHERE 1 = 1  ";
 
                 //if (vm != null && !string.IsNullOrEmpty(vm.Id))
                 //{
