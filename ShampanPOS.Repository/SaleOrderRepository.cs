@@ -201,7 +201,7 @@ namespace ShampanPOS.Repository
       string[] conditionalValues,
       int companyId,
       int branchId,
-      PeramModel vm = null,
+      CommonVM vm = null,
       SqlConnection conn = null,
       SqlTransaction transaction = null)
         {
@@ -782,7 +782,7 @@ SELECT SCOPE_IDENTITY();";
             return result;
         }
 
-        public ResultVM DetailsList(string[] conditionalFields, string[] conditionalValue, int companyId, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
+        public ResultVM DetailsList(string[] conditionalFields, string[] conditionalValue, int companyId, CommonVM vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();

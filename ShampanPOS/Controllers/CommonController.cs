@@ -1065,7 +1065,7 @@ namespace ShampanPOS.Controllers
                   resultVM = await _sale.List(
                       conditionFields,
                       conditionValues,
-                      new PeramModel { CompanyId = Vm.CompanyId, BranchId = Vm.BranchId }
+                      new CommonVM { CompanyId = Vm.CompanyId, BranchId = Vm.BranchId }
                   );
 
 
@@ -1823,8 +1823,7 @@ namespace ShampanPOS.Controllers
                 CommonService _commonService = new CommonService();
 
                 // Call the service to fetch total purchases for the last 3 months
-                resultVM = await _commonService.GetTotalPurchasesLast3Months(new[] { "Top", "CompanyId" },
-                    new[] { Vm.Value ?? "10", Vm.CompanyId ?? "0" }, null);
+                resultVM = await _commonService.GetTotalPurchasesLast3Months(new[] { "Top", "CompanyId" }, new[] { Vm.Value ?? "10", Vm.CompanyId ?? "0" }, Vm);
 
                 return resultVM;
             }
@@ -1854,7 +1853,7 @@ namespace ShampanPOS.Controllers
 
                 // Call the service to fetch total purchases for the last 3 months
                 resultVM = await _commonService.GetSaleOrderStatusStats(new[] { "Top", "CompanyId" },
-                    new[] { Vm.Value ?? "10", Vm.CompanyId ?? "0" }, null);
+                    new[] { Vm.Value ?? "10", Vm.CompanyId ?? "0" }, Vm);
 
                 return resultVM;
             }

@@ -2695,7 +2695,7 @@ SqlTransaction transaction = null)
 
 
 
-        public async Task<ResultVM> GetTotalPurchasesLast3Months(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
+        public async Task<ResultVM> GetTotalPurchasesLast3Months(string[] conditionalFields, string[] conditionalValues, CommonVM vm)
         {
             CommonRepository _repo = new CommonRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
@@ -2747,7 +2747,7 @@ SqlTransaction transaction = null)
 
 
 
-        public async Task<ResultVM> GetSaleOrderStatusStats(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null)
+        public async Task<ResultVM> GetSaleOrderStatusStats(string[] conditionalFields, string[] conditionalValues, CommonVM vm)
         {
             CommonRepository _repo = new CommonRepository();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };

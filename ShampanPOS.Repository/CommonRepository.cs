@@ -5305,7 +5305,7 @@ WHERE H.IsActive = 1
 
 
 
-        public async Task<ResultVM> GetTotalPurchasesLast3Months(string[] conditionalFields, string[] conditionalValues, PeramModel vm, SqlConnection conn, SqlTransaction transaction)
+        public async Task<ResultVM> GetTotalPurchasesLast3Months(string[] conditionalFields, string[] conditionalValues, CommonVM vm, SqlConnection conn, SqlTransaction transaction)
         {
             DataTable dataTable = new DataTable();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
@@ -5318,11 +5318,11 @@ WHERE H.IsActive = 1
                 }
 
 
-                string companyId = "0";
+                string companyId = vm.CompanyId;
 
                 // ✅ Get CompanyId
-                if (conditionalValues != null && conditionalValues.Length > 0)
-                    companyId = conditionalValues[0] ?? "0";
+                //if (conditionalValues != null && conditionalValues.Length > 0)
+                //    companyId = conditionalValues[0] ?? "0";
 
 
 
@@ -5381,7 +5381,7 @@ WHERE H.IsActive = 1
 
 
 
-        public async Task<ResultVM> GetSaleOrderStatusStats(string[] conditionalFields, string[] conditionalValues, PeramModel vm, SqlConnection conn, SqlTransaction transaction)
+        public async Task<ResultVM> GetSaleOrderStatusStats(string[] conditionalFields, string[] conditionalValues, CommonVM vm, SqlConnection conn, SqlTransaction transaction)
         {
             DataTable dataTable = new DataTable();
             ResultVM result = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, DataVM = null };
@@ -5392,11 +5392,11 @@ WHERE H.IsActive = 1
                 {
                     throw new Exception("Database connection fail!");
                 }
-                string companyId = "0";
+                string companyId = vm.CompanyId;
 
                 // ✅ Get CompanyId
-                if (conditionalValues != null && conditionalValues.Length > 0)
-                    companyId = conditionalValues[0] ?? "0";
+                //if (conditionalValues != null && conditionalValues.Length > 0)
+                //    companyId = conditionalValues[0] ?? "0";
                 // SQL query to fetch total purchases for the last 3 months filtered by CompanyId
                 string sql = @"        
                     SELECT 

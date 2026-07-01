@@ -293,7 +293,7 @@ namespace ShampanPOS.Controllers
                 }
 
                 SaleOrderService _service = new SaleOrderService();
-                resultVM = await _service.List(conditionFields, conditionValues, null);
+                resultVM = await _service.List(conditionFields, conditionValues, Vm);
                 return resultVM;
             }
             catch (Exception ex)

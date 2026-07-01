@@ -138,7 +138,7 @@ namespace ShampanPOS.Controllers
             {
                 _saleOrderService = new SaleOrderService();
 
-                PeramModel param = new PeramModel
+                CommonVM param = new CommonVM
                 {
                     Id = vm?.Id,
                     CompanyId = vm?.CompanyId,

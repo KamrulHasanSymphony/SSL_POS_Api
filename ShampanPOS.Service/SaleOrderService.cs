@@ -449,7 +449,7 @@ namespace ShampanPOS.Service
         public async Task<ResultVM> List(
     string[] conditionalFields,
     string[] conditionalValues,
-    PeramModel vm = null)
+    CommonVM vm = null)
         {
             SaleOrderRepository _repo = new SaleOrderRepository();
 
