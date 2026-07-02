@@ -101,6 +101,7 @@ namespace ShampanPOS.Service
                             branchVm.CreatedBy = registration.CreatedBy;
                             branchVm.CreatedFrom = registration.CreatedFrom;
                             branchVm.CompanyId = companyId;
+                            branchVm.IsActive = true;
 
                             result = await _branchProfileRepo.Insert(branchVm,conn,transaction);
 
@@ -125,12 +126,28 @@ namespace ShampanPOS.Service
                                 userVm.CreatedFrom = registration.CreatedFrom;
                                 result = await _userProfileRepo.Insert(userVm, conn, transaction);
 
-                                //BranchProfileService _branchProfileService = new BranchProfileService();
-                                //BranchProfileVM branchVm = new BranchProfileVM();
-                                //branchVm.Name = registration.CompanyName;
-                                /////////
-                                /////
-                                //result = await _branchProfileService.Insert(branchVm);
+                                if (result.Status != "Success")
+                                {
+                                    throw new Exception(result.Message);
+                                }
+
+                                // ==============================
+                                // ✅ USER BRANCH MAP (DEFAULT)
+                                // ==============================
+                                UserBranchProfileVM mapVm = new UserBranchProfileVM();
+                                UserBranchProfileRepository _mapRepo = new UserBranchProfileRepository();
+
+                                mapVm.UserId = registration.UserId;
+                                mapVm.BranchId = branchId;
+                                mapVm.CreatedBy = registration.CreatedBy;
+                                mapVm.CreatedFrom = registration.CreatedFrom;
+
+                                var mapResult = await _mapRepo.Insert(mapVm, conn, transaction);
+
+                                if (mapResult.Status != "Success")
+                                {
+                                    throw new Exception(mapResult.Message);
+                                }
 
                             }
                         }
