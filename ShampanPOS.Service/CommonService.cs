@@ -656,10 +656,7 @@ SqlTransaction transaction = null)
 
                 transaction = conn.BeginTransaction();
 
-                int companyId = Convert.ToInt32(vm?.CompanyId ?? "0");
-                int branchId = Convert.ToInt32(vm?.BranchId ?? "0");   // 🔥 ADD THIS
-
-                result = await _repo.CustomerList(companyId, branchId, conn, transaction);
+                result = await _repo.CustomerList(conditionalFields, conditionalValues, vm, conn, transaction);
 
                 if (isNewConnection && result.Status == "Success")
                 {
@@ -671,6 +668,7 @@ SqlTransaction transaction = null)
                 }
 
                 return result;
+
             }
             catch (Exception ex)
             {

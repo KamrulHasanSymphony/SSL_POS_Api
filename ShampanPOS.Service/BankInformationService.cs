@@ -98,18 +98,18 @@ namespace ShampanPOS.Service
 
                 transaction = conn.BeginTransaction();
 
-                #region Check Exist Data
-                string[] conditionField = { "Id not", "TelephoneNo", "IsActive" };
-                string[] conditionValue = { bankinfo.Id.ToString(), bankinfo.TelephoneNo.Trim(), "1" };
+                //#region Check Exist Data
+                //string[] conditionField = { "Id not", "TelephoneNo", "IsActive" };
+                //string[] conditionValue = { bankinfo.Id.ToString(), bankinfo.TelephoneNo.Trim(), "1" };
 
-                bool exist = _commonRepo.CheckExists("BankInformations", conditionField, conditionValue, conn, transaction);
+                //bool exist = _commonRepo.CheckExists("BankInformations", conditionField, conditionValue, conn, transaction);
 
-                if (exist)
-                {
-                    result.Message = "Data Already Exist!";
-                    throw new Exception("Data Already Exist!");
-                }
-                #endregion
+                //if (exist)
+                //{
+                //    result.Message = "Data Already Exist!";
+                //    throw new Exception("Data Already Exist!");
+                //}
+                //#endregion
 
                 result = await _repo.Update(bankinfo, conn, transaction);
 
