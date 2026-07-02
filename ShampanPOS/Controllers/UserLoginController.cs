@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using ShampanPOS.Repository;
 using ShampanPOS.Service;
 using ShampanPOS.ViewModel;
 using ShampanPOS.ViewModel.CommonVMs;
@@ -331,6 +332,17 @@ namespace ShampanPOS.Controllers
 
                     var data = companyresultVM.DataVM as List<UserProfileVM>;
                     userProfile = data?.FirstOrDefault();
+
+
+                    //// ===========================
+                    //// 🔥 ADD THIS PART (NEW)
+                    //// ===========================
+                    //UserBranchProfileRepository _mapRepo = new UserBranchProfileRepository();
+                    //var branchId = _mapRepo.GetDefaultBranchId(model.UserName); // NEW METHOD
+
+                    //userProfile.BranchId = branchId;
+
+
                 }
                 else
                 {

@@ -506,6 +506,37 @@ WHERE UM.UserId IS NOT NULL
             }
         }
 
+
+
+        //public int GetDefaultBranchId(string userId)
+        //{
+        //    int branchId = 0;
+
+        //    string query = @"SELECT TOP 1 BranchId 
+        //             FROM UserBranchMap 
+        //             WHERE UserId = @UserId";
+
+        //    using (SqlConnection conn = new SqlConnection(DatabaseHelper.GetConnectionString()))
+        //    {
+        //        conn.Open();
+
+        //        using (SqlCommand cmd = new SqlCommand(query, conn))
+        //        {
+        //            cmd.Parameters.AddWithValue("@UserId", userId);
+
+        //            var result = cmd.ExecuteScalar();
+
+        //            if (result != null)
+        //            {
+        //                branchId = Convert.ToInt32(result);
+        //            }
+        //        }
+        //    }
+
+        //    return branchId;
+        //}
+
+
     }
 
 
