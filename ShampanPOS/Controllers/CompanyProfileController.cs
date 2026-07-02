@@ -166,11 +166,20 @@ namespace ShampanPOS.Controllers
             ResultVM resultVM = new ResultVM { Status = "Fail", Message = "Error", ExMessage = null, Id = "0", DataVM = null };
             try
             {
+                if (string.IsNullOrEmpty(options.vm.CompanyId))
+                {
+                    resultVM.Status = "Fail";
+                    resultVM.Message = "Company is required.";
+                    return resultVM;
+                }
+
+                string[] conditionFields = new string[] {"H.Id" };
+                string[] conditionValues = new string[] { options.vm.CompanyId };
                 _service = new CompanyProfileService();
-                resultVM = await _service.GetGridData(options);
+                resultVM = await _service.GetGridData(options, conditionFields, conditionValues);
                 return resultVM;
             }
-            catch (Exception ex)
+            catch (Exception ex) 
             {
                 return new ResultVM
                 {

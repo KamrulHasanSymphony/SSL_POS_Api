@@ -561,7 +561,7 @@ WHERE
             }
         }
 
-        public async Task<ResultVM> GetGridData(GridOptions options, SqlConnection conn = null, SqlTransaction transaction = null)
+        public async Task<ResultVM> GetGridData(GridOptions options, string[] conditionalFields, string[] conditionalValues, SqlConnection conn, SqlTransaction transaction)
         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();
@@ -584,9 +584,13 @@ WHERE
                     SELECT COUNT(DISTINCT H.Id) AS totalcount
                    FROM CompanyProfiles H 
                     WHERE H.IsArchive != 1
-                    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<CompanyProfileVM>.FilterCondition(options.filter) + ")" : "") + @"
+                    " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<CompanyProfileVM>.FilterCondition(options.filter) + ")" : "");
+                // Apply additional conditions
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
 
-                    -- Data query with pagination and sorting
+                sqlQuery += @"
+
+                --Data query with pagination and sorting
                     SELECT * 
                     FROM (
                         SELECT 
@@ -628,13 +632,15 @@ FROM
                     WHERE H.IsArchive != 1
                   
             -- Add the filter condition
-            " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<CompanyProfileVM>.FilterCondition(options.filter) + ")" : "") + @"
+            " + (options.filter.Filters.Count > 0 ? " AND (" + GridQueryBuilder<CompanyProfileVM>.FilterCondition(options.filter) + ")" : "");
+                // Apply additional conditions
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
 
-            ) AS a
-            WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
-        ";
-
-                data = KendoGrid<CompanyProfileVM>.GetGridData_CMD(options, sqlQuery, "H.Id");
+                sqlQuery += @"
+    ) AS a
+    WHERE rowindex > @skip AND (@take = 0 OR rowindex <= @take)
+";
+                data = KendoGrid<CompanyProfileVM>.GetTransactionalGridData_CMD(options, sqlQuery, "H.Id", conditionalFields, conditionalValues);
 
                 result.Status = "Success";
                 result.Message = "Data retrieved successfully.";
