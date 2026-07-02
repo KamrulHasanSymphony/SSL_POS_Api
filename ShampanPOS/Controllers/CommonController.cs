@@ -1946,8 +1946,8 @@ namespace ShampanPOS.Controllers
                     return resultVM;
                 }
 
-                string[] conditionFields = new string[] { "M.BranchId" };
-                string[] conditionValues = new string[] { Vm.BranchId};
+                string[] conditionFields = new string[] { "M.BranchId", "M.CompanyId" };
+                string[] conditionValues = new string[] { Vm.BranchId, Vm.CompanyId };
 
 
                 CommonService _commonService = new CommonService();

@@ -3781,7 +3781,8 @@ AND (@ProductId = 0 OR PD.ProductId = @ProductId)"
 
                     // Convert Dates smoothly to strings, checking for DBNull implicitly via row.Field
                     InvoiceDateTime = row.Table.Columns.Contains("InvoiceDateTime") ? row.Field<DateTime?>("InvoiceDateTime")?.ToString("yyyy-MM-dd") ?? "" : "",
-                    PurchaseDate = row.Table.Columns.Contains("PurchaseDate") ? row.Field<DateTime?>("PurchaseDate")?.ToString("yyyy-MM-dd") ?? "" : ""
+                    PurchaseDate = row.Table.Columns.Contains("PurchaseDate") ? row.Field<DateTime?>("PurchaseDate")?.ToString("yyyy-MM-dd") ?? "" : "",
+                    OrderDate = row.Table.Columns.Contains("OrderDate") ? row.Field<DateTime?>("OrderDate")?.ToString("yyyy-MM-dd") ?? "" : ""
                 })
                  .ToList();
 

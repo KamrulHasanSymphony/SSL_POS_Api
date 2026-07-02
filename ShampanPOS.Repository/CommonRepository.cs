@@ -6,6 +6,7 @@ using System.ComponentModel.Design;
 using System.Data;
 using System.Data.SqlClient;
 using System.Text.RegularExpressions;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace ShampanPOS.Repository
 {
@@ -1681,7 +1682,7 @@ WHERE
         }
 
 
-        public async Task<ResultVM> CustomerList(int companyId, int branchId, SqlConnection conn,SqlTransaction transaction)
+        public async Task<ResultVM> CustomerList(string[] conditionalFields, string[] conditionalValues, PeramModel vm = null, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             bool isNewConnection = false;
             DataTable dataTable = new DataTable();
@@ -1706,16 +1707,19 @@ WHERE
                     ISNULL(H.Comments, '') Comments,
                     CASE WHEN ISNULL(H.IsActive, 0) = 1 THEN 'Active' ELSE 'Inactive' END Status
                 FROM Customers H
-                WHERE H.IsActive = 1 AND H.CompanyId = @CompanyId
-                AND (@BranchId = 0 OR H.BranchId = @BranchId)
+                WHERE 1=1
 
                 ";
 
-                SqlCommand cmd = new SqlCommand(sqlQuery, conn, transaction);
-                cmd.Parameters.AddWithValue("@CompanyId", companyId);
-                cmd.Parameters.AddWithValue("@BranchId", branchId);
+                sqlQuery = ApplyConditions(sqlQuery, conditionalFields, conditionalValues, false);
 
-                SqlDataAdapter objComm = new SqlDataAdapter(cmd);
+                SqlDataAdapter objComm = CreateAdapter(sqlQuery, conn, transaction);
+
+                // SET additional conditions param
+                objComm.SelectCommand = ApplyParameters(objComm.SelectCommand, conditionalFields, conditionalValues);
+
+
+
                 objComm.Fill(dataTable);
 
                 var modelList = dataTable.AsEnumerable().Select(row => new CustomerVM
