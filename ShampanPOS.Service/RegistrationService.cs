@@ -126,10 +126,31 @@ namespace ShampanPOS.Service
                                 userVm.CreatedFrom = registration.CreatedFrom;
                                 result = await _userProfileRepo.Insert(userVm, conn, transaction);
 
-                                if (result.Status != "Success")
+
+                                if (result.Status == "Success")
                                 {
-                                    throw new Exception(result.Message);
+                                    MenuAuthorizationRepository _menuRepo = new MenuAuthorizationRepository();
+
+                                    UserBranchProfileVM Vm = new UserBranchProfileVM();
+
+                                    Vm.UserId = registration.EmailAsLoginId;
+                                    Vm.CompanyId = companyId;
+                                    Vm.CreatedBy = registration.CreatedBy;
+                                    Vm.CreatedFrom = registration.CreatedFrom;
+
+                                    var menuResult = await _menuRepo.CopyRoleMenuToUser(Vm,conn,transaction);
+
+                                    if (menuResult.Status != "Success")
+                                    {
+                                        throw new Exception(menuResult.Message);
+                                    }
                                 }
+
+
+                                //if (result.Status != "Success")
+                                //{
+                                //    throw new Exception(result.Message);
+                                //}
 
                                 // ==============================
                                 // ✅ USER BRANCH MAP (DEFAULT)

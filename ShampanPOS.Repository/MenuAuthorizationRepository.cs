@@ -1,12 +1,13 @@
-﻿using ShampanPOS.ViewModel;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using ShampanPOS.ViewModel;
+using ShampanPOS.ViewModel.CommonVMs;
+using ShampanPOS.ViewModel.KendoCommon;
+using ShampanPOS.ViewModel.Utility;
+using System.ComponentModel.Design;
 using System.Data;
 using System.Data.SqlClient;
 using System.Text.Json;
-using ShampanPOS.ViewModel.CommonVMs;
-using ShampanPOS.ViewModel.Utility;
-using ShampanPOS.ViewModel.KendoCommon;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using static ShampanPOS.ViewModel.KendoCommon.UtilityCommon;
 
 namespace ShampanPOS.Repository
@@ -1495,6 +1496,73 @@ ORDER BY
                 }
             }
         }
+
+
+
+        public async Task<ResultVM> CopyRoleMenuToUser(
+    UserBranchProfileVM vm,
+    SqlConnection conn,
+    SqlTransaction transaction)
+        {
+            ResultVM result = new ResultVM();
+
+            try
+            {
+                string query = @"
+INSERT INTO [dbo].[UserMenu]
+(
+    UserId,
+    RoleId,
+    MenuId,
+    CreatedOn,
+    CreatedFrom,
+    [List],
+    [Insert],
+    [Delete],
+    Post,
+    CompanyId
+)
+SELECT
+    @UserId,
+    1008,
+    UM.MenuId,
+    @CreatedOn,
+    @CreatedFrom,
+    0,
+    0,
+    0,
+    0,
+    @CompanyId
+FROM UserMenu UM
+WHERE UM.UserId = 'ERP';
+";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
+                {
+                    cmd.Parameters.AddWithValue("@UserId", vm.UserId);
+                    cmd.Parameters.AddWithValue("@CompanyId", vm.CompanyId);
+                    //cmd.Parameters.AddWithValue("@CreatedBy", vm.CreatedBy);
+                    cmd.Parameters.AddWithValue("@CreatedFrom", vm.CreatedFrom);
+                    cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
+
+                    await cmd.ExecuteNonQueryAsync();
+                }
+
+                result.Status = "Success";
+                result.Message = "Menu assigned successfully";
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Status = "Fail";
+                result.Message = ex.Message;
+                return result;
+            }
+        }
+
+
+
+
     }
 
 }

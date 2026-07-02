@@ -23,6 +23,7 @@
         public string? LastModifiedBy { get; set; }
         public string? LastUpdateFrom { get; set; }
         public string? LastModifiedOn { get; set; }
+        public int? CompanyId { get; set; }
 
     }
 
